@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.1 / First Dive** is a first-person, browser-based aquarium prototype: swim at your own pace through sand, rocks, plants, and soft blue-green water. No scores, timers, combat, accounts, or external assets.
+A quiet little world beneath the surface. **v0.1 / Pass 002 — Natural Swimming** is a first-person, browser-based aquarium prototype: swim at your own pace through sand, rocks, plants, and soft blue-green water. No scores, timers, combat, accounts, or external assets.
 
 ## Stack and requirements
 
@@ -40,16 +40,16 @@ Vite binds to all interfaces for cloud development; use `npm run dev -- --host 1
 | Left Shift | Swim downward                              |
 | Escape     | Release mouse capture and pause            |
 
-Click **Return to the Water** to resume. Pausing or losing browser focus clears held keys and momentum, so resuming cannot cause a sudden lurch. Diagonal input is normalized. There is no camera bob or roll, and looking straight up/down is limited.
+Click **Return to the Water** to resume. Pausing or losing browser focus clears held keys and momentum, so resuming cannot cause a sudden lurch. Diagonal input is normalized. Subtle stroke-related pitch feedback stays below 0.07 degrees, with no roll or visual position offsets. Looking straight up/down is limited.
 
 ## Current features
 
 - Seeded procedural aquarium with rippled sand, embedded rocks, planted banks, and visible glass seams.
 - Gentle plant sway, suspended particles, translucent light shafts, hemisphere and surface lighting, and distance fog.
-- First-person 3D swimming with configurable speed, acceleration, and drag. Exact exponential velocity integration keeps acceleration and displacement consistent across frame rates. Long frame gaps are capped at 100 ms.
+- First-person swimming with smooth kick-and-glide propulsion, weighted direction changes, progressive water drag, and damped breathing buoyancy. Bounded 1/240-second steps sample forces and integrate linear drag analytically; long frame gaps are capped at 100 ms.
 - A safe starting position and configurable clearance from the floor, surface, and all four walls.
 - Pointer lock only following an explicit button click. Escape, loss of focus, and hidden tabs pause controls.
-- Mouse sensitivity, movement speed, and reduced-motion preferences saved locally. Storage failure falls back to session settings. System reduced-motion preference is respected on first visit; the option uses direct mouse-look and freezes ambient sway.
+- Mouse sensitivity, movement speed, swimming feel, and reduced-motion preferences saved locally. Storage failure falls back to session settings. System reduced-motion preference is respected on first visit; the option uses direct mouse-look and freezes ambient sway.
 - Responsive canvas, device pixel ratio capped at 1.75, and messages for unavailable WebGL, lost graphics context, or denied pointer lock.
 - Explicit cleanup of listeners, animation frames, geometries, materials, renderer, and DOM on disposal / hot reload.
 
@@ -68,11 +68,31 @@ src/
 
 `Application` owns and disposes the systems. `Aquarium` owns its generated resources. The environment root is a Three.js group so future environment loaders can replace it without changing movement. Physics and settings have no dependency on the renderer and are tested in Node. Mouse deltas describe displacement and are not multiplied by frame time; look smoothing uses an exponential, delta-time-based blend. Movement follows the same yaw/pitch convention as the camera.
 
-Tune aquarium dimensions and clearance in `src/config/world.ts`; movement acceleration/damping there and speed defaults/ranges in `src/ui/settings.ts`. Keep seabed variation below the floor clearance. Camera FOV and pixel ratio live in `src/rendering/UnderwaterScene.ts`.
+Tune aquarium dimensions, clearance, and all physical/feedback parameters in `src/config/world.ts`; speed defaults/ranges and preset validation live in `src/ui/settings.ts`. Keep seabed variation below the floor clearance. Camera FOV and pixel ratio live in `src/rendering/UnderwaterScene.ts`.
+
+## Swimming physics and tuning
+
+Holding a horizontal movement key repeats an active stroke followed by a glide. A squared-sine envelope builds and fades the propulsion **force**, which is filtered before integration; velocity and position are never multiplied by a wave. A small baseline thrust softens the rhythm. Releasing input cuts thrust while velocity decays under water drag, settling tiny horizontal residuals to zero. Direction changes redirect the filtered force without resetting velocity. Diagonal normalization and pitch-relative forward movement are preserved; intentional vertical movement uses continuous thrust for control.
+
+Choose **Relaxed**, **Natural** (default), or **Responsive** in Settings. Existing v1 storage remains valid; missing/invalid feel values become Natural without losing other preferences. Speed is a nominal average horizontal speed: instantaneous speed varies across the stroke.
+
+| Preset     | Cycle (s) | Active fraction | Drag (1/s) | Force response (1/s) | Rhythmic fraction | Breathing force (m/s²) |
+| ---------- | --------- | --------------- | ---------- | -------------------- | ----------------- | ---------------------- |
+| Relaxed    | 1.4       | 0.35            | 0.8        | 5                    | 0.85              | 0.07                   |
+| Natural    | 1.1       | 0.45            | 1.1        | 8                    | 0.75              | 0.10                   |
+| Responsive | 0.8       | 0.50            | 1.8        | 12                   | 0.30              | 0.06                   |
+
+The independent five-second breathing force acts around a neutral depth with a 1.6/s² restoring spring and 2.4/s vertical damping. Natural hovering displacement is only a few centimeters. Intentional depth changes suppress breathing and move the neutral depth toward the projected coasting endpoint; release settles naturally there. Buoyancy fades within 25 cm of floor/surface, preventing repeated contact and boundary-induced drift. All integrated motion respects the existing clearance and outward-velocity cancellation.
+
+`SwimState.position` and `velocity` are authoritative physical state. `thrust` is the filtered propulsion acceleration; stroke/breath timers are independent and bounded. `neutralDepth` anchors buoyancy. `bodyPitch` is optional visual feedback only: it never changes position, velocity, collision, or input direction. No camera position offset is added. Future animation/audio/body systems can read stroke time, thrust, and breath time without owning movement or advancing its clocks.
+
+Reduced motion suppresses breathing force and visual pitch feedback while keeping smooth propulsion/inertia, direct mouse-look, and the existing frozen ambient motion. Enabling it during a breath allows the physical spring/damping to settle naturally. Pause/lock loss and visibility changes clear held inputs, velocities, forces, and rhythm state, reset neutral depth to the current position, and restart with a zero frame delta. Simulation and scene animation clocks do not advance while paused.
+
+For later tuning, adjust cadence/active fraction together, then drag/force response for glide and control. Reduce rhythmic fraction for steadier speed; lower breathing force or visual pitch for comfort. Subjective comfort and laptop GPU performance still need human playtesting.
 
 ## Validation and manual testing
 
-See [the pass validation record](docs/VALIDATION.md) for executed checks, screenshots, and practical limits. Unit tests cover movement direction, diagonal normalization, pitch-relative forward movement, vertical movement, acceleration, drag, frame-rate equivalence, frame-gap protection, all six boundaries, valid spawn, and settings validation/storage.
+See [the Pass 002 validation record](docs/VALIDATION_PASS_002.md) and [historical Pass 001 results](docs/VALIDATION.md) for executed checks, screenshots, and practical limits. Unit tests cover movement direction, diagonal normalization, pitch-relative forward movement, vertical movement, acceleration, drag, frame-rate equivalence, frame-gap protection, all six boundaries, valid spawn, and settings validation/storage.
 
 To test manually:
 
@@ -82,7 +102,10 @@ To test manually:
 4. Look left/right/up/down: motion should follow the mouse, stop short of a vertical flip, and never roll. Forward swimming should follow your view.
 5. Hold Space to the surface and Shift to the floor; swim toward every glass wall. The camera must remain inside with clearance.
 6. Press Escape while moving. Verify movement stops, then resume. Repeat after switching tabs or browser focus.
-7. Resize the browser and check canvas proportions and UI. Test a fresh visit with WebGL disabled to inspect the fallback message.
+7. Compare all three feel presets: hold W through several strokes, release to coast, and reverse direction repeatedly. There should be no full stops between strokes or sudden reversals.
+8. Hover for several breathing cycles, then ascend/descend and release. Verify subtle bounded breathing at the new depth. Repeat within 25 cm of floor/surface and with combined diagonal input against glass.
+9. Enable reduced motion and confirm breathing/sway stop while propulsion remains smooth. Pause near a boundary, wait, resume without held keys, and repeat after focus/tab loss.
+10. Resize the browser and check canvas proportions and UI. Test a fresh visit with WebGL disabled to inspect the fallback message.
 
 ## Known limitations
 

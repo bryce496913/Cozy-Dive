@@ -3,7 +3,9 @@ import { SwimControls } from '../controls/SwimControls';
 import {
   integrateSwimming,
   movementDirection,
-  type SwimState,
+  createSwimState,
+  resetSwimming,
+  type SwimTuning,
 } from '../player/swimming';
 import { UnderwaterScene } from '../rendering/UnderwaterScene';
 import { Interface } from '../ui/Interface';
@@ -18,15 +20,12 @@ export class Application {
   private readonly ui: Interface;
   private world?: UnderwaterScene;
   private controls?: SwimControls;
-  private readonly state: SwimState = {
-    position: { ...SPAWN },
-    velocity: { x: 0, y: 0, z: 0 },
-  };
+  private readonly state = createSwimState(SPAWN);
   private readonly direction = { x: 0, y: 0, z: 0 };
-  private readonly tuning = {
+  private readonly tuning: SwimTuning = {
     speed: DEFAULT_SETTINGS.speed,
-    acceleration: SWIMMING.acceleration,
-    damping: SWIMMING.damping,
+    feel: DEFAULT_SETTINGS.swimmingFeel,
+    reducedMotion: DEFAULT_SETTINGS.reducedMotion,
   };
   private settings: Settings;
   private entered = false;
@@ -63,10 +62,8 @@ export class Application {
         this.world.renderer.domElement,
         (locked) => {
           if (locked) this.entered = true;
-          this.state.velocity.x =
-            this.state.velocity.y =
-            this.state.velocity.z =
-              0;
+          resetSwimming(this.state);
+          this.previous = 0;
           this.ui.setLocked(locked, this.entered);
         },
       );
@@ -79,6 +76,7 @@ export class Application {
         () => {
           this.previous = 0;
           this.controls?.clear();
+          resetSwimming(this.state);
           if (document.hidden && this.controls?.locked)
             document.exitPointerLock();
         },
@@ -135,6 +133,8 @@ export class Application {
   };
   private applySettings(): void {
     this.tuning.speed = this.settings.speed;
+    this.tuning.feel = this.settings.swimmingFeel;
+    this.tuning.reducedMotion = this.settings.reducedMotion;
     if (this.controls) {
       this.controls.sensitivity = this.settings.sensitivity;
       this.controls.reducedMotion = this.settings.reducedMotion;
@@ -149,8 +149,8 @@ export class Application {
         )
       : 0;
     this.previous = now;
-    this.elapsed += dt;
     if (this.controls.locked && !document.hidden) {
+      this.elapsed += dt;
       this.controls.update(dt);
       movementDirection(
         this.controls.input,
@@ -166,7 +166,8 @@ export class Application {
       this.state.position.z,
     );
     this.world.camera.rotation.set(
-      this.controls.pitch,
+      this.controls.pitch +
+        (this.settings.reducedMotion ? 0 : this.state.bodyPitch),
       this.controls.yaw,
       0,
       'YXZ',

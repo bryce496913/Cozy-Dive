@@ -35,7 +35,8 @@ export class Interface {
         <div class="panel-heading"><h2>Make yourself at home.</h2><button id="close-settings" aria-label="Close settings">×</button></div>
         <label for="sensitivity">Mouse sensitivity <output id="sensitivity-value"></output></label><input id="sensitivity" type="range" min="0.25" max="2.5" step="0.05" />
         <label for="speed">Swimming speed <output id="speed-value"></output></label><input id="speed" type="range" min="1" max="5" step="0.1" />
-        <label class="check"><input id="reduced-motion" type="checkbox" />Reduced camera motion</label><p>Direct mouse-look, with plant and particle motion still. No camera bobbing is used.</p>
+        <label for="swimming-feel">Swimming feel</label><select id="swimming-feel"><option value="relaxed">Relaxed</option><option value="natural">Natural</option><option value="responsive">Responsive</option></select>
+        <label class="check"><input id="reduced-motion" type="checkbox" />Reduced camera motion</label><p>Direct mouse-look, with plant and particle motion still. Breathing buoyancy and subtle swimming sway are suppressed.</p>
         <p class="save-status" id="save-status" role="status">Preferences saved on this device.</p>
       </aside>
       <div class="swim-hud" hidden><span class="crosshair" aria-hidden="true">·</span><span class="hud-message">You have nowhere else to be.</span></div>
@@ -74,6 +75,8 @@ export class Interface {
     const sensitivity = this.get<HTMLInputElement>('sensitivity'),
       speed = this.get<HTMLInputElement>('speed'),
       reduced = this.get<HTMLInputElement>('reduced-motion');
+    const feel = this.get<HTMLSelectElement>('swimming-feel');
+    feel.value = settings.swimmingFeel;
     sensitivity.value = String(settings.sensitivity);
     speed.value = String(settings.speed);
     reduced.checked = settings.reducedMotion;
@@ -84,12 +87,16 @@ export class Interface {
         `${Number(speed.value).toFixed(1)} m/s`;
       if (persist)
         onSettings({
+          swimmingFeel:
+            feel.value === 'relaxed' || feel.value === 'responsive'
+              ? feel.value
+              : 'natural',
           sensitivity: Number(sensitivity.value),
           speed: Number(speed.value),
           reducedMotion: reduced.checked,
         });
     };
-    for (const input of [sensitivity, speed, reduced])
+    for (const input of [sensitivity, speed, reduced, feel])
       input.addEventListener('input', () => update(true), { signal });
     update(false);
   }
