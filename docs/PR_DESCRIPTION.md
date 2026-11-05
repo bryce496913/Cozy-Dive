@@ -49,4 +49,4 @@ First gather swimming-feel feedback and measure hardware-GPU performance across 
 
 ## Delivery note
 
-The remote was empty at the start, with no main branch to use as a PR base. An empty initial-history commit exists on the feature branch, before all prototype files, so it can serve as a base if separately authorized. Do not create or change main without that authorization. GitHub API access also requires api.github.com to be allowed by the environment's network settings; a new domain addition was saved to the draft but not published.
+The remote was empty at the start. With explicit user authorization, main was created at the empty initial-history commit `6d541e4`; all prototype files remain on `codex/v0.1-pass-001-foundation`. GitHub API access still requires api.github.com to be allowed by the environment's network settings; a new domain addition was saved to the draft but not published. The API retry after creating main was denied by the network policy.
