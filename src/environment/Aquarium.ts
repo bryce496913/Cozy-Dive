@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { AQUARIUM } from '../config/world';
+import { CollisionWorld, type ConvexCollider } from '../player/collision';
+import { rockCollider } from './rockCollider';
 
 // Seeded scenery stays reproducible; no asset downloads or runtime randomness.
 function randomSource(seed: number): () => number {
@@ -10,11 +12,13 @@ function randomSource(seed: number): () => number {
 }
 export class Aquarium {
   readonly root = new THREE.Group();
+  readonly collision: CollisionWorld;
   private readonly plants: THREE.Group[] = [];
   private readonly motes: THREE.Points;
   private readonly beams: THREE.Group;
   constructor() {
     const rand = randomSource(1729);
+    const colliders: ConvexCollider[] = [];
     const sandGeometry = new THREE.PlaneGeometry(36, 28, 90, 70);
     sandGeometry.rotateX(-Math.PI / 2);
     const positions = sandGeometry.attributes.position;
@@ -51,7 +55,7 @@ export class Aquarium {
           flatShading: true,
         }),
     );
-    const rock = (x: number, z: number, size: number): void => {
+    const rock = (x: number, z: number, size: number, solid = true): void => {
       const mesh = new THREE.Mesh(
         rockGeometry,
         rockMaterials[Math.floor(rand() * rockMaterials.length)],
@@ -60,6 +64,10 @@ export class Aquarium {
       mesh.scale.set(size, height, size * (0.65 + rand() * 0.5));
       mesh.position.set(x, height * 0.61, z);
       mesh.rotation.set(rand() * 0.3, rand() * 6, rand() * 0.25);
+      if (solid) {
+        mesh.updateMatrix();
+        colliders.push(rockCollider(rockGeometry, mesh.matrix));
+      }
       this.root.add(mesh);
     };
     // The central sand channel is open, with planted rocky banks on either side.
@@ -68,7 +76,8 @@ export class Aquarium {
       rock(side * (5.5 + rand() * 10), -11 + rand() * 19, 0.6 + rand() * 2.0);
     }
     for (let i = 0; i < 55; i++)
-      rock(-17 + rand() * 34, -13 + rand() * 26, 0.08 + rand() * 0.24);
+      rock(-17 + rand() * 34, -13 + rand() * 26, 0.08 + rand() * 0.24, false);
+    this.collision = new CollisionWorld(colliders, AQUARIUM);
 
     const leafMaterials = [0x427d62, 0x57936c, 0x76a17a, 0x2f6d5b].map(
       (c) =>
@@ -78,6 +87,7 @@ export class Aquarium {
           roughness: 0.9,
         }),
     );
+    // Thin leaf planes only: no woody stems/bases, so all current foliage is passable.
     for (let i = 0; i < 65; i++) {
       const plant = new THREE.Group();
       const side = i % 2 === 0 ? -1 : 1;

@@ -1,39 +1,41 @@
-# Natural swimming, breathing, and buoyancy — v0.1 Pass 002
+# v0.1 Pass 003 — Breathing buoyancy polish and environmental collision
 
-Holding a movement key now produces smooth kicks and recognizable glides instead of continuously chasing a fixed speed. Releasing input preserves momentum; direction changes redirect filtered propulsion without an impulse. Existing controls, aquarium layout, mouse-look, pointer lock, and v1 preferences remain supported.
+Stationary hovering now has a more visible, restrained five-second breath, and the 34 major aquarium rocks block the player with sliding contacts. Existing kick-and-glide propulsion, controls, presets, settings, scene layout, and pause behavior are preserved.
 
-## Physics and breathing
+## Breathing tuning
 
-- A C1 squared-sine stroke envelope drives acceleration, with a small baseline thrust and exponential force response. Linear water drag integrates velocity and displacement analytically per bounded step (at most 1/240 second, capped at 100 ms per frame). Horizontal residual velocities below 0.001 m/s settle to zero.
-- Five-second breathing adds a small periodic buoyancy force around a damped neutral-depth spring, independent of stroke timing. Intentional ascent/descent suppresses breathing and updates neutral depth to the projected coasting endpoint. Buoyancy fades near floor/surface to prevent repeated contact and drift.
-- Physical position/velocity own bounds checking. Optional filtered pitch feedback is below 0.07 degrees, with no visual position offsets or roll. Reduced motion suppresses breathing and visual feedback while preserving propulsion/inertia.
-- Pause/visibility/lock changes clear held input, force, momentum, and rhythm clocks; the next frame starts with zero delta. Visual pitch freezes during pause and eases on resume.
+Measured Pass 002 Natural hovering at **6.64 cm peak-to-peak**. Its five-second force frequency is already near the hover spring's natural frequency; damping dominates the response, so lowering stiffness would add little displacement and risk changing depth settling. Keep the spring (1.6/s²), vertical damping (2.4/s), vertical speed, and projected neutral-depth endpoint unchanged. Increase buoyancy force moderately by 40%: Natural **0.10 → 0.14 m/s²**, Relaxed **0.07 → 0.098**, Responsive **0.06 → 0.084**.
 
-## Default tuning
+Natural now hovers at approximately **9.30 cm peak-to-peak** in clear water, within the requested 5–12 cm target. Relaxed/Responsive remain relatively gentler. All values stay in `src/config/world.ts`; reduced motion, boundary fade, independent breathing timing, and suppression during intentional vertical movement remain intact. No new visible settings are added.
 
-Natural: 1.1-second stroke cycle, 45% active, drag 1.1/s, force response 8/s, rhythmic fraction 0.75, breathing force 0.10 m/s². Nominal horizontal speed remains 2.8 m/s. Vertical speed is 80% of nominal, vertical damping 2.4/s, hover stiffness 1.6/s², and breathing cycle five seconds. Breathing fades within 25 cm of the vertical limits.
+## Collision strategy
 
-Relaxed uses a 1.4-second cycle, 35% active, drag 0.8/s, and gentler force response/breathing. Responsive uses 0.8 seconds, 50% active, drag 1.8/s, faster force response, and a reduced rhythmic fraction. All physical tuning is centralized in `src/config/world.ts`. Settings add one accessible preset selector and keep the existing local-storage key; old/invalid feel values default to Natural.
+- A 28 cm player sphere sweeps against convex rock hulls derived once from the actual rendered vertices and transforms. The 34 substantial rocks register hulls; scenery positions and random sequence are unchanged.
+- Thin seagrass/leaves and the 55 small decorative pebbles remain passable. No current plant has a thick structural stem/base requiring a collider.
+- A pure TypeScript collision module handles earliest contacts, inward-velocity removal, and tangential sliding after each bounded physics substep. Aquarium walls participate in the same sweep to prevent sliding through glass.
+- Multiple contact normals constrain corners and overlapping formations; initial penetration recovery finds a local free exit from the connected union. Contact leaves propulsion forces, neutral depth, and breathing clocks intact.
+- Bounding-box rejection and reusable contact storage keep normal steps lightweight. No physics library, new render pass, or animation system is added.
 
 ## Validation
 
-See `docs/VALIDATION_PASS_002.md` for executed results and browser limitations. Automated simulations cover smooth stroke timing, gliding, release/coasting, reversals, long-term buoyancy stability, neutral-depth changes, combined vertical input, all bounds, reduced motion, settings migration, lifecycle reset, and 30/60/120 FPS consistency.
+See `docs/VALIDATION_PASS_003.md` for executed project checks, displacement measurements, browser results, and performance limits. Tests cover ten-minute breathing stability at 30/60/120 FPS, visible amplitude, transitions, boundaries, real generated hull geometry and spawn safety, sweeping/sliding, vertical contact, corners/overlaps, contact stability/reversal, frame-rate consistency, real-bank routes, and pause/resume regressions.
 
-## Manual testing checklist
+## Manual macOS playtest checklist
 
-- [ ] Compare all presets on a hardware GPU; hold W for several strokes and release to coast.
-- [ ] Reverse/strafe repeatedly; check weighted movement and prompt mouse-look.
-- [ ] Hover for several five-second breaths; verify bounded depth without cumulative drift.
-- [ ] Ascend/descend and release; settle naturally at the new depth.
-- [ ] Swim continuously into each glass wall and repeat strokes there.
-- [ ] Hover near floor/surface; check for vibration, clipping, and sharp corrections.
-- [ ] Combine forward/ascent and descent/direction changes near boundaries.
-- [ ] Pause/resume near limits; switch focus/tabs and confirm cleared inputs and no jumps.
-- [ ] Toggle reduced motion and reload; check saved speed/sensitivity/feel and comfort.
-- [ ] Repeat in macOS Safari, Firefox, and Edge; assess subjective comfort over an extended session.
+- [ ] Hover through several breaths in Natural; expect slow ±4–5 cm movement without bobbing or depth drift.
+- [ ] Compare Relaxed/Responsive; check reduced motion suppresses buoyancy and optional sway.
+- [ ] Swim, release, reverse, strafe, and change depth; confirm Pass 002's feel is preserved.
+- [ ] Approach large rocks from every direction, including ascent/descent and diagonals.
+- [ ] Hold input against a rock for multiple strokes; slide along its face, then reverse away.
+- [ ] Check overlapping banks, narrow gaps, and rocks beside glass for trapping/jitter.
+- [ ] Hover near a rock top, floor, and surface; check clearance and continuous motion.
+- [ ] Swim through seagrass and decorative pebbles; confirm no invisible foliage barriers.
+- [ ] Pause/resume in contact; switch tabs/focus; confirm no retained keys or camera jumps.
+- [ ] Reload and verify speed, sensitivity, presets, and reduced-motion preferences.
+- [ ] Assess hardware-GPU performance and extended comfort on macOS; repeat in target browsers.
 
-## Limitations and future tuning
+## Remaining limitations
 
-No diver body, animation, audio, equipment/air simulation, scenery collision, or new environments. This is lightweight gameplay physics, not a scientific diving simulation. Hardware-GPU performance, cross-browser coverage, and subjective comfort require human playtesting. Tune cadence/active fraction first, drag/force response for stopping distance next, and rhythmic fraction/breathing force/visual pitch for comfort. Future body/audio animation can consume stroke time, thrust, and breathing time without advancing physics clocks.
+Static convex collision only: sphere expansion uses conservative face offsets with a small extra margin around sharp corners. Thin foliage and decorative pebbles remain passable; sand relies on floor clearance. The environment root must remain untransformed; future moving scenery needs collider updates. An eight-contact budget conservatively discards unresolved displacement in unusually complex contact arrangements. No diver model, audio, plant deformation, or rigid-body physics. Software-rendered Chromium and CPU measurements do not establish macOS GPU performance, cross-browser compatibility, or subjective comfort.
 
 Do not merge automatically.

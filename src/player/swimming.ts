@@ -1,3 +1,4 @@
+import type { CollisionWorld } from './collision';
 import {
   SWIMMING,
   SWIM_FEELS,
@@ -106,6 +107,7 @@ export function integrateSwimming(
   dt: number,
   tuning: SwimTuning,
   bounds: Bounds,
+  collision?: CollisionWorld,
 ): void {
   if (!Number.isFinite(dt) || dt <= 0) return;
   dt = Math.min(dt, SWIMMING.maxFrameDelta);
@@ -118,6 +120,9 @@ export function integrateSwimming(
   const low = bounds.min.y + bounds.clearance;
   const high = bounds.max.y - bounds.clearance;
   for (let i = 0; i < steps; i++) {
+    const fromX = state.position.x,
+      fromY = state.position.y,
+      fromZ = state.position.z;
     const phase = (state.strokeTime + h / 2) / feel.cycle;
     const pulse = moving ? strokeEnvelope(phase, feel.active) : 0;
     const force = moving
@@ -180,6 +185,7 @@ export function integrateSwimming(
           state.position.y + state.velocity.y / SWIMMING.verticalDrag,
         ),
       );
+    if (collision) collision.move(state, fromX, fromY, fromZ);
     clampToBounds(state, bounds);
     state.neutralDepth = Math.max(low, Math.min(high, state.neutralDepth));
     state.bodyPitch +=

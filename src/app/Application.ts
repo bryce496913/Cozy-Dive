@@ -158,7 +158,14 @@ export class Application {
         this.controls.pitch,
         this.direction,
       );
-      integrateSwimming(this.state, this.direction, dt, this.tuning, AQUARIUM);
+      integrateSwimming(
+        this.state,
+        this.direction,
+        dt,
+        this.tuning,
+        AQUARIUM,
+        this.world.aquarium.collision,
+      );
     }
     this.world.camera.position.set(
       this.state.position.x,
