@@ -31,7 +31,7 @@ export const SWIM_FEELS: Record<SwimmingFeel, FeelTuning> = {
     drag: 0.8,
     response: 5,
     rhythm: 0.85,
-    breathing: 0.07,
+    breathing: 0.098,
   },
   natural: {
     cycle: 1.1,
@@ -39,7 +39,7 @@ export const SWIM_FEELS: Record<SwimmingFeel, FeelTuning> = {
     drag: 1.1,
     response: 8,
     rhythm: 0.75,
-    breathing: 0.1,
+    breathing: 0.14,
   },
   responsive: {
     cycle: 0.8,
@@ -47,7 +47,7 @@ export const SWIM_FEELS: Record<SwimmingFeel, FeelTuning> = {
     drag: 1.8,
     response: 12,
     rhythm: 0.3,
-    breathing: 0.06,
+    breathing: 0.084,
   },
 };
 export const SWIMMING = {
@@ -62,4 +62,11 @@ export const SWIMMING = {
   verticalInputThreshold: 0.0001,
   settleSpeed: 0.001,
   bodyPitch: 0.0012,
+};
+
+export const COLLISION = {
+  playerRadius: 0.28,
+  skin: 0.00001,
+  epsilon: 0.0000001,
+  maxContacts: 8,
 };

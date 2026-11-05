@@ -344,3 +344,65 @@ describe('natural swimming', () => {
     },
   );
 });
+
+describe('Pass 003 hovering polish', () => {
+  it.each([30, 60, 120])(
+    'has a visible, gentle Natural breath at %s FPS',
+    (fps) => {
+      const s = state();
+      simulate(s, 30, direction(), tuning, fps);
+      let min = Infinity,
+        max = -Infinity,
+        fastest = 0;
+      for (let i = 0; i < fps * 10; i++) {
+        integrateSwimming(s, direction(), 1 / fps, tuning, AQUARIUM);
+        min = Math.min(min, s.position.y);
+        max = Math.max(max, s.position.y);
+        fastest = Math.max(fastest, Math.abs(s.velocity.y));
+      }
+      expect(max - min).toBeGreaterThan(0.085);
+      expect(max - min).toBeLessThan(0.105);
+      expect((min + max) / 2).toBeCloseTo(s.neutralDepth, 5);
+      expect(fastest).toBeLessThan(0.065);
+    },
+  );
+  it('keeps preset breathing strength ordered without changing the five-second cycle', () => {
+    const amplitudes = (['responsive', 'relaxed', 'natural'] as const).map(
+      (feel) => {
+        const settings = { ...tuning, feel };
+        const s = state();
+        simulate(s, 30, direction(), settings);
+        let min = Infinity,
+          max = -Infinity;
+        for (let i = 0; i < 600; i++) {
+          integrateSwimming(s, direction(), 1 / 60, settings, AQUARIUM);
+          min = Math.min(min, s.position.y);
+          max = Math.max(max, s.position.y);
+        }
+        expect(s.breathingTime).toBeCloseTo(0, 5);
+        return max - min;
+      },
+    );
+    expect(amplitudes[0]).toBeLessThan(amplitudes[1]);
+    expect(amplitudes[1]).toBeLessThan(amplitudes[2]);
+  });
+  it.each([30, 60, 120])(
+    'transitions from intentional descent to hovering continuously at %s FPS',
+    (fps) => {
+      const s = state();
+      simulate(s, 1, direction(1, 0, -1), tuning, fps);
+      const neutral = s.neutralDepth;
+      let previousY = s.position.y,
+        previousVelocity = s.velocity.y;
+      for (let i = 0; i < fps * 30; i++) {
+        integrateSwimming(s, direction(), 1 / fps, tuning, AQUARIUM);
+        expect(Math.abs(s.position.y - previousY)).toBeLessThan(0.065);
+        expect(Math.abs(s.velocity.y - previousVelocity)).toBeLessThan(0.15);
+        previousY = s.position.y;
+        previousVelocity = s.velocity.y;
+      }
+      expect(s.neutralDepth).toBe(neutral);
+      expect(Math.abs(s.position.y - neutral)).toBeLessThan(0.05);
+    },
+  );
+});
