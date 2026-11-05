@@ -1,10 +1,24 @@
 import type { Vec3 } from '../config/world';
 
 export type SpeciesId = 'neon-tetra' | 'harlequin-rasbora' | 'honey-gourami';
+export interface SchoolingTuning {
+  readonly enabled: boolean;
+  readonly spacing: number;
+  readonly separationRange: number;
+  readonly separationWeight: number;
+  readonly alignmentRadius: number;
+  readonly alignmentWeight: number;
+  readonly cohesionRadius: number;
+  readonly cohesionWeight: number;
+  readonly reconnectRadius: number;
+  readonly maxNeighbors: number;
+  readonly wanderWeight: number;
+}
 export interface FishSpecies {
   readonly id: SpeciesId;
   readonly name: string;
   readonly count: number;
+  readonly schooling: SchoolingTuning;
   readonly length: number;
   readonly height: number;
   readonly width: number;
@@ -32,6 +46,19 @@ export const FISH_SPECIES: readonly FishSpecies[] = [
     id: 'neon-tetra',
     name: 'Neon tetra',
     count: 8,
+    schooling: {
+      enabled: true,
+      spacing: 0.45,
+      separationRange: 1.1,
+      separationWeight: 2.8,
+      alignmentRadius: 5,
+      alignmentWeight: 1.3,
+      cohesionRadius: 7,
+      cohesionWeight: 0.9,
+      reconnectRadius: 11,
+      maxNeighbors: 6,
+      wanderWeight: 0.45,
+    },
     length: 0.58,
     height: 0.17,
     width: 0.12,
@@ -58,6 +85,19 @@ export const FISH_SPECIES: readonly FishSpecies[] = [
     id: 'harlequin-rasbora',
     name: 'Harlequin rasbora',
     count: 6,
+    schooling: {
+      enabled: true,
+      spacing: 0.8,
+      separationRange: 1.1,
+      separationWeight: 2.4,
+      alignmentRadius: 5.5,
+      alignmentWeight: 1.0,
+      cohesionRadius: 9,
+      cohesionWeight: 0.65,
+      reconnectRadius: 13,
+      maxNeighbors: 5,
+      wanderWeight: 0.65,
+    },
     length: 0.76,
     height: 0.31,
     width: 0.18,
@@ -83,6 +123,19 @@ export const FISH_SPECIES: readonly FishSpecies[] = [
     id: 'honey-gourami',
     name: 'Honey gourami',
     count: 2,
+    schooling: {
+      enabled: false,
+      spacing: 0.55,
+      separationRange: 1.2,
+      separationWeight: 2,
+      alignmentRadius: 0,
+      alignmentWeight: 0,
+      cohesionRadius: 0,
+      cohesionWeight: 0,
+      reconnectRadius: 0,
+      maxNeighbors: 0,
+      wanderWeight: 1,
+    },
     length: 1.05,
     height: 0.6,
     width: 0.28,
@@ -114,4 +167,11 @@ export const FISH_STEERING = {
   targetDistance: 0.85,
   spawnPlayerClearance: 3,
   spawnSeparation: 0.25,
+};
+
+export const SCHOOLING_SAFETY = {
+  socialFadeDanger: 0.75,
+  separationProjectDanger: 0.3,
+  separationFade: 0.65,
+  closingSpeedReduction: 0.4,
 };

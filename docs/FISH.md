@@ -1,18 +1,19 @@
-# Fish foundation — v0.2 Pass 001
+# Fish simulation — v0.2 Pass 002
 
-The environment owns 16 independent freshwater fish: 8 neon tetras, 6 harlequin rasboras, 2 honey gouramis. This pass establishes reusable entities, models, timing, and independent steering; it does not implement boids, formal schooling, feeding, behavior state machines, fish-player reactions, or fish UI.
+The environment owns 16 freshwater fish: 8 neon tetras form moderately cohesive schools, 6 harlequin rasboras coordinate in looser groups, and 2 honey gouramis remain independent. All fish have size-aware personal space. Models, animation, seeded initial variations, fixed timing, player movement, and resource ownership are preserved from Pass 001. There is no feeding, behavior state machine, fish-player reaction, or fish UI.
 
 ## Modules and ownership
 
-| Module            | Responsibility                                                                                                                                                                 |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `FishSpecies.ts`  | Registry: counts, body proportions/profiles, appearance, habitat, speed/turn/acceleration limits, wander timing, tail cadence; simulation/steering tuning                      |
-| `FishEntity.ts`   | Authoritative pure individual state: position, velocity, heading, size, temperament, persistent target, seeded RNG, animation phase; previous samples solely for interpolation |
-| `FishSpawner.ts`  | Reproducible population and individual variation; bounded placement attempts, habitat validation, body spacing, player-start clearance                                         |
-| `FishHabitat.ts`  | Read-only aquarium bounds and existing convex rock data; body containment checks without Three.js or player physics                                                            |
-| `FishMovement.ts` | Independent steering, acceleration/heading limits, 30 Hz accumulator, bounded catch-up, final containment guard                                                                |
-| `FishGeometry.ts` | Shared per-species organic lofted bodies, curved skin markings, fins, eyes, articulation templates, exact resource ownership                                                   |
-| `FishSystem.ts`   | Bridge from simulation to interpolated Object3D transforms; render animation, reduced-motion presentation, disposal                                                            |
+| Module             | Responsibility                                                                                                                                                                 |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `FishSpecies.ts`   | Registry: counts, body proportions/profiles, appearance, habitat, speed/turn/acceleration limits, wander timing, tail cadence; simulation/steering tuning                      |
+| `FishEntity.ts`    | Authoritative pure individual state: position, velocity, heading, size, temperament, persistent target, seeded RNG, animation phase; previous samples solely for interpolation |
+| `FishSpawner.ts`   | Reproducible population and individual variation; bounded placement attempts, habitat validation, body spacing, player-start clearance                                         |
+| `FishHabitat.ts`   | Read-only aquarium bounds and existing convex rock data; body containment checks without Three.js or player physics                                                            |
+| `FishMovement.ts`  | Individual locomotion, safety-prioritized social blending, acceleration/heading limits, 30 Hz accumulator, bounded catch-up, final containment guard                           |
+| `FishSchooling.ts` | Stable step-snapshot neighbor evaluation, all-species separation, same-species alignment/cohesion, reusable bounded scratch buffers                                            |
+| `FishGeometry.ts`  | Shared per-species organic lofted bodies, curved skin markings, fins, eyes, articulation templates, exact resource ownership                                                   |
+| `FishSystem.ts`    | Bridge from simulation to interpolated Object3D transforms; render animation, reduced-motion presentation, disposal                                                            |
 
 `Aquarium` constructs `FishSystem` after registering rocks and adds its root to the environment root. `Application` passes its already-bounded frame delta and active pointer-lock state through `UnderwaterScene.render` to `Aquarium.update`. Player movement is unmodified. Hidden pages skip rendering/updating; paused frames render frozen fish. Fish code adds no global listeners, animation-frame callbacks, or asynchronous resources.
 
@@ -36,15 +37,41 @@ A conservative spherical body radius is 56% of species length times individual s
 
 Spawning uses loose species regions, preferred depths, variable headings/phases/sizes, a three-unit exclusion around the initial diver, and pairwise body-radius separation plus 0.25 units. The finite placement budget fails clearly for impossible populations instead of silently spawning into scenery. No player proximity is read after spawning.
 
-## Configuration and future schooling
+## Schooling pipeline and tuning
 
-The registry holds all species population and movement settings. The default seed and 30 Hz budget live beside it. Model construction stays in `FishGeometry`; smooth longitudinal profiles and elliptical sections produce dimensional silhouettes. Shared curved surface patches carry the neon blue/red bands and rasbora wedge; gourami fins use rounded outlines. No texture downloads, extra render pass, shadow maps, skeletal animation framework, or fish physics dependency are added.
+At each fixed step, `FishSimulation` first calls its owned `FishSchooling.calculate()`. That phase reads all current positions/headings/velocities and completes **every** fish's influence before `stepFish` advances anyone. This provides a logical immutable snapshot without copying every entity each frame. Evaluation and neighbor tie-breaking use a stable unique-id order, so even reversing the locomotion update array leaves results unchanged. Cached forces are separate from authoritative entity positions and persist unchanged during pause.
 
-Pass 002 can compute separation/alignment/cohesion vectors over the authoritative fish states, then combine them with the target/depth steering before the existing avoidance and heading/speed caps. Keep group data separate from individual state and preserve seeded timing. Predictive safety and final containment should remain authoritative. Larger populations may justify neighbor indexing, batching compatible components, or instancing; measure before adding those systems.
+Each directed pair's squared distance is reused for separation and social-neighbor selection. All nearby bodies, including different species, contribute separation. Alignment/cohesion use the closest bounded set of matching species ids, selected into reusable typed arrays. No spatial index, per-step vector/array allocation, leader, shared waypoint, group turning timer, position constraint, or additional RNG draw is introduced. The cache assumes a fixed population; future spawn/removal must rebuild it with the new stable unique identities.
+
+- **Separation:** comfortable distance is the sum of the two conservative body radii plus the observing species' spacing gap. A quadratic distance falloff strengthens repulsion as bodies approach, with a small consistent passing bias and a capped total force. Coincident centers use a deterministic antisymmetric id-based direction, never a random impulse or division by zero. Relative closing motion adds gentle early deceleration through the existing acceleration cap.
+- **Alignment:** nearby same-species forward headings contribute a distance-weighted mean. Opposing headings can cancel rather than forcing an arbitrary common direction. Turn-rate limits still apply; individual targets, speed factors, temperament, and fin phases remain independent.
+- **Cohesion:** a local weighted center gently attracts fish outside a body-size-aware comfortable dead zone. A bounded reconnection range lets stragglers approach nearby companions without a global tether. Cohesion has reduced vertical influence to preserve depth variation. It does not correct positions or enforce a formation.
+
+| Tuning                           | Neon tetra | Harlequin rasbora | Honey gourami |
+| -------------------------------- | ---------: | ----------------: | ------------: |
+| Social schooling enabled         |        Yes |               Yes |            No |
+| Surface spacing gap              |       0.45 |              0.80 |          0.55 |
+| Extra separation range           |       1.10 |              1.10 |          1.20 |
+| Separation force cap             |       2.80 |              2.40 |          2.00 |
+| Alignment radius / weight        |  5.0 / 1.3 |         5.5 / 1.0 |      Disabled |
+| Cohesion radius / weight         |  7.0 / 0.9 |        9.0 / 0.65 |      Disabled |
+| Reconnection radius              |         11 |                13 |      Disabled |
+| Maximum social neighbors         |          6 |                 5 |             0 |
+| Nearby-neighbor wandering weight |       0.45 |              0.65 |           1.0 |
+
+Distances use aquarium world units. All species settings live in `FishSpecies.schooling`. Temperament scales social response by approximately ±10% without changing seeded spawning or consuming movement randomness. Tetras favor coordination more strongly; rasboras retain more wander influence and a larger comfortable gap; gouramis receive separation only, even near other gouramis.
+
+`stepFish` computes the original wandering/depth and rock/wall contributions, then blends the cached influences before the unchanged heading/speed caps and candidate-position guard. `SCHOOLING_SAFETY` centralizes the priority controls: attraction/alignment fade quadratically to zero by danger 0.75; inward separation is projected off the avoidance direction above danger 0.3; separation fades up to 65% in restricted space; close encounters can reduce target speed by up to 40%. Obstacles keep their original force. This lets individuals select different routes around a rock and reconnect later, rather than pulling the entire group through it or keeping a rigid formation.
+
+The registry still owns proportions, colors/markings, preferred depth, movement limits, and animation cadence. `FishGeometry` and `FishSystem` are unchanged by this pass: no new meshes, materials, render passes, textures, animation loops, or GPU resource ownership. See `VALIDATION_V02_PASS_002.md` for simulations, browser observations, CPU measurements, and manual macOS checks.
+
+## Preparation for Pass 003
+
+Future individual behaviors can select persistent movement intentions or targets before the existing social/safety blend. Keep social neighbor evaluation on a consistent snapshot and preserve unique ids, individual seeded RNG, acceleration/turn limits, and final containment. Feeding, resting, curiosity, and caution states are deliberately not implemented here. Larger populations may justify neighbor indexing only after measurement; the 16-fish shipping population and 32-fish stress scenario use a simple bounded pairwise scan.
 
 ## Limits
 
-- Runtime fish-to-fish overlap is allowed until separation/schooling is added. Spawn overlap is prohibited.
+- Personal space is soft steering, not a rigid collision constraint. Occasional close passes can occur in forced/dense configurations; spawn overlap remains prohibited. Schools may temporarily fragment or wander beyond finite reconnection range.
 - Independent steering is local, not a global path planner. Dense artificial obstacles can trigger the conservative guard or require future navigation improvements.
 - Body spheres and expanded face planes are conservative around narrow gaps and sharp corners. Fins do not have independent collision volumes.
 - Habitats currently use static, untransformed environment-local rock data. Moving scenery or transformed environments need updated collider data.

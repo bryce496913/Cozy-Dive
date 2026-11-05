@@ -1,5 +1,6 @@
+import { FishSchooling, type SchoolForces } from './FishSchooling';
 import { angleDifference, randomFish, type FishEntity } from './FishEntity';
-import { FISH_STEERING, FISH_TIMING } from './FishSpecies';
+import { FISH_STEERING, FISH_TIMING, SCHOOLING_SAFETY } from './FishSpecies';
 import { safeFishPosition, type FishHabitat } from './FishHabitat';
 
 const clamp = (value: number, low: number, high: number): number =>
@@ -43,11 +44,12 @@ function chooseTarget(fish: FishEntity, habitat: FishHabitat): void {
     randomFish(fish) * (s.wanderSeconds[1] - s.wanderSeconds[0]);
 }
 
-/** Independent steering. Future group steering can add a vector before the heading/speed limits. */
+/** Individual locomotion with optional precomputed social steering below obstacle priority. */
 export function stepFish(
   fish: FishEntity,
   habitat: FishHabitat,
   dt: number,
+  school?: SchoolForces,
 ): void {
   if (!Number.isFinite(dt) || dt <= 0) return;
   dt = Math.min(dt, FISH_TIMING.step);
@@ -83,6 +85,9 @@ export function stepFish(
   // Gentle soft habitat preference, rather than an invisible depth boundary.
   if (p.y < s.depth[0]) ty += (s.depth[0] - p.y) * 0.5;
   if (p.y > s.depth[1]) ty -= (p.y - s.depth[1]) * 0.5;
+  const wanderX = tx,
+    wanderY = ty,
+    wanderZ = tz;
   const hx = Math.cos(fish.yaw) * Math.cos(fish.pitch),
     hy = Math.sin(fish.pitch),
     hz = -Math.sin(fish.yaw) * Math.cos(fish.pitch);
@@ -152,6 +157,44 @@ export function stepFish(
     tx += -nz * weight * 0.32 * side;
     tz += nx * weight * 0.32 * side;
   }
+  if (school) {
+    const ax = tx - wanderX,
+      ay = ty - wanderY,
+      az = tz - wanderZ;
+    const social =
+      Math.max(0, 1 - danger / SCHOOLING_SAFETY.socialFadeDanger) ** 2;
+    let sx = school.separation.x,
+      sy = school.separation.y,
+      sz = school.separation.z;
+    const lengthSquared = ax * ax + ay * ay + az * az;
+    const inward = sx * ax + sy * ay + sz * az;
+    if (
+      danger > SCHOOLING_SAFETY.separationProjectDanger &&
+      lengthSquared > 1e-8 &&
+      inward < 0
+    ) {
+      sx -= (ax * inward) / lengthSquared;
+      sy -= (ay * inward) / lengthSquared;
+      sz -= (az * inward) / lengthSquared;
+    }
+    const separation = 1 - danger * SCHOOLING_SAFETY.separationFade;
+    // Obstacles retain their original force; social attraction fades first in restricted space.
+    tx =
+      ax +
+      wanderX * (1 - (1 - school.wander) * social) +
+      (school.alignment.x + school.cohesion.x) * social +
+      sx * separation;
+    ty =
+      ay +
+      wanderY * (1 - (1 - school.wander) * social) +
+      (school.alignment.y + school.cohesion.y) * social +
+      sy * separation;
+    tz =
+      az +
+      wanderZ * (1 - (1 - school.wander) * social) +
+      (school.alignment.z + school.cohesion.z) * social +
+      sz * separation;
+  }
   const desiredYaw = Math.atan2(-tz, tx);
   const desiredPitch = clamp(
     Math.atan2(ty, Math.hypot(tx, tz)),
@@ -177,7 +220,8 @@ export function stepFish(
       s.speed * fish.speedFactor * variation,
     ) *
     (1 - 0.45 * danger) *
-    (1 - 0.3 * Math.min(1, desiredTurn));
+    (1 - 0.3 * Math.min(1, desiredTurn)) *
+    (1 - SCHOOLING_SAFETY.closingSpeedReduction * (school?.pressure ?? 0));
   fish.speed += clamp(
     targetSpeed - fish.speed,
     -s.acceleration * dt,
@@ -223,6 +267,7 @@ export function stepFish(
 /** Fixed cadence simulation, independent of render FPS and player updates. */
 export class FishSimulation {
   readonly fish: FishEntity[];
+  readonly schooling: FishSchooling;
   private accumulator = 0;
   time = 0;
   steps = 0;
@@ -231,6 +276,7 @@ export class FishSimulation {
     readonly habitat: FishHabitat,
   ) {
     this.fish = fish;
+    this.schooling = new FishSchooling(fish);
   }
   get alpha(): number {
     return this.accumulator / FISH_TIMING.step;
@@ -243,8 +289,14 @@ export class FishSimulation {
       this.accumulator + 1e-10 >= FISH_TIMING.step &&
       catchUp < FISH_TIMING.maxCatchUp
     ) {
+      this.schooling.calculate();
       for (const fish of this.fish)
-        stepFish(fish, this.habitat, FISH_TIMING.step);
+        stepFish(
+          fish,
+          this.habitat,
+          FISH_TIMING.step,
+          this.schooling.forFish(fish),
+        );
       this.accumulator = Math.max(0, this.accumulator - FISH_TIMING.step);
       this.time += FISH_TIMING.step;
       this.steps++;
