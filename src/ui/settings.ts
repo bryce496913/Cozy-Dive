@@ -1,4 +1,6 @@
+import type { SwimmingFeel } from '../config/world';
 export interface Settings {
+  swimmingFeel: SwimmingFeel;
   sensitivity: number;
   speed: number;
   reducedMotion: boolean;
@@ -9,6 +11,7 @@ export interface SettingsStore {
 }
 export const SETTINGS_KEY = 'cozy-diver.settings.v1';
 export const DEFAULT_SETTINGS: Settings = {
+  swimmingFeel: 'natural',
   sensitivity: 1,
   speed: 2.8,
   reducedMotion: false,
@@ -28,6 +31,10 @@ export function validateSettings(value: unknown): Settings {
       ? (value as Record<string, unknown>)
       : {};
   return {
+    swimmingFeel:
+      data.swimmingFeel === 'relaxed' || data.swimmingFeel === 'responsive'
+        ? data.swimmingFeel
+        : 'natural',
     sensitivity: numberInRange(
       data.sensitivity,
       0.25,

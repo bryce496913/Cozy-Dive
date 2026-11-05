@@ -31,7 +31,12 @@ describe('settings', () => {
   it('clamps valid numeric values and rejects non-finite or wrong types', () => {
     expect(
       validateSettings({ speed: 100, sensitivity: -5, reducedMotion: true }),
-    ).toEqual({ speed: 5, sensitivity: 0.25, reducedMotion: true });
+    ).toEqual({
+      speed: 5,
+      sensitivity: 0.25,
+      reducedMotion: true,
+      swimmingFeel: 'natural',
+    });
     expect(
       validateSettings({
         speed: NaN,
@@ -45,7 +50,12 @@ describe('settings', () => {
   });
   it('round trips preferences and preserves an explicit reduced-motion choice', () => {
     const store = memoryStore(),
-      settings = { speed: 3.6, sensitivity: 1.25, reducedMotion: false };
+      settings = {
+        ...DEFAULT_SETTINGS,
+        speed: 3.6,
+        sensitivity: 1.25,
+        reducedMotion: false,
+      };
     expect(saveSettings(store, settings)).toBe(true);
     expect(loadSettings(store, true)).toEqual(settings);
   });
@@ -69,4 +79,26 @@ describe('settings', () => {
     });
     expect(saveSettings(store, DEFAULT_SETTINGS)).toBe(false);
   });
+});
+
+it('migrates old preferences and validates swimming feel', () => {
+  const store = memoryStore();
+  store.setItem(
+    SETTINGS_KEY,
+    JSON.stringify({ speed: 3.2, sensitivity: 1.4, reducedMotion: true }),
+  );
+  expect(loadSettings(store)).toEqual({
+    speed: 3.2,
+    sensitivity: 1.4,
+    reducedMotion: true,
+    swimmingFeel: 'natural',
+  });
+  for (const swimmingFeel of ['relaxed', 'natural', 'responsive'] as const) {
+    expect(saveSettings(store, { ...DEFAULT_SETTINGS, swimmingFeel })).toBe(
+      true,
+    );
+    expect(loadSettings(store).swimmingFeel).toBe(swimmingFeel);
+  }
+  for (const swimmingFeel of [null, 3, 'fast', {}, true])
+    expect(validateSettings({ swimmingFeel }).swimmingFeel).toBe('natural');
 });

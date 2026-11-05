@@ -1,52 +1,39 @@
-# v0.1 / Pass 001: First Dive foundation and swimming prototype
+# Natural swimming, breathing, and buoyancy — v0.1 Pass 002
 
-## Summary
+Holding a movement key now produces smooth kicks and recognizable glides instead of continuously chasing a fixed speed. Releasing input preserves momentum; direction changes redirect filtered propulsion without an impulse. Existing controls, aquarium layout, mouse-look, pointer lock, and v1 preferences remain supported.
 
-Create Cozy Diver's first playable desktop browser prototype from the empty repository. Players enter a procedural aquarium, swim in three dimensions with calm acceleration and drag, pause with Escape, and resume. Local settings control sensitivity, swimming speed, and reduced motion. There are no backend services or remotely hosted assets.
+## Physics and breathing
 
-## Architectural decisions
+- A C1 squared-sine stroke envelope drives acceleration, with a small baseline thrust and exponential force response. Linear water drag integrates velocity and displacement analytically per bounded step (at most 1/240 second, capped at 100 ms per frame). Horizontal residual velocities below 0.001 m/s settle to zero.
+- Five-second breathing adds a small periodic buoyancy force around a damped neutral-depth spring, independent of stroke timing. Intentional ascent/descent suppresses breathing and updates neutral depth to the projected coasting endpoint. Buoyancy fades near floor/surface to prevent repeated contact and drift.
+- Physical position/velocity own bounds checking. Optional filtered pitch feedback is below 0.07 degrees, with no visual position offsets or roll. Reduced motion suppresses breathing and visual feedback while preserving propulsion/inertia.
+- Pause/visibility/lock changes clear held input, force, momentum, and rhythm clocks; the next frame starts with zero delta. Visual pitch freezes during pause and eases on resume.
 
-- Vite, strict TypeScript, and Three.js, with npm lockfile, Vitest, ESLint, and Prettier.
-- Application lifecycle, rendering, environment generation, input, pure swimming logic, and UI/settings are separate modules.
-- Use exact exponential movement integration and normalized camera-relative input rather than a physics engine. Clamp the player with clearance on all six aquarium boundaries.
-- Generate deterministic sand, embedded rocks, plants, glass boundaries, suspended particles, and restrained light shafts from code. Cap pixel ratio and explicitly dispose owned GPU resources and listeners.
-- Acquire pointer lock only following user action. Clear input/momentum on pause. Handle WebGL, storage, and pointer-lock failures with user-facing messages.
-- Persist settings only. Honor system reduced motion initially and offer direct-look/reduced ambient motion.
+## Default tuning
 
-## Tests and results
+Natural: 1.1-second stroke cycle, 45% active, drag 1.1/s, force response 8/s, rhythmic fraction 0.75, breathing force 0.10 m/s². Nominal horizontal speed remains 2.8 m/s. Vertical speed is 80% of nominal, vertical damping 2.4/s, hover stiffness 1.6/s², and breathing cycle five seconds. Breathing fades within 25 cm of the vertical limits.
 
-- Dependency installation and Vite development/preview startup passed.
-- `npm run build`, `npm run typecheck`, and `npm run lint` passed.
-- `npm run test`: 26 passed across 2 files; none skipped.
-- Chromium/SwiftShader browser smoke: render, entry, WASD, mouse-look, pitch limits/no roll, vertical movement, momentum/drag, floor/surface bounds, Escape/pause/resume, settings persistence after refresh, responsive sizing, and no normal gameplay console errors passed.
-- Production preview: rendering, entry/resume, WebGL unavailable/context-loss messages, blocked storage, and denied pointer lock passed.
-- Build retains a nonblocking Three.js bundle-size advisory (~140.58 KB gzip JavaScript).
+Relaxed uses a 1.4-second cycle, 35% active, drag 0.8/s, and gentler force response/breathing. Responsive uses 0.8 seconds, 50% active, drag 1.8/s, faster force response, and a reduced rhythmic fraction. All physical tuning is centralized in `src/config/world.ts`. Settings add one accessible preset selector and keep the existing local-storage key; old/invalid feel values default to Natural.
 
-See [validation evidence and screenshots](VALIDATION.md). Firefox, Safari, Edge, and hardware-GPU performance were not verified. Browser tests exercised the floor/surface directly; unit tests cover all six boundaries.
+## Validation
 
-## Screenshots
+See `docs/VALIDATION_PASS_002.md` for executed results and browser limitations. Automated simulations cover smooth stroke timing, gliding, release/coasting, reversals, long-term buoyancy stability, neutral-depth changes, combined vertical input, all bounds, reduced motion, settings migration, lifecycle reset, and 30/60/120 FPS consistency.
 
-![Welcome](screenshots/welcome.png)
+## Manual testing checklist
 
-![Swimming](screenshots/swimming.png)
+- [ ] Compare all presets on a hardware GPU; hold W for several strokes and release to coast.
+- [ ] Reverse/strafe repeatedly; check weighted movement and prompt mouse-look.
+- [ ] Hover for several five-second breaths; verify bounded depth without cumulative drift.
+- [ ] Ascend/descend and release; settle naturally at the new depth.
+- [ ] Swim continuously into each glass wall and repeat strokes there.
+- [ ] Hover near floor/surface; check for vibration, clipping, and sharp corrections.
+- [ ] Combine forward/ascent and descent/direction changes near boundaries.
+- [ ] Pause/resume near limits; switch focus/tabs and confirm cleared inputs and no jumps.
+- [ ] Toggle reduced motion and reload; check saved speed/sensitivity/feel and comfort.
+- [ ] Repeat in macOS Safari, Firefox, and Edge; assess subjective comfort over an extended session.
 
-## Manual browser test
+## Limitations and future tuning
 
-1. `npm ci`, then `npm run dev`; open Vite's printed address in a desktop browser.
-2. Change settings, refresh, and confirm persistence. Click Enter the Water.
-3. Test WASD, mouse, Space, and Left Shift, including diagonals; release keys and observe drag.
-4. Look in all directions and verify no roll/flip. Swim toward each wall, the floor, and surface.
-5. Escape while moving; verify pause. Resume and repeat after switching focus/tabs.
-6. Resize the viewport and inspect UI/canvas. Check the console for unexpected errors.
+No diver body, animation, audio, equipment/air simulation, scenery collision, or new environments. This is lightweight gameplay physics, not a scientific diving simulation. Hardware-GPU performance, cross-browser coverage, and subjective comfort require human playtesting. Tune cadence/active fraction first, drag/force response for stopping distance next, and rhythmic fraction/breathing force/visual pitch for comfort. Future body/audio animation can consume stroke time, thrust, and breathing time without advancing physics clocks.
 
-## Known limitations
-
-Desktop only. Rocks/plants are non-colliding scenery; only aquarium volume bounds constrain movement. No office, fish AI, customization, passages, ocean, sound, progression, accounts, or backend. Graphics-context loss requires reload. Position is not saved. Visuals are intentionally simple and need hardware-GPU/cross-browser playtesting.
-
-## Next pass
-
-First gather swimming-feel feedback and measure hardware-GPU performance across target browsers. Then develop v0.2 Living Aquarium with modest marine life and scene refinement within the measured budgets. The roadmap remains provisional.
-
-## Delivery note
-
-The remote was empty at the start. With explicit user authorization, main was created at the empty initial-history commit `6d541e4`; all prototype files remain on `codex/v0.1-pass-001-foundation`. GitHub API access still requires api.github.com to be allowed by the environment's network settings; a new domain addition was saved to the draft but not published. The API retry after creating main was denied by the network policy.
+Do not merge automatically.

@@ -4,14 +4,18 @@ import {
   clampToBounds,
   integrateSwimming,
   movementDirection,
-  type SwimState,
+  createSwimState,
+  resetSwimming,
+  strokeEnvelope,
+  type SwimTuning,
 } from '../src/player/swimming';
 
-const tuning = { speed: 2.8, acceleration: 2.4, damping: 1.7 };
-const state = (): SwimState => ({
-  position: { x: 0, y: 7, z: 0 },
-  velocity: { x: 0, y: 0, z: 0 },
-});
+const tuning: SwimTuning = {
+  speed: 2.8,
+  feel: 'natural',
+  reducedMotion: false,
+};
+const state = () => createSwimState({ x: 0, y: 7, z: 0 });
 const direction = (forward = 0, right = 0, up = 0, yaw = 0, pitch = 0) =>
   movementDirection({ forward, right, up }, yaw, pitch, { x: 0, y: 0, z: 0 });
 
@@ -49,25 +53,26 @@ describe('camera-relative swimming directions', () => {
 });
 
 describe('water integration', () => {
-  it('accelerates gradually toward configured speed', () => {
+  it('accelerates gradually to a reasonable rhythmic speed', () => {
     const s = state();
     integrateSwimming(s, direction(1), 1 / 60, tuning, AQUARIUM);
     expect(-s.velocity.z).toBeGreaterThan(0);
     expect(-s.velocity.z).toBeLessThan(tuning.speed);
     for (let i = 0; i < 180; i++)
       integrateSwimming(s, direction(1), 1 / 60, tuning, AQUARIUM);
-    expect(-s.velocity.z).toBeCloseTo(tuning.speed, 2);
+    expect(-s.velocity.z).toBeGreaterThan(1.5);
+    expect(-s.velocity.z).toBeLessThan(4.5);
   });
   it('retains momentum and decays naturally with no input', () => {
     const s = state();
     s.velocity.x = 2;
     integrateSwimming(s, direction(), 0.1, tuning, AQUARIUM);
-    expect(s.velocity.x).toBeCloseTo(2 * Math.exp(-tuning.damping * 0.1));
+    expect(s.velocity.x).toBeCloseTo(2 * Math.exp(-1.1 * 0.1));
     expect(s.position.x).toBeGreaterThan(0);
     expect(s.velocity.x).toBeGreaterThan(0);
   });
-  it('gives equivalent position and velocity at 30, 60 and 144 Hz', () => {
-    const results = [30, 60, 144].map((fps) => {
+  it('gives equivalent position and velocity at 30, 60 and 120 Hz', () => {
+    const results = [30, 60, 120].map((fps) => {
       const s = state();
       for (let i = 0; i < fps * 2; i++)
         integrateSwimming(s, direction(1), 1 / fps, tuning, AQUARIUM);
@@ -76,8 +81,8 @@ describe('water integration', () => {
       return s;
     });
     for (const s of results.slice(1)) {
-      expect(s.position.z).toBeCloseTo(results[0].position.z, 9);
-      expect(s.velocity.z).toBeCloseTo(results[0].velocity.z, 9);
+      expect(s.position.z).toBeCloseTo(results[0].position.z, 5);
+      expect(s.velocity.z).toBeCloseTo(results[0].velocity.z, 5);
     }
   });
   it('caps large frame gaps instead of teleporting', () => {
@@ -108,7 +113,7 @@ describe('water integration', () => {
       b,
       direction(1),
       0.1,
-      { ...tuning, speed: 5, acceleration: 4 },
+      { ...tuning, speed: 5, feel: 'responsive' },
       AQUARIUM,
     );
     expect(-b.velocity.z).toBeGreaterThan(-a.velocity.z);
@@ -161,4 +166,181 @@ describe('aquarium safety', () => {
       }
     }
   });
+});
+
+const openWater = {
+  min: { x: -10000, y: -10000, z: -10000 },
+  max: { x: 10000, y: 10000, z: 10000 },
+  clearance: 0.65,
+};
+function simulate(
+  s: ReturnType<typeof state>,
+  seconds: number,
+  d = direction(),
+  settings = tuning,
+  fps = 60,
+  bounds = openWater,
+): void {
+  for (let i = 0; i < Math.round(seconds * fps); i++)
+    integrateSwimming(s, d, 1 / fps, settings, bounds);
+}
+describe('natural swimming', () => {
+  it('has a smooth active stroke and a distinct passive phase', () => {
+    expect(strokeEnvelope(0, 0.45)).toBe(0);
+    expect(strokeEnvelope(0.225, 0.45)).toBeCloseTo(1);
+    expect(strokeEnvelope(0.45, 0.45)).toBe(0);
+    expect(strokeEnvelope(0.8, 0.45)).toBe(0);
+    expect(strokeEnvelope(1.225, 0.45)).toBeCloseTo(1);
+    expect(strokeEnvelope(0.0001, 0.45)).toBeLessThan(0.000001);
+    expect(strokeEnvelope(0.4499, 0.45)).toBeLessThan(0.000001);
+  });
+  it('repeats kicks with recognizable glides and never stops between strokes', () => {
+    const s = state();
+    simulate(s, 4, direction(1));
+    let min = Infinity,
+      max = 0,
+      maxChange = 0;
+    for (let i = 0; i < 132; i++) {
+      const previous = -s.velocity.z;
+      integrateSwimming(s, direction(1), 1 / 120, tuning, openWater);
+      const speed = -s.velocity.z;
+      min = Math.min(min, speed);
+      max = Math.max(max, speed);
+      maxChange = Math.max(maxChange, Math.abs(speed - previous));
+    }
+    expect(min).toBeGreaterThan(1.5);
+    expect(max - min).toBeGreaterThan(0.5);
+    expect(maxChange).toBeLessThan(0.12);
+    expect(s.strokeTime).toBeCloseTo(0.7, 5);
+  });
+  it('coasts on release, settles residual velocity, and reverses with weight', () => {
+    const s = state();
+    simulate(s, 2, direction(1));
+    const speed = -s.velocity.z;
+    simulate(s, 1 / 60, direction(-1));
+    expect(-s.velocity.z).toBeGreaterThan(0);
+    expect(Math.abs(-s.velocity.z - speed)).toBeLessThan(0.2);
+    simulate(s, 3, direction(-1));
+    expect(s.velocity.z).toBeGreaterThan(1);
+    const before = s.position.z;
+    simulate(s, 0.5);
+    expect(s.position.z).toBeGreaterThan(before);
+    expect(s.velocity.z).toBeGreaterThan(0);
+    expect(s.thrust.z).toBe(0);
+    simulate(s, 10);
+    expect(s.velocity.z).toBe(0);
+  });
+  it.each([30, 60, 120])(
+    'keeps breathing bounded without cumulative drift for ten minutes at %s Hz',
+    (fps) => {
+      const s = state();
+      let min = 7,
+        max = 7;
+      for (let i = 0; i < fps * 600; i++) {
+        integrateSwimming(s, direction(), 1 / fps, tuning, AQUARIUM);
+        min = Math.min(min, s.position.y);
+        max = Math.max(max, s.position.y);
+      }
+      expect(max - min).toBeGreaterThan(0.04);
+      expect(max - min).toBeLessThan(0.1);
+      const y = s.position.y;
+      simulate(s, 5, direction(), tuning, fps, AQUARIUM);
+      expect(s.position.y).toBeCloseTo(y, 5);
+      expect(s.neutralDepth).toBe(7);
+    },
+    30000,
+  );
+  it('matches long mixed swimming and breathing simulations across frame rates', () => {
+    const results = [30, 60, 120].map((fps) => {
+      const s = state();
+      simulate(s, 4, direction(1, 1, 1), tuning, fps);
+      simulate(s, 3, direction(-1, -1, -1), tuning, fps);
+      simulate(s, 60, direction(), tuning, fps);
+      return s;
+    });
+    for (const s of results.slice(1))
+      for (const axis of ['x', 'y', 'z'] as const) {
+        expect(s.position[axis]).toBeCloseTo(results[0].position[axis], 4);
+        expect(s.velocity[axis]).toBeCloseTo(results[0].velocity[axis], 4);
+      }
+  });
+  it.each([1, -1])(
+    'updates hovering depth during intentional vertical movement (%s)',
+    (up) => {
+      const s = state();
+      simulate(s, 2, direction(0, 0, up));
+      const released = s.position.y,
+        target = s.neutralDepth;
+      expect((released - 7) * up).toBeGreaterThan(2);
+      simulate(s, 20);
+      expect(Math.abs(s.position.y - target)).toBeLessThan(0.05);
+      expect((s.position.y - released) * up).toBeGreaterThan(0);
+    },
+  );
+  it('suppresses breathing while intentionally changing depth', () => {
+    const a = state(),
+      b = state();
+    simulate(a, 2, direction(1, 0, 1));
+    simulate(b, 2, direction(1, 0, 1), { ...tuning, reducedMotion: true });
+    expect(a.position).toEqual(b.position);
+    expect(a.velocity).toEqual(b.velocity);
+  });
+  it('reduced motion keeps propulsion but removes breathing and visual feedback', () => {
+    const s = state();
+    simulate(s, 30, direction(), { ...tuning, reducedMotion: true });
+    expect(s.position.y).toBe(7);
+    simulate(s, 3, direction(1), { ...tuning, reducedMotion: true });
+    expect(-s.velocity.z).toBeGreaterThan(1);
+    expect(s.bodyPitch).toBe(0);
+  });
+  it.each([0.65, 0.66, 13.34, 13.35])(
+    'breathes safely near vertical boundary %s without repeated contact',
+    (y) => {
+      const s = createSwimState({ x: 17.35, y, z: -13.35 });
+      simulate(s, 60, direction(), tuning, 60, AQUARIUM);
+      expect(Math.abs(s.position.y - y)).toBeLessThan(0.01);
+      expect(s.position.y).toBeGreaterThanOrEqual(0.65);
+      expect(s.position.y).toBeLessThanOrEqual(13.35);
+    },
+  );
+  it('constrains repeated combined strokes and permits smooth escape from walls', () => {
+    const s = state();
+    simulate(s, 60, direction(1, 1, 1), tuning, 60, AQUARIUM);
+    expect(s.position.x).toBe(17.35);
+    expect(s.position.z).toBe(-13.35);
+    expect(s.position.y).toBe(13.35);
+    expect(s.velocity).toEqual({ x: 0, y: 0, z: 0 });
+    simulate(s, 2, direction(-1, -1, -1), tuning, 60, AQUARIUM);
+    expect(s.position.x).toBeLessThan(17);
+    expect(s.position.z).toBeGreaterThan(-13);
+    expect(s.position.y).toBeLessThan(13);
+  });
+  it('resets rhythms, forces, and momentum on pause and resumes gently at a boundary', () => {
+    const s = state();
+    simulate(s, 20, direction(1, 0, 1), tuning, 60, AQUARIUM);
+    const position = { ...s.position };
+    const bodyPitch = s.bodyPitch;
+    resetSwimming(s);
+    expect(s.position).toEqual(position);
+    expect(s.neutralDepth).toBe(position.y);
+    expect(s.velocity).toEqual({ x: 0, y: 0, z: 0 });
+    expect(s.thrust).toEqual({ x: 0, y: 0, z: 0 });
+    expect(s.breathingTime).toBe(0);
+    expect(s.strokeTime).toBe(0);
+    expect(s.bodyPitch).toBe(bodyPitch);
+    integrateSwimming(s, direction(), 0, tuning, AQUARIUM);
+    expect(s.position).toEqual(position);
+    simulate(s, 1 / 60, direction(), tuning, 60, AQUARIUM);
+    expect(Math.abs(s.position.y - position.y)).toBeLessThan(0.0001);
+  });
+  it.each(['relaxed', 'natural', 'responsive'] as const)(
+    'keeps the %s preset usable and stable',
+    (feel) => {
+      const s = state();
+      simulate(s, 20, direction(1), { ...tuning, feel });
+      expect(-s.velocity.z).toBeGreaterThan(1);
+      expect(-s.velocity.z).toBeLessThan(5);
+      expect(Math.abs(s.position.y - 7)).toBeLessThan(0.05);
+    },
+  );
 });
