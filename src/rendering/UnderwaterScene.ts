@@ -61,8 +61,8 @@ export class UnderwaterScene {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
     this.renderer.setSize(width, height);
   };
-  render(time: number, reducedMotion: boolean): void {
-    this.aquarium.update(time, reducedMotion);
+  render(time: number, reducedMotion: boolean, dt = 0, active = false): void {
+    this.aquarium.update(time, reducedMotion, dt, active);
     this.renderer.render(this.scene, this.camera);
   }
   dispose(): void {

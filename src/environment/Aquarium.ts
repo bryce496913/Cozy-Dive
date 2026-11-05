@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { AQUARIUM } from '../config/world';
 import { CollisionWorld, type ConvexCollider } from '../player/collision';
 import { rockCollider } from './rockCollider';
+import { FishSystem } from '../fish/FishSystem';
 
 // Seeded scenery stays reproducible; no asset downloads or runtime randomness.
 function randomSource(seed: number): () => number {
@@ -13,6 +14,7 @@ function randomSource(seed: number): () => number {
 export class Aquarium {
   readonly root = new THREE.Group();
   readonly collision: CollisionWorld;
+  readonly fish: FishSystem;
   private readonly plants: THREE.Group[] = [];
   private readonly motes: THREE.Points;
   private readonly beams: THREE.Group;
@@ -207,8 +209,11 @@ export class Aquarium {
       this.beams.add(beam);
     }
     this.root.add(this.beams);
+    this.fish = new FishSystem({ bounds: AQUARIUM, rocks: colliders });
+    this.root.add(this.fish.root);
   }
-  update(time: number, reducedMotion: boolean): void {
+  update(time: number, reducedMotion: boolean, dt = 0, active = false): void {
+    this.fish.update(dt, active, reducedMotion);
     for (let i = 0; i < this.plants.length; i++) {
       this.plants[i].rotation.z = reducedMotion
         ? 0
@@ -221,6 +226,7 @@ export class Aquarium {
     this.beams.rotation.y = reducedMotion ? 0 : Math.sin(time * 0.12) * 0.015;
   }
   dispose(): void {
+    this.fish.dispose();
     const geometries = new Set<THREE.BufferGeometry>();
     const materials = new Set<THREE.Material>();
     this.root.traverse((object) => {

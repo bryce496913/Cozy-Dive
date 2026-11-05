@@ -1,41 +1,57 @@
-# v0.1 Pass 003 — Breathing buoyancy polish and environmental collision
+# v0.2 Pass 001 — Fish Architecture & First Species
 
-Stationary hovering now has a more visible, restrained five-second breath, and the 34 major aquarium rocks block the player with sliding contacts. Existing kick-and-glide propulsion, controls, presets, settings, scene layout, and pause behavior are preserved.
+The aquarium now contains **16 independently swimming fish**: 8 neon tetras, 6 harlequin rasboras, and 2 honey gouramis. Fish are owned by the environment and freeze with gameplay. Existing player swimming, breathing, collisions, controls, camera, preferences, scenery, and pixel-ratio cap are preserved.
 
-## Breathing tuning
+## Architecture and presentation
 
-Measured Pass 002 Natural hovering at **6.64 cm peak-to-peak**. Its five-second force frequency is already near the hover spring's natural frequency; damping dominates the response, so lowering stiffness would add little displacement and risk changing depth settling. Keep the spring (1.6/s²), vertical damping (2.4/s), vertical speed, and projected neutral-depth endpoint unchanged. Increase buoyancy force moderately by 40%: Natural **0.10 → 0.14 m/s²**, Relaxed **0.07 → 0.098**, Responsive **0.06 → 0.084**.
+The new `src/fish/` subsystem separates the species registry, authoritative individual state, seeded safe spawning, pure movement/habitat logic, shared model templates, and environment-owned simulation/render bridge. Three procedural silhouettes include lofted organic bodies, head/tail regions, eyes, separate caudal fins, dorsal/lower fins, and pectorals. Neon tetras carry blue/red skin bands; copper rasboras have a dark curved rear wedge; golden gouramis have deeper oval bodies and rounded fins. Shared geometry and materials belong to per-species templates and are disposed once.
 
-Natural now hovers at approximately **9.30 cm peak-to-peak** in clear water, within the requested 5–12 cm target. Relaxed/Responsive remain relatively gentler. All values stay in `src/config/world.ts`; reduced motion, boundary fade, independent breathing timing, and suppression during intentional vertical movement remain intact. No new visible settings are added.
+A lightweight articulated rear section, caudal joint, and pectoral poses animate at individual phases. Cadence/amplitude follow actual movement speed, with restrained turn banking. Reduced motion removes bank and halves optional flex while retaining essential fin animation. No external runtime assets, new dependency, global rendering pass, or skeletal framework is introduced.
 
-## Collision strategy
+## Movement, avoidance, and timing
 
-- A 28 cm player sphere sweeps against convex rock hulls derived once from the actual rendered vertices and transforms. The 34 substantial rocks register hulls; scenery positions and random sequence are unchanged.
-- Thin seagrass/leaves and the 55 small decorative pebbles remain passable. No current plant has a thick structural stem/base requiring a collider.
-- A pure TypeScript collision module handles earliest contacts, inward-velocity removal, and tangential sliding after each bounded physics substep. Aquarium walls participate in the same sweep to prevent sliding through glass.
-- Multiple contact normals constrain corners and overlapping formations; initial penetration recovery finds a local free exit from the connected union. Contact leaves propulsion forces, neutral depth, and breathing clocks intact.
-- Bounding-box rejection and reusable contact storage keep normal steps lightweight. No physics library, new render pass, or animation system is added.
+A pure **30 Hz fixed simulation**, bounded four-step catch-up, and interpolated visual transforms keep fish independent from player physics and render FPS. Per-fish persistent targets, preferred depths, bounded acceleration and angular speed, seeded variation, and individual timing produce distinct independent paths. Outward target samples are rejected rather than repeatedly clamped onto glass corners.
 
-## Validation
+Predictive wall/rock steering reads the existing major-rock hulls through a read-only habitat, without invoking or modifying the player's swept solver. Conservative body radii and a final candidate-position safeguard prevent escaped or embedded fish. Initial population placement excludes rocks, glass, other fish bodies, and the initial diver. Foliage remains passable. There is no schooling, runtime fish separation, feeding, or diver reaction yet.
 
-See `docs/VALIDATION_PASS_003.md` for executed project checks, displacement measurements, browser results, and performance limits. Tests cover ten-minute breathing stability at 30/60/120 FPS, visible amplitude, transitions, boundaries, real generated hull geometry and spawn safety, sweeping/sliding, vertical contact, corners/overlaps, contact stability/reversal, frame-rate consistency, real-bank routes, and pause/resume regressions.
+## Validation and performance
 
-## Manual macOS playtest checklist
+All **87 tests** pass, including all 68 existing regressions, along with typechecking, linting, and the production build. Browser checks passed for real fish/player movement, rock avoidance, pause/resume, reduced motion, preferences, 32-fish stress, and cleanup. Ten-minute simulations record zero final-guard corrections. Pure fish simulation averaged about **0.102 ms/step for 16** and **0.148 ms/step for 32** in this environment.
 
-- [ ] Hover through several breaths in Natural; expect slow ±4–5 cm movement without bobbing or depth drift.
-- [ ] Compare Relaxed/Responsive; check reduced motion suppresses buoyancy and optional sway.
-- [ ] Swim, release, reverse, strafe, and change depth; confirm Pass 002's feel is preserved.
-- [ ] Approach large rocks from every direction, including ascent/descent and diagonals.
-- [ ] Hold input against a rock for multiple strokes; slide along its face, then reverse away.
-- [ ] Check overlapping banks, narrow gaps, and rocks beside glass for trapping/jitter.
-- [ ] Hover near a rock top, floor, and surface; check clearance and continuous motion.
-- [ ] Swim through seagrass and decorative pebbles; confirm no invisible foliage barriers.
-- [ ] Pause/resume in contact; switch tabs/focus; confirm no retained keys or camera jumps.
-- [ ] Reload and verify speed, sensitivity, presets, and reduced-motion preferences.
-- [ ] Assess hardware-GPU performance and extended comfort on macOS; repeat in target browsers.
+The fixed overview measured **270 scenery draws**, **382 with 16 fish**, and **494 with 32 fish**. Both populations share **17 geometry buffers and 7 materials**; all owned resources dispose once. Thin fins render in one pass and static eye detail shares the body draw. SwiftShader frame intervals were slow and noisy even without fish, so **60 FPS and MacBook hardware performance are not established**; see the full timing table and spike measurements in the validation record. The existing bundle advisory remains.
 
-## Remaining limitations
+See `docs/VALIDATION_V02_PASS_001.md` for automated results, measured normal/32-fish scenarios, browser checks, resource cleanup, and limits. `docs/FISH.md` documents ownership, timing, tuning, and preparation for Pass 002 steering forces.
 
-Static convex collision only: sphere expansion uses conservative face offsets with a small extra margin around sharp corners. Thin foliage and decorative pebbles remain passable; sand relies on floor clearance. The environment root must remain untransformed; future moving scenery needs collider updates. An eight-contact budget conservatively discards unresolved displacement in unusually complex contact arrangements. No diver model, audio, plant deformation, or rigid-body physics. Software-rendered Chromium and CPU measurements do not establish macOS GPU performance, cross-browser compatibility, or subjective comfort.
+## Screenshots
 
-Do not merge automatically.
+Captured from real Chromium rendering in the existing aquarium; close-ups move the test camera beside individual fish without replacing the environment.
+
+![Freshwater population](screenshots/v0.2-pass001/aquarium.png)
+
+![Neon tetra](screenshots/v0.2-pass001/neon-tetra.png)
+
+![Harlequin rasbora](screenshots/v0.2-pass001/harlequin-rasbora.png)
+
+![Honey gourami](screenshots/v0.2-pass001/honey-gourami.png)
+
+## Manual macOS acceptance checklist
+
+- [ ] Identify all three species from the side, front, and above; inspect fins, eyes, and species markings.
+- [ ] Confirm fish swim nose-first with articulated tails and subtle body/pectoral movement.
+- [ ] Compare agile tetras, moderate rasboras, and slower deliberate gouramis.
+- [ ] Observe several minutes: smooth acceleration/turns, independent phases/paths, no synchronized loops.
+- [ ] Watch glass corners and rocky banks: early turns, no embedding, clipping, or persistent jitter.
+- [ ] Confirm 16 fish feel populated without overcrowding and delicate foliage remains passable.
+- [ ] Pause while watching fish, wait, resume, switch tabs/focus, and refresh. Verify frozen poses and no catch-up jump.
+- [ ] Enable reduced motion: optional bank/flex recedes while tail/pectoral animation remains visible.
+- [ ] Swim among visible fish and check mouse-look, breathing, all movement keys, glass limits, and rock sliding.
+- [ ] Reload settings; verify preferences and deterministic initial fish population.
+- [ ] Assess smooth frame rate and extended comfort on a hardware-GPU macOS browser; repeat across target browsers.
+
+## Limitations and Pass 002 preparation
+
+Independent local steering is not schooling or global pathfinding. Fish may overlap after spawning; runtime separation, alignment, and cohesion are reserved for Pass 002. Fish do not react to or collide with the diver. Conservative body spheres can avoid narrow gaps; an emergency containment guard can briefly hold an externally forced near-contact fish while it turns. Hulls assume static, untransformed environment coordinates. Individually articulated meshes use shared resources but still add draw calls; larger populations need measured batching/neighbor-indexing work. Procedural models are lightly stylized and use a miniature-world presentation scale.
+
+Pass 002 can add group steering vectors over the existing authoritative entity states before avoidance and heading/speed caps. Keep individual RNG/timing, environment ownership, and final containment independent of group behavior.
+
+No MacBook Air hardware performance or cross-browser claim is made from software-rendered Chromium. Do not merge automatically.

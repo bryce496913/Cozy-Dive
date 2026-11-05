@@ -181,7 +181,12 @@ export class Application {
     );
     this.ui.setDepth(AQUARIUM.max.y - this.state.position.y);
     if (!document.hidden)
-      this.world.render(this.elapsed, this.settings.reducedMotion);
+      this.world.render(
+        this.elapsed,
+        this.settings.reducedMotion,
+        dt,
+        this.controls.locked,
+      );
     this.frame = requestAnimationFrame(this.tick);
   };
   dispose = (): void => {
