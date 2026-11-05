@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.2 / Pass 001 — Fish Architecture & First Species** is a first-person, browser-based aquarium prototype: swim at your own pace through sand, rocks, plants, and soft blue-green water. No scores, timers, combat, accounts, or external assets.
+A quiet little world beneath the surface. **v0.2 / Pass 002 — Schooling & Group Intelligence** is a first-person, browser-based aquarium prototype: swim at your own pace through sand, rocks, plants, and soft blue-green water. No scores, timers, combat, accounts, or external assets.
 
 ## Stack and requirements
 
@@ -44,7 +44,7 @@ Click **Return to the Water** to resume. Pausing or losing browser focus clears 
 
 ## Current features
 
-- Seeded procedural aquarium with rippled sand, embedded rocks, planted banks, visible glass seams, and 16 independently swimming freshwater fish.
+- Seeded procedural aquarium with rippled sand, embedded rocks, planted banks, visible glass seams, and 16 freshwater fish with species-specific social behavior.
 - Gentle plant sway, suspended particles, translucent light shafts, hemisphere and surface lighting, and distance fog.
 - First-person swimming with smooth kick-and-glide propulsion, weighted direction changes, progressive water drag, and damped breathing buoyancy. Bounded 1/240-second steps sample forces and integrate linear drag analytically; long frame gaps are capped at 100 ms.
 - A safe starting position, clearance from all six aquarium boundaries, and sliding collisions against the 34 major generated rocks. Thin foliage and decorative pebbles remain passable.
@@ -77,9 +77,9 @@ The initial population is **8 neon tetras**, **6 harlequin rasboras**, and **2 h
 
 Fish appear immediately and begin swimming when you enter the water. They use their own **fixed 30 Hz simulation**, with interpolated poses at the render frame rate and bounded catch-up. Holding pause or hiding the page freezes positions and animation without advancing their clock. Reduced motion suppresses optional banking and halves rear-body flex; essential tail and pectoral motion remains visible.
 
-Persistent individual targets, bounded speed/turn changes, soft preferred depths, and predictive rock/wall steering produce independent paths. Fish read the existing major-rock hulls without running or changing the player's collision solver. Conservative body radii and a final candidate-position guard protect against unusual near-contact conditions. Foliage and decorative pebbles remain passable. Fish-to-fish separation is enforced at spawn; coordinated schooling, runtime separation, feeding, and diver reactions are deferred to later passes.
+Persistent individual targets, bounded speed/turn changes, soft preferred depths, and predictive rock/wall steering remain the basis of each fish’s movement. Neon tetras now form moderately cohesive schools; harlequin rasboras coordinate in looser groups; honey gouramis explore independently. All species maintain personal space through size-aware separation, including across species. Fish read the existing major-rock hulls without running or changing the player's collision solver. Conservative body radii and a final candidate-position guard protect against unusual near-contact conditions. Foliage and decorative pebbles remain passable. At every 30 Hz step, a consistent population snapshot supplies bounded nearest-neighbor alignment/cohesion and all-neighbor close separation. Obstacle danger fades social attraction and removes separation directed into the avoidance force, allowing schools to split around scenery and reconnect through ordinary swimming. There are no leaders, scripted paths, position tethers, or synchronized timers. Feeding and diver reactions remain deferred.
 
-Population counts, body proportions, colors, habitat preferences, speed/turn limits, and animation cadence live in `src/fish/FishSpecies.ts`. The default seed reproduces initial positions and individual variations on refresh; live positions are not saved. Models/materials are shared per species and disposed through the environment lifecycle. See [fish architecture and tuning](docs/FISH.md) for ownership, movement, extension points, and limitations.
+Population counts, body proportions, colors, habitat preferences, speed/turn limits, animation cadence, and schooling parameters live in `src/fish/FishSpecies.ts`. The default seed reproduces initial positions and individual variations on refresh; live positions are not saved. Models/materials are shared per species and disposed through the environment lifecycle. See [fish architecture and tuning](docs/FISH.md) for ownership, movement, extension points, and limitations.
 
 ![The first freshwater population](docs/screenshots/v0.2-pass001/aquarium.png)
 
@@ -117,7 +117,7 @@ For later tuning, adjust cadence/active fraction together, then drag/force respo
 
 ## Validation and manual testing
 
-See [v0.2 Pass 001 fish validation](docs/VALIDATION_V02_PASS_001.md), [the Pass 003 validation record](docs/VALIDATION_PASS_003.md), [Pass 002 results](docs/VALIDATION_PASS_002.md) and [historical Pass 001 results](docs/VALIDATION.md) for executed checks, screenshots, and practical limits. Unit tests cover movement direction, diagonal normalization, pitch-relative forward movement, vertical movement, acceleration, drag, frame-rate equivalence, frame-gap protection, all six boundaries, valid spawn, and settings validation/storage.
+See [v0.2 Pass 002 schooling validation](docs/VALIDATION_V02_PASS_002.md), [v0.2 Pass 001 fish validation](docs/VALIDATION_V02_PASS_001.md), [the Pass 003 validation record](docs/VALIDATION_PASS_003.md), [Pass 002 results](docs/VALIDATION_PASS_002.md) and [historical Pass 001 results](docs/VALIDATION.md) for executed checks, screenshots, and practical limits. Unit tests cover movement direction, diagonal normalization, pitch-relative forward movement, vertical movement, acceleration, drag, frame-rate equivalence, frame-gap protection, all six boundaries, valid spawn, and settings validation/storage.
 
 To test manually:
 
@@ -132,7 +132,7 @@ To test manually:
 9. Enable reduced motion and confirm breathing/sway stop while propulsion remains smooth. Pause near a boundary, wait, resume without held keys, and repeat after focus/tab loss.
 10. Approach major rocks from the front, side, above, below exposed edges, and diagonally. Continue holding input through several strokes: expect solid contact and smooth sliding, not vibration. Reverse away and check overlapping banks and nearby glass.
 11. Swim through seagrass and over decorative pebbles: there should be no large invisible plant barriers. Hover just above a rock and pause/resume in contact.
-12. Inspect all three fish species up close from the side and front. Check markings, eyes, fins, articulated tails, deliberate gouramis, and quicker tetras. Observe rock/glass avoidance without synchronized circles.
+12. Inspect all three fish species up close from the side and front. Check markings, eyes, fins, articulated tails, deliberate gouramis, and quicker tetras. Observe the tighter tetra school, looser rasbora group, independent gouramis, personal space, and rock/glass avoidance without synchronized circles.
 13. Pause while watching fish, wait, and resume. Check that positions and fin animation freeze exactly, then continue smoothly. Repeat with reduced motion, tab/focus loss, and a refresh.
 14. Resize the browser and check canvas proportions and UI. Test a fresh visit with WebGL disabled to inspect the fallback message.
 
@@ -140,7 +140,7 @@ To test manually:
 
 - Desktop keyboard/mouse only; mobile touch controls are outside this pass.
 - Collision covers major static rocks and aquarium limits. Delicate foliage and decorative pebbles remain passable; there is no plant deformation, per-triangle sand collision, or dynamic rigid-body physics.
-- Fish swim independently; no coordinated schooling, feeding, identification UI, or diver reactions yet. No office, passages, customization, ocean, sound, or progression.
+- Schooling is local steering rather than global pathfinding or hard fish collision. Occasional close passes or temporary fragmentation are possible. No feeding, identification UI, or diver reactions yet. No office, passages, customization, ocean, sound, or progression.
 - Sand and light shafts are intentionally simple; this is a procedural first prototype, not final art. The water surface is a visual plane, not a fluid simulation.
 - Player position is not persisted. Only settings are saved, per origin in browser local storage.
 - Pointer lock may be restricted by embedded frames or browser policies; use a top-level page. Graphics-context loss requires reloading.

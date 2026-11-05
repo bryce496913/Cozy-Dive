@@ -1,57 +1,63 @@
-# v0.2 Pass 001 — Fish Architecture & First Species
+# v0.2 Pass 002 — Schooling & Group Intelligence
 
-The aquarium now contains **16 independently swimming fish**: 8 neon tetras, 6 harlequin rasboras, and 2 honey gouramis. Fish are owned by the environment and freeze with gameplay. Existing player swimming, breathing, collisions, controls, camera, preferences, scenery, and pixel-ratio cap are preserved.
+The existing 8 neon tetras now form recognizable, imperfect schools; 6 harlequin rasboras coordinate in looser groups; 2 honey gouramis continue independent exploration. All species steer away from nearby bodies, including other species. Models, colors, animation, population, player swimming/collision, camera, preferences, timing, and resource ownership are preserved.
 
-## Architecture and presentation
+## Social steering and species differences
 
-The new `src/fish/` subsystem separates the species registry, authoritative individual state, seeded safe spawning, pure movement/habitat logic, shared model templates, and environment-owned simulation/render bridge. Three procedural silhouettes include lofted organic bodies, head/tail regions, eyes, separate caudal fins, dorsal/lower fins, and pectorals. Neon tetras carry blue/red skin bands; copper rasboras have a dark curved rear wedge; golden gouramis have deeper oval bodies and rounded fins. Shared geometry and materials belong to per-species templates and are disposed once.
+`FishSchooling` computes all influences from a consistent fixed-step snapshot before any fish moves. Stable unique-id evaluation and nearest-neighbor tie-breaking make updates deterministic regardless of fish iteration order. Typed scratch arrays and per-fish force buffers are allocated once; the existing 30 Hz accumulator and bounded catch-up remain intact.
 
-A lightweight articulated rear section, caudal joint, and pectoral poses animate at individual phases. Cadence/amplitude follow actual movement speed, with restrained turn banking. Reduced motion removes bank and halves optional flex while retaining essential fin animation. No external runtime assets, new dependency, global rendering pass, or skeletal framework is introduced.
+- Size-aware **separation** grows smoothly at close range, caps repulsion, and uses relative closing motion for gentle deceleration. It applies across species; exact overlaps have a deterministic finite fallback direction.
+- Same-species **alignment** gently follows nearby mean headings through existing angular limits, preserving individual targets, speed/temperament differences, and independent animation phases.
+- Local **cohesion** attracts outside a comfortable spacing dead zone. Finite-distance reconnection lets stragglers return by ordinary swimming; there is no leader, global group waypoint, scripted path, tether, or position correction.
 
-## Movement, avoidance, and timing
+Tetras have stronger alignment/cohesion and less wander influence. Rasboras have larger personal gaps, weaker attraction, and more wandering. Gouramis have no social alignment or cohesion, including toward one another. Species tuning and common safety-priority parameters are centralized in `FishSpecies.ts`; no species-name checks select behavior in the new schooling module.
 
-A pure **30 Hz fixed simulation**, bounded four-step catch-up, and interpolated visual transforms keep fish independent from player physics and render FPS. Per-fish persistent targets, preferred depths, bounded acceleration and angular speed, seeded variation, and individual timing produce distinct independent paths. Outward target samples are rejected rather than repeatedly clamped onto glass corners.
+## Obstacle priority and stability
 
-Predictive wall/rock steering reads the existing major-rock hulls through a read-only habitat, without invoking or modifying the player's swept solver. Conservative body radii and a final candidate-position safeguard prevent escaped or embedded fish. Initial population placement excludes rocks, glass, other fish bodies, and the initial diver. Foliage remains passable. There is no schooling, runtime fish separation, feeding, or diver reaction yet.
+Existing rock/glass avoidance remains authoritative. Social attraction fades with obstacle danger, separation directed into the avoidance force is removed in restricted space, and individuals retain their own avoidance routes. Separation and closing-speed response stay below original obstacle safety. Heading/speed limits and the final candidate-position guard remain in place. Groups can stretch, split around scenery, and gradually reconnect instead of pushing one another through rocks or against glass.
 
 ## Validation and performance
 
-All **87 tests** pass, including all 68 existing regressions, along with typechecking, linting, and the production build. Browser checks passed for real fish/player movement, rock avoidance, pause/resume, reduced motion, preferences, 32-fish stress, and cleanup. Ten-minute simulations record zero final-guard corrections. Pure fish simulation averaged about **0.102 ms/step for 16** and **0.148 ms/step for 32** in this environment.
+All **106 tests** pass, including the existing 87 regressions, with typechecking, linting, and the production build passing. New tests cover separation/size/cross-species encounters, overlapping centers, gradual local alignment, cohesion spacing/reconnection, independent gouramis, update-order invariance, 30/60/120 FPS consistency, pause/resume, long real-aquarium simulations, obstacle splitting/regrouping, narrow passages, rocks near glass/corners, and changing depths.
 
-The fixed overview measured **270 scenery draws**, **382 with 16 fish**, and **494 with 32 fish**. Both populations share **17 geometry buffers and 7 materials**; all owned resources dispose once. Thin fins render in one pass and static eye detail shares the body draw. SwiftShader frame intervals were slow and noisy even without fish, so **60 FPS and MacBook hardware performance are not established**; see the full timing table and spike measurements in the validation record. The existing bundle advisory remains.
+See `docs/VALIDATION_V02_PASS_002.md` for measured schooling behavior, browser observations over several simulated minutes, the 32-fish stress scenario, CPU results, and honest validation limits. `docs/FISH.md` describes the snapshot architecture and complete tuning values.
 
-See `docs/VALIDATION_V02_PASS_001.md` for automated results, measured normal/32-fish scenarios, browser checks, resource cleanup, and limits. `docs/FISH.md` documents ownership, timing, tuning, and preparation for Pass 002 steering forces.
+The measured full population step averaged **0.054 ms for 16 fish** and **0.145 ms for 32**, with approximate p95 values of 0.100 / 0.200 ms. Timing was noisy, with rare 29.8 / 33.9 ms maxima; full details and comparison limits are recorded. Both populations retained **17 shared geometry buffers and 7 materials**. Over 180 simulated seconds observed in the renderer, 21,720 sampled pairs had zero body-envelope overlaps and zero containment corrections; a separate real-bank fixture remained clear and continued moving.
 
-## Screenshots
+The new code adds no geometry, materials, per-fish draw cost, render passes, listeners, or per-frame model/vector allocation. The existing fish models and rendering code are unchanged. Hardware macOS performance and subjective comfort require the manual checklist below; software-browser data does not establish a hardware 60 FPS claim.
 
-Captured from real Chromium rendering in the existing aquarium; close-ups move the test camera beside individual fish without replacing the environment.
+## Rendered observations
 
-![Freshwater population](screenshots/v0.2-pass001/aquarium.png)
+The sequence advances genuine fixed steps between rendered observations; it is not a hardware 60 FPS claim. Models and animation code are unchanged.
 
-![Neon tetra](screenshots/v0.2-pass001/neon-tetra.png)
+![School at 30 simulated seconds](screenshots/v0.2-pass002/school-30s.png)
 
-![Harlequin rasbora](screenshots/v0.2-pass001/harlequin-rasbora.png)
+![School by the rocky bank at 90 simulated seconds](screenshots/v0.2-pass002/school-90s.png)
 
-![Honey gourami](screenshots/v0.2-pass001/honey-gourami.png)
+![Changed school shape at 150 simulated seconds](screenshots/v0.2-pass002/school-150s.png)
+
+## Known limitations and preparation for Pass 003
+
+Personal space and group membership are soft local preferences, not rigid collisions or global navigation. Forced/dense encounters can produce brief close passes, and fish beyond finite reconnection range can remain separated until their paths meet again. These limits allow temporary fragmentation without teleportation or abrupt acceleration. Static collider/body approximations and the original emergency containment safeguard remain unchanged.
+
+Future individual behavior intents can feed the existing target/social/safety pipeline. Preserve per-fish RNG, consistent snapshots, unique identities, timing, and motion caps. No feeding, resting, curiosity, caution, player reaction, new species, or population increase is implemented.
 
 ## Manual macOS acceptance checklist
 
-- [ ] Identify all three species from the side, front, and above; inspect fins, eyes, and species markings.
-- [ ] Confirm fish swim nose-first with articulated tails and subtle body/pectoral movement.
-- [ ] Compare agile tetras, moderate rasboras, and slower deliberate gouramis.
-- [ ] Observe several minutes: smooth acceleration/turns, independent phases/paths, no synchronized loops.
-- [ ] Watch glass corners and rocky banks: early turns, no embedding, clipping, or persistent jitter.
-- [ ] Confirm 16 fish feel populated without overcrowding and delicate foliage remains passable.
-- [ ] Pause while watching fish, wait, resume, switch tabs/focus, and refresh. Verify frozen poses and no catch-up jump.
-- [ ] Enable reduced motion: optional bank/flex recedes while tail/pectoral animation remains visible.
-- [ ] Swim among visible fish and check mouse-look, breathing, all movement keys, glass limits, and rock sliding.
-- [ ] Reload settings; verify preferences and deterministic initial fish population.
-- [ ] Assess smooth frame rate and extended comfort on a hardware-GPU macOS browser; repeat across target browsers.
+- [ ] Neon tetras visibly form a recognizable but imperfect school.
+- [ ] Harlequin rasboras group more loosely than the tetras.
+- [ ] Honey gouramis remain largely independent.
+- [ ] Fish maintain natural personal space.
+- [ ] Different species avoid overlapping where practical.
+- [ ] Schools change shape organically.
+- [ ] Individual fish retain independent swimming characteristics.
+- [ ] Schools can separate around rocks and gradually regroup.
+- [ ] Fish do not become trapped against glass.
+- [ ] Fish do not turn or accelerate simultaneously.
+- [ ] Fish models and tail animations remain natural.
+- [ ] Aquarium population remains balanced at 16 fish.
+- [ ] Player swimming and camera comfort remain unchanged.
+- [ ] Pause/resume and reduced-motion preferences continue working.
+- [ ] Performance remains smooth on macOS.
 
-## Limitations and Pass 002 preparation
-
-Independent local steering is not schooling or global pathfinding. Fish may overlap after spawning; runtime separation, alignment, and cohesion are reserved for Pass 002. Fish do not react to or collide with the diver. Conservative body spheres can avoid narrow gaps; an emergency containment guard can briefly hold an externally forced near-contact fish while it turns. Hulls assume static, untransformed environment coordinates. Individually articulated meshes use shared resources but still add draw calls; larger populations need measured batching/neighbor-indexing work. Procedural models are lightly stylized and use a miniature-world presentation scale.
-
-Pass 002 can add group steering vectors over the existing authoritative entity states before avoidance and heading/speed caps. Keep individual RNG/timing, environment ownership, and final containment independent of group behavior.
-
-No MacBook Air hardware performance or cross-browser claim is made from software-rendered Chromium. Do not merge automatically.
+Do not merge automatically.
