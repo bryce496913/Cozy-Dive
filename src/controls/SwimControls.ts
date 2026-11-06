@@ -1,5 +1,13 @@
 import type { SwimInput } from '../player/swimming';
 
+const MOVEMENT_KEYS = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD']);
+export function isSwimMovementKey(code: string): boolean {
+  return MOVEMENT_KEYS.has(code);
+}
+export function inputFromKeys(keys: ReadonlySet<string>, out: SwimInput): void {
+  out.forward = Number(keys.has('KeyW')) - Number(keys.has('KeyS'));
+  out.right = Number(keys.has('KeyD')) - Number(keys.has('KeyA'));
+}
 const PITCH_LIMIT = Math.PI / 2 - 0.08;
 export class SwimControls {
   yaw = 0;
@@ -8,7 +16,7 @@ export class SwimControls {
   private targetPitch = -0.06;
   private keys = new Set<string>();
   private readonly abort = new AbortController();
-  readonly input: SwimInput = { forward: 0, right: 0, up: 0 };
+  readonly input: SwimInput = { forward: 0, right: 0 };
   sensitivity = 1;
   reducedMotion = false;
   constructor(
@@ -30,13 +38,7 @@ export class SwimControls {
       document.exitPointerLock();
       return;
     }
-    if (
-      !this.locked ||
-      !['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'ShiftLeft'].includes(
-        event.code,
-      )
-    )
-      return;
+    if (!this.locked || !isSwimMovementKey(event.code)) return;
     event.preventDefault();
     this.keys.add(event.code);
   };
@@ -65,7 +67,7 @@ export class SwimControls {
   };
   clear(): void {
     this.keys.clear();
-    this.input.forward = this.input.right = this.input.up = 0;
+    this.input.forward = this.input.right = 0;
     this.targetYaw = this.yaw;
     this.targetPitch = this.pitch;
   }
@@ -73,12 +75,7 @@ export class SwimControls {
     const blend = this.reducedMotion ? 1 : -Math.expm1(-22 * dt);
     this.yaw += (this.targetYaw - this.yaw) * blend;
     this.pitch += (this.targetPitch - this.pitch) * blend;
-    this.input.forward =
-      Number(this.keys.has('KeyW')) - Number(this.keys.has('KeyS'));
-    this.input.right =
-      Number(this.keys.has('KeyD')) - Number(this.keys.has('KeyA'));
-    this.input.up =
-      Number(this.keys.has('Space')) - Number(this.keys.has('ShiftLeft'));
+    inputFromKeys(this.keys, this.input);
   }
   dispose(): void {
     this.abort.abort();

@@ -1,3 +1,4 @@
+import type { PlayerPresence } from './FishDiverReaction';
 import * as THREE from 'three';
 import { angleDifference } from './FishEntity';
 import { FishGeometry, type FishVisual } from './FishGeometry';
@@ -36,9 +37,14 @@ export class FishSystem {
     });
     this.update(0, false, false);
   }
-  update(dt: number, active: boolean, reducedMotion: boolean): void {
+  update(
+    dt: number,
+    active: boolean,
+    reducedMotion: boolean,
+    player?: PlayerPresence,
+  ): void {
     if (this.disposed) return;
-    this.simulation.advance(dt, active);
+    this.simulation.advance(dt, active, player);
     const alpha = this.simulation.alpha;
     for (let i = 0; i < this.simulation.fish.length; i++) {
       const fish = this.simulation.fish[i],

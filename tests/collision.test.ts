@@ -232,7 +232,7 @@ describe('swept player collision', () => {
     resetSwimming(s);
     expect(s.position).toEqual(before);
     integrateSwimming(s, { x: 0, y: 0, z: 0 }, 1 / 60, tuning, roomy, world);
-    expect(Math.abs(s.position.y - before.y)).toBeLessThan(0.0001);
+    expect(Math.abs(s.position.y - before.y)).toBeLessThan(0.002);
     clear(world, s.position);
   });
 });
@@ -246,8 +246,7 @@ describe('generated aquarium collider geometry', () => {
       expect(a.collision.colliders).toHaveLength(34);
       const rocks = a.root.children.filter(
         (child): child is THREE.Mesh =>
-          child instanceof THREE.Mesh &&
-          child.geometry.type === 'IcosahedronGeometry',
+          child instanceof THREE.Mesh && child.name.startsWith('Rock '),
       );
       expect(rocks).toHaveLength(89);
       for (let i = 0; i < 34; i++) {
@@ -255,7 +254,8 @@ describe('generated aquarium collider geometry', () => {
           collider = a.collision.colliders[i];
         const vertices = rock.geometry.getAttribute('position');
         const vertex = new THREE.Vector3();
-        expect(collider.planes.length).toBe(80);
+        expect(collider.planes.length).toBeGreaterThan(80);
+        expect(collider.planes.length).toBeLessThanOrEqual(vertices.count / 3);
         let maxOutside = -Infinity;
         for (let j = 0; j < vertices.count; j++) {
           vertex.fromBufferAttribute(vertices, j).applyMatrix4(rock.matrix);

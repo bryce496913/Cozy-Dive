@@ -1,21 +1,22 @@
-# Fish simulation — v0.2 Pass 002
+# Fish simulation — v0.2 Pass 002B
 
-The environment owns 16 freshwater fish: 8 neon tetras form moderately cohesive schools, 6 harlequin rasboras coordinate in looser groups, and 2 honey gouramis remain independent. All fish have size-aware personal space. Models, animation, seeded initial variations, fixed timing, player movement, and resource ownership are preserved from Pass 001. There is no feeding, behavior state machine, fish-player reaction, or fish UI.
+The environment owns 16 freshwater fish: 8 neon tetras form moderately cohesive schools, 6 harlequin rasboras coordinate in looser groups, and 2 honey gouramis remain independent. All fish have size-aware personal space. Models, animation, seeded initial variations, fixed timing, player movement, and resource ownership are preserved from Pass 001. There is no feeding, behavior state machine, or fish UI.
 
 ## Modules and ownership
 
-| Module             | Responsibility                                                                                                                                                                 |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `FishSpecies.ts`   | Registry: counts, body proportions/profiles, appearance, habitat, speed/turn/acceleration limits, wander timing, tail cadence; simulation/steering tuning                      |
-| `FishEntity.ts`    | Authoritative pure individual state: position, velocity, heading, size, temperament, persistent target, seeded RNG, animation phase; previous samples solely for interpolation |
-| `FishSpawner.ts`   | Reproducible population and individual variation; bounded placement attempts, habitat validation, body spacing, player-start clearance                                         |
-| `FishHabitat.ts`   | Read-only aquarium bounds and existing convex rock data; body containment checks without Three.js or player physics                                                            |
-| `FishMovement.ts`  | Individual locomotion, safety-prioritized social blending, acceleration/heading limits, 30 Hz accumulator, bounded catch-up, final containment guard                           |
-| `FishSchooling.ts` | Stable step-snapshot neighbor evaluation, all-species separation, same-species alignment/cohesion, reusable bounded scratch buffers                                            |
-| `FishGeometry.ts`  | Shared per-species organic lofted bodies, curved skin markings, fins, eyes, articulation templates, exact resource ownership                                                   |
-| `FishSystem.ts`    | Bridge from simulation to interpolated Object3D transforms; render animation, reduced-motion presentation, disposal                                                            |
+| Module                 | Responsibility                                                                                                                                                                 |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `FishSpecies.ts`       | Registry: counts, body proportions/profiles, appearance, habitat, speed/turn/acceleration limits, wander timing, tail cadence; simulation/steering tuning                      |
+| `FishEntity.ts`        | Authoritative pure individual state: position, velocity, heading, size, temperament, persistent target, seeded RNG, animation phase; previous samples solely for interpolation |
+| `FishSpawner.ts`       | Reproducible population and individual variation; bounded placement attempts, habitat validation, body spacing, player-start clearance                                         |
+| `FishHabitat.ts`       | Read-only aquarium bounds and existing convex rock data; body containment checks without Three.js or player physics                                                            |
+| `FishMovement.ts`      | Individual locomotion, safety-prioritized social blending, acceleration/heading limits, 30 Hz accumulator, bounded catch-up, final containment guard                           |
+| `FishSchooling.ts`     | Stable step-snapshot neighbor evaluation, all-species separation, same-species alignment/cohesion, reusable bounded scratch buffers                                            |
+| `FishGeometry.ts`      | Shared per-species organic lofted bodies, curved skin markings, fins, eyes, articulation templates, exact resource ownership                                                   |
+| `FishDiverReaction.ts` | Read-only physical diver presence, smooth awareness/scatter/recovery, reusable escape direction                                                                                |
+| `FishSystem.ts`        | Bridge from simulation to interpolated Object3D transforms; render animation, reduced-motion presentation, disposal                                                            |
 
-`Aquarium` constructs `FishSystem` after registering rocks and adds its root to the environment root. `Application` passes its already-bounded frame delta and active pointer-lock state through `UnderwaterScene.render` to `Aquarium.update`. Player movement is unmodified. Hidden pages skip rendering/updating; paused frames render frozen fish. Fish code adds no global listeners, animation-frame callbacks, or asynchronous resources.
+`Aquarium` constructs `FishSystem` after registering rocks and adds its root to the environment root. `Application` passes its already-bounded frame delta and active pointer-lock state through `UnderwaterScene.render` to `Aquarium.update`. The application also passes a reused read-only `PlayerPresence` referencing the physical diver position/velocity, gated by active lock/visibility state. Fish never read camera offsets or own controls/player collision. Hidden pages skip rendering/updating; paused frames render frozen fish. Fish code adds no global listeners, animation-frame callbacks, or asynchronous resources.
 
 Fish templates own geometry/material sets, including resources shared by many individual meshes. Instance creation allocates transforms but no body buffers or materials. `FishSystem.dispose()` detaches/clears the fish root and disposes each template exactly once. `Aquarium.dispose()` does this before its existing scenery traversal, preventing double disposal of fish resources. Update/dispose calls after fish disposal are harmless.
 
@@ -35,7 +36,7 @@ The habitat references the same 34 generated convex rock hulls as player physics
 
 A conservative spherical body radius is 56% of species length times individual scale, enclosing nose, tail, and fins. The final candidate-position guard rejects invalid steps instead of teleporting the fish or invoking player swept collision. Normal ten-minute seeded tests record zero guard corrections. An externally forced emergency close-contact case may briefly hold position while the fish turns away; this is a fallback, not the normal locomotion model. Fish use geometric bounds with their own radius, not the player's larger clearance.
 
-Spawning uses loose species regions, preferred depths, variable headings/phases/sizes, a three-unit exclusion around the initial diver, and pairwise body-radius separation plus 0.25 units. The finite placement budget fails clearly for impossible populations instead of silently spawning into scenery. No player proximity is read after spawning.
+Spawning uses loose species regions, preferred depths, variable headings/phases/sizes, a three-unit exclusion around the initial diver, and pairwise body-radius separation plus 0.25 units. The finite placement budget fails clearly for impossible populations instead of silently spawning into scenery. Live player proximity is supplied separately to the diver-reaction module.
 
 ## Schooling pipeline and tuning
 
@@ -61,9 +62,32 @@ Each directed pair's squared distance is reused for separation and social-neighb
 
 Distances use aquarium world units. All species settings live in `FishSpecies.schooling`. Temperament scales social response by approximately ±10% without changing seeded spawning or consuming movement randomness. Tetras favor coordination more strongly; rasboras retain more wander influence and a larger comfortable gap; gouramis receive separation only, even near other gouramis.
 
-`stepFish` computes the original wandering/depth and rock/wall contributions, then blends the cached influences before the unchanged heading/speed caps and candidate-position guard. `SCHOOLING_SAFETY` centralizes the priority controls: attraction/alignment fade quadratically to zero by danger 0.75; inward separation is projected off the avoidance direction above danger 0.3; separation fades up to 65% in restricted space; close encounters can reduce target speed by up to 40%. Obstacles keep their original force. This lets individuals select different routes around a rock and reconnect later, rather than pulling the entire group through it or keeping a rigid formation.
+`stepFish` computes the original wandering/depth and rock/wall contributions, then blends the cached influences before the locomotion limits and unchanged candidate-position guard. `SCHOOLING_SAFETY` centralizes the priority controls: attraction/alignment fade quadratically to zero by danger 0.75; inward separation is projected off the avoidance direction above danger 0.3; separation fades up to 65% in restricted space; close encounters can reduce target speed by up to 40%. Obstacles keep their original force. This lets individuals select different routes around a rock and reconnect later, rather than pulling the entire group through it or keeping a rigid formation.
 
-The registry still owns proportions, colors/markings, preferred depth, movement limits, and animation cadence. `FishGeometry` and `FishSystem` are unchanged by this pass: no new meshes, materials, render passes, textures, animation loops, or GPU resource ownership. See `VALIDATION_V02_PASS_002.md` for simulations, browser observations, CPU measurements, and manual macOS checks.
+The registry still owns proportions, colors/markings, preferred depth, movement limits, and animation cadence. `FishGeometry` remains unchanged; `FishSystem` only forwards the presence input. No new fish meshes, materials, render passes, textures, animation loops, or GPU resource ownership are introduced. See `VALIDATION_V02_PASS_002B.md` for simulations, browser observations, CPU measurements, and manual macOS checks.
+
+## Diver awareness, scatter, and recovery
+
+`FishDiverReaction.ts` owns smooth awareness/scatter envelopes and a persistent escape direction for each fish. Distances subtract both body radii. A stationary close diver still produces avoidance; relative closing velocity increases response before contact. Smooth distance falloffs and exponential attack/recovery avoid binary triggers. Exact overlap uses a finite deterministic id direction. Per-id sideways choices help fish clear the approach path independently; no randomness is consumed and no behavior state machine is added.
+
+| Parameter                        |      Tetra |   Rasbora |   Gourami |
+| -------------------------------- | ---------: | --------: | --------: |
+| Awareness surface-gap radius     |        4.2 |       3.8 |       2.8 |
+| Comfort / strong surface gap     | 2.2 / 0.75 | 2.0 / 0.8 | 1.5 / 0.7 |
+| Sensitivity                      |        1.0 |      0.85 |      0.55 |
+| Escape speed cap                 |       1.55 |       1.2 |      0.65 |
+| Reaction acceleration cap        |        1.2 |      0.85 |       0.4 |
+| Turn-cap multiplier              |        1.6 |       1.5 |      1.25 |
+| Steering weight                  |        4.8 |       4.2 |       2.8 |
+| Awareness / scatter attack (1/s) |      3 / 5 |   2.5 / 4 |   1.8 / 3 |
+| Direction response (1/s)         |          4 |       3.5 |       2.5 |
+| Recovery time scale (s)          |        4.5 |         5 |         6 |
+
+Full approach strength is reached at 2 world units/s closing speed. Recovery has rate `3 / recoverySeconds` (about 95% decay over that interval), then snaps only negligible values below 0.00001 to zero. Species own all these parameters in `FishSpecies.diver`.
+
+Safety remains first: the escape contribution is projected away from inward obstacle force; a bounded forward probe chooses an available tangent when escape faces a wall/rock. Obstacle danger and close-neighbor pressure suppress escape-speed boosts. Personal-space separation remains active. School attraction/alignment fade by up to 90% during scatter; wandering recedes with awareness. After the diver leaves, the envelopes decay and the ordinary local school attraction gradually returns. Heading, acceleration and speed stay bounded; no position correction, player push, invisible wall, scripted regroup target, or global school tether is added. The final habitat guard remains unchanged.
+
+The same fixed-step pause/reduced-motion policy applies to reaction clocks. Reduced motion suppresses optional visual motion, not essential avoidance. Preview fish remain frozen until entry. This module is an extension point for later intentions, not authorization to begin Pass 003 before manual macOS acceptance.
 
 ## Preparation for Pass 003
 

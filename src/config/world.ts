@@ -31,7 +31,7 @@ export const SWIM_FEELS: Record<SwimmingFeel, FeelTuning> = {
     drag: 0.8,
     response: 5,
     rhythm: 0.85,
-    breathing: 0.098,
+    breathing: 0.14,
   },
   natural: {
     cycle: 1.1,
@@ -39,7 +39,7 @@ export const SWIM_FEELS: Record<SwimmingFeel, FeelTuning> = {
     drag: 1.1,
     response: 8,
     rhythm: 0.75,
-    breathing: 0.14,
+    breathing: 0.2,
   },
   responsive: {
     cycle: 0.8,
@@ -47,14 +47,15 @@ export const SWIM_FEELS: Record<SwimmingFeel, FeelTuning> = {
     drag: 1.8,
     response: 12,
     rhythm: 0.3,
-    breathing: 0.084,
+    breathing: 0.12,
   },
 };
 export const SWIMMING = {
   maxFrameDelta: 0.1,
   maxStep: 1 / 240,
-  verticalDrag: 2.4,
-  verticalSpeed: 0.8,
+  hoverDamping: 2.4,
+  coastToHoverSpeed: 0.08,
+  maxRestingResumeSpeed: 0.15,
   hoverSpring: 1.6,
   breathingCycle: 5,
   breathingFade: 1.5,

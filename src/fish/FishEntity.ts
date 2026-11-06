@@ -1,3 +1,4 @@
+import type { DiverReaction } from './FishDiverReaction';
 import type { Vec3 } from '../config/world';
 import type { FishSpecies } from './FishSpecies';
 
@@ -27,6 +28,7 @@ export interface FishEntity {
   randomState: number;
   age: number;
   corrections: number;
+  readonly reaction: DiverReaction;
 }
 export function randomFish(fish: FishEntity): number {
   fish.randomState = (Math.imul(fish.randomState, 1664525) + 1013904223) >>> 0;

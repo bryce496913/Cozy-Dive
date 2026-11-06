@@ -28,7 +28,7 @@ export class Interface {
         <h1>Let the world<br>drift <em>away.</em></h1>
         <p class="intro">A quiet place beneath the surface.<br>No rush. No destination. Just you and the water.</p>
         <button class="enter" id="enter">Enter the Water ${arrow}</button>
-        <p class="entry-note">A small escape, at your own pace.</p>
+        <p class="entry-note">Look up or down and swim to change depth.</p>
         <p class="status" id="status" role="status" aria-live="polite"></p>
       </div><div class="scene-label"><span class="label-line"></span><span>THE STILLWATER AQUARIUM<small>01 / FIRST DIVE</small></span></div></main>
       <aside class="settings-panel" id="settings-panel" aria-label="Swimming settings" hidden>
@@ -40,7 +40,7 @@ export class Interface {
         <p class="save-status" id="save-status" role="status">Preferences saved on this device.</p>
       </aside>
       <div class="swim-hud" hidden><span class="crosshair" aria-hidden="true">·</span><span class="hud-message">You have nowhere else to be.</span></div>
-      <footer class="bottom-bar"><div class="controls" aria-label="Swimming controls"><span><kbd>W A S D</kbd> swim</span><span><kbd>MOUSE</kbd> look</span><span><kbd>SPACE</kbd> rise</span><span><kbd>⇧ SHIFT</kbd> descend</span><span><kbd>ESC</kbd> pause</span></div><span class="depth" id="depth">↓ 9.4 m <span>BELOW THE SURFACE</span></span></footer>`;
+      <footer class="bottom-bar"><div class="controls" aria-label="Swimming controls"><span><kbd>W A S D</kbd> swim</span><span><kbd>MOUSE</kbd> look</span><span>Look up/down + <kbd>W / S</kbd> change depth</span><span><kbd>ESC</kbd> pause</span></div><span class="depth" id="depth">↓ 9.4 m <span>BELOW THE SURFACE</span></span></footer>`;
     this.overlay = this.get('overlay');
     this.enter = this.get('enter');
     this.settingsPanel = this.get('settings-panel');

@@ -3,6 +3,7 @@ import { AQUARIUM, SPAWN, SWIMMING } from '../src/config/world';
 import {
   clampToBounds,
   integrateSwimming,
+  advanceHoverPreview,
   movementDirection,
   createSwimState,
   resetSwimming,
@@ -16,8 +17,8 @@ const tuning: SwimTuning = {
   reducedMotion: false,
 };
 const state = () => createSwimState({ x: 0, y: 7, z: 0 });
-const direction = (forward = 0, right = 0, up = 0, yaw = 0, pitch = 0) =>
-  movementDirection({ forward, right, up }, yaw, pitch, { x: 0, y: 0, z: 0 });
+const direction = (forward = 0, right = 0, pitch = 0, yaw = 0) =>
+  movementDirection({ forward, right }, yaw, pitch, { x: 0, y: 0, z: 0 });
 
 describe('camera-relative swimming directions', () => {
   it('moves forward toward -Z and backward toward +Z', () => {
@@ -30,19 +31,20 @@ describe('camera-relative swimming directions', () => {
     expect(direction(1, 0, 0, Math.PI / 2).x).toBeCloseTo(-1);
     expect(direction(0, 1, 0, Math.PI / 2).z).toBeCloseTo(-1);
   });
-  it('follows pitch while vertical controls remain world aligned', () => {
-    expect(direction(1, 0, 0, 0, Math.PI / 6).y).toBeCloseTo(0.5);
-    const vertical = direction(0, 0, 1, 1, 0.5);
-    expect(vertical.x).toBeCloseTo(0);
-    expect(vertical.y).toBe(1);
-    expect(vertical.z).toBeCloseTo(0);
-    expect(direction(0, 0, -1).y).toBe(-1);
+  it('follows pitch with W/S while A/D remain horizontal', () => {
+    expect(direction(1, 0, Math.PI / 6).y).toBeCloseTo(0.5);
+    expect(direction(-1, 0, Math.PI / 6).y).toBeCloseTo(-0.5);
+    expect(direction(1, 0, -Math.PI / 6).y).toBeCloseTo(-0.5);
+    expect(direction(-1, 0, -Math.PI / 6).y).toBeCloseTo(0.5);
+    expect(direction(0, 1, 1.3).y).toBe(0);
+    expect(direction(0, -1, -1.3).y).toBeCloseTo(0);
+    expect(Math.hypot(...Object.values(direction(0, 0, 1.3)))).toBe(0);
   });
   it('normalizes diagonals, including combined ascent and forward', () => {
     for (const d of [
       direction(1, 1),
-      direction(1, 1, 1),
-      direction(1, 0, 1, 0, 0.7),
+      direction(1, 1, Math.PI / 4),
+      direction(1, 1, 0.7),
     ]) {
       expect(Math.hypot(d.x, d.y, d.z)).toBeCloseTo(1);
     }
@@ -148,8 +150,8 @@ describe('aquarium safety', () => {
   );
   it('cannot swim through the floor, surface or side walls under sustained input', () => {
     for (const d of [
-      direction(0, 0, -1),
-      direction(0, 0, 1),
+      direction(1, 0, -Math.PI / 2),
+      direction(1, 0, Math.PI / 2),
       direction(0, 1),
       direction(1),
     ]) {
@@ -241,8 +243,8 @@ describe('natural swimming', () => {
         min = Math.min(min, s.position.y);
         max = Math.max(max, s.position.y);
       }
-      expect(max - min).toBeGreaterThan(0.04);
-      expect(max - min).toBeLessThan(0.1);
+      expect(max - min).toBeGreaterThan(0.12);
+      expect(max - min).toBeLessThan(0.15);
       const y = s.position.y;
       simulate(s, 5, direction(), tuning, fps, AQUARIUM);
       expect(s.position.y).toBeCloseTo(y, 5);
@@ -253,8 +255,8 @@ describe('natural swimming', () => {
   it('matches long mixed swimming and breathing simulations across frame rates', () => {
     const results = [30, 60, 120].map((fps) => {
       const s = state();
-      simulate(s, 4, direction(1, 1, 1), tuning, fps);
-      simulate(s, 3, direction(-1, -1, -1), tuning, fps);
+      simulate(s, 4, direction(1, 1, Math.PI / 4), tuning, fps);
+      simulate(s, 3, direction(-1, -1, Math.PI / 4), tuning, fps);
       simulate(s, 60, direction(), tuning, fps);
       return s;
     });
@@ -268,7 +270,7 @@ describe('natural swimming', () => {
     'updates hovering depth during intentional vertical movement (%s)',
     (up) => {
       const s = state();
-      simulate(s, 2, direction(0, 0, up));
+      simulate(s, 2, direction(1, 0, (up * Math.PI) / 2));
       const released = s.position.y,
         target = s.neutralDepth;
       expect((released - 7) * up).toBeGreaterThan(2);
@@ -280,8 +282,11 @@ describe('natural swimming', () => {
   it('suppresses breathing while intentionally changing depth', () => {
     const a = state(),
       b = state();
-    simulate(a, 2, direction(1, 0, 1));
-    simulate(b, 2, direction(1, 0, 1), { ...tuning, reducedMotion: true });
+    simulate(a, 2, direction(1, 0, Math.PI / 4));
+    simulate(b, 2, direction(1, 0, Math.PI / 4), {
+      ...tuning,
+      reducedMotion: true,
+    });
     expect(a.position).toEqual(b.position);
     expect(a.velocity).toEqual(b.velocity);
   });
@@ -305,27 +310,28 @@ describe('natural swimming', () => {
   );
   it('constrains repeated combined strokes and permits smooth escape from walls', () => {
     const s = state();
-    simulate(s, 60, direction(1, 1, 1), tuning, 60, AQUARIUM);
+    simulate(s, 60, direction(1, 1, Math.PI / 4), tuning, 60, AQUARIUM);
     expect(s.position.x).toBe(17.35);
     expect(s.position.z).toBe(-13.35);
     expect(s.position.y).toBe(13.35);
     expect(s.velocity).toEqual({ x: 0, y: 0, z: 0 });
-    simulate(s, 2, direction(-1, -1, -1), tuning, 60, AQUARIUM);
+    simulate(s, 2, direction(-1, -1, Math.PI / 4), tuning, 60, AQUARIUM);
     expect(s.position.x).toBeLessThan(17);
     expect(s.position.z).toBeGreaterThan(-13);
     expect(s.position.y).toBeLessThan(13);
   });
   it('resets rhythms, forces, and momentum on pause and resumes gently at a boundary', () => {
     const s = state();
-    simulate(s, 20, direction(1, 0, 1), tuning, 60, AQUARIUM);
+    simulate(s, 20, direction(1, 0, Math.PI / 4), tuning, 60, AQUARIUM);
     const position = { ...s.position };
     const bodyPitch = s.bodyPitch;
+    const breathingTime = s.breathingTime;
     resetSwimming(s);
     expect(s.position).toEqual(position);
     expect(s.neutralDepth).toBe(position.y);
     expect(s.velocity).toEqual({ x: 0, y: 0, z: 0 });
     expect(s.thrust).toEqual({ x: 0, y: 0, z: 0 });
-    expect(s.breathingTime).toBe(0);
+    expect(s.breathingTime).toBe(breathingTime);
     expect(s.strokeTime).toBe(0);
     expect(s.bodyPitch).toBe(bodyPitch);
     integrateSwimming(s, direction(), 0, tuning, AQUARIUM);
@@ -340,12 +346,12 @@ describe('natural swimming', () => {
       simulate(s, 20, direction(1), { ...tuning, feel });
       expect(-s.velocity.z).toBeGreaterThan(1);
       expect(-s.velocity.z).toBeLessThan(5);
-      expect(Math.abs(s.position.y - 7)).toBeLessThan(0.05);
+      expect(Math.abs(s.position.y - 7)).toBeLessThan(0.075);
     },
   );
 });
 
-describe('Pass 003 hovering polish', () => {
+describe('initial and resting breathing', () => {
   it.each([30, 60, 120])(
     'has a visible, gentle Natural breath at %s FPS',
     (fps) => {
@@ -360,10 +366,10 @@ describe('Pass 003 hovering polish', () => {
         max = Math.max(max, s.position.y);
         fastest = Math.max(fastest, Math.abs(s.velocity.y));
       }
-      expect(max - min).toBeGreaterThan(0.085);
-      expect(max - min).toBeLessThan(0.105);
+      expect(max - min).toBeGreaterThan(0.12);
+      expect(max - min).toBeLessThan(0.15);
       expect((min + max) / 2).toBeCloseTo(s.neutralDepth, 5);
-      expect(fastest).toBeLessThan(0.065);
+      expect(fastest).toBeLessThan(0.1);
     },
   );
   it('keeps preset breathing strength ordered without changing the five-second cycle', () => {
@@ -379,7 +385,7 @@ describe('Pass 003 hovering polish', () => {
           min = Math.min(min, s.position.y);
           max = Math.max(max, s.position.y);
         }
-        expect(s.breathingTime).toBeCloseTo(0, 5);
+        expect(s.breathingTime).toBeCloseTo(SWIMMING.breathingCycle / 4, 5);
         return max - min;
       },
     );
@@ -390,7 +396,7 @@ describe('Pass 003 hovering polish', () => {
     'transitions from intentional descent to hovering continuously at %s FPS',
     (fps) => {
       const s = state();
-      simulate(s, 1, direction(1, 0, -1), tuning, fps);
+      simulate(s, 1, direction(1, 0, -Math.PI / 4), tuning, fps);
       const neutral = s.neutralDepth;
       let previousY = s.position.y,
         previousVelocity = s.velocity.y;
@@ -401,8 +407,113 @@ describe('Pass 003 hovering polish', () => {
         previousY = s.position.y;
         previousVelocity = s.velocity.y;
       }
-      expect(s.neutralDepth).toBe(neutral);
-      expect(Math.abs(s.position.y - neutral)).toBeLessThan(0.05);
+      expect(s.neutralDepth).toBeCloseTo(neutral, 6);
+      expect(Math.abs(s.position.y - neutral)).toBeLessThan(0.075);
     },
   );
+});
+
+describe('coherent camera-directed three-dimensional propulsion', () => {
+  it.each([0.35, 1.2, Math.PI / 2 - 0.00001, Math.PI / 2])(
+    'uses the same stroke and average speed at pitch %s',
+    (pitch) => {
+      const level = state(),
+        pitched = state(),
+        settings = { ...tuning, reducedMotion: true };
+      simulate(level, 3, direction(1), settings);
+      simulate(pitched, 3, direction(1, 0, pitch), settings);
+      expect(
+        Math.hypot(pitched.velocity.x, pitched.velocity.y, pitched.velocity.z),
+      ).toBeCloseTo(-level.velocity.z, 7);
+      expect(pitched.velocity.y).toBeCloseTo(
+        -level.velocity.z * Math.sin(pitch),
+        7,
+      );
+      expect(pitched.position.y - 7).toBeCloseTo(
+        -level.position.z * Math.sin(pitch),
+        7,
+      );
+      expect(pitched.strokeTime).toBeCloseTo(level.strokeTime, 7);
+    },
+  );
+  it('has recognizable vertical kicks/glides, coasting, and gradual reversal', () => {
+    const s = state(),
+      d = direction(1, 0, Math.PI / 2);
+    simulate(s, 4, d);
+    let min = Infinity,
+      max = 0,
+      change = 0;
+    for (let i = 0; i < 132; i++) {
+      const v = s.velocity.y;
+      integrateSwimming(s, d, 1 / 120, tuning, openWater);
+      min = Math.min(min, s.velocity.y);
+      max = Math.max(max, s.velocity.y);
+      change = Math.max(change, Math.abs(s.velocity.y - v));
+    }
+    expect(min).toBeGreaterThan(1.5);
+    expect(max - min).toBeGreaterThan(0.5);
+    expect(change).toBeLessThan(0.12);
+    const released = s.position.y,
+      v = s.velocity.y;
+    simulate(s, 0.1);
+    expect(s.position.y).toBeGreaterThan(released);
+    expect(s.velocity.y).toBeLessThan(v);
+    expect(s.velocity.y).toBeGreaterThan(0);
+    simulate(s, 1 / 60, direction(-1, 0, Math.PI / 2));
+    expect(s.velocity.y).toBeGreaterThan(0);
+    simulate(s, 3, direction(-1, 0, Math.PI / 2));
+    expect(s.velocity.y).toBeLessThan(-1);
+  });
+  it.each([30, 60, 120])(
+    'settles at the coasting depth and resumes bounded breathing at %s FPS',
+    (fps) => {
+      const s = state();
+      simulate(s, 2, direction(1, 0, 0.7), tuning, fps);
+      const release = s.position.y,
+        target = s.neutralDepth;
+      simulate(s, 30, direction(), tuning, fps);
+      expect(s.position.y).toBeGreaterThan(release);
+      expect(s.neutralDepth).toBeCloseTo(target, 6);
+      expect(s.depthChanging).toBe(false);
+      expect(s.breathBlend).toBeGreaterThan(0.99);
+      expect(Math.abs(s.position.y - target)).toBeLessThan(0.075);
+    },
+  );
+  it('starts preview breathing promptly, preserves hover on entry, and freezes the same state on pause', () => {
+    const s = state();
+    for (let i = 0; i < 30; i++)
+      advanceHoverPreview(s, 1 / 60, tuning, AQUARIUM);
+    expect(s.position.y - 7).toBeGreaterThan(0.01);
+    expect(s.position.x).toBe(0);
+    expect(s.position.z).toBe(0);
+    expect(s.moving).toBe(false);
+    const before = structuredClone(s);
+    resetSwimming(s);
+    expect(s.position).toEqual(before.position);
+    expect(s.velocity.y).toBe(before.velocity.y);
+    expect(s.breathingTime).toBe(before.breathingTime);
+    expect(s.neutralDepth).toBe(before.neutralDepth);
+    integrateSwimming(s, direction(), 0, tuning, AQUARIUM);
+    expect(s.position).toEqual(before.position);
+    integrateSwimming(s, direction(), 1 / 60, tuning, AQUARIUM);
+    expect(Math.abs(s.position.y - before.position.y)).toBeLessThan(0.002);
+  });
+  it('does not shift the neutral depth across repeated resting pauses', () => {
+    const s = state();
+    for (let cycle = 0; cycle < 60; cycle++) {
+      simulate(s, 0.7, direction(), tuning, 60, AQUARIUM);
+      resetSwimming(s);
+    }
+    expect(s.neutralDepth).toBe(7);
+    expect(Math.abs(s.position.y - 7)).toBeLessThan(0.075);
+  });
+  it('suppresses preview breathing with reduced motion while preserving pitched propulsion', () => {
+    const s = state(),
+      settings = { ...tuning, reducedMotion: true };
+    for (let i = 0; i < 300; i++)
+      advanceHoverPreview(s, 1 / 60, settings, AQUARIUM);
+    expect(s.position.y).toBe(7);
+    simulate(s, 2, direction(1, 0, 0.8), settings);
+    expect(s.position.y).toBeGreaterThan(8);
+  });
 });

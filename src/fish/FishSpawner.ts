@@ -105,6 +105,12 @@ export function spawnFish(
         randomState: (random() * 4294967296) >>> 0,
         age: random() * 30,
         corrections: 0,
+        reaction: {
+          awareness: 0,
+          scatter: 0,
+          direction: { x: 0, y: 0, z: 0 },
+          probe: { x: 0, y: 0, z: 0 },
+        },
       });
     }
   }
