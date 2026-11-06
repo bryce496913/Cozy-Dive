@@ -1,6 +1,7 @@
+import { waterTexture } from './WaterTexture';
 import type { Vec3 } from '../config/world';
 import type { WaterEvent } from './AudioEvents';
-import { AUDIO, ambientMix, noiseSamples, spatialMix } from './AudioTuning';
+import { AUDIO, ambientMix, spatialMix } from './AudioTuning';
 
 /** All graph resources belong to one context; no entities or render resources are touched. */
 export class AudioGraph {
@@ -20,9 +21,9 @@ export class AudioGraph {
   private eventPosition?: Readonly<Vec3>;
   private readonly mix = {
     foundation: 0,
-    cutoff: 640,
+    cutoff: 340,
     current: 0,
-    currentCutoff: 430,
+    currentCutoff: 260,
     pan: 0,
   };
   private readonly spatial = { pan: 0, gain: 0 };
@@ -30,21 +31,28 @@ export class AudioGraph {
   constructor(private readonly context: BaseAudioContext) {
     this.master = this.own(context.createGain());
     this.master.gain.value = 0;
-    this.master.connect(context.destination);
+    const submerged = this.own(context.createBiquadFilter());
+    submerged.type = 'lowpass';
+    submerged.frequency.value = 700;
+    submerged.Q.value = 0.5;
+    this.master.connect(submerged).connect(context.destination);
     this.buffers = AUDIO.bufferSeconds.map((seconds, i) => {
       const buffer = context.createBuffer(
         1,
         Math.round(seconds * AUDIO.sampleRate),
         AUDIO.sampleRate,
       );
-      buffer.copyToChannel(noiseSamples(buffer.length, 18573 + i * 7949), 0);
+      buffer.copyToChannel(
+        waterTexture(buffer.length, 18573 + i * 7949, i === 2),
+        0,
+      );
       return buffer;
     });
     this.currentPan = this.own(context.createStereoPanner());
     this.currentPan.connect(this.master);
-    this.foundation = this.layer(this.buffers[0], 1, 75, 640, this.master);
-    this.current = this.layer(this.buffers[1], 0.87, 110, 430, this.currentPan);
-    this.swim = this.layer(this.buffers[1], 1.03, 120, 850, this.master);
+    this.foundation = this.layer(this.buffers[0], 1, 65, 340, this.master);
+    this.current = this.layer(this.buffers[1], 0.87, 85, 260, this.currentPan);
+    this.swim = this.layer(this.buffers[1], 1.03, 95, 420, this.master);
     this.eventFilter = this.own(context.createBiquadFilter());
     this.eventGain = this.own(context.createGain());
     this.eventDistance = this.own(context.createGain());
@@ -130,32 +138,27 @@ export class AudioGraph {
     if (this.voice || this.disposed) return;
     const now = this.context.currentTime,
       source = this.context.createBufferSource();
-    source.buffer = this.buffers[event.kind === 'bubbles' ? 0 : 1];
-    this.eventFilter.type = event.kind === 'bubbles' ? 'bandpass' : 'lowpass';
-    this.eventFilter.Q.value = event.kind === 'bubbles' ? 0.9 : 0.5;
+    source.buffer = this.buffers[event.kind === 'bubbles' ? 2 : 1];
+    this.eventFilter.type = 'lowpass';
+    this.eventFilter.Q.value = 0.5;
     this.eventFilter.frequency.cancelScheduledValues(now);
     this.eventFilter.frequency.setValueAtTime(
-      event.kind === 'bubbles' ? 370 : 470,
+      event.kind === 'bubbles' ? 520 : 340,
       now,
     );
     this.eventFilter.frequency.linearRampToValueAtTime(
-      event.kind === 'bubbles' ? 260 : 340,
+      event.kind === 'bubbles' ? 440 : 290,
       now + event.duration,
     );
     const s = spatialMix(position, listener, yaw, this.spatial);
     this.eventPan.pan.value = s.pan;
     this.eventDistance.gain.value = s.gain;
-    // Two broad, soft noise lobes suggest a delicate bubble cluster, with no tonal chirp.
+    // The baked liquid details supply irregular bubbles; a broad envelope keeps their edges soft.
     const envelope = new Float32Array(96);
     for (let i = 0; i < envelope.length; i++) {
       const t = i / (envelope.length - 1);
       envelope[i] =
-        AUDIO.eventCeiling *
-        event.strength *
-        Math.sin(Math.PI * t) ** 2 *
-        (event.kind === 'bubbles'
-          ? 0.65 + 0.35 * Math.cos(t * Math.PI * 4) ** 2
-          : 1);
+        AUDIO.eventCeiling * event.strength * Math.sin(Math.PI * t) ** 2;
     }
     this.eventGain.gain.cancelScheduledValues(now);
     this.eventGain.gain.setValueCurveAtTime(envelope, now, event.duration);
@@ -169,7 +172,11 @@ export class AudioGraph {
         this.eventPosition = undefined;
       }
     };
-    source.start(now, event.location % 5, event.duration);
+    source.start(
+      now,
+      event.kind === 'bubbles' ? 0 : event.location % 5,
+      event.duration,
+    );
   }
   stopEvent(): void {
     if (!this.voice) return;

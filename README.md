@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.2 / Pass 005 — Ambient Audio & Underwater Soundscape** is a first-person, browser-based aquarium prototype: swim at your own pace through sand, rocks, plants, and soft blue-green water. No scores, timers, combat, accounts, or external assets.
+A quiet little world beneath the surface. **v0.2 / Pass 005B — Softer Underwater Soundscape** is a first-person, browser-based aquarium prototype: swim at your own pace through sand, rocks, plants, and soft blue-green water. No scores, timers, combat, accounts, or external assets.
 
 ## Stack and requirements
 
@@ -76,9 +76,9 @@ Tune aquarium dimensions, clearance, and all physical/feedback parameters in `sr
 
 Click Enter to enable quiet underwater audio when the browser permits it. The initial preview remains silent. **Ambient audio** in Settings and the top-bar button toggle the soundscape; **M** mutes/unmutes while swimming. **Master volume** defaults to 30%, persists locally, and is retained while muted. Audio is optional; reduced motion remains a separate choice.
 
-The soundscape uses filtered procedural noise for surrounding water, slowly changing currents, restrained kick-and-glide movement and occasional low-volume environmental details. There is no music, prominent breathing, machinery or per-fish sound. Escape fades everything out; background tabs suspend audio and never accumulate events. Audio support or autoplay failure leaves swimming playable in silence. Previous v1 preferences migrate without resetting swimming choices.
+The soundscape uses soft procedural liquid textures: short muffled cavity resonances, a quiet colored-water bed, restrained kick-and-glide movement and occasional delicate bubble details. A subdued current and deeper filtering reduce the earlier wind-like hiss. There is no music, prominent breathing, machinery or per-fish sound. Escape fades everything out; background tabs suspend audio and never accumulate events. Audio support or autoplay failure leaves swimming playable in silence. Previous v1 preferences migrate without resetting swimming choices.
 
-See [audio architecture and settings](docs/AUDIO.md) and [Pass 005 validation and manual macOS listening checklist](docs/VALIDATION_V02_PASS_005.md). Functional checks do not establish subjective sound quality; human listening and MacBook Air acceptance remain pending.
+See [audio architecture and settings](docs/AUDIO.md) and [Pass 005B validation and before/after listening previews](docs/VALIDATION_V02_PASS_005B.md). Functional checks do not establish subjective sound quality; human listening and MacBook Air acceptance remain pending.
 
 ## A living freshwater aquarium
 
