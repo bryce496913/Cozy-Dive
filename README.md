@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.2 / Pass 005B — Softer Underwater Soundscape** is a first-person, browser-based aquarium prototype: swim at your own pace through sand, rocks, plants, and soft blue-green water. No scores, timers, combat, accounts, or external assets.
+A quiet little world beneath the surface. **v0.2 / Pass 006 — release candidate (`0.2.0-rc.1`)** is a first-person, browser-based aquarium prototype: swim at your own pace through sand, rocks, plants, and soft blue-green water. No scores, timers, combat, accounts, or external assets.
 
 ## Stack and requirements
 
@@ -17,15 +17,16 @@ Open the address printed by Vite. Click **Enter the Water** to give the canvas m
 
 For an existing lockfile in CI or a clean checkout, use `npm ci`.
 
-| Command             | Purpose                                    |
-| ------------------- | ------------------------------------------ |
-| `npm run dev`       | Start the development server               |
-| `npm run build`     | Typecheck and produce `dist/`              |
-| `npm run preview`   | Serve the production build locally         |
-| `npm run test`      | Run the unit tests once                    |
-| `npm run typecheck` | Check strict TypeScript types              |
-| `npm run lint`      | Check ESLint rules and Prettier formatting |
-| `npm run format`    | Apply Prettier formatting                  |
+| Command               | Purpose                                       |
+| --------------------- | --------------------------------------------- |
+| `npm run dev`         | Start the development server                  |
+| `npm run build`       | Typecheck and produce `dist/`                 |
+| `npm run preview`     | Serve the production build locally            |
+| `npm run test`        | Run the unit tests once                       |
+| `npm run test:stress` | Run opt-in 5/15/30-minute ecosystem scenarios |
+| `npm run typecheck`   | Check strict TypeScript types                 |
+| `npm run lint`        | Check ESLint rules and Prettier formatting    |
+| `npm run format`      | Apply Prettier formatting                     |
 
 Vite binds to all interfaces for cloud development; use `npm run dev -- --host 127.0.0.1` to restrict it to your own machine. Deployment is a static `dist/` directory; no server-side application is required.
 
@@ -40,6 +41,8 @@ Vite binds to all interfaces for cloud development; use `npm run dev -- --host 1
 | M      | Toggle ambient audio while swimming     |
 
 Click **Return to the Water** to resume. Look up or down and use W/S to change depth; A/D always strafe horizontally. Space and Shift have no swimming action. Pausing or losing browser focus clears held input and propulsion momentum while retaining a resting breath’s phase and small vertical velocity. Diagonal input is normalized. Subtle stroke-related pitch feedback stays below 0.07 degrees, with no roll or visual position offsets. Looking straight up/down is limited.
+
+This is a technical release candidate; final v0.2 approval awaits manual MacBook Air acceptance. See [Pass 006 validation](docs/VALIDATION_V02_PASS_006.md) and [repeatable benchmarks](validation/README.md).
 
 ## Current features
 

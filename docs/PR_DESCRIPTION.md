@@ -1,3 +1,5 @@
+> Historical Pass 002 PR description. Current population, controls and candidate status are documented in [README](../README.md) and [Pass 006 validation](VALIDATION_V02_PASS_006.md). Counts and checklist items below describe that earlier pass.
+
 # v0.2 Pass 002 — Schooling & Group Intelligence
 
 The existing 8 neon tetras now form recognizable, imperfect schools; 6 harlequin rasboras coordinate in looser groups; 2 honey gouramis continue independent exploration. All species steer away from nearby bodies, including other species. Models, colors, animation, population, player swimming/collision, camera, preferences, timing, and resource ownership are preserved.

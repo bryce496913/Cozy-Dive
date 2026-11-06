@@ -5,6 +5,21 @@ const wave =
   '<svg viewBox="0 0 40 26" fill="none" aria-hidden="true"><path d="M2 8c6-8 12 8 18 0s12 8 18 0M2 18c6-8 12 8 18 0s12 8 18 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
 const arrow =
   '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14" stroke="currentColor" stroke-width="1.5"/></svg>';
+/** Keep browser/OS shortcuts and held-key repeat outside the gameplay mute action. */
+export function isAudioMuteShortcut(
+  event: Pick<
+    KeyboardEvent,
+    'code' | 'repeat' | 'ctrlKey' | 'metaKey' | 'altKey'
+  >,
+): boolean {
+  return (
+    event.code === 'KeyM' &&
+    !event.repeat &&
+    !event.ctrlKey &&
+    !event.metaKey &&
+    !event.altKey
+  );
+}
 export class Interface {
   private readonly abort = new AbortController();
   private readonly overlay: HTMLElement;
@@ -122,8 +137,7 @@ export class Interface {
       'keydown',
       (event) => {
         if (
-          event.code === 'KeyM' &&
-          !event.repeat &&
+          isAudioMuteShortcut(event) &&
           this.root.classList.contains('is-swimming')
         ) {
           event.preventDefault();
