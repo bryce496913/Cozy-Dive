@@ -1,3 +1,4 @@
+import type { BehaviorTuning } from './FishBehaviorTypes';
 import type { Vec3 } from '../config/world';
 
 export type SpeciesId = 'neon-tetra' | 'harlequin-rasbora' | 'honey-gourami';
@@ -34,6 +35,7 @@ export interface FishSpecies {
   readonly name: string;
   readonly count: number;
   readonly schooling: SchoolingTuning;
+  readonly behavior: BehaviorTuning;
   readonly diver: DiverTuning;
   readonly length: number;
   readonly height: number;
@@ -62,6 +64,15 @@ export const FISH_SPECIES: readonly FishSpecies[] = [
     id: 'neon-tetra',
     name: 'Neon tetra',
     count: 8,
+    behavior: {
+      interval: [32, 64],
+      weights: [0.65, 0.08, 0.22, 0.05],
+      duration: [7, 12],
+      restDuration: [3, 6],
+      restSpeed: 0.3,
+      socialRetention: 0.9,
+      recoverySeconds: 5,
+    },
     diver: {
       awarenessRadius: 4.2,
       comfortRadius: 2.2,
@@ -116,6 +127,15 @@ export const FISH_SPECIES: readonly FishSpecies[] = [
     id: 'harlequin-rasbora',
     name: 'Harlequin rasbora',
     count: 6,
+    behavior: {
+      interval: [28, 60],
+      weights: [0.45, 0.22, 0.25, 0.08],
+      duration: [10, 17],
+      restDuration: [5, 9],
+      restSpeed: 0.22,
+      socialRetention: 0.7,
+      recoverySeconds: 7,
+    },
     diver: {
       awarenessRadius: 3.8,
       comfortRadius: 2,
@@ -169,6 +189,15 @@ export const FISH_SPECIES: readonly FishSpecies[] = [
     id: 'honey-gourami',
     name: 'Honey gourami',
     count: 2,
+    behavior: {
+      interval: [20, 42],
+      weights: [0.3, 0.3, 0.2, 0.2],
+      duration: [15, 24],
+      restDuration: [10, 18],
+      restSpeed: 0.16,
+      socialRetention: 1,
+      recoverySeconds: 10,
+    },
     diver: {
       awarenessRadius: 2.8,
       comfortRadius: 1.5,

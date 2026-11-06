@@ -1,3 +1,4 @@
+import type { FishBehavior } from './FishBehaviorTypes';
 import type { DiverReaction } from './FishDiverReaction';
 import type { Vec3 } from '../config/world';
 import type { FishSpecies } from './FishSpecies';
@@ -29,9 +30,12 @@ export interface FishEntity {
   age: number;
   corrections: number;
   readonly reaction: DiverReaction;
+  readonly behavior: FishBehavior;
 }
+export const nextFishRandom = (state: number): number =>
+  (Math.imul(state, 1664525) + 1013904223) >>> 0;
 export function randomFish(fish: FishEntity): number {
-  fish.randomState = (Math.imul(fish.randomState, 1664525) + 1013904223) >>> 0;
+  fish.randomState = nextFishRandom(fish.randomState);
   return fish.randomState / 4294967296;
 }
 export function angleDifference(to: number, from: number): number {
