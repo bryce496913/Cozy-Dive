@@ -1,7 +1,13 @@
 import type { BehaviorTuning } from './FishBehaviorTypes';
 import type { Vec3 } from '../config/world';
 
-export type SpeciesId = 'neon-tetra' | 'harlequin-rasbora' | 'honey-gourami';
+export type SpeciesId =
+  | 'neon-tetra'
+  | 'harlequin-rasbora'
+  | 'honey-gourami'
+  | 'panda-corydoras'
+  | 'endlers-livebearer'
+  | 'chili-rasbora';
 export interface SchoolingTuning {
   readonly enabled: boolean;
   readonly spacing: number;
@@ -43,7 +49,22 @@ export interface FishSpecies {
   readonly color: number;
   readonly backColor: number;
   readonly finColor: number;
-  readonly marking: 'neon-stripes' | 'rear-wedge' | 'none';
+  readonly marking:
+    | 'neon-stripes'
+    | 'rear-wedge'
+    | 'none'
+    | 'panda-mask'
+    | 'endler-patches'
+    | 'lateral-stripe';
+  readonly radiusFactor?: number;
+  readonly detail?: 'medium' | 'small';
+  readonly substrateOffset?: readonly [number, number];
+  readonly burst?: {
+    readonly interval: readonly [number, number];
+    readonly duration: readonly [number, number];
+    readonly speed: number;
+    readonly acceleration: number;
+  };
   readonly accentColor: number;
   readonly secondaryAccent?: number;
   readonly roundedFins: boolean;
@@ -59,7 +80,7 @@ export interface FishSpecies {
   readonly tailAngle: number;
   readonly profile: readonly number[];
 }
-export const FISH_SPECIES: readonly FishSpecies[] = [
+export const ORIGINAL_FISH_SPECIES: readonly FishSpecies[] = [
   {
     id: 'neon-tetra',
     name: 'Neon tetra',
@@ -248,6 +269,180 @@ export const FISH_SPECIES: readonly FishSpecies[] = [
     profile: [0.14, 0.48, 0.85, 1, 0.96, 0.72, 0.4, 0.035],
   },
 ];
+export const FISH_SPECIES: readonly FishSpecies[] = [
+  ...ORIGINAL_FISH_SPECIES,
+  {
+    ...ORIGINAL_FISH_SPECIES[1],
+    id: 'panda-corydoras',
+    radiusFactor: 0.65,
+    name: 'Panda corydoras',
+    count: 5,
+    length: 0.68,
+    height: 0.27,
+    width: 0.25,
+    color: 0xc4bda3,
+    backColor: 0x8b8c7d,
+    finColor: 0xa7a58b,
+    marking: 'panda-mask',
+    accentColor: 0x252d2d,
+    roundedFins: true,
+    detail: 'medium',
+    speed: 0.28,
+    maxSpeed: 0.5,
+    acceleration: 0.28,
+    turnRate: 1.1,
+    depth: [0.48, 1.25],
+    substrateOffset: [0.48, 1.1],
+    region: { x: -2.7, y: 0.85, z: -1 },
+    spread: { x: 3.3, y: 0.3, z: 4 },
+    profile: [0.12, 0.4, 0.8, 1, 1, 0.95, 0.7, 0.12],
+    tailHz: 2.6,
+    tailAngle: 0.22,
+    schooling: {
+      ...ORIGINAL_FISH_SPECIES[1].schooling,
+      spacing: 0.5,
+      alignmentWeight: 0.35,
+      cohesionWeight: 0.45,
+      cohesionRadius: 7,
+      wanderWeight: 0.8,
+    },
+    behavior: {
+      interval: [24, 46],
+      weights: [0.3, 0.25, 0.45, 0],
+      duration: [12, 22],
+      restDuration: [5, 12],
+      restSpeed: 0.18,
+      socialRetention: 0.75,
+      recoverySeconds: 7,
+    },
+    diver: {
+      ...ORIGINAL_FISH_SPECIES[1].diver,
+      awarenessRadius: 3.2,
+      sensitivity: 0.7,
+      escapeSpeed: 0.8,
+      reactionAcceleration: 0.65,
+    },
+  },
+  {
+    ...ORIGINAL_FISH_SPECIES[0],
+    id: 'endlers-livebearer',
+    name: "Endler's livebearer",
+    count: 4,
+    length: 0.45,
+    height: 0.12,
+    width: 0.095,
+    color: 0x9baf87,
+    backColor: 0x526d55,
+    finColor: 0xb1a06d,
+    marking: 'endler-patches',
+    accentColor: 0xd58c39,
+    secondaryAccent: 0x438c83,
+    detail: 'medium',
+    speed: 0.48,
+    maxSpeed: 0.9,
+    acceleration: 0.45,
+    turnRate: 1.65,
+    depth: [5, 10.5],
+    region: { x: 2.3, y: 7.8, z: 1 },
+    spread: { x: 4, y: 1.8, z: 4 },
+    profile: [0.07, 0.18, 0.58, 0.9, 1, 0.8, 0.4, 0.035],
+    schooling: {
+      ...ORIGINAL_FISH_SPECIES[2].schooling,
+      spacing: 0.35,
+      separationRange: 0.8,
+    },
+    behavior: {
+      ...ORIGINAL_FISH_SPECIES[0].behavior,
+      interval: [24, 52],
+      weights: [0.7, 0.06, 0.15, 0.09],
+      socialRetention: 1,
+    },
+    burst: {
+      interval: [8, 15],
+      duration: [0.45, 0.8],
+      speed: 0.82,
+      acceleration: 0.8,
+    },
+    diver: {
+      ...ORIGINAL_FISH_SPECIES[0].diver,
+      awarenessRadius: 3.8,
+      escapeSpeed: 1.2,
+    },
+  },
+  {
+    ...ORIGINAL_FISH_SPECIES[0],
+    id: 'chili-rasbora',
+    name: 'Chili rasbora',
+    count: 20,
+    length: 0.24,
+    height: 0.062,
+    width: 0.046,
+    color: 0xba5836,
+    backColor: 0x783a2d,
+    finColor: 0xbd9275,
+    marking: 'lateral-stripe',
+    accentColor: 0x293332,
+    detail: 'small',
+    speed: 0.45,
+    maxSpeed: 1.15,
+    acceleration: 0.5,
+    turnRate: 2.1,
+    depth: [5.2, 9.5],
+    region: { x: 0, y: 7.2, z: -3 },
+    spread: { x: 2.2, y: 0.85, z: 2.4 },
+    profile: [0.045, 0.15, 0.48, 0.85, 1, 0.73, 0.32, 0.02],
+    tailHz: 4.8,
+    tailAngle: 0.32,
+    schooling: {
+      enabled: true,
+      spacing: 0.13,
+      separationRange: 0.6,
+      separationWeight: 3,
+      alignmentRadius: 3.6,
+      alignmentWeight: 1.65,
+      cohesionRadius: 8.5,
+      cohesionWeight: 1.4,
+      reconnectRadius: 13,
+      maxNeighbors: 12,
+      wanderWeight: 0.18,
+    },
+    behavior: {
+      ...ORIGINAL_FISH_SPECIES[0].behavior,
+      interval: [42, 78],
+      weights: [0.8, 0.025, 0.16, 0.015],
+      duration: [5, 9],
+      restDuration: [2, 4],
+      socialRetention: 0.95,
+    },
+    burst: {
+      interval: [5, 11],
+      duration: [0.4, 0.8],
+      speed: 1.05,
+      acceleration: 1.6,
+    },
+    diver: {
+      ...ORIGINAL_FISH_SPECIES[0].diver,
+      awarenessRadius: 4.4,
+      sensitivity: 1,
+      escapeSpeed: 1.45,
+      reactionAcceleration: 1.8,
+      turnMultiplier: 1.5,
+      recoverySeconds: 4,
+    },
+  },
+];
+export function fishPopulation(
+  count: 16 | 25 | 45 | 60,
+): readonly FishSpecies[] {
+  if (count === 16) return ORIGINAL_FISH_SPECIES;
+  if (count === 25) return FISH_SPECIES.slice(0, 5);
+  if (count === 45) return FISH_SPECIES;
+  return FISH_SPECIES.map((s) =>
+    s.id === 'chili-rasbora'
+      ? { ...s, count: 35, spread: { x: 2.8, y: 1, z: 3 } }
+      : s,
+  );
+}
 export const FISH_TIMING = { step: 1 / 30, maxCatchUp: 4, seed: 38147 };
 export const FISH_STEERING = {
   lookAheadSeconds: 2.2,

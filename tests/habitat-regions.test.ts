@@ -40,7 +40,7 @@ it('keeps a temporary double-density scenario bounded and pooled without changin
     try {
       expect(system.placements).toHaveLength(130);
       expect(system.geometries.length).toBeLessThanOrEqual(15);
-      expect(a.collision.colliders).toHaveLength(34);
+      expect(a.rockColliders).toHaveLength(34);
     } finally {
       system.dispose();
     }

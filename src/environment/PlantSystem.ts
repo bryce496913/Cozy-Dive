@@ -39,7 +39,7 @@ export class PlantSystem {
           '#include <begin_vertex>\ntransformed.xz += cozyFlow*plantMotion.x;',
         );
     };
-    this.material.customProgramCacheKey = () => 'cozy-plants-v2';
+    this.material.customProgramCacheKey = () => 'cozy-plants-v3';
     const templates = new Map<string, THREE.BufferGeometry>();
     const geometries: THREE.BufferGeometry[] = [],
       matrix = new THREE.Matrix4(),
@@ -77,8 +77,8 @@ export class PlantSystem {
         });
         mesh.computeBoundingBox();
         mesh.computeBoundingSphere();
-        if (mesh.boundingBox) mesh.boundingBox.expandByScalar(0.4);
-        if (mesh.boundingSphere) mesh.boundingSphere.radius += 0.4;
+        if (mesh.boundingBox) mesh.boundingBox.expandByScalar(0.65);
+        if (mesh.boundingSphere) mesh.boundingSphere.radius += 0.65;
         this.root.add(mesh);
       }
     this.geometries = geometries;

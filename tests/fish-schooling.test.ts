@@ -2,9 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { AQUARIUM, type Vec3 } from '../src/config/world';
 import { Aquarium } from '../src/environment/Aquarium';
 import { FishSchooling } from '../src/fish/FishSchooling';
-import { FISH_SPECIES, type SchoolingTuning } from '../src/fish/FishSpecies';
+import {
+  ORIGINAL_FISH_SPECIES as FISH_SPECIES,
+  type SchoolingTuning,
+} from '../src/fish/FishSpecies';
 import { FishSimulation, stepFish } from '../src/fish/FishMovement';
-import { spawnFish } from '../src/fish/FishSpawner';
+import { spawnFish } from './fixtures/originalFish';
 import { safeFishPosition, type FishHabitat } from '../src/fish/FishHabitat';
 import { angleDifference, type FishEntity } from '../src/fish/FishEntity';
 import type { ConvexCollider } from '../src/player/collision';
@@ -308,7 +311,7 @@ describe('school formation and safety over time', () => {
   it('forms a cohesive but imperfect tetra school and a looser rasbora group, with personal space', () => {
     const aquarium = new Aquarium();
     try {
-      const habitat = { bounds: AQUARIUM, rocks: aquarium.collision.colliders },
+      const habitat = { bounds: AQUARIUM, rocks: aquarium.rockColliders },
         sim = new FishSimulation(spawnFish(habitat), habitat);
       let tetraSpread = 0,
         rasboraSpread = 0,

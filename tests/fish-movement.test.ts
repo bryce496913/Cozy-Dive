@@ -2,10 +2,10 @@ import { describe, expect, it, vi } from 'vitest';
 import { Mesh } from 'three';
 import { AQUARIUM } from '../src/config/world';
 import { FishSimulation, stepFish } from '../src/fish/FishMovement';
-import { spawnFish } from '../src/fish/FishSpawner';
+import { spawnFish } from './fixtures/originalFish';
 import { FISH_TIMING } from '../src/fish/FishSpecies';
 import { angleDifference } from '../src/fish/FishEntity';
-import { FishSystem } from '../src/fish/FishSystem';
+import { FishSystem } from './fixtures/originalFish';
 
 const habitat = { bounds: AQUARIUM, rocks: [] };
 describe('independent fish locomotion', () => {

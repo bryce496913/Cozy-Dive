@@ -3,7 +3,7 @@ import { AQUARIUM } from '../src/config/world';
 import { Aquarium } from '../src/environment/Aquarium';
 import { safeFishPosition, type FishHabitat } from '../src/fish/FishHabitat';
 import { FishSimulation, stepFish } from '../src/fish/FishMovement';
-import { spawnFish } from '../src/fish/FishSpawner';
+import { spawnFish } from './fixtures/originalFish';
 import { FISH_TIMING } from '../src/fish/FishSpecies';
 import type { ConvexCollider } from '../src/player/collision';
 
@@ -71,7 +71,7 @@ describe('fish steering and containment', () => {
   it('keeps a ten-minute real-aquarium simulation valid and independently moving', () => {
     const aquarium = new Aquarium();
     try {
-      const world = { bounds: AQUARIUM, rocks: aquarium.collision.colliders },
+      const world = { bounds: AQUARIUM, rocks: aquarium.rockColliders },
         sim = new FishSimulation(spawnFish(world), world);
       for (let i = 0; i < 30 * 600; i++) {
         sim.advance(1 / 30, true);

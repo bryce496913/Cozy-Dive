@@ -6,7 +6,13 @@ import type { Bounds, Vec3 } from '../config/world';
 import type { ConvexCollider } from '../player/collision';
 
 export interface HabitatInterest {
-  readonly kind: 'plant' | 'rock-edge' | 'open-water';
+  readonly kind:
+    | 'plant'
+    | 'rock-edge'
+    | 'open-water'
+    | 'hardscape-edge'
+    | 'substrate'
+    | 'grass-edge';
   readonly position: Readonly<Vec3>;
   readonly normal: Readonly<Vec3>;
   readonly vegetation?: {
@@ -22,6 +28,7 @@ export interface FishHabitat {
   readonly bounds: Bounds;
   readonly rocks: readonly ConvexCollider[];
   readonly interests?: readonly HabitatInterest[];
+  readonly substrateHeight?: (x: number, z: number) => number;
 }
 export function insideRock(
   p: Vec3,

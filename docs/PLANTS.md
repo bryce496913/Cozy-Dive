@@ -1,6 +1,6 @@
 # Living plants and habitat — v0.2 Pass 004
 
-The environment owns 65 procedural plant clusters in five freshwater families. Thin foliage and slender petioles remain passable; no plant colliders or substantial decorative bases are introduced. Aquarium dimensions, rocks, player physics, fish models, animation, schooling and behavior scheduling are preserved.
+The environment retains 65 procedural clusters in five freshwater families, now complemented by eight freshwater grass meadows and nine decorative coral-inspired ornaments. Thin foliage and slender petioles remain passable; no plant colliders or substantial plant bases are introduced. The new hardscape has separate solid convex components. Aquarium dimensions, rocks, player physics, fish models, animation, schooling and behavior scheduling are preserved.
 
 ## Modules and ownership
 
@@ -29,7 +29,7 @@ Heights are instance scale ranges; individual leaves are shorter and curved. Anc
 
 Three-dimensional sampled envelopes include leaf spread and sway margin, rejecting solid rock intersections while allowing upper leaves above low formations. Bounded placement attempts fail explicitly if density cannot fit. Tests also inspect actual transformed and bent vertices at multiple times/seeds, including double density. This is static layout validation rather than dynamic foliage collision.
 
-Vegetation has its own seed, independent of existing rocks, sand colors and motes. Aquarium deliberately advances the old plant RNG budget (65 × 18 samples) before building motes, preserving the established downstream scenery stream. No new rock transforms or colliders are generated.
+Vegetation has its own seed, independent of existing rocks, sand colors and motes. Aquarium deliberately advances the old plant RNG budget (65 × 18 samples) before building motes, preserving the established downstream scenery stream. Original rock transforms/colliders remain unchanged; new ornament component colliders are owned separately.
 
 ## Current and animation
 
@@ -43,12 +43,24 @@ The material's small `onBeforeCompile` hook bends existing vertices and adjusts 
 
 Plant interests extend the existing read-only `kind / position / normal` interface with optional plain metadata: plant family, habitat region, approximate height and broad-leaf flag. Fish do not import or inspect meshes. Inspection regions are selected from actual template vertices on the channel-facing upper leaf area, with a safe outward/upward approach direction. These static regions need not chase every animated leaf tip. The existing target sampler applies soft preferences: gouramis favor broad-leaved plants, tetras favor taller vegetation edges over low grass, and rasboras accept most planted areas. No activity scheduler, fear signal, movement integrator or social algorithm is replaced.
 
-Existing body-size offsets, safe straight-route tests and stalled-target abandonment remain authoritative. If 24 random forage trials miss a usable surface, a bounded nearest-safe fallback scans at most 192 regions. This improves sparse-habitat availability without changing the scheduler or its tuning. Leaves stay passable. Solid rock clearance and diver scattering still take priority over investigation; a nearby diver interrupts voluntary activity through the accepted recovery machinery.
+Existing body-size offsets, safe straight-route tests and stalled-target abandonment remain authoritative. If 24 random forage trials miss a usable surface, a bounded nearest-safe fallback scans at most 256 regions. This improves sparse-habitat availability without changing the scheduler or its tuning. Leaves stay passable. Solid rock clearance and diver scattering still take priority over investigation; a nearby diver interrupts voluntary activity through the accepted recovery machinery.
 
 ## Lifecycle and practical limits
 
-PlantSystem detaches its root before aquarium scenery disposal, then disposes instanced mesh resources, each template and the shared material once. Disposal/update after disposal is harmless. Metadata and shared arrays have no external listeners or timers. The temporary density setting is a validation option; the shipping aquarium uses 65 clusters and 16 fish.
+PlantSystem detaches its root before aquarium scenery disposal, then disposes instanced mesh resources, each template and the shared material once. Disposal/update after disposal is harmless. Metadata and shared arrays have no external listeners or timers. The temporary density setting is a validation option; the shipping aquarium uses 65 existing clusters, eight meadows and 45 fish.
 
 The result is stylized thin-leaf vegetation, not botanical growth, physically simulated stems, or real fluid dynamics. Plant metadata and shader currents assume the existing untransformed environment root. Current normal adjustment is a lightweight bend-slope approximation. Larger future habitats may benefit from spatial batching; this pass keeps at most 15 vegetation draws rather than a draw per leaf. Hardware MacBook Air performance remains a manual acceptance check.
 
 Pass 005 may add ambient sound through a separate lifecycle owner. This pass adds no audio, plant health, growth, harvesting, food, customization or backend. Await manual macOS acceptance before beginning Pass 005. See [validation](VALIDATION_V02_PASS_004.md) for executed checks, screenshots, performance and limitations.
+
+## Pass 004B — meadows, visible flow and freshwater ornaments
+
+`MeadowSystem` creates eight irregular islands with center-dense / sparse-edge radial placement, elliptical/wavy boundaries, 120–180 single blades per patch, mixed lengths and occasional taller ribbons. The default seed produces **1,225 blades**. These are not extra duplicated Hairgrass tufts: three shared one-blade templates feed three InstancedMeshes across all patches. Roots individually sample the actual substrate; geometry has narrow tapered profiles and flexible tips. Patches stay beside banks and quiet corners, away from the initial player/channel. Eight `grass-edge` interests expose useful inspection regions without registering every strand.
+
+Meadows borrow the existing PlantSystem material and time uniform, so they require no independent animation update/clock. MeadowSystem owns/disposes only its three geometries and instance buffers; it never disposes the borrowed material. Aquarium disposes meadows before the material owner. Optional plant motion now uses selective coefficients: Vallisneria .072 (was .045), Sword .023 (.014), Fern .037 (.025), Anubias unchanged .006, Hairgrass .039 (.022), and meadow blades .075. Frequencies and the broad current model remain slow; position-dependent local phase adds variation among adjacent blades. Maximum motion bounds expand to .65 units. Pause and smooth reduced-motion phase retention are unchanged.
+
+`HardscapeSystem` adds three branching, three rounded/lobed and three plate formations. These are **freshwater aquarium ornaments**, not living marine coral. Curved branching arms are smooth convex hulls of tapered spherical samples; rounded forms combine sculpted lobes; plates use irregular convex domes/lips around a narrow supporting stem. Mineral vertex variation and rough cream, muted coral-orange and lavender-gray materials match the existing style.
+
+Rendering and collision use the same 39 convex component surfaces, transformed identically. No single convex hull blocks the empty space between branches or layers, and no arbitrary concave mesh is treated as a plane hull. The original 34 rock colliders remain separately available; the full environment contains 73 solid components. Nine new `hardscape-edge` interests and ten substrate interests share the existing body-size / clear-route / stalled-target pipeline. Hardscape placement preserves the central corridor and clearance from existing rocks; vegetation validates against the combined solid list.
+
+Aquarium owns hardscape lifecycle, detaching its root before generic scene cleanup and disposing its nine merged geometry templates / three shared materials once. No food, growth, saltwater chemistry, plant health, audio or new physics engine is added. See [Pass 004B validation](VALIDATION_V02_PASS_004B.md) for visuals, motion pairs, collision checks, 16/25/45/60-fish measurements and the manual macOS checklist.
