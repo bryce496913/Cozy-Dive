@@ -19,24 +19,23 @@ import { FishSimulation } from '../src/fish/FishMovement';
 import { angleDifference } from '../src/fish/FishEntity';
 import { CollisionWorld } from '../src/player/collision';
 const open = { bounds: AQUARIUM, rocks: [], substrateHeight };
-describe('six-species population and shared models', () => {
-  it('registers all six species and exact 16/25/45/60 population gates', () => {
+describe('five-species population and shared models', () => {
+  it('registers all five species and exact 16/20/40/60 population gates', () => {
     expect(FISH_SPECIES.map((s) => s.id)).toEqual([
       'neon-tetra',
       'harlequin-rasbora',
       'honey-gourami',
-      'panda-corydoras',
       'endlers-livebearer',
       'chili-rasbora',
     ]);
-    expect(FISH_SPECIES.map((s) => s.count)).toEqual([8, 6, 2, 5, 4, 20]);
-    for (const count of [16, 25, 45, 60] as const)
+    expect(FISH_SPECIES.map((s) => s.count)).toEqual([8, 6, 2, 4, 20]);
+    for (const count of [16, 20, 40, 60] as const)
       expect(fishPopulation(count).reduce((n, s) => n + s.count, 0)).toBe(
         count,
       );
     expect(FISH_SPECIES.slice(0, 3)).toEqual(ORIGINAL_FISH_SPECIES);
   });
-  it.each([16, 25, 45, 60] as const)(
+  it.each([16, 20, 40, 60] as const)(
     'spawns %i fish deterministically with safe bodies, personal space and a loose chili region',
     (count) => {
       const a = new Aquarium();
@@ -79,8 +78,8 @@ describe('six-species population and shared models', () => {
   it('batches the real articulated parts and keeps four distinct Endler markings', () => {
     const system = new FishSystem(open);
     try {
-      expect(system.visuals).toHaveLength(45);
-      expect(system.batches.length).toBe(6);
+      expect(system.visuals).toHaveLength(40);
+      expect(system.batches.length).toBe(5);
       const endler = system.templates.filter(
         (t) => t.species.id === 'endlers-livebearer',
       );
@@ -124,32 +123,12 @@ describe('six-species population and shared models', () => {
       system.dispose();
     }
   });
-  it('keeps every cory model vertex, including barbels, within the conservative body sphere', () => {
-    const system = new FishSystem(open, [FISH_SPECIES[3]]);
-    try {
-      const visual = system.visuals[0],
-        f = system.simulation.fish[0],
-        p = new THREE.Vector3();
-      visual.root.updateMatrixWorld(true);
-      let radius = 0;
-      visual.root.traverse((o) => {
-        if (o instanceof THREE.Mesh)
-          for (let i = 0; i < o.geometry.attributes.position.count; i++) {
-            p.fromBufferAttribute(o.geometry.attributes.position, i)
-              .applyMatrix4(o.matrixWorld)
-              .sub(new THREE.Vector3(f.position.x, f.position.y, f.position.z));
-            radius = Math.max(radius, p.length());
-          }
-      });
-      expect(radius).toBeLessThan(f.radius);
-    } finally {
-      system.dispose();
-    }
-  });
 });
-describe('darting, substrate movement and school identity', () => {
+describe('darting and school identity', () => {
   it('bounds asynchronous bursts, acceleration, turning and duty cycle without teleporting', () => {
-    const fish = spawnFish(open, [FISH_SPECIES[5]]),
+    const fish = spawnFish(open, [
+        FISH_SPECIES.find((s) => s.id === 'chili-rasbora')!,
+      ]),
       sim = new FishSimulation(fish, open);
     const first = fish.map(() => -1);
     let active = 0,
@@ -199,30 +178,8 @@ describe('darting, substrate movement and school identity', () => {
     expect(active / samples).toBeLessThan(0.15);
     expect(peak).toBeGreaterThan(0.65);
   });
-  it('keeps corydoras near a varying substrate while Endlers remain independent', () => {
-    const sim = new FishSimulation(spawnFish(open, fishPopulation(25)), open);
-    let low = 0,
-      total = 0,
-      maxY = 0;
-    for (let i = 0; i < 9000; i++) {
-      sim.advance(1 / 30, true);
-      for (const f of sim.fish.filter(
-        (f) => f.species.id === 'panda-corydoras',
-      )) {
-        low += Number(
-          f.position.y - substrateHeight(f.position.x, f.position.z) < 1.6,
-        );
-        total++;
-        maxY = Math.max(maxY, f.position.y);
-        expect(safeFishPosition(f.position, f.radius, open)).toBe(true);
-      }
-    }
-    expect(low / total).toBeGreaterThan(0.85);
-    expect(maxY).toBeLessThan(3);
-    expect(FISH_SPECIES[4].schooling.enabled).toBe(false);
-  }, 20000);
   it('retains a larger coherent chili group without leaders or synchronized clocks', () => {
-    const config = FISH_SPECIES[5],
+    const config = FISH_SPECIES.find((s) => s.id === 'chili-rasbora')!,
       a = new FishSimulation(spawnFish(open, [config]), open),
       b = new FishSimulation(
         spawnFish(open, [
@@ -271,7 +228,10 @@ describe('darting, substrate movement and school identity', () => {
     expect(spread(a)).toBeLessThan(5);
   }, 20000);
   it('lets the chili school scatter and regroup after a close moving diver leaves', () => {
-    const sim = new FishSimulation(spawnFish(open, [FISH_SPECIES[5]]), open),
+    const sim = new FishSimulation(
+        spawnFish(open, [FISH_SPECIES.find((s) => s.id === 'chili-rasbora')!]),
+        open,
+      ),
       fish = sim.fish;
     const center = () => {
       const c = { x: 0, y: 0, z: 0 };
@@ -327,7 +287,7 @@ describe('darting, substrate movement and school identity', () => {
     expect(results[1]).toEqual(results[0]);
     expect(results[2]).toEqual(results[0]);
   });
-  it.each([25, 45, 60] as const)(
+  it.each([20, 40, 60] as const)(
     'keeps %i fish safe and moving for three minutes around actual rocks and ornaments',
     (count) => {
       const a = new Aquarium();

@@ -5,7 +5,6 @@ export type SpeciesId =
   | 'neon-tetra'
   | 'harlequin-rasbora'
   | 'honey-gourami'
-  | 'panda-corydoras'
   | 'endlers-livebearer'
   | 'chili-rasbora';
 export interface SchoolingTuning {
@@ -53,7 +52,6 @@ export interface FishSpecies {
     | 'neon-stripes'
     | 'rear-wedge'
     | 'none'
-    | 'panda-mask'
     | 'endler-patches'
     | 'lateral-stripe';
   readonly radiusFactor?: number;
@@ -272,58 +270,6 @@ export const ORIGINAL_FISH_SPECIES: readonly FishSpecies[] = [
 export const FISH_SPECIES: readonly FishSpecies[] = [
   ...ORIGINAL_FISH_SPECIES,
   {
-    ...ORIGINAL_FISH_SPECIES[1],
-    id: 'panda-corydoras',
-    radiusFactor: 0.65,
-    name: 'Panda corydoras',
-    count: 5,
-    length: 0.68,
-    height: 0.27,
-    width: 0.25,
-    color: 0xc4bda3,
-    backColor: 0x8b8c7d,
-    finColor: 0xa7a58b,
-    marking: 'panda-mask',
-    accentColor: 0x252d2d,
-    roundedFins: true,
-    detail: 'medium',
-    speed: 0.28,
-    maxSpeed: 0.5,
-    acceleration: 0.28,
-    turnRate: 1.1,
-    depth: [0.48, 1.25],
-    substrateOffset: [0.48, 1.1],
-    region: { x: -2.7, y: 0.85, z: -1 },
-    spread: { x: 3.3, y: 0.3, z: 4 },
-    profile: [0.12, 0.4, 0.8, 1, 1, 0.95, 0.7, 0.12],
-    tailHz: 2.6,
-    tailAngle: 0.22,
-    schooling: {
-      ...ORIGINAL_FISH_SPECIES[1].schooling,
-      spacing: 0.5,
-      alignmentWeight: 0.35,
-      cohesionWeight: 0.45,
-      cohesionRadius: 7,
-      wanderWeight: 0.8,
-    },
-    behavior: {
-      interval: [24, 46],
-      weights: [0.3, 0.25, 0.45, 0],
-      duration: [12, 22],
-      restDuration: [5, 12],
-      restSpeed: 0.18,
-      socialRetention: 0.75,
-      recoverySeconds: 7,
-    },
-    diver: {
-      ...ORIGINAL_FISH_SPECIES[1].diver,
-      awarenessRadius: 3.2,
-      sensitivity: 0.7,
-      escapeSpeed: 0.8,
-      reactionAcceleration: 0.65,
-    },
-  },
-  {
     ...ORIGINAL_FISH_SPECIES[0],
     id: 'endlers-livebearer',
     name: "Endler's livebearer",
@@ -432,14 +378,14 @@ export const FISH_SPECIES: readonly FishSpecies[] = [
   },
 ];
 export function fishPopulation(
-  count: 16 | 25 | 45 | 60,
+  count: 16 | 20 | 40 | 60,
 ): readonly FishSpecies[] {
   if (count === 16) return ORIGINAL_FISH_SPECIES;
-  if (count === 25) return FISH_SPECIES.slice(0, 5);
-  if (count === 45) return FISH_SPECIES;
+  if (count === 20) return FISH_SPECIES.slice(0, 4);
+  if (count === 40) return FISH_SPECIES;
   return FISH_SPECIES.map((s) =>
     s.id === 'chili-rasbora'
-      ? { ...s, count: 35, spread: { x: 2.8, y: 1, z: 3 } }
+      ? { ...s, count: 40, spread: { x: 2.8, y: 1, z: 3 } }
       : s,
   );
 }
