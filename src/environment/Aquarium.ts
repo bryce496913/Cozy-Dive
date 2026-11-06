@@ -1,3 +1,5 @@
+import { substrateHeight } from './HabitatRegions';
+import { PlantSystem } from './PlantSystem';
 import type { HabitatInterest } from '../fish/FishHabitat';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
 import * as THREE from 'three';
@@ -18,7 +20,7 @@ export class Aquarium {
   readonly root = new THREE.Group();
   readonly collision: CollisionWorld;
   readonly fish: FishSystem;
-  private readonly plants: THREE.Group[] = [];
+  readonly plants: PlantSystem;
   private readonly motes: THREE.Points;
   private readonly beams: THREE.Group;
   constructor() {
@@ -33,10 +35,7 @@ export class Aquarium {
     for (let i = 0; i < positions.count; i++) {
       const x = positions.getX(i),
         z = positions.getZ(i);
-      positions.setY(
-        i,
-        0.035 * Math.sin(x * 2.6 + z * 0.65) + 0.025 * Math.sin(z * 4),
-      );
+      positions.setY(i, substrateHeight(x, z));
       color.setHSL(
         0.12,
         0.26,
@@ -92,60 +91,12 @@ export class Aquarium {
       rock(-17 + rand() * 34, -13 + rand() * 26, 0.08 + rand() * 0.24, false);
     this.collision = new CollisionWorld(colliders, AQUARIUM);
 
-    const leafMaterials = [0x427d62, 0x57936c, 0x76a17a, 0x2f6d5b].map(
-      (c) =>
-        new THREE.MeshStandardMaterial({
-          color: c,
-          side: THREE.DoubleSide,
-          roughness: 0.9,
-        }),
-    );
-    // Thin leaf planes only: no woody stems/bases, so all current foliage is passable.
-    for (let i = 0; i < 65; i++) {
-      const plant = new THREE.Group();
-      const side = i % 2 === 0 ? -1 : 1;
-      plant.position.set(
-        side * (4.4 + rand() * 12.5),
-        -0.08,
-        -12.5 + rand() * 24,
-      );
-      const height = 0.8 + rand() * 2.5;
-      const material = leafMaterials[i % leafMaterials.length];
-      for (let j = 0; j < 5; j++) {
-        const geometry = new THREE.PlaneGeometry(
-          0.23 + rand() * 0.26,
-          height * (0.65 + rand() * 0.35),
-          1,
-          9,
-        );
-        const p = geometry.attributes.position;
-        for (let k = 0; k < p.count; k++) {
-          const y = p.getY(k) + height / 2;
-          p.setY(k, y);
-          p.setX(
-            k,
-            p.getX(k) *
-              Math.max(0.07, Math.sin(Math.PI * Math.min(1, y / height))),
-          );
-          p.setZ(k, Math.pow(y / height, 2) * 0.6);
-        }
-        geometry.computeVertexNormals();
-        const leaf = new THREE.Mesh(geometry, material);
-        leaf.rotation.y = j * 2.4 + rand();
-        plant.add(leaf);
-      }
-      interests.push({
-        kind: 'plant',
-        position: {
-          x: plant.position.x,
-          y: plant.position.y + height * 0.8,
-          z: plant.position.z,
-        },
-        normal: { x: 0, y: 1, z: 0 },
-      });
-      this.plants.push(plant);
-      this.root.add(plant);
-    }
+    this.plants = new PlantSystem(colliders);
+    interests.push(...this.plants.interests);
+    this.root.add(this.plants.root);
+    // Keep the pre-vegetation-pass scenery RNG stream for existing suspended particles.
+    // Each of the former 65 plants consumed 3 placement + 5 * 3 leaf samples.
+    for (let i = 0; i < 65 * 18; i++) rand();
 
     // Glass perimeter: translucent panels and restrained structural seams.
     const glass = new THREE.MeshBasicMaterial({
@@ -272,19 +223,13 @@ export class Aquarium {
     player?: PlayerPresence,
   ): void {
     this.fish.update(dt, active, reducedMotion, player);
-    for (let i = 0; i < this.plants.length; i++) {
-      this.plants[i].rotation.z = reducedMotion
-        ? 0
-        : Math.sin(time * 0.55 + i * 1.7) * 0.045;
-      this.plants[i].rotation.x = reducedMotion
-        ? 0
-        : Math.cos(time * 0.4 + i) * 0.025;
-    }
+    this.plants.update(dt, active, reducedMotion);
     this.motes.position.y = reducedMotion ? 0 : Math.sin(time * 0.15) * 0.18;
     this.beams.rotation.y = reducedMotion ? 0 : Math.sin(time * 0.12) * 0.015;
   }
   dispose(): void {
     this.fish.dispose();
+    this.plants.dispose();
     const geometries = new Set<THREE.BufferGeometry>();
     const materials = new Set<THREE.Material>();
     this.root.traverse((object) => {
