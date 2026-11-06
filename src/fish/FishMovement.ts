@@ -1,3 +1,4 @@
+import { updateFishBehavior } from './FishBehavior';
 import { updateDiverReaction, type PlayerPresence } from './FishDiverReaction';
 import { FishSchooling, type SchoolForces } from './FishSchooling';
 import { angleDifference, randomFish, type FishEntity } from './FishEntity';
@@ -56,6 +57,7 @@ export function stepFish(
   if (!Number.isFinite(dt) || dt <= 0) return;
   dt = Math.min(dt, FISH_TIMING.step);
   updateDiverReaction(fish, player, dt);
+  updateFishBehavior(fish, habitat, dt, player);
   const reaction = fish.reaction;
   const p = fish.position,
     s = fish.species,
@@ -89,6 +91,33 @@ export function stepFish(
   // Gentle soft habitat preference, rather than an invisible depth boundary.
   if (p.y < s.depth[0]) ty += (s.depth[0] - p.y) * 0.5;
   if (p.y > s.depth[1]) ty -= (p.y - s.depth[1]) * 0.5;
+  const behavior = fish.behavior;
+  if (behavior.weight > 1e-5) {
+    let bx = behavior.target.x - p.x,
+      by = behavior.target.y - p.y,
+      bz = behavior.target.z - p.z;
+    const distance = Math.hypot(bx, by, bz);
+    if (behavior.activity === 'observing' && player?.active) {
+      bx = player.position.x - p.x;
+      by = player.position.y - p.y;
+      bz = player.position.z - p.z;
+    } else if (
+      distance < 0.4 &&
+      (behavior.activity === 'resting' || behavior.arrived)
+    ) {
+      bx = Math.cos(fish.yaw) * Math.cos(fish.pitch);
+      by = Math.sin(fish.pitch);
+      bz = -Math.sin(fish.yaw) * Math.cos(fish.pitch);
+    }
+    const length = Math.max(1e-8, Math.hypot(bx, by, bz));
+    // Behavior modifies the low-priority intention, before any obstacle or separation force.
+    const weight =
+      behavior.weight *
+      (1 - Math.min(1, reaction.awareness * 3 + reaction.scatter * 4));
+    tx += (bx / length - tx) * weight;
+    ty += (by / length - ty) * weight;
+    tz += (bz / length - tz) * weight;
+  }
   const wanderX = tx,
     wanderY = ty,
     wanderZ = tz;
@@ -171,7 +200,8 @@ export function stepFish(
       az = tz - wanderZ;
     const social =
       Math.max(0, 1 - danger / SCHOOLING_SAFETY.socialFadeDanger) ** 2 *
-      (1 - reaction.scatter * 0.9);
+      (1 - reaction.scatter * 0.9) *
+      behavior.social;
     let sx = school.separation.x,
       sy = school.separation.y,
       sz = school.separation.z;
@@ -287,6 +317,7 @@ export function stepFish(
       s.maxSpeed * fish.speedFactor,
       s.speed * fish.speedFactor * variation,
     ) *
+    (1 + (behavior.speed - 1) * (1 - Math.min(1, reaction.awareness * 3))) *
     (1 - 0.45 * danger) *
     (1 - 0.3 * Math.min(1, desiredTurn)) *
     (1 - SCHOOLING_SAFETY.closingSpeedReduction * (school?.pressure ?? 0));

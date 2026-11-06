@@ -1,3 +1,4 @@
+import type { HabitatInterest } from '../fish/FishHabitat';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
 import * as THREE from 'three';
 import { AQUARIUM } from '../config/world';
@@ -23,6 +24,7 @@ export class Aquarium {
   constructor() {
     const rand = randomSource(1729);
     const colliders: ConvexCollider[] = [];
+    const interests: HabitatInterest[] = [];
     const sandGeometry = new THREE.PlaneGeometry(36, 28, 90, 70);
     sandGeometry.rotateX(-Math.PI / 2);
     const positions = sandGeometry.attributes.position;
@@ -132,6 +134,15 @@ export class Aquarium {
         leaf.rotation.y = j * 2.4 + rand();
         plant.add(leaf);
       }
+      interests.push({
+        kind: 'plant',
+        position: {
+          x: plant.position.x,
+          y: plant.position.y + height * 0.8,
+          z: plant.position.z,
+        },
+        normal: { x: 0, y: 1, z: 0 },
+      });
       this.plants.push(plant);
       this.root.add(plant);
     }
@@ -218,7 +229,39 @@ export class Aquarium {
       this.beams.add(beam);
     }
     this.root.add(this.beams);
-    this.fish = new FishSystem({ bounds: AQUARIUM, rocks: colliders });
+    for (const rock of colliders) {
+      const x = (rock.min.x + rock.max.x) / 2,
+        y = (rock.min.y + rock.max.y) / 2,
+        z = (rock.min.z + rock.max.z) / 2;
+      interests.push(
+        {
+          kind: 'rock-edge',
+          position: { x: rock.min.x, y, z },
+          normal: { x: -1, y: 0, z: 0 },
+        },
+        {
+          kind: 'rock-edge',
+          position: { x: rock.max.x, y, z },
+          normal: { x: 1, y: 0, z: 0 },
+        },
+        {
+          kind: 'rock-edge',
+          position: { x, y: rock.max.y, z },
+          normal: { x: 0, y: 1, z: 0 },
+        },
+      );
+    }
+    for (const z of [-8, -4, 0, 4, 8])
+      interests.push({
+        kind: 'open-water',
+        position: { x: 0, y: 5, z },
+        normal: { x: 0, y: 0, z: 0 },
+      });
+    this.fish = new FishSystem({
+      bounds: AQUARIUM,
+      rocks: colliders,
+      interests,
+    });
     this.root.add(this.fish.root);
   }
   update(

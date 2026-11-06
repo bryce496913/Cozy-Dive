@@ -61,7 +61,14 @@ export class FishSystem {
       visual.root.rotation.set(
         reducedMotion ? 0 : interpolate(fish.previousBank, fish.bank, alpha),
         yaw,
-        pitch,
+        pitch +
+          (reducedMotion
+            ? 0
+            : interpolate(
+                fish.behavior.previousGesture,
+                fish.behavior.gesture,
+                alpha,
+              )),
         'YZX',
       );
       const phase =

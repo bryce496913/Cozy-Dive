@@ -1,3 +1,4 @@
+import { createFishBehavior } from './FishBehavior';
 import { SPAWN, type Vec3 } from '../config/world';
 import {
   FISH_SPECIES,
@@ -76,6 +77,9 @@ export function spawnFish(
         temperament = 0.8 + random() * 0.4;
       const speed = config.speed * speedFactor * (0.6 + random() * 0.3),
         phase = random() * Math.PI * 2;
+      const targetTime = random() * 3,
+        individualSeed = (random() * 4294967296) >>> 0,
+        age = random() * 30;
       fish.push({
         id: fish.length,
         species: config,
@@ -101,9 +105,15 @@ export function spawnFish(
         previousPhase: phase,
         bank: 0,
         previousBank: 0,
-        targetTime: random() * 3,
-        randomState: (random() * 4294967296) >>> 0,
-        age: random() * 30,
+        targetTime,
+        randomState: individualSeed,
+        age,
+        behavior: createFishBehavior(
+          individualSeed ^ fish.length,
+          position,
+          config,
+          temperament,
+        ),
         corrections: 0,
         reaction: {
           awareness: 0,
