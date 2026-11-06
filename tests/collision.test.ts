@@ -243,7 +243,7 @@ describe('generated aquarium collider geometry', () => {
       b = new Aquarium();
     try {
       expect(a.collision.colliders).toEqual(b.collision.colliders);
-      expect(a.collision.colliders).toHaveLength(34);
+      expect(a.rockColliders).toHaveLength(34);
       const rocks = a.root.children.filter(
         (child): child is THREE.Mesh =>
           child instanceof THREE.Mesh && child.name.startsWith('Rock '),

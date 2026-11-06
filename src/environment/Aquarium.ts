@@ -1,3 +1,5 @@
+import { HardscapeSystem } from './HardscapeSystem';
+import { MeadowSystem } from './MeadowSystem';
 import { substrateHeight } from './HabitatRegions';
 import { PlantSystem } from './PlantSystem';
 import type { HabitatInterest } from '../fish/FishHabitat';
@@ -19,6 +21,9 @@ function randomSource(seed: number): () => number {
 export class Aquarium {
   readonly root = new THREE.Group();
   readonly collision: CollisionWorld;
+  readonly rockColliders: readonly ConvexCollider[];
+  readonly hardscape: HardscapeSystem;
+  readonly grass: MeadowSystem;
   readonly fish: FishSystem;
   readonly plants: PlantSystem;
   private readonly motes: THREE.Points;
@@ -89,11 +94,18 @@ export class Aquarium {
     }
     for (let i = 0; i < 55; i++)
       rock(-17 + rand() * 34, -13 + rand() * 26, 0.08 + rand() * 0.24, false);
+    this.rockColliders = colliders.slice();
+    this.hardscape = new HardscapeSystem(this.rockColliders);
+    this.root.add(this.hardscape.root);
+    colliders.push(...this.hardscape.colliders);
     this.collision = new CollisionWorld(colliders, AQUARIUM);
 
     this.plants = new PlantSystem(colliders);
     interests.push(...this.plants.interests);
     this.root.add(this.plants.root);
+    this.grass = new MeadowSystem(colliders, this.plants.material);
+    this.root.add(this.grass.root);
+    interests.push(...this.grass.interests, ...this.hardscape.interests);
     // Keep the pre-vegetation-pass scenery RNG stream for existing suspended particles.
     // Each of the former 65 plants consumed 3 placement + 5 * 3 leaf samples.
     for (let i = 0; i < 65 * 18; i++) rand();
@@ -180,7 +192,7 @@ export class Aquarium {
       this.beams.add(beam);
     }
     this.root.add(this.beams);
-    for (const rock of colliders) {
+    for (const rock of this.rockColliders) {
       const x = (rock.min.x + rock.max.x) / 2,
         y = (rock.min.y + rock.max.y) / 2,
         z = (rock.min.z + rock.max.z) / 2;
@@ -208,10 +220,18 @@ export class Aquarium {
         position: { x: 0, y: 5, z },
         normal: { x: 0, y: 0, z: 0 },
       });
+    for (const x of [-2, 2])
+      for (const z of [-8, -4, 0, 4, 8])
+        interests.push({
+          kind: 'substrate',
+          position: { x, y: substrateHeight(x, z), z },
+          normal: { x: 0, y: 1, z: 0 },
+        });
     this.fish = new FishSystem({
       bounds: AQUARIUM,
       rocks: colliders,
       interests,
+      substrateHeight,
     });
     this.root.add(this.fish.root);
   }
@@ -229,6 +249,8 @@ export class Aquarium {
   }
   dispose(): void {
     this.fish.dispose();
+    this.grass.dispose();
+    this.hardscape.dispose();
     this.plants.dispose();
     const geometries = new Set<THREE.BufferGeometry>();
     const materials = new Set<THREE.Material>();

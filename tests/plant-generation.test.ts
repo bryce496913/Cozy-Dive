@@ -164,7 +164,7 @@ it.each([
         }
       }
       expect(intersections).toBe(0);
-      expect(aquarium.collision.colliders).toHaveLength(34);
+      expect(aquarium.rockColliders).toHaveLength(34);
       q.dispose();
     } finally {
       aquarium.dispose();

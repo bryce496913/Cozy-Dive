@@ -1,3 +1,4 @@
+import type { FishBurst } from './FishBurst';
 import type { FishBehavior } from './FishBehaviorTypes';
 import type { DiverReaction } from './FishDiverReaction';
 import type { Vec3 } from '../config/world';
@@ -31,6 +32,7 @@ export interface FishEntity {
   corrections: number;
   readonly reaction: DiverReaction;
   readonly behavior: FishBehavior;
+  readonly burst: FishBurst;
 }
 export const nextFishRandom = (state: number): number =>
   (Math.imul(state, 1664525) + 1013904223) >>> 0;

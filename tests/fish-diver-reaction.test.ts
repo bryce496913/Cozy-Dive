@@ -8,8 +8,8 @@ import {
 import { angleDifference } from '../src/fish/FishEntity';
 import { safeFishPosition } from '../src/fish/FishHabitat';
 import { FishSimulation, stepFish } from '../src/fish/FishMovement';
-import { spawnFish } from '../src/fish/FishSpawner';
-import { FISH_SPECIES } from '../src/fish/FishSpecies';
+import { spawnFish } from './fixtures/originalFish';
+import { ORIGINAL_FISH_SPECIES as FISH_SPECIES } from '../src/fish/FishSpecies';
 const open = { bounds: AQUARIUM, rocks: [] };
 function fixture(index = 0) {
   const f = spawnFish(open, [{ ...FISH_SPECIES[index], count: 1 }])[0];
@@ -119,7 +119,7 @@ describe('diver awareness, scatter and recovery', () => {
   it('stays safe during repeated real-rock/glass approaches and resumes ordinary schooling', () => {
     const aquarium = new Aquarium();
     try {
-      const habitat = { bounds: AQUARIUM, rocks: aquarium.collision.colliders };
+      const habitat = { bounds: AQUARIUM, rocks: aquarium.rockColliders };
       const sim = new FishSimulation(spawnFish(habitat), habitat);
       let maxReaction = 0;
       for (let i = 0; i < 5400; i++) {

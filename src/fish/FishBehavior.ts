@@ -104,15 +104,19 @@ export function selectBehaviorTarget(
       if (point.vegetation) {
         // Soft habitat preferences only; scheduling, recovery and safety remain unchanged.
         const preference =
-          fish.species.id === 'honey-gourami'
-            ? point.vegetation.broadLeaves
+          fish.species.id === 'panda-corydoras'
+            ? point.vegetation.height < 1
               ? 1
-              : 0.45
-            : fish.species.id === 'neon-tetra'
-              ? point.vegetation.height > 1
-                ? 0.7
-                : 0.25
-              : 0.95;
+              : 0.35
+            : fish.species.id === 'honey-gourami'
+              ? point.vegetation.broadLeaves
+                ? 1
+                : 0.45
+              : fish.species.id === 'neon-tetra'
+                ? point.vegetation.height > 1
+                  ? 0.7
+                  : 0.25
+                : 0.95;
         if (random(b) > preference) continue;
       }
       const angle = random(b) * Math.PI * 2,
@@ -139,7 +143,7 @@ export function selectBehaviorTarget(
       bestY = 0,
       bestZ = 0;
     if (points)
-      for (let i = 0; i < Math.min(points.length, 192); i++) {
+      for (let i = 0; i < Math.min(points.length, 256); i++) {
         const point = points[i];
         if (point.kind === 'open-water' && fish.species.id !== 'neon-tetra')
           continue;

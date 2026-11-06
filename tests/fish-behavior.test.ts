@@ -15,9 +15,9 @@ import {
   type FishHabitat,
 } from '../src/fish/FishHabitat';
 import { FishSimulation, stepFish } from '../src/fish/FishMovement';
-import { spawnFish } from '../src/fish/FishSpawner';
-import { FISH_SPECIES } from '../src/fish/FishSpecies';
-import { FishSystem } from '../src/fish/FishSystem';
+import { spawnFish } from './fixtures/originalFish';
+import { ORIGINAL_FISH_SPECIES as FISH_SPECIES } from '../src/fish/FishSpecies';
+import { FishSystem } from './fixtures/originalFish';
 
 const open: FishHabitat = {
   bounds: AQUARIUM,

@@ -1,3 +1,4 @@
+import { FishRenderBatch } from './FishRenderBatch';
 import type { PlayerPresence } from './FishDiverReaction';
 import * as THREE from 'three';
 import { angleDifference } from './FishEntity';
@@ -17,6 +18,7 @@ export class FishSystem {
   readonly templates: readonly FishGeometry[];
   readonly visuals: readonly FishVisual[];
   private disposed = false;
+  readonly batches: readonly FishRenderBatch[];
   constructor(
     habitat: FishHabitat,
     species: readonly FishSpecies[] = FISH_SPECIES,
@@ -27,14 +29,38 @@ export class FishSystem {
       spawnFish(habitat, species, seed),
       habitat,
     );
-    this.templates = species.map((s) => new FishGeometry(s));
+    this.templates = species.flatMap((s) =>
+      Array.from(
+        { length: s.id === 'endlers-livebearer' ? 4 : 1 },
+        (_, variant) => new FishGeometry(s, variant),
+      ),
+    );
     this.visuals = this.simulation.fish.map((fish) => {
-      const template = this.templates.find((t) => t.species === fish.species)!;
+      const choices = this.templates.filter((t) => t.species === fish.species);
+      const template = choices[fish.id % choices.length];
       const visual = template.create(fish.size);
       visual.root.name = `${fish.species.name} ${fish.id + 1}`;
-      this.root.add(visual.root);
+      if (!fish.species.detail) this.root.add(visual.root);
       return visual;
     });
+    const batches: FishRenderBatch[] = [];
+    for (const s of species)
+      if (s.detail) {
+        const variants = s.id === 'endlers-livebearer' ? 4 : 1;
+        for (let variant = 0; variant < variants; variant++) {
+          const visuals = this.visuals.filter(
+            (_, i) =>
+              this.simulation.fish[i].species === s &&
+              this.simulation.fish[i].id % variants === variant,
+          );
+          if (visuals.length) {
+            const batch = new FishRenderBatch(visuals);
+            batches.push(batch);
+            this.root.add(batch.root);
+          }
+        }
+      }
+    this.batches = batches;
     this.update(0, false, false);
   }
   update(
@@ -89,10 +115,12 @@ export class FishSystem {
       visual.leftPectoral.rotation.y = 0.45 + Math.sin(phase + 0.6) * 0.14;
       visual.rightPectoral.rotation.y = -0.45 - Math.sin(phase + 0.6) * 0.14;
     }
+    for (const batch of this.batches) batch.update();
   }
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    this.batches.forEach((b) => b.dispose());
     this.root.removeFromParent();
     this.root.clear();
     for (const template of this.templates) template.dispose();

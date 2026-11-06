@@ -1,6 +1,6 @@
-# Fish simulation — v0.2 Pass 004 habitat integration
+# Fish simulation — v0.2 Pass 004B biodiversity
 
-The environment owns 16 freshwater fish: 8 neon tetras form moderately cohesive schools, 6 harlequin rasboras coordinate in looser groups, and 2 honey gouramis remain independent. All fish have size-aware personal space. Models, animation, seeded initial variations, fixed timing, player movement, and resource ownership are preserved from Pass 001. A small seeded intention scheduler adds occasional exploration, resting, foraging, observation, and recovery. There is no food resource, hunger mechanic, or fish UI.
+The default environment owns **45 freshwater fish**: 8 neon tetras, 6 harlequin rasboras and 2 honey gouramis retain their accepted roles; 5 panda corydoras explore the bottom, 4 Endler’s livebearers swim independently in mid/upper water, and 20 tiny chili rasboras form a larger active school. All fish have size-aware personal space. Models, animation, seeded initial variations, fixed timing, player movement, and resource ownership are preserved from Pass 001. A small seeded intention scheduler adds occasional exploration, resting, foraging, observation, and recovery. There is no food resource, hunger mechanic, or fish UI.
 
 ## Modules and ownership
 
@@ -33,9 +33,9 @@ Tail cadence and amplitude track actual displacement speed, with a gentle residu
 
 ## Avoidance and safety
 
-The habitat references the same 34 generated convex rock hulls as player physics. A nearby-hull bounding-box test precedes face-distance checks. A velocity-scaled lookahead range, nearest outward face normal, approach direction, and fixed individual side bias produce an avoidance steering contribution before the heading limits. Soft wall steering and early deceleration provide room for a gradual turn. Delicate leaves and decorative pebbles are not obstacles.
+The habitat references the same 34 generated rock hulls and 39 convex hardscape component hulls as player physics. A nearby-hull bounding-box test precedes face-distance checks. A velocity-scaled lookahead range, nearest outward face normal, approach direction, and fixed individual side bias produce an avoidance steering contribution before the heading limits. Soft wall steering and early deceleration provide room for a gradual turn. Delicate leaves and decorative pebbles are not obstacles.
 
-A conservative spherical body radius is 56% of species length times individual scale, enclosing nose, tail, and fins. The final candidate-position guard rejects invalid steps instead of teleporting the fish or invoking player swept collision. Normal ten-minute seeded tests record zero guard corrections. An externally forced emergency close-contact case may briefly hold position while the fish turns away; this is a fallback, not the normal locomotion model. Fish use geometric bounds with their own radius, not the player's larger clearance.
+A conservative spherical body radius defaults to 56% of species length times individual scale; corydoras use 65% to enclose their barbels as well as body/fins. The final candidate-position guard rejects invalid steps instead of teleporting the fish or invoking player swept collision. Normal ten-minute seeded tests record zero guard corrections. An externally forced emergency close-contact case may briefly hold position while the fish turns away; this is a fallback, not the normal locomotion model. Fish use geometric bounds with their own radius, not the player's larger clearance.
 
 Spawning uses loose species regions, preferred depths, variable headings/phases/sizes, a three-unit exclusion around the initial diver, and pairwise body-radius separation plus 0.25 units. The finite placement budget fails clearly for impossible populations instead of silently spawning into scenery. Live player proximity is supplied separately to the diver-reaction module.
 
@@ -65,7 +65,7 @@ Distances use aquarium world units. All species settings live in `FishSpecies.sc
 
 `stepFish` computes the original wandering/depth and rock/wall contributions, then blends the cached influences before the locomotion limits and unchanged candidate-position guard. `SCHOOLING_SAFETY` centralizes the priority controls: attraction/alignment fade quadratically to zero by danger 0.75; inward separation is projected off the avoidance direction above danger 0.3; separation fades up to 65% in restricted space; close encounters can reduce target speed by up to 40%. Obstacles keep their original force. This lets individuals select different routes around a rock and reconnect later, rather than pulling the entire group through it or keeping a rigid formation.
 
-The registry still owns proportions, colors/markings, preferred depth, movement limits, and animation cadence. `FishGeometry` remains unchanged; `FishSystem` forwards presence and interpolates a small optional inspection gesture. No new fish meshes, materials, render passes, textures, animation loops, or GPU resource ownership are introduced. See `VALIDATION_V02_PASS_002B.md` for simulations, browser observations, CPU measurements, and manual macOS checks.
+The registry still owns proportions, colors/markings, preferred depth, movement limits, and animation cadence. Original species retain their accepted models and articulated motion. New species add bounded shared templates and articulated instance batches, described below; there are no new animation loops or render passes. See `VALIDATION_V02_PASS_004B.md` for current measurements and manual macOS checks.
 
 ## Diver awareness, scatter, and recovery
 
@@ -119,7 +119,7 @@ Speed, social influence, intent weight and inspection gesture blend exponentiall
 
 ## Habitat interests and target safety
 
-`Aquarium` collects metadata as it generates the existing scenery, with no extra layout random draws: 65 plant inspection regions from the owned PlantSystem, 102 conservative major-rock edge/top points (three per hull), and five open-channel regions. `FishHabitat.interests` is a read-only optional list of plain `{kind, position, normal}` values; fish never inspect Three.js objects. Plant leaves remain passable.
+`Aquarium` collects metadata as it generates the existing scenery, with no extra layout random draws: 65 plant inspection regions from the owned PlantSystem, 102 conservative major-rock edge/top points (three per hull), five open-channel regions, eight grass edges, nine hardscape edges and ten substrate regions. `FishHabitat.interests` is a read-only optional list of plain `{kind, position, normal}` values; fish never inspect Three.js objects. Plant leaves remain passable.
 
 Selection samples at most 24 points, offsetting by the body radius + 0.45 along the outward normal with a small individual tangent variation. Candidates must be nearby (4.5 units for foraging, 6 for exploration), fit the body with an extra margin, and have a clear straight route through the existing convex hull data. `clearFishRoute` uses segment/expanded-plane intervals with bounding-box rejection; no raycasting or navigation library is needed. Exploration has eight bounded local fallback attempts. Foraging fails quietly if no suitable interest is available.
 
@@ -127,11 +127,31 @@ Targets persist. They are revalidated against solids; lack of at least 0.15 unit
 
 At each fixed step, `FishSchooling.calculate()` still completes every neighbor influence first. Each `stepFish` then updates the existing diver envelope, selects its own behavior, blends intent, and runs the original safety/locomotion path. Behavior reads no neighboring mutable state. Reversing entity update order yields identical schedules and movement, and the fixed accumulator preserves 30/60/120 FPS equivalence. Pause advances neither scheduler nor gesture; interpolation retains previous/current inspection samples without snapping.
 
+## Biodiversity roles, bursts and rendering
+
+| Species             | Count | Identity and movement                                                                                                                                                                                              |
+| ------------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Panda corydoras     |     5 | Pale blunt-bodied fish, dark eye/tail/dorsal markings, flattened rounded underside, downward mouth and four small barbels. Loose social preference; slow exploration, foraging and short rests near the substrate. |
+| Endler’s livebearer |     4 | Streamlined fish with four stable marking layouts/hues, dark/orange/teal skin patches and natural articulated fins. Independent upper/midwater movement with gentle occasional speed changes.                      |
+| Chili rasbora       |    20 | Slender 0.24-unit red-orange 3D bodies with dark lateral markings and tiny fins/eyes. Stronger local schooling, infrequent rests, short independent bursts and quick diver reactions.                              |
+
+`ORIGINAL_FISH_SPECIES` retains the original registry entries and counts, while `FISH_SPECIES` is the six-species default. `fishPopulation(16 | 25 | 45 | 60)` centralizes validation gates: 16 original, 25 with corydoras/Endlers, 45 default, 60 with 35 chilis. Spawning remains deterministic, body-size-safe, and excludes the initial player. The first 16 fish retain the original spawn RNG sequence; new species append after them. Original regression scenarios now explicitly use the original population fixture, rather than accidentally applying old count assertions to the expanded default.
+
+Corydoras use a read-only substrate-height callback and species offsets 0.48–1.1 units. Target selection and soft depth preference sample the substrate at the appropriate location; a body-radius margin protects the floor. This is a preferred band, not a vertical position lock. Low plant/grass and substrate interests support decorative investigation; no food or hunger system is added.
+
+`FishBurst.ts` adds an optional, separately seeded per-individual burst intention to the existing locomotion path. Chili intervals are 5–11 seconds, active envelope 0.4–0.8 seconds, preferred burst speed 1.05, acceleration cap 1.6; Endler intervals are 8–15 seconds, envelope 0.45–0.8 seconds, speed 0.82, acceleration cap 0.8. Initial phases vary independently. A squared-sine envelope changes desired speed, followed by bounded acceleration/deceleration and a glide; position/velocity are never multiplied by a pulse or reset.
+
+Bursts recede during obstacle danger, close-neighbor pressure and large desired turns (fully suppressed above 1.2 radians), and are interrupted by fear or voluntary rest/inspection. This lets fish turn toward companions before accelerating. Diver escape remains last in speed selection and retains its configured limits. Original species have no burst tuning and keep their prior movement. All burst/behavior clocks freeze while paused and preserve fixed-step FPS consistency.
+
+The chili school uses local alignment radius 3.6 / weight 1.65, cohesion radius 8.5 / weight 1.4, reconnect radius 13, at most 12 neighbors and nearby wander weight 0.18. These finite local preferences support regrouping after scatter without leaders, position tethers, scripted paths or shared burst clocks. The O(n²) consistent neighbor snapshot remains practical at 45/60; no spatial index was added without need.
+
+New models use species-appropriate lower tessellation, preserving lofted volumes, skin-hugging markings and the existing tail/rear/pectoral rig. Endlers have four geometry-marking variants, selected by stable identity. `FishRenderBatch` copies the actual articulated component matrices into shared InstancedMeshes: it does not replace fish with sprites or rigid single-mesh instances. Original species retain their existing presentation. At 45 and 60 fish, fish resources remain 47 geometries / 19 materials; all resources and instance buffers have explicit owners. New moving batches disable per-instance frustum culling, a deliberate small-population tradeoff to avoid stale moving bounds. Fins retain the existing transparency, without per-instance depth sorting.
+
 ## Living vegetation metadata and preparation for Pass 005
 
-Pass 004 adds optional plain vegetation metadata (family, region, height, broad-leaf flag) without exposing meshes to fish. The existing target sampler applies soft family preferences: gouramis favor broad leaves, tetras prefer taller edges over low grass, and rasboras broadly accept planted habitat. Plant inspection positions come from channel-facing leaf vertices. If random forage trials miss nearby usable habitat, a nearest-safe fallback checks at most 192 regions. The original body-size margin, route validation and progress timeout remain; diver disturbance still overrides investigation. Behavior scheduling, state durations, schooling, models, animation and player physics are unchanged.
+Pass 004 adds optional plain vegetation metadata (family, region, height, broad-leaf flag) without exposing meshes to fish. The existing target sampler applies soft family preferences: gouramis favor broad leaves, tetras prefer taller edges over low grass, and rasboras broadly accept planted habitat. Plant inspection positions come from channel-facing leaf vertices. If random forage trials miss nearby usable habitat, a nearest-safe fallback checks at most 256 regions. The original body-size margin, route validation and progress timeout remain; diver disturbance still overrides investigation. Behavior scheduling, state durations, schooling, models, animation and player physics are unchanged.
 
-PlantSystem owns interest generation and the same 65-cluster shipping count. See [PLANTS.md](PLANTS.md) for shapes, current field, seeded placement, rendering and lifecycle; see [Pass 004 validation](VALIDATION_V02_PASS_004.md) for executed results. Future regions can add metadata through this interface without scene traversal. No audio or further behavior system is introduced. Await manual macOS acceptance before beginning Pass 005.
+PlantSystem owns interest generation and the same 65-cluster shipping count. See [Pass 004B validation](VALIDATION_V02_PASS_004B.md) for population/motion evidence and [PLANTS.md](PLANTS.md) for shapes, current field, seeded placement, rendering and lifecycle; see [Pass 004 validation](VALIDATION_V02_PASS_004.md) for executed results. Future regions can add metadata through this interface without scene traversal. No audio or competing behavior integrator is introduced. Await manual macOS acceptance before beginning Pass 005.
 
 ## Limits
 
@@ -140,5 +160,5 @@ PlantSystem owns interest generation and the same 65-cluster shipping count. See
 - Body spheres and expanded face planes are conservative around narrow gaps and sharp corners. Fins do not have independent collision volumes.
 - Habitats currently use static, untransformed environment-local rock data. Moving scenery or transformed environments need updated collider data.
 - Procedural bodies and articulated fins are lightly stylized. This is not a biological growth, scale, or fluid simulation.
-- Shared buffers reduce memory, but individually articulated parts still incur draw calls. The 32-fish scenario is a temporary validation configuration, not the shipping population.
+- Shared buffers reduce memory, but individually articulated parts still incur draw calls. The 60-fish scenario is a temporary validation configuration, not the 45-fish shipping population.
 - Hardware GPU performance and subjective macOS comfort require manual playtesting; software-browser measurements are recorded separately.

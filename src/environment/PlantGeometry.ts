@@ -18,9 +18,12 @@ export function createPlantGeometry(
     species.leaves[0] + random() * (species.leaves[1] - species.leaves[0]),
   );
   const color = new THREE.Color(species.color),
-    segments = species.id === 'dwarf-hairgrass' ? 8 : 16,
+    segments =
+      species.id === 'dwarf-hairgrass' || species.id === 'meadow-grass'
+        ? 8
+        : 16,
     columns =
-      species.id === 'dwarf-hairgrass'
+      species.id === 'dwarf-hairgrass' || species.id === 'meadow-grass'
         ? 2
         : species.id === 'amazon-sword' || species.id === 'anubias'
           ? 5
@@ -38,7 +41,8 @@ export function createPlantGeometry(
       const t = row / segments;
       let profile = Math.sin(Math.PI * t) ** 0.7;
       if (species.id === 'vallisneria') profile = Math.sin(Math.PI * t) ** 0.35;
-      if (species.id === 'dwarf-hairgrass') profile = (1 - t) * 0.85 + 0.01;
+      if (species.id === 'dwarf-hairgrass' || species.id === 'meadow-grass')
+        profile = (1 - t) * 0.85 + 0.01;
       const stem =
         species.id === 'anubias'
           ? 0.38

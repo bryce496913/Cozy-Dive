@@ -2,8 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { AQUARIUM, SPAWN } from '../src/config/world';
 import { Aquarium } from '../src/environment/Aquarium';
 import { safeFishPosition } from '../src/fish/FishHabitat';
-import { spawnFish, populationCount } from '../src/fish/FishSpawner';
-import { FISH_SPECIES, FISH_STEERING } from '../src/fish/FishSpecies';
+import { spawnFish, populationCount } from './fixtures/originalFish';
+import {
+  ORIGINAL_FISH_SPECIES as FISH_SPECIES,
+  FISH_STEERING,
+} from '../src/fish/FishSpecies';
 
 const openHabitat = { bounds: AQUARIUM, rocks: [] };
 describe('species and seeded spawning', () => {
@@ -44,7 +47,7 @@ describe('species and seeded spawning', () => {
   it('uses real rock data and avoids rocks, glass, other spawn bodies, and the starting player', () => {
     const aquarium = new Aquarium();
     try {
-      const habitat = { bounds: AQUARIUM, rocks: aquarium.collision.colliders };
+      const habitat = { bounds: AQUARIUM, rocks: aquarium.rockColliders };
       const fish = spawnFish(habitat);
       for (let i = 0; i < fish.length; i++) {
         const f = fish[i];

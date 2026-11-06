@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.2 / Pass 004 — Living Plants & Habitat** is a first-person, browser-based aquarium prototype: swim at your own pace through sand, rocks, plants, and soft blue-green water. No scores, timers, combat, accounts, or external assets.
+A quiet little world beneath the surface. **v0.2 / Pass 004B — Aquarium Biodiversity & Habitat Expansion** is a first-person, browser-based aquarium prototype: swim at your own pace through sand, rocks, plants, and soft blue-green water. No scores, timers, combat, accounts, or external assets.
 
 ## Stack and requirements
 
@@ -42,10 +42,10 @@ Click **Return to the Water** to resume. Look up or down and use W/S to change d
 
 ## Current features
 
-- Seeded procedural aquarium with rippled sand, embedded rocks, planted banks, visible glass seams, and 16 freshwater fish with species-specific social behavior.
+- Seeded procedural aquarium with rippled sand, embedded rocks, planted banks, visible glass seams, and 45 freshwater fish across six species with distinct social behavior.
 - Five procedural freshwater plant families in seeded habitat patches, with shared-current vertex bending, stable bases and smooth reduced-motion settling. Suspended particles, translucent light shafts, hemisphere and surface lighting, and distance fog.
 - First-person swimming with smooth kick-and-glide propulsion, weighted direction changes, progressive water drag, and damped breathing buoyancy. Bounded 1/240-second steps sample forces and integrate linear drag analytically; long frame gaps are capped at 100 ms.
-- A safe starting position, clearance from all six aquarium boundaries, and sliding collisions against the 34 major generated rocks. Thin foliage and decorative pebbles remain passable.
+- A safe starting position, clearance from all six aquarium boundaries, and sliding collisions against the 34 major generated rocks and 39 convex ornament components. Thin foliage and decorative pebbles remain passable.
 - Pointer lock only following an explicit button click. Escape, loss of focus, and hidden tabs pause controls.
 - Mouse sensitivity, movement speed, swimming feel, and reduced-motion preferences saved locally. Storage failure falls back to session settings. System reduced-motion preference is respected on first visit; the option uses direct mouse-look and freezes ambient sway.
 - Responsive canvas, device pixel ratio capped at 1.75, and messages for unavailable WebGL, lost graphics context, or denied pointer lock.
@@ -77,6 +77,8 @@ Fish appear immediately and begin swimming when you enter the water. They use th
 
 Persistent individual targets, bounded speed/turn changes, soft preferred depths, and predictive rock/wall steering remain the basis of each fish’s movement. Neon tetras now form moderately cohesive schools; harlequin rasboras coordinate in looser groups; honey gouramis explore independently. All species maintain personal space through size-aware separation, including across species. Fish read the existing major-rock hulls without running or changing the player's collision solver. Conservative body radii and a final candidate-position guard protect against unusual near-contact conditions. Foliage and decorative pebbles remain passable. At every 30 Hz step, a consistent population snapshot supplies bounded nearest-neighbor alignment/cohesion and all-neighbor close separation. Obstacle danger fades social attraction and removes separation directed into the avoidance force, allowing schools to split around scenery and reconnect through ordinary swimming. There are no leaders, scripted paths, position tethers, or synchronized timers. A nearby diver smoothly raises awareness; close contact or faster approach produces stronger, individually varied escape steering. School attraction recedes during scatter and returns gradually afterward. Gouramis react more calmly. Individual seeded activity schedules now add occasional exploration, local resting, subtle surface foraging, and safe observation of a calm diver. Tetras favor social cruising, rasboras investigate more loosely, and gouramis hover longer and observe more often. Recent disturbance suppresses voluntary activity during bounded individual recovery. There is no hunger, food resource, or required feeding.
 
+The existing eight tetras, six rasboras and two gouramis remain. Five panda corydoras explore near the substrate, four individually marked Endler’s livebearers explore independently, and twenty tiny chili rasboras form a larger mid/upper-water school with occasional asynchronous dart-and-glide movements. New fish use shared articulated render batches while retaining real 3D bodies, eyes and fins. Population counts are centrally configured; 16/25/45/60-fish scenarios support regression and performance checks.
+
 Population counts, body proportions, colors, habitat preferences, speed/turn limits, animation cadence, schooling, and diver-reaction parameters live in `src/fish/FishSpecies.ts`. The default seed reproduces initial positions and individual variations on refresh; live positions are not saved. Models/materials are shared per species and disposed through the environment lifecycle. See [fish architecture and tuning](docs/FISH.md) for ownership, movement, extension points, and limitations.
 
 ![The first freshwater population](docs/screenshots/v0.2-pass001/aquarium.png)
@@ -101,9 +103,9 @@ Reduced motion suppresses breathing force and visual pitch feedback while keepin
 
 After entry, pause/lock loss and visibility changes freeze every simulation clock and physical position. Propulsion resets; a resting breath retains its anchor and small vertical velocity for continuous resume. Pausing during intentional depth change captures the current resting depth and clears ascent/descent momentum. Natural steady peak vertical speed is about 8.3 cm/s; boundaries and rock contact can reduce breathing travel.
 
-## Living vegetation
+## Living vegetation and decorative hardscape
 
-Vallisneria ribbons frame the rear/side banks, while Amazon Sword rosettes, Java Fern fronds, compact Anubias and low Hairgrass tufts add variety near rocks and sand edges. The central swimming channel stays open. Thin foliage remains passable; rocks keep the same solid hulls. Instanced templates share a current-driven material, and plant habitat metadata feeds existing fish investigation. See [vegetation architecture](docs/PLANTS.md) for generation, animation, ownership and limits.
+Vallisneria ribbons frame the rear/side banks, while Amazon Sword rosettes, Java Fern fronds, compact Anubias and low Hairgrass tufts add variety near rocks and sand edges. The central swimming channel stays open. Eight irregular freshwater grass meadows mix short strands with occasional taller ribbons. Thin foliage remains passable. Nine branching, lobed and plate ornaments add coral-inspired freshwater hardscape; their convex components are solid alongside the unchanged rock hulls. Instanced templates share a current-driven material, and plant habitat metadata feeds existing fish investigation. See [vegetation architecture](docs/PLANTS.md) for generation, animation, ownership and limits.
 
 ## Environmental collision
 
@@ -119,7 +121,7 @@ For later tuning, adjust cadence/active fraction together, then drag/force respo
 
 ## Validation and manual testing
 
-See [v0.2 Pass 004 vegetation validation](docs/VALIDATION_V02_PASS_004.md), [v0.2 Pass 003 behavior validation](docs/VALIDATION_V02_PASS_003.md), [v0.2 Pass 002B validation](docs/VALIDATION_V02_PASS_002B.md), [v0.2 Pass 002 schooling validation](docs/VALIDATION_V02_PASS_002.md), [v0.2 Pass 001 fish validation](docs/VALIDATION_V02_PASS_001.md), [the Pass 003 validation record](docs/VALIDATION_PASS_003.md), [Pass 002 results](docs/VALIDATION_PASS_002.md) and [historical Pass 001 results](docs/VALIDATION.md) for executed checks, screenshots, and practical limits. Unit tests cover movement direction, diagonal normalization, pitch-relative forward movement, vertical movement, acceleration, drag, frame-rate equivalence, frame-gap protection, all six boundaries, valid spawn, and settings validation/storage.
+See [v0.2 Pass 004B biodiversity validation](docs/VALIDATION_V02_PASS_004B.md), [v0.2 Pass 004 vegetation validation](docs/VALIDATION_V02_PASS_004.md), [v0.2 Pass 003 behavior validation](docs/VALIDATION_V02_PASS_003.md), [v0.2 Pass 002B validation](docs/VALIDATION_V02_PASS_002B.md), [v0.2 Pass 002 schooling validation](docs/VALIDATION_V02_PASS_002.md), [v0.2 Pass 001 fish validation](docs/VALIDATION_V02_PASS_001.md), [the Pass 003 validation record](docs/VALIDATION_PASS_003.md), [Pass 002 results](docs/VALIDATION_PASS_002.md) and [historical Pass 001 results](docs/VALIDATION.md) for executed checks, screenshots, and practical limits. Unit tests cover movement direction, diagonal normalization, pitch-relative forward movement, vertical movement, acceleration, drag, frame-rate equivalence, frame-gap protection, all six boundaries, valid spawn, and settings validation/storage.
 
 To test manually:
 
@@ -141,7 +143,7 @@ To test manually:
 ## Known limitations
 
 - Desktop keyboard/mouse only; mobile touch controls are outside this pass.
-- Collision covers major static rocks and aquarium limits. Delicate foliage and decorative pebbles remain passable; there is no plant deformation, per-triangle sand collision, or dynamic rigid-body physics.
+- Collision covers major static rocks, solid ornament components and aquarium limits. Delicate foliage and decorative pebbles remain passable; there is no plant deformation, per-triangle sand collision, or dynamic rigid-body physics.
 - Schooling is local steering rather than global pathfinding or hard fish collision. Occasional close passes or temporary fragmentation are possible. Diver reactions are soft avoidance rather than hard player-fish collision. Foraging is visual activity only; there is no food system or identification UI. No office, passages, customization, ocean, sound, or progression.
 - Sand and light shafts are intentionally simple; this is a procedural first prototype, not final art. The water surface is a visual plane, not a fluid simulation.
 - Player position is not persisted. Only settings are saved, per origin in browser local storage.

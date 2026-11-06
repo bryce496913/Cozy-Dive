@@ -1,3 +1,4 @@
+import { updateFishBurst } from './FishBurst';
 import { updateFishBehavior } from './FishBehavior';
 import { updateDiverReaction, type PlayerPresence } from './FishDiverReaction';
 import { FishSchooling, type SchoolForces } from './FishSchooling';
@@ -19,6 +20,13 @@ function chooseTarget(fish: FishEntity, habitat: FishHabitat): void {
     target.x = p.x + (randomFish(fish) * 2 - 1) * 8;
     target.y = s.depth[0] + randomFish(fish) * (s.depth[1] - s.depth[0]);
     target.z = p.z + (randomFish(fish) * 2 - 1) * 8;
+    if (s.substrateOffset)
+      target.y = Math.max(
+        fish.radius + 0.08,
+        (habitat.substrateHeight?.(target.x, target.z) ?? 0) +
+          s.substrateOffset[0] +
+          randomFish(fish) * (s.substrateOffset[1] - s.substrateOffset[0]),
+      );
     if (
       target.x < b.min.x + 2 ||
       target.x > b.max.x - 2 ||
@@ -58,6 +66,7 @@ export function stepFish(
   dt = Math.min(dt, FISH_TIMING.step);
   updateDiverReaction(fish, player, dt);
   updateFishBehavior(fish, habitat, dt, player);
+  updateFishBurst(fish, dt);
   const reaction = fish.reaction;
   const p = fish.position,
     s = fish.species,
@@ -89,8 +98,15 @@ export function stepFish(
   ty /= length;
   tz /= length;
   // Gentle soft habitat preference, rather than an invisible depth boundary.
-  if (p.y < s.depth[0]) ty += (s.depth[0] - p.y) * 0.5;
-  if (p.y > s.depth[1]) ty -= (p.y - s.depth[1]) * 0.5;
+  const substrate = s.substrateOffset
+    ? (habitat.substrateHeight?.(p.x, p.z) ?? 0)
+    : 0;
+  const low = s.substrateOffset
+      ? Math.max(fish.radius + 0.08, substrate + s.substrateOffset[0])
+      : s.depth[0],
+    high = substrate + (s.substrateOffset?.[1] ?? s.depth[1]);
+  if (p.y < low) ty += (low - p.y) * (s.substrateOffset ? 2 : 0.5);
+  if (p.y > high) ty -= (p.y - high) * (s.substrateOffset ? 2 : 0.5);
   const behavior = fish.behavior;
   if (behavior.weight > 1e-5) {
     let bx = behavior.target.x - p.x,
@@ -312,7 +328,7 @@ export function stepFish(
     0.88 +
     0.12 *
       Math.sin(fish.age * (0.27 + fish.temperament * 0.09) + fish.id * 2.3);
-  const cruiseSpeed =
+  let cruiseSpeed =
     Math.min(
       s.maxSpeed * fish.speedFactor,
       s.speed * fish.speedFactor * variation,
@@ -321,14 +337,27 @@ export function stepFish(
     (1 - 0.45 * danger) *
     (1 - 0.3 * Math.min(1, desiredTurn)) *
     (1 - SCHOOLING_SAFETY.closingSpeedReduction * (school?.pressure ?? 0));
+  const burst =
+    fish.burst.strength *
+    (1 - danger) ** 2 *
+    (1 - (school?.pressure ?? 0)) *
+    Math.max(0, 1 - desiredTurn / 1.2);
+  if (s.burst)
+    cruiseSpeed +=
+      (Math.min(s.maxSpeed, s.burst.speed) * fish.speedFactor - cruiseSpeed) *
+      burst;
   const escapeBlend =
     reaction.scatter * (1 - danger) ** 2 * (1 - 0.7 * (school?.pressure ?? 0));
   const targetSpeed =
     cruiseSpeed +
     (Math.max(cruiseSpeed, s.diver.escapeSpeed) - cruiseSpeed) * escapeBlend;
+  const locomotionAcceleration = Math.max(
+    s.acceleration,
+    (s.burst?.acceleration ?? 0) * burst,
+  );
   const acceleration =
-    s.acceleration +
-    (s.diver.reactionAcceleration - s.acceleration) * reaction.scatter;
+    locomotionAcceleration +
+    (s.diver.reactionAcceleration - locomotionAcceleration) * reaction.scatter;
   fish.speed += clamp(
     targetSpeed - fish.speed,
     -acceleration * dt,

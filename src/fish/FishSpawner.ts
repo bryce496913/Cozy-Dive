@@ -1,3 +1,4 @@
+import { createFishBurst } from './FishBurst';
 import { createFishBehavior } from './FishBehavior';
 import { SPAWN, type Vec3 } from '../config/world';
 import {
@@ -28,7 +29,7 @@ export function spawnFish(
     for (let i = 0; i < config.count; i++) {
       const size = 0.9 + random() * 0.2;
       // Half the full nose-to-tail length conservatively encloses fins and body.
-      const radius = config.length * size * 0.56;
+      const radius = config.length * size * (config.radiusFactor ?? 0.56);
       const position = { x: 0, y: 0, z: 0 };
       let placed = false;
       for (let attempt = 0; attempt < 400; attempt++) {
@@ -41,6 +42,15 @@ export function spawnFish(
           ),
         );
         position.z = config.region.z + (random() * 2 - 1) * config.spread.z;
+        if (config.substrateOffset)
+          position.y =
+            (habitat.substrateHeight?.(position.x, position.z) ?? 0) +
+            Math.max(
+              radius + 0.12,
+              config.substrateOffset[0] +
+                random() *
+                  (config.substrateOffset[1] - config.substrateOffset[0]),
+            );
         if (!safeFishPosition(position, radius, habitat)) continue;
         if (
           Math.hypot(
@@ -114,6 +124,7 @@ export function spawnFish(
           config,
           temperament,
         ),
+        burst: createFishBurst(individualSeed),
         corrections: 0,
         reaction: {
           awareness: 0,

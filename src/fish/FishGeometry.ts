@@ -36,8 +36,8 @@ function body(
   const positions: number[] = [],
     colors: number[] = [],
     indices: number[] = [];
-  const rows = 24,
-    columns = 28;
+  const rows = s.detail === 'small' ? 10 : s.detail === 'medium' ? 16 : 24,
+    columns = s.detail === 'small' ? 10 : s.detail === 'medium' ? 16 : 28;
   const base = new THREE.Color(s.color),
     back = new THREE.Color(s.backColor),
     belly = new THREE.Color(0xd1c5a4),
@@ -47,7 +47,10 @@ function body(
       r = profile(s, x);
     for (let j = 0; j <= columns; j++) {
       const a = (j / columns) * Math.PI * 2,
-        y = ((Math.cos(a) * s.height) / 2) * r,
+        y =
+          s.id === 'panda-corydoras' && Math.cos(a) < 0
+            ? Math.max(-s.height * 0.28, ((Math.cos(a) * s.height) / 2) * r)
+            : ((Math.cos(a) * s.height) / 2) * r,
         z = ((Math.sin(a) * s.width) / 2) * r;
       positions.push((x - pivot) * s.length, y, z);
       color
@@ -104,7 +107,14 @@ function skinPatch(
     p.push((x - pivot) * s.length, y, surfaceZ(s, x, y, side));
     c.push(tint.r, tint.g, tint.b);
   };
-  const divisions = 8;
+  const divisions =
+    s.detail === 'small'
+      ? 3
+      : s.marking === 'endler-patches'
+        ? 6
+        : s.detail === 'medium'
+          ? 4
+          : 8;
   for (let triangle = 1; triangle < polygon.length - 1; triangle++) {
     const a = polygon[0],
       b = polygon[triangle],
@@ -226,7 +236,10 @@ export class FishGeometry {
   private readonly finMaterial: THREE.MeshStandardMaterial;
   private readonly stripeMaterial?: THREE.MeshStandardMaterial;
   private disposed = false;
-  constructor(readonly species: FishSpecies) {
+  constructor(
+    readonly species: FishSpecies,
+    readonly variant = 0,
+  ) {
     const s = species;
     this.bodyMaterial = new THREE.MeshStandardMaterial({
       vertexColors: true,
@@ -275,6 +288,82 @@ export class FishGeometry {
           { x: -0.27, y: -s.height * 0.24 },
         ];
         color = s.secondaryAccent ?? s.accentColor;
+      }
+      const extra: { points: Point2[]; color: number }[] = [];
+      if (s.marking === 'panda-mask') {
+        extra.push(
+          {
+            points: [
+              { x: 0.27, y: s.height * 0.3 },
+              { x: 0.42, y: s.height * 0.28 },
+              { x: 0.43, y: -s.height * 0.22 },
+              { x: 0.29, y: -s.height * 0.24 },
+            ],
+            color: s.accentColor,
+          },
+          {
+            points: [
+              { x: -0.32, y: s.height * 0.15 },
+              { x: -0.22, y: s.height * 0.25 },
+              { x: -0.22, y: -s.height * 0.2 },
+              { x: -0.32, y: -s.height * 0.13 },
+            ],
+            color: s.accentColor,
+          },
+        );
+      }
+      if (s.marking === 'lateral-stripe')
+        extra.push({
+          points: [
+            { x: -0.32, y: s.height * 0.04 },
+            { x: 0.38, y: s.height * 0.1 },
+            { x: 0.38, y: -s.height * 0.06 },
+            { x: -0.3, y: -s.height * 0.13 },
+          ],
+          color: s.accentColor,
+        });
+      if (s.marking === 'endler-patches') {
+        const shift = (variant - 1.5) * 0.035;
+        extra.push(
+          {
+            points: [
+              { x: -0.13 + shift, y: s.height * 0.18 },
+              { x: -0.1 + shift, y: s.height * 0.29 },
+              { x: 0.045 + shift, y: s.height * 0.28 },
+              { x: 0.105 + shift, y: s.height * 0.1 },
+              { x: 0.065 + shift, y: -s.height * 0.13 },
+              { x: -0.08 + shift, y: -s.height * 0.15 },
+            ],
+            color: 0x273b35,
+          },
+          {
+            points: [
+              { x: 0.11 + shift, y: s.height * 0.12 },
+              { x: 0.16, y: s.height * 0.23 },
+              { x: 0.29, y: s.height * 0.15 },
+              { x: 0.33, y: -s.height * 0.02 },
+              { x: 0.25, y: -s.height * 0.25 },
+              { x: 0.12, y: -s.height * 0.23 },
+              { x: 0.06 + shift, y: -s.height * 0.08 },
+            ],
+            color: [0xc68b38, 0xb9703a, 0xd39b49, 0xb8834b][variant % 4],
+          },
+          {
+            points: [
+              { x: -0.3, y: s.height * 0.05 },
+              { x: -0.12 + shift, y: s.height * 0.24 },
+              { x: -0.13 + shift, y: -s.height * 0.16 },
+              { x: -0.27, y: -s.height * 0.13 },
+            ],
+            color: [0x418b79, 0x5b8b99, 0x4c9270, 0x788c4b][variant % 4],
+          },
+        );
+      }
+      for (const patch of extra) {
+        const clipped = clipAtJoint(patch.points, front);
+        if (clipped.length >= 3)
+          for (const side of [-1, 1])
+            parts.push(skinPatch(s, clipped, side, pivot, patch.color));
       }
       const clipped = clipAtJoint(polygon, front);
       if (clipped.length >= 3)
@@ -332,7 +421,13 @@ export class FishGeometry {
           { x: -0.19, y: -h * 0.7 },
           { x: 0.09, y: -h * 0.45 },
         ];
-    this.fins = mergeOwned([fin(s, dorsal), fin(s, anal)]);
+    this.fins = mergeOwned([
+      fin(
+        s.marking === 'panda-mask' ? { ...s, finColor: 0x303934 } : s,
+        dorsal,
+      ),
+      fin(s, anal),
+    ]);
     const tail: Point2[] = s.roundedFins
       ? [
           { x: -0.34, y: 0 },
@@ -371,14 +466,22 @@ export class FishGeometry {
         y = h * 0.085,
         z = surfaceZ(s, x, y, side);
       const iris = colored(
-        new THREE.SphereGeometry(eyeRadius, 12, 8),
+        new THREE.SphereGeometry(
+          eyeRadius,
+          s.detail ? 8 : 12,
+          s.detail ? 6 : 8,
+        ),
         0xae9a58,
       );
       iris.scale(1, 1, 0.45);
       iris.translate(x * s.length, y, z);
       details.push(iris);
       const pupil = colored(
-        new THREE.SphereGeometry(eyeRadius * 0.72, 12, 8),
+        new THREE.SphereGeometry(
+          eyeRadius * 0.72,
+          s.detail ? 8 : 12,
+          s.detail ? 6 : 8,
+        ),
         0x101b1b,
       );
       pupil.scale(1, 1, 0.35);
@@ -401,8 +504,35 @@ export class FishGeometry {
     }
     const mouth = colored(new THREE.SphereGeometry(h * 0.045, 8, 6), 0x5d5140);
     mouth.scale(0.4, 0.3, 1.4);
-    mouth.translate(s.length * 0.496, -h * 0.018, 0);
+    mouth.translate(
+      s.length * (s.id === 'panda-corydoras' ? 0.46 : 0.496),
+      -h * (s.id === 'panda-corydoras' ? 0.24 : 0.018),
+      0,
+    );
     details.push(mouth);
+    if (s.id === 'panda-corydoras')
+      for (const side of [-1, 1])
+        for (const spread of [0.5, 1]) {
+          const curve = new THREE.CatmullRomCurve3([
+            new THREE.Vector3(s.length * 0.44, -h * 0.2, side * s.width * 0.16),
+            new THREE.Vector3(
+              s.length * 0.53,
+              -h * 0.3,
+              side * s.width * 0.32 * spread,
+            ),
+            new THREE.Vector3(
+              s.length * 0.58,
+              -h * 0.33,
+              side * s.width * 0.55 * spread,
+            ),
+          ]);
+          details.push(
+            colored(
+              new THREE.TubeGeometry(curve, 6, 0.004, 3, false),
+              0x797a66,
+            ),
+          );
+        }
     const eyes = mergeOwned(details);
     eyes.deleteAttribute('uv');
     // Static facial detail shares the body's material and draw; only articulated parts stay separate.

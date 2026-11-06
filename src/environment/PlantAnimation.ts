@@ -23,8 +23,13 @@ export function samplePlantBend(
   out: Vec3,
 ): Vec3 {
   sampleCurrent(time, x, z, out);
-  out.x = (out.x + Math.sin(time * frequency + phase) * 0.22) * flex;
-  out.z = (out.z + Math.cos(time * frequency * 0.83 + phase) * 0.18) * flex;
+  out.x =
+    (out.x + Math.sin(time * frequency + phase + x * 1.7 + z * 2.1) * 0.22) *
+    flex;
+  out.z =
+    (out.z +
+      Math.cos(time * frequency * 0.83 + phase + x * 1.7 + z * 2.1) * 0.18) *
+    flex;
   return out;
 }
 export class PlantClock {
@@ -48,7 +53,7 @@ vec2 plantFlow() {
  vec3 origin=instanceMatrix[3].xyz;
  vec2 flow=vec2(sin(plantTime*.23+origin.x*.09+origin.z*.06)*.7+sin(plantTime*.13-origin.z*.07)*.3,
  cos(plantTime*.19+origin.z*.08-origin.x*.05)*.65);
- flow+=vec2(sin(plantTime*plantMotion.w+plantMotion.y)*.22,cos(plantTime*plantMotion.w*.83+plantMotion.y)*.18);
+ flow+=vec2(sin(plantTime*plantMotion.w+plantMotion.y+origin.x*1.7+origin.z*2.1)*.22,cos(plantTime*plantMotion.w*.83+plantMotion.y+origin.x*1.7+origin.z*2.1)*.18);
  vec3 ax=normalize(instanceMatrix[0].xyz),az=normalize(instanceMatrix[2].xyz);
  return vec2(dot(vec3(flow.x,0.,flow.y),ax),dot(vec3(flow.x,0.,flow.y),az));
 }

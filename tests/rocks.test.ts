@@ -82,7 +82,7 @@ describe('sculpted convex rock templates', () => {
       expect(hash).toBe(
         '7e16e45eaba4ba91dfb195589b23475f3b5daa450c68b01298c74b959357998a',
       );
-      expect(aquarium.collision.colliders).toHaveLength(34);
+      expect(aquarium.rockColliders).toHaveLength(34);
       expect(
         aquarium.collision.colliders.some((c) =>
           aquarium.collision.contains(c, SPAWN.x, SPAWN.y, SPAWN.z),
