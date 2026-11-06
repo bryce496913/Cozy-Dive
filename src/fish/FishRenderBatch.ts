@@ -20,7 +20,7 @@ export class FishRenderBatch {
         part.material,
         visuals.length,
       );
-      mesh.frustumCulled = false;
+      mesh.frustumCulled = true;
       mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
       mesh.name = `Articulated fish part ${i}`;
       this.root.add(mesh);
@@ -34,7 +34,12 @@ export class FishRenderBatch {
       for (let j = 0; j < this.meshes.length; j++)
         this.meshes[j].setMatrixAt(i, this.parts[i][j].matrixWorld);
     }
-    for (const mesh of this.meshes) mesh.instanceMatrix.needsUpdate = true;
+    for (const mesh of this.meshes) {
+      mesh.instanceMatrix.needsUpdate = true;
+      // Bounds must follow every articulated instance before Three.js tests the camera frustum.
+      // Geometry spheres enclose fins/eyes as well as bodies; no guessed body-radius proxy.
+      mesh.computeBoundingSphere();
+    }
   }
   dispose(): void {
     if (this.disposed) return;

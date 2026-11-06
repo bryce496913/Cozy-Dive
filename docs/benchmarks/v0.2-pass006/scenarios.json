@@ -1,0 +1,161 @@
+{
+  "renderer": "Chromium SwiftShader, 960x640, pixel ratio 1; render+finish forces GPU completion; no hardware claim",
+  "inventory": {
+    "population": {
+      "neon-tetra": 8,
+      "harlequin-rasbora": 6,
+      "honey-gourami": 2,
+      "endlers-livebearer": 4,
+      "chili-rasbora": 20
+    },
+    "solids": 73,
+    "geometries": 93,
+    "materials": 31,
+    "audio": {
+      "nodes": 19,
+      "buffers": 3,
+      "bytes": 2048000,
+      "loops": 3
+    }
+  },
+  "renders": [],
+  "cpu": [
+    {
+      "count": 40,
+      "fixedStepMs": {
+        "mean": 0.43833333323399226,
+        "median": 0.20000000298023224,
+        "p95": 0.7999999970197678,
+        "p99": 5,
+        "samples": 600
+      },
+      "poseMs": {
+        "mean": 0.1333333334326744,
+        "median": 0.09999999403953552,
+        "p95": 0.3999999910593033,
+        "p99": 0.7999999970197678,
+        "samples": 600
+      },
+      "schoolingMs": {
+        "mean": 0.21166666669150194,
+        "median": 0.09999999403953552,
+        "p95": 0.20000000298023224,
+        "p99": 1.4000000059604645,
+        "samples": 600
+      },
+      "corrections": 0
+    },
+    {
+      "count": 60,
+      "fixedStepMs": {
+        "mean": 0.46333333340783917,
+        "median": 0.20000000298023224,
+        "p95": 0.7999999970197678,
+        "p99": 4.9000000059604645,
+        "samples": 600
+      },
+      "poseMs": {
+        "mean": 0.12950000010430812,
+        "median": 0.09999999403953552,
+        "p95": 0.29999999701976776,
+        "p99": 0.8999999910593033,
+        "samples": 600
+      },
+      "schoolingMs": {
+        "mean": 0.14599999971687794,
+        "median": 0.10000000894069672,
+        "p95": 0.29999999701976776,
+        "p99": 0.7000000029802322,
+        "samples": 600
+      },
+      "corrections": 0
+    }
+  ],
+  "dense": [
+    {
+      "count": 40,
+      "fixedStepMs": {
+        "mean": 0.2523333332687616,
+        "median": 0.20000000298023224,
+        "p95": 0.7000000029802322,
+        "p99": 1.4000000059604645,
+        "samples": 600
+      },
+      "maximumScatter": 0.9987463178737097,
+      "corrections": 0
+    },
+    {
+      "count": 60,
+      "fixedStepMs": {
+        "mean": 0.2643333334227403,
+        "median": 0.20000000298023224,
+        "p95": 0.5,
+        "p99": 0.7999999970197678,
+        "samples": 600
+      },
+      "maximumScatter": 0.9987465160703644,
+      "corrections": 0
+    }
+  ],
+  "stressRendering": [
+    {
+      "culling": false,
+      "population": 60,
+      "calls": 256,
+      "triangles": 203180
+    },
+    {
+      "culling": true,
+      "population": 60,
+      "calls": 250,
+      "triangles": 200714
+    }
+  ],
+  "broadleafObservation": {
+    "time": 320.00000000003894,
+    "distance": 7.805618504703363,
+    "activity": "exploring",
+    "plant": "java-fern"
+  },
+  "recreation": [
+    {
+      "before": {
+        "geometries": 80,
+        "textures": 1
+      },
+      "after": {
+        "geometries": 0,
+        "textures": 0
+      },
+      "audioState": "closed"
+    },
+    {
+      "before": {
+        "geometries": 80,
+        "textures": 1
+      },
+      "after": {
+        "geometries": 0,
+        "textures": 0
+      },
+      "audioState": "closed"
+    }
+  ],
+  "heap": {
+    "before": 14011016,
+    "disposed": 12934104
+  },
+  "resources": {
+    "before": {
+      "geometries": 88,
+      "textures": 1
+    },
+    "after": {
+      "geometries": 0,
+      "textures": 0
+    },
+    "audioState": "closed"
+  },
+  "errors": [],
+  "warnings": []
+}
