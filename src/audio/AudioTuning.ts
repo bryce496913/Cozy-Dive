@@ -8,10 +8,10 @@ import {
 
 export const AUDIO = {
   sampleRate: 16000,
-  bufferSeconds: [11.3, 17.9] as const,
+  bufferSeconds: [11.3, 17.9, 2.8] as const,
   masterCeiling: 0.8,
-  swimmingCeiling: 0.2,
-  eventCeiling: 0.12,
+  swimmingCeiling: 0.14,
+  eventCeiling: 0.1,
   fadeOut: 0.06,
   suspendDelay: 420,
   maxVoices: 1,
@@ -34,12 +34,12 @@ export interface AmbientMix {
 export function ambientMix(time: number, out: AmbientMix): AmbientMix {
   const t = Number.isFinite(time) ? time : 0;
   out.foundation =
-    0.26 + 0.018 * Math.sin(t * 0.031) + 0.012 * Math.sin(t * 0.047 + 1.4);
-  out.cutoff = 640 + 70 * Math.sin(t * 0.023 + 0.7);
+    0.24 + 0.009 * Math.sin(t * 0.031) + 0.006 * Math.sin(t * 0.047 + 1.4);
+  out.cutoff = 340 + 25 * Math.sin(t * 0.023 + 0.7);
   out.current =
-    0.045 + 0.012 * Math.sin(t * 0.041 + 2) + 0.008 * Math.sin(t * 0.019);
-  out.currentCutoff = 430 + 55 * Math.sin(t * 0.029 + 2.4);
-  out.pan = 0.12 * Math.sin(t * 0.017);
+    0.018 + 0.004 * Math.sin(t * 0.041 + 2) + 0.002 * Math.sin(t * 0.019);
+  out.currentCutoff = 260 + 20 * Math.sin(t * 0.029 + 2.4);
+  out.pan = 0.04 * Math.sin(t * 0.017);
   return out;
 }
 /** Reads the actual physical stroke, thrust and 3D velocity, never advances their clocks. */
@@ -95,25 +95,4 @@ export function spatialMix(
   out.gain =
     (edge * edge * (3 - 2 * edge)) / (1 + Math.max(0, distance - 2) / 10);
   return out;
-}
-/** Seeded noise with a short smooth overlap across its circular seam. */
-export function noiseSamples(
-  length: number,
-  seed: number,
-  overlap = 1600,
-): Float32Array<ArrayBuffer> {
-  overlap = Math.min(overlap, Math.floor(length / 4));
-  const raw = new Float32Array(length + overlap);
-  for (let i = 0; i < raw.length; i++) {
-    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
-    raw[i] = ((seed / 4294967296) * 2 - 1) * 0.85;
-  }
-  const samples = raw.slice(overlap);
-  for (let i = 0; i < overlap; i++) {
-    const t = i / Math.max(1, overlap - 1),
-      blend = t * t * (3 - 2 * t);
-    const at = length - overlap + i;
-    samples[at] = samples[at] * (1 - blend) + raw[i] * blend;
-  }
-  return samples;
 }

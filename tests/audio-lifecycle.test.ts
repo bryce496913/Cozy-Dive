@@ -57,7 +57,7 @@ describe('gesture-gated audio ownership', () => {
     }
     expect(createContext).toHaveBeenCalledTimes(1);
     expect(context.createBufferSource).toHaveBeenCalledTimes(3);
-    expect(context.createBuffer).toHaveBeenCalledTimes(2);
+    expect(context.createBuffer).toHaveBeenCalledTimes(3);
     audio.dispose();
     expect(vi.getTimerCount()).toBe(0);
   });
@@ -180,7 +180,7 @@ describe('gesture-gated audio ownership', () => {
     const broken = setup();
     await enter(broken.audio);
     // A native graph failure is contained by the subsystem, not the application's frame loop.
-    broken.context.createBiquadFilter.mock.results[1].value.frequency.setTargetAtTime.mockImplementationOnce(
+    broken.context.createBiquadFilter.mock.results[2].value.frequency.setTargetAtTime.mockImplementationOnce(
       () => {
         throw Error('audio device lost');
       },
@@ -248,7 +248,7 @@ describe('gesture-gated audio ownership', () => {
 });
 
 describe('environmental voice ownership', () => {
-  it('caps overlapping voices, releases finished sources and reuses the two buffers', () => {
+  it('caps overlapping voices, releases finished sources and reuses the three buffers', () => {
     const context = new FakeContext(),
       graph = new AudioGraph(context.api);
     const event = {
@@ -275,7 +275,7 @@ describe('environmental voice ownership', () => {
     expect(source.disconnect).toHaveBeenCalledTimes(1);
     graph.play({ ...event, kind: 'water' }, locations[1], SPAWN, Math.PI);
     expect(graph.voices).toBe(1);
-    expect(context.createBuffer).toHaveBeenCalledTimes(2);
+    expect(context.createBuffer).toHaveBeenCalledTimes(3);
     graph.dispose();
     graph.dispose();
     expect(graph.voices).toBe(0);

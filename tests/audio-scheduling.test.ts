@@ -1,9 +1,9 @@
+import { waterTexture } from '../src/audio/WaterTexture';
 import { describe, expect, it } from 'vitest';
 import { AudioEvents } from '../src/audio/AudioEvents';
 import {
   AUDIO,
   ambientMix,
-  noiseSamples,
   spatialMix,
   volumeGain,
 } from '../src/audio/AudioTuning';
@@ -66,14 +66,14 @@ describe('bounded, smooth procedural parameters', () => {
       ambientMix(t, mix);
       expect(Object.values(mix).every(Number.isFinite)).toBe(true);
       expect(mix.foundation).toBeGreaterThan(0.22);
-      expect(mix.foundation).toBeLessThan(0.3);
-      expect(mix.current).toBeGreaterThan(0.02);
-      expect(mix.current).toBeLessThan(0.07);
-      expect(mix.cutoff).toBeGreaterThanOrEqual(570);
-      expect(mix.cutoff).toBeLessThanOrEqual(710);
-      expect(mix.currentCutoff).toBeGreaterThan(370);
-      expect(mix.currentCutoff).toBeLessThan(490);
-      expect(Math.abs(mix.pan)).toBeLessThanOrEqual(0.12);
+      expect(mix.foundation).toBeLessThan(0.26);
+      expect(mix.current).toBeGreaterThan(0.011);
+      expect(mix.current).toBeLessThan(0.025);
+      expect(mix.cutoff).toBeGreaterThanOrEqual(315);
+      expect(mix.cutoff).toBeLessThanOrEqual(365);
+      expect(mix.currentCutoff).toBeGreaterThanOrEqual(240);
+      expect(mix.currentCutoff).toBeLessThanOrEqual(280);
+      expect(Math.abs(mix.pan)).toBeLessThanOrEqual(0.04);
       expect(Math.abs(mix.foundation - previous.foundation)).toBeLessThan(
         0.001,
       );
@@ -84,16 +84,19 @@ describe('bounded, smooth procedural parameters', () => {
     expect(volumeGain(100)).toBe(AUDIO.masterCeiling);
     expect(volumeGain(0.3)).toBeLessThan(volumeGain(0.5));
   });
-  it('uses deterministic finite, zero-centered reusable noise', () => {
-    const noise = noiseSamples(16000, 42);
-    expect(noise).toEqual(noiseSamples(16000, 42));
-    expect(noise).not.toEqual(noiseSamples(16000, 43));
-    expect(
-      Math.abs(noise.reduce((a, b) => a + b, 0) / noise.length),
-    ).toBeLessThan(0.02);
-    expect(Math.max(...noise)).toBeLessThanOrEqual(0.85);
-    expect(Math.min(...noise)).toBeGreaterThanOrEqual(-0.85);
-  });
+  it.each([false, true])(
+    'uses deterministic finite, bounded liquid textures (detail=%s)',
+    (detail) => {
+      const noise = waterTexture(16000, 42, detail);
+      expect(noise).toEqual(waterTexture(16000, 42, detail));
+      expect(noise).not.toEqual(waterTexture(16000, 43, detail));
+      expect(
+        Math.abs(noise.reduce((a, b) => a + b, 0) / noise.length),
+      ).toBeLessThan(0.02);
+      expect(Math.max(...noise)).toBeLessThanOrEqual(0.701);
+      expect(Math.min(...noise)).toBeGreaterThanOrEqual(-0.701);
+    },
+  );
   it('uses world-relative, restrained pan and gentle bounded distance attenuation', () => {
     const out = { pan: 0, gain: 0 },
       origin = { x: 0, y: 0, z: 0 };
