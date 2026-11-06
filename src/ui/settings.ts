@@ -4,6 +4,8 @@ export interface Settings {
   sensitivity: number;
   speed: number;
   reducedMotion: boolean;
+  audioEnabled: boolean;
+  masterVolume: number;
 }
 export interface SettingsStore {
   getItem(key: string): string | null;
@@ -15,6 +17,8 @@ export const DEFAULT_SETTINGS: Settings = {
   sensitivity: 1,
   speed: 2.8,
   reducedMotion: false,
+  audioEnabled: true,
+  masterVolume: 0.3,
 };
 const numberInRange = (
   value: unknown,
@@ -42,6 +46,16 @@ export function validateSettings(value: unknown): Settings {
       DEFAULT_SETTINGS.sensitivity,
     ),
     speed: numberInRange(data.speed, 1, 5, DEFAULT_SETTINGS.speed),
+    audioEnabled:
+      typeof data.audioEnabled === 'boolean'
+        ? data.audioEnabled
+        : DEFAULT_SETTINGS.audioEnabled,
+    masterVolume: numberInRange(
+      data.masterVolume,
+      0,
+      1,
+      DEFAULT_SETTINGS.masterVolume,
+    ),
     reducedMotion:
       typeof data.reducedMotion === 'boolean'
         ? data.reducedMotion

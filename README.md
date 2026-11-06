@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.2 / Pass 004B — Aquarium Biodiversity & Habitat Expansion** is a first-person, browser-based aquarium prototype: swim at your own pace through sand, rocks, plants, and soft blue-green water. No scores, timers, combat, accounts, or external assets.
+A quiet little world beneath the surface. **v0.2 / Pass 005 — Ambient Audio & Underwater Soundscape** is a first-person, browser-based aquarium prototype: swim at your own pace through sand, rocks, plants, and soft blue-green water. No scores, timers, combat, accounts, or external assets.
 
 ## Stack and requirements
 
@@ -37,6 +37,7 @@ Vite binds to all interfaces for cloud development; use `npm run dev -- --host 1
 | A / D  | Strafe left / right                     |
 | Mouse  | Look around                             |
 | Escape | Release mouse capture and pause         |
+| M      | Toggle ambient audio while swimming     |
 
 Click **Return to the Water** to resume. Look up or down and use W/S to change depth; A/D always strafe horizontally. Space and Shift have no swimming action. Pausing or losing browser focus clears held input and propulsion momentum while retaining a resting breath’s phase and small vertical velocity. Diagonal input is normalized. Subtle stroke-related pitch feedback stays below 0.07 degrees, with no roll or visual position offsets. Looking straight up/down is limited.
 
@@ -47,7 +48,8 @@ Click **Return to the Water** to resume. Look up or down and use W/S to change d
 - First-person swimming with smooth kick-and-glide propulsion, weighted direction changes, progressive water drag, and damped breathing buoyancy. Bounded 1/240-second steps sample forces and integrate linear drag analytically; long frame gaps are capped at 100 ms.
 - A safe starting position, clearance from all six aquarium boundaries, and sliding collisions against the 34 major generated rocks and 39 convex ornament components. Thin foliage and decorative pebbles remain passable.
 - Pointer lock only following an explicit button click. Escape, loss of focus, and hidden tabs pause controls.
-- Mouse sensitivity, movement speed, swimming feel, and reduced-motion preferences saved locally. Storage failure falls back to session settings. System reduced-motion preference is respected on first visit; the option uses direct mouse-look and freezes ambient sway.
+- Optional procedural underwater ambience, slow currents, gentle stroke-driven swimming sound, and sparse ornament-adjacent water details. Silent preview; audio fades on pause/mute and suspends in hidden tabs.
+- Mouse sensitivity, movement speed, swimming feel, reduced-motion, audio enable and volume preferences saved locally. Storage failure falls back to session settings. System reduced-motion preference is respected on first visit; the option uses direct mouse-look and freezes ambient sway.
 - Responsive canvas, device pixel ratio capped at 1.75, and messages for unavailable WebGL, lost graphics context, or denied pointer lock.
 - Explicit cleanup of listeners, animation frames, geometries, materials, renderer, and DOM on disposal / hot reload.
 
@@ -56,6 +58,7 @@ Click **Return to the Water** to resume. Look up or down and use W/S to change d
 ```text
 src/
   app/          Application lifecycle, animation loop, system coordination
+  audio/        Procedural water layers, bounded events, gesture-gated lifecycle
   config/       Aquarium dimensions, spawn, and movement tuning
   controls/     Pointer lock, keyboard, and smoothed yaw/pitch
   environment/  Deterministic procedural scenery and owned fish lifecycle
@@ -68,6 +71,14 @@ src/
 `Application` owns and disposes the systems. `Aquarium` owns its generated resources. The environment root is a Three.js group so future environment loaders can replace it without changing movement. Physics and settings have no dependency on the renderer and are tested in Node. Mouse deltas describe displacement and are not multiplied by frame time; look smoothing uses an exponential, delta-time-based blend. Movement follows the same yaw/pitch convention as the camera.
 
 Tune aquarium dimensions, clearance, and all physical/feedback parameters in `src/config/world.ts`; speed defaults/ranges and preset validation live in `src/ui/settings.ts`. Keep seabed variation below the floor clearance. Camera FOV and pixel ratio live in `src/rendering/UnderwaterScene.ts`.
+
+## Ambient soundscape
+
+Click Enter to enable quiet underwater audio when the browser permits it. The initial preview remains silent. **Ambient audio** in Settings and the top-bar button toggle the soundscape; **M** mutes/unmutes while swimming. **Master volume** defaults to 30%, persists locally, and is retained while muted. Audio is optional; reduced motion remains a separate choice.
+
+The soundscape uses filtered procedural noise for surrounding water, slowly changing currents, restrained kick-and-glide movement and occasional low-volume environmental details. There is no music, prominent breathing, machinery or per-fish sound. Escape fades everything out; background tabs suspend audio and never accumulate events. Audio support or autoplay failure leaves swimming playable in silence. Previous v1 preferences migrate without resetting swimming choices.
+
+See [audio architecture and settings](docs/AUDIO.md) and [Pass 005 validation and manual macOS listening checklist](docs/VALIDATION_V02_PASS_005.md). Functional checks do not establish subjective sound quality; human listening and MacBook Air acceptance remain pending.
 
 ## A living freshwater aquarium
 

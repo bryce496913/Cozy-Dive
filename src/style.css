@@ -464,3 +464,26 @@ kbd {
   border-radius: 4px;
   font: inherit;
 }
+
+.preferences {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.audio-toggle {
+  background: none;
+  border: 1px solid #9ebdab55;
+  border-radius: 4px;
+  padding: 8px 10px;
+  color: #cde1d3;
+  font-size: 11px;
+}
+.settings-panel {
+  max-height: calc(100dvh - 110px);
+  overflow-y: auto;
+}
+@media (max-width: 600px) {
+  .preferences {
+    gap: 10px;
+  }
+}
