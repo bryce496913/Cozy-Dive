@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.2 / Pass 002 — Schooling & Group Intelligence** is a first-person, browser-based aquarium prototype: swim at your own pace through sand, rocks, plants, and soft blue-green water. No scores, timers, combat, accounts, or external assets.
+A quiet little world beneath the surface. **v0.2 / Pass 002B — Ecosystem Interaction, Swimming & Rock Refinement** is a first-person, browser-based aquarium prototype: swim at your own pace through sand, rocks, plants, and soft blue-green water. No scores, timers, combat, accounts, or external assets.
 
 ## Stack and requirements
 
@@ -31,16 +31,14 @@ Vite binds to all interfaces for cloud development; use `npm run dev -- --host 1
 
 ## Swimming controls
 
-| Input      | Action                                     |
-| ---------- | ------------------------------------------ |
-| W / S      | Swim forward / backward along your view    |
-| A / D      | Strafe left / right                        |
-| Mouse      | Look around                                |
-| Space      | Swim upward, relative to the water surface |
-| Left Shift | Swim downward                              |
-| Escape     | Release mouse capture and pause            |
+| Input  | Action                                  |
+| ------ | --------------------------------------- |
+| W / S  | Swim forward / backward along your view |
+| A / D  | Strafe left / right                     |
+| Mouse  | Look around                             |
+| Escape | Release mouse capture and pause         |
 
-Click **Return to the Water** to resume. Pausing or losing browser focus clears held keys and momentum, so resuming cannot cause a sudden lurch. Diagonal input is normalized. Subtle stroke-related pitch feedback stays below 0.07 degrees, with no roll or visual position offsets. Looking straight up/down is limited.
+Click **Return to the Water** to resume. Look up or down and use W/S to change depth; A/D always strafe horizontally. Space and Shift have no swimming action. Pausing or losing browser focus clears held input and propulsion momentum while retaining a resting breath’s phase and small vertical velocity. Diagonal input is normalized. Subtle stroke-related pitch feedback stays below 0.07 degrees, with no roll or visual position offsets. Looking straight up/down is limited.
 
 ## Current features
 
@@ -77,35 +75,35 @@ The initial population is **8 neon tetras**, **6 harlequin rasboras**, and **2 h
 
 Fish appear immediately and begin swimming when you enter the water. They use their own **fixed 30 Hz simulation**, with interpolated poses at the render frame rate and bounded catch-up. Holding pause or hiding the page freezes positions and animation without advancing their clock. Reduced motion suppresses optional banking and halves rear-body flex; essential tail and pectoral motion remains visible.
 
-Persistent individual targets, bounded speed/turn changes, soft preferred depths, and predictive rock/wall steering remain the basis of each fish’s movement. Neon tetras now form moderately cohesive schools; harlequin rasboras coordinate in looser groups; honey gouramis explore independently. All species maintain personal space through size-aware separation, including across species. Fish read the existing major-rock hulls without running or changing the player's collision solver. Conservative body radii and a final candidate-position guard protect against unusual near-contact conditions. Foliage and decorative pebbles remain passable. At every 30 Hz step, a consistent population snapshot supplies bounded nearest-neighbor alignment/cohesion and all-neighbor close separation. Obstacle danger fades social attraction and removes separation directed into the avoidance force, allowing schools to split around scenery and reconnect through ordinary swimming. There are no leaders, scripted paths, position tethers, or synchronized timers. Feeding and diver reactions remain deferred.
+Persistent individual targets, bounded speed/turn changes, soft preferred depths, and predictive rock/wall steering remain the basis of each fish’s movement. Neon tetras now form moderately cohesive schools; harlequin rasboras coordinate in looser groups; honey gouramis explore independently. All species maintain personal space through size-aware separation, including across species. Fish read the existing major-rock hulls without running or changing the player's collision solver. Conservative body radii and a final candidate-position guard protect against unusual near-contact conditions. Foliage and decorative pebbles remain passable. At every 30 Hz step, a consistent population snapshot supplies bounded nearest-neighbor alignment/cohesion and all-neighbor close separation. Obstacle danger fades social attraction and removes separation directed into the avoidance force, allowing schools to split around scenery and reconnect through ordinary swimming. There are no leaders, scripted paths, position tethers, or synchronized timers. A nearby diver smoothly raises awareness; close contact or faster approach produces stronger, individually varied escape steering. School attraction recedes during scatter and returns gradually afterward. Gouramis react more calmly. Feeding remains deferred.
 
-Population counts, body proportions, colors, habitat preferences, speed/turn limits, animation cadence, and schooling parameters live in `src/fish/FishSpecies.ts`. The default seed reproduces initial positions and individual variations on refresh; live positions are not saved. Models/materials are shared per species and disposed through the environment lifecycle. See [fish architecture and tuning](docs/FISH.md) for ownership, movement, extension points, and limitations.
+Population counts, body proportions, colors, habitat preferences, speed/turn limits, animation cadence, schooling, and diver-reaction parameters live in `src/fish/FishSpecies.ts`. The default seed reproduces initial positions and individual variations on refresh; live positions are not saved. Models/materials are shared per species and disposed through the environment lifecycle. See [fish architecture and tuning](docs/FISH.md) for ownership, movement, extension points, and limitations.
 
 ![The first freshwater population](docs/screenshots/v0.2-pass001/aquarium.png)
 
 ## Swimming physics and tuning
 
-Holding a horizontal movement key repeats an active stroke followed by a glide. A squared-sine envelope builds and fades the propulsion **force**, which is filtered before integration; velocity and position are never multiplied by a wave. A small baseline thrust softens the rhythm. Releasing input cuts thrust while velocity decays under water drag, settling tiny horizontal residuals to zero. Direction changes redirect the filtered force without resetting velocity. Diagonal normalization and pitch-relative forward movement are preserved; intentional vertical movement uses continuous thrust for control.
+Holding a movement key repeats an active stroke followed by a glide. A squared-sine envelope builds and fades the propulsion **force**, which is filtered before integration; velocity and position are never multiplied by a wave. A small baseline thrust softens the rhythm. Releasing input cuts thrust while velocity decays under water drag, settling tiny horizontal residuals to zero. Direction changes redirect the filtered force without resetting velocity. Diagonal normalization and pitch-relative forward movement are preserved; all three propulsion axes use the same force pulse, filtering, drag, and coasting, including nearly vertical swimming.
 
 Choose **Relaxed**, **Natural** (default), or **Responsive** in Settings. Existing v1 storage remains valid; missing/invalid feel values become Natural without losing other preferences. Speed is a nominal average horizontal speed: instantaneous speed varies across the stroke.
 
 | Preset     | Cycle (s) | Active fraction | Drag (1/s) | Force response (1/s) | Rhythmic fraction | Breathing force (m/s²) |
 | ---------- | --------- | --------------- | ---------- | -------------------- | ----------------- | ---------------------- |
-| Relaxed    | 1.4       | 0.35            | 0.8        | 5                    | 0.85              | 0.098                  |
-| Natural    | 1.1       | 0.45            | 1.1        | 8                    | 0.75              | 0.14                   |
-| Responsive | 0.8       | 0.50            | 1.8        | 12                   | 0.30              | 0.084                  |
+| Relaxed    | 1.4       | 0.35            | 0.8        | 5                    | 0.85              | 0.14                   |
+| Natural    | 1.1       | 0.45            | 1.1        | 8                    | 0.75              | 0.20                   |
+| Responsive | 0.8       | 0.50            | 1.8        | 12                   | 0.30              | 0.12                   |
 
-The independent five-second breathing force acts around a neutral depth with a 1.6/s² restoring spring and 2.4/s vertical damping. Natural hovering displacement is approximately **9.3 cm peak-to-peak** (about ±4.65 cm), up from 6.64 cm in Pass 002. Relaxed is about 6.51 cm and Responsive about 5.58 cm. Intentional depth changes suppress breathing and move the neutral depth toward the projected coasting endpoint; release settles naturally there. Buoyancy fades within 25 cm of floor/surface, preventing repeated contact and boundary-induced drift. All integrated motion respects the existing clearance and outward-velocity cancellation.
+The independent five-second breathing force acts around a neutral depth with a 1.6/s² restoring spring and 2.4/s vertical damping. Natural hovering displacement is approximately **13.3 cm peak-to-peak** (about ±6.65 cm), up from 9.3 cm. Relaxed is about 9.3 cm and Responsive about 8.0 cm. Intentional depth changes suppress breathing and move the neutral depth toward the projected coasting endpoint; release settles naturally there. Buoyancy fades within 25 cm of floor/surface, preventing repeated contact and boundary-induced drift. All integrated motion respects the existing clearance and outward-velocity cancellation.
 
 `SwimState.position` and `velocity` are authoritative physical state. `thrust` is the filtered propulsion acceleration; stroke/breath timers are independent and bounded. `neutralDepth` anchors buoyancy. `bodyPitch` is optional visual feedback only: it never changes position, velocity, collision, or input direction. No camera position offset is added. Future animation/audio/body systems can read stroke time, thrust, and breath time without owning movement or advancing its clocks.
 
-Reduced motion suppresses breathing force and visual pitch feedback while keeping smooth propulsion/inertia, direct mouse-look, and the existing frozen ambient motion. Enabling it during a breath allows the physical spring/damping to settle naturally. Pause/lock loss and visibility changes clear held inputs, velocities, forces, and rhythm state, reset neutral depth to the current position, and restart with a zero frame delta. Simulation and scene animation clocks do not advance while paused.
+Reduced motion suppresses breathing force and visual pitch feedback while keeping smooth propulsion/inertia, direct mouse-look, and frozen ambient sway. Enabling it during a breath lets spring/damping settle naturally. Before the first entry, only physical resting buoyancy advances: no input, fish simulation, or ambient clock starts. A quarter-cycle initial phase gives an immediate gentle acceleration rather than waiting for a zero crossing. Entry uses the same position, phase, anchor, and resting velocity.
 
-The five-second forcing frequency is already close to the hover spring’s natural frequency: reducing stiffness would barely increase displacement because vertical damping dominates. Pass 003 therefore keeps the proven spring, damping, vertical speed, and coasting endpoint unchanged and moderately increases each preset’s buoyancy force by 40%. This preserves their relative strengths and avoids retuning intentional swimming. Peak Natural vertical speed is about 5.8 cm/s. These are steady-state values in clear water; boundary fading and rock contact can reduce travel.
+After entry, pause/lock loss and visibility changes freeze every simulation clock and physical position. Propulsion resets; a resting breath retains its anchor and small vertical velocity for continuous resume. Pausing during intentional depth change captures the current resting depth and clears ascent/descent momentum. Natural steady peak vertical speed is about 8.3 cm/s; boundaries and rock contact can reduce breathing travel.
 
 ## Environmental collision
 
-The player has a **28 cm spherical collision radius**, independent of the existing 65 cm glass/floor/surface clearance and the camera’s 8 cm near plane. The environment extracts static convex hull planes from the same 80 triangles and exact scale/tilt/position used to draw each major rock. No separately guessed rock positions or extra runtime assets are used. The scenery seed and random-number sequence are unchanged.
+The player has a **28 cm spherical collision radius**, independent of the existing 65 cm glass/floor/surface clearance and the camera’s 8 cm near plane. The environment extracts static convex hull planes from the exact convex triangles and scale/tilt/position used to draw each major rock. Six pooled major templates and three pebble templates mix weathered boulders, sedimentary slabs, and fractured stones. Seeded low-frequency deformation, layered contours, creased normals, and restrained mineral vertex colors replace flat low-detail primitives. Displaced points are explicitly rebuilt with Three.js ConvexGeometry before either rendering or collider extraction; arbitrary concave triangle planes are never treated as hull planes. No separately guessed rock positions or extra runtime assets are used. The scenery seed and random-number sequence are unchanged.
 
 `src/environment/rockCollider.ts` performs one-time geometry extraction; `Aquarium.collision` owns the resulting `CollisionWorld`. The pure TypeScript solver in `src/player/collision.ts` uses a swept bounding-box rejection followed by expanded convex-plane intersection. Each bounded swimming substep submits its displacement after force integration. The earliest scenery or aquarium-wall contact removes only inward velocity and displacement; tangential motion slides along the contact. Several contacts can constrain a corner without clearing propulsion, breathing clocks, neutral depth, or the whole movement state. Sweeps prevent tunneling even across a large displacement. Exceptional initial overlaps recover toward a nearby free point outside the connected rock union, within the aquarium, rather than teleporting to spawn.
 
@@ -117,7 +115,7 @@ For later tuning, adjust cadence/active fraction together, then drag/force respo
 
 ## Validation and manual testing
 
-See [v0.2 Pass 002 schooling validation](docs/VALIDATION_V02_PASS_002.md), [v0.2 Pass 001 fish validation](docs/VALIDATION_V02_PASS_001.md), [the Pass 003 validation record](docs/VALIDATION_PASS_003.md), [Pass 002 results](docs/VALIDATION_PASS_002.md) and [historical Pass 001 results](docs/VALIDATION.md) for executed checks, screenshots, and practical limits. Unit tests cover movement direction, diagonal normalization, pitch-relative forward movement, vertical movement, acceleration, drag, frame-rate equivalence, frame-gap protection, all six boundaries, valid spawn, and settings validation/storage.
+See [v0.2 Pass 002B validation](docs/VALIDATION_V02_PASS_002B.md), [v0.2 Pass 002 schooling validation](docs/VALIDATION_V02_PASS_002.md), [v0.2 Pass 001 fish validation](docs/VALIDATION_V02_PASS_001.md), [the Pass 003 validation record](docs/VALIDATION_PASS_003.md), [Pass 002 results](docs/VALIDATION_PASS_002.md) and [historical Pass 001 results](docs/VALIDATION.md) for executed checks, screenshots, and practical limits. Unit tests cover movement direction, diagonal normalization, pitch-relative forward movement, vertical movement, acceleration, drag, frame-rate equivalence, frame-gap protection, all six boundaries, valid spawn, and settings validation/storage.
 
 To test manually:
 
@@ -125,7 +123,7 @@ To test manually:
 2. Open Settings; change sensitivity/speed/reduced motion, refresh, and confirm the preferences persist.
 3. Enter the water. Check every movement key, including combinations. Release keys to feel drag.
 4. Look left/right/up/down: motion should follow the mouse, stop short of a vertical flip, and never roll. Forward swimming should follow your view.
-5. Hold Space to the surface and Shift to the floor; swim toward every glass wall. The camera must remain inside with clearance.
+5. Look up/down and use W/S toward the surface/floor; swim toward every glass wall. The camera must remain inside with clearance.
 6. Press Escape while moving. Verify movement stops, then resume. Repeat after switching tabs or browser focus.
 7. Compare all three feel presets: hold W through several strokes, release to coast, and reverse direction repeatedly. There should be no full stops between strokes or sudden reversals.
 8. Hover for several breathing cycles, then ascend/descend and release. Verify subtle bounded breathing at the new depth. Repeat within 25 cm of floor/surface and with combined diagonal input against glass.
@@ -140,11 +138,11 @@ To test manually:
 
 - Desktop keyboard/mouse only; mobile touch controls are outside this pass.
 - Collision covers major static rocks and aquarium limits. Delicate foliage and decorative pebbles remain passable; there is no plant deformation, per-triangle sand collision, or dynamic rigid-body physics.
-- Schooling is local steering rather than global pathfinding or hard fish collision. Occasional close passes or temporary fragmentation are possible. No feeding, identification UI, or diver reactions yet. No office, passages, customization, ocean, sound, or progression.
+- Schooling is local steering rather than global pathfinding or hard fish collision. Occasional close passes or temporary fragmentation are possible. Diver reactions are soft avoidance rather than hard player-fish collision. No feeding or identification UI yet. No office, passages, customization, ocean, sound, or progression.
 - Sand and light shafts are intentionally simple; this is a procedural first prototype, not final art. The water surface is a visual plane, not a fluid simulation.
 - Player position is not persisted. Only settings are saved, per origin in browser local storage.
 - Pointer lock may be restricted by embedded frames or browser policies; use a top-level page. Graphics-context loss requires reloading.
-- The build reports a bundle-size advisory for Three.js (about 140 KB gzip in this pass). No runtime asset downloads are needed.
+- The build reports a bundle-size advisory for Three.js (see the current validation record for measured size). No runtime asset downloads are needed.
 - Browser coverage and performance claims are limited to the actual results in the validation record. Software-rendered Chromium does not establish ordinary-laptop GPU performance.
 
 The [roadmap](docs/ROADMAP.md) is provisional; future passes should preserve the quiet, low-pressure experience.

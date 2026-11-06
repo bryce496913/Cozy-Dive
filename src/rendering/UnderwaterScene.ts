@@ -1,3 +1,4 @@
+import type { PlayerPresence } from '../fish/FishDiverReaction';
 import * as THREE from 'three';
 import { Aquarium } from '../environment/Aquarium';
 
@@ -61,8 +62,14 @@ export class UnderwaterScene {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
     this.renderer.setSize(width, height);
   };
-  render(time: number, reducedMotion: boolean, dt = 0, active = false): void {
-    this.aquarium.update(time, reducedMotion, dt, active);
+  render(
+    time: number,
+    reducedMotion: boolean,
+    dt = 0,
+    active = false,
+    player?: PlayerPresence,
+  ): void {
+    this.aquarium.update(time, reducedMotion, dt, active, player);
     this.renderer.render(this.scene, this.camera);
   }
   dispose(): void {

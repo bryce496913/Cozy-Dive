@@ -1,7 +1,9 @@
+import type { PlayerPresence } from '../fish/FishDiverReaction';
 import * as THREE from 'three';
 import { AQUARIUM } from '../config/world';
 import { CollisionWorld, type ConvexCollider } from '../player/collision';
 import { rockCollider } from './rockCollider';
+import { createRockTemplates } from './RockGeometry';
 import { FishSystem } from '../fish/FishSystem';
 
 // Seeded scenery stays reproducible; no asset downloads or runtime randomness.
@@ -48,27 +50,34 @@ export class Aquarium {
     );
     this.root.add(sand);
 
-    const rockGeometry = new THREE.IcosahedronGeometry(1, 1);
-    const rockMaterials = [0x617770, 0x7f8d7b, 0x929581, 0x536e69].map(
+    const rockTemplates = createRockTemplates();
+    let rockIndex = 0,
+      pebbleIndex = 0;
+    const rockMaterials = [0x71827b, 0x858575, 0x929083, 0x62777a].map(
       (c) =>
         new THREE.MeshStandardMaterial({
           color: c,
           roughness: 0.96,
-          flatShading: true,
+          vertexColors: true,
+          metalness: 0,
         }),
     );
     const rock = (x: number, z: number, size: number, solid = true): void => {
+      const geometry = solid
+        ? rockTemplates.major[rockIndex++ % rockTemplates.major.length]
+        : rockTemplates.pebbles[pebbleIndex++ % rockTemplates.pebbles.length];
       const mesh = new THREE.Mesh(
-        rockGeometry,
+        geometry,
         rockMaterials[Math.floor(rand() * rockMaterials.length)],
       );
+      mesh.name = `Rock ${solid ? rockIndex : 34 + pebbleIndex}`;
       const height = size * (0.7 + rand() * 0.4);
       mesh.scale.set(size, height, size * (0.65 + rand() * 0.5));
       mesh.position.set(x, height * 0.61, z);
       mesh.rotation.set(rand() * 0.3, rand() * 6, rand() * 0.25);
       if (solid) {
         mesh.updateMatrix();
-        colliders.push(rockCollider(rockGeometry, mesh.matrix));
+        colliders.push(rockCollider(geometry, mesh.matrix));
       }
       this.root.add(mesh);
     };
@@ -212,8 +221,14 @@ export class Aquarium {
     this.fish = new FishSystem({ bounds: AQUARIUM, rocks: colliders });
     this.root.add(this.fish.root);
   }
-  update(time: number, reducedMotion: boolean, dt = 0, active = false): void {
-    this.fish.update(dt, active, reducedMotion);
+  update(
+    time: number,
+    reducedMotion: boolean,
+    dt = 0,
+    active = false,
+    player?: PlayerPresence,
+  ): void {
+    this.fish.update(dt, active, reducedMotion, player);
     for (let i = 0; i < this.plants.length; i++) {
       this.plants[i].rotation.z = reducedMotion
         ? 0

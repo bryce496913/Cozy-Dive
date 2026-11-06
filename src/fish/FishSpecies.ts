@@ -14,11 +14,27 @@ export interface SchoolingTuning {
   readonly maxNeighbors: number;
   readonly wanderWeight: number;
 }
+export interface DiverTuning {
+  readonly awarenessRadius: number;
+  readonly comfortRadius: number;
+  readonly strongRadius: number;
+  readonly sensitivity: number;
+  readonly escapeSpeed: number;
+  readonly reactionAcceleration: number;
+  readonly turnMultiplier: number;
+  readonly steeringWeight: number;
+  readonly awarenessResponse: number;
+  readonly scatterResponse: number;
+  readonly directionResponse: number;
+  readonly recoverySeconds: number;
+  readonly approachSpeed: number;
+}
 export interface FishSpecies {
   readonly id: SpeciesId;
   readonly name: string;
   readonly count: number;
   readonly schooling: SchoolingTuning;
+  readonly diver: DiverTuning;
   readonly length: number;
   readonly height: number;
   readonly width: number;
@@ -46,6 +62,21 @@ export const FISH_SPECIES: readonly FishSpecies[] = [
     id: 'neon-tetra',
     name: 'Neon tetra',
     count: 8,
+    diver: {
+      awarenessRadius: 4.2,
+      comfortRadius: 2.2,
+      strongRadius: 0.75,
+      sensitivity: 1,
+      escapeSpeed: 1.55,
+      reactionAcceleration: 1.2,
+      turnMultiplier: 1.6,
+      steeringWeight: 4.8,
+      awarenessResponse: 3,
+      scatterResponse: 5,
+      directionResponse: 4,
+      recoverySeconds: 4.5,
+      approachSpeed: 2,
+    },
     schooling: {
       enabled: true,
       spacing: 0.45,
@@ -85,6 +116,21 @@ export const FISH_SPECIES: readonly FishSpecies[] = [
     id: 'harlequin-rasbora',
     name: 'Harlequin rasbora',
     count: 6,
+    diver: {
+      awarenessRadius: 3.8,
+      comfortRadius: 2,
+      strongRadius: 0.8,
+      sensitivity: 0.85,
+      escapeSpeed: 1.2,
+      reactionAcceleration: 0.85,
+      turnMultiplier: 1.5,
+      steeringWeight: 4.2,
+      awarenessResponse: 2.5,
+      scatterResponse: 4,
+      directionResponse: 3.5,
+      recoverySeconds: 5,
+      approachSpeed: 2,
+    },
     schooling: {
       enabled: true,
       spacing: 0.8,
@@ -123,6 +169,21 @@ export const FISH_SPECIES: readonly FishSpecies[] = [
     id: 'honey-gourami',
     name: 'Honey gourami',
     count: 2,
+    diver: {
+      awarenessRadius: 2.8,
+      comfortRadius: 1.5,
+      strongRadius: 0.7,
+      sensitivity: 0.55,
+      escapeSpeed: 0.65,
+      reactionAcceleration: 0.4,
+      turnMultiplier: 1.25,
+      steeringWeight: 2.8,
+      awarenessResponse: 1.8,
+      scatterResponse: 3,
+      directionResponse: 2.5,
+      recoverySeconds: 6,
+      approachSpeed: 2,
+    },
     schooling: {
       enabled: false,
       spacing: 0.55,

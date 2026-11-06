@@ -8,12 +8,11 @@ import {
 } from '../config/world';
 
 const AXES = ['x', 'y', 'z'] as const;
-const HORIZONTAL_AXES = ['x', 'z'] as const;
+const NO_PROPULSION: Vec3 = { x: 0, y: 0, z: 0 };
 
 export interface SwimInput {
   forward: number;
   right: number;
-  up: number;
 }
 export interface SwimState {
   position: Vec3;
@@ -25,6 +24,7 @@ export interface SwimState {
   moving: boolean;
   breathBlend: number;
   bodyPitch: number;
+  depthChanging: boolean;
 }
 export interface SwimTuning {
   speed: number;
@@ -37,21 +37,30 @@ export function createSwimState(position: Vec3): SwimState {
     velocity: { x: 0, y: 0, z: 0 },
     thrust: { x: 0, y: 0, z: 0 },
     strokeTime: 0,
-    breathingTime: 0,
+    breathingTime: SWIMMING.breathingCycle / 4,
     neutralDepth: position.y,
     moving: false,
-    breathBlend: 0,
+    breathBlend: 1,
     bodyPitch: 0,
+    depthChanging: false,
   };
 }
-/** Freeze lifecycle state at the current depth; restart both rhythms gently. */
+/** Pause propulsion, retaining a resting breath's phase, anchor and small vertical velocity. */
 export function resetSwimming(state: SwimState): void {
-  state.velocity.x = state.velocity.y = state.velocity.z = 0;
+  state.velocity.x = state.velocity.z = 0;
   state.thrust.x = state.thrust.y = state.thrust.z = 0;
-  state.strokeTime = state.breathingTime = state.breathBlend = 0;
-  state.neutralDepth = state.position.y;
+  state.strokeTime = 0;
+  if (
+    state.depthChanging ||
+    Math.abs(state.velocity.y) > SWIMMING.maxRestingResumeSpeed
+  ) {
+    state.velocity.y = 0;
+    state.neutralDepth = state.position.y;
+    state.breathBlend = 0;
+  }
+  state.depthChanging = false;
   state.moving = false;
-  // Preserve the visual pitch while paused; the next active step eases it smoothly.
+  // Simulation stops entirely while paused; retained hover state resumes without a phase jump.
 }
 /** C1 continuous pulse, zero throughout the passive portion; mean = active / 2. */
 export function strokeEnvelope(phase: number, active: number): number {
@@ -60,20 +69,20 @@ export function strokeEnvelope(phase: number, active: number): number {
   return t < active ? Math.sin((Math.PI * t) / active) ** 2 : 0;
 }
 
-/** Camera forward is -Z; positive pitch looks up. Vertical keys stay world-aligned. */
+/** Camera forward is -Z; positive pitch looks up. Strafe is always horizontal. */
 export function movementDirection(
   input: SwimInput,
   yaw: number,
   pitch: number,
   out: Vec3,
 ): Vec3 {
-  if (!input.forward && !input.right && !input.up) {
+  if (!input.forward && !input.right) {
     out.x = out.y = out.z = 0;
     return out;
   }
   const cp = Math.cos(pitch);
   out.x = -Math.sin(yaw) * cp * input.forward + Math.cos(yaw) * input.right;
-  out.y = Math.sin(pitch) * input.forward + input.up;
+  out.y = Math.sin(pitch) * input.forward;
   out.z = -Math.cos(yaw) * cp * input.forward - Math.sin(yaw) * input.right;
   const length = Math.hypot(out.x, out.y, out.z);
   if (length > 1) {
@@ -100,7 +109,7 @@ export function clampToBounds(
   }
 }
 
-/** Bounded midpoint force sampling and exact linear drag integration, no frame allocations. */
+/** One force/drag stroke model for all three axes; resting depth is captured after coasting. */
 export function integrateSwimming(
   state: SwimState,
   direction: Vec3,
@@ -112,46 +121,36 @@ export function integrateSwimming(
   if (!Number.isFinite(dt) || dt <= 0) return;
   dt = Math.min(dt, SWIMMING.maxFrameDelta);
   const feel = SWIM_FEELS[tuning.feel];
-  const steps = Math.ceil(dt / SWIMMING.maxStep);
-  const h = dt / steps;
-  const moving = Math.hypot(direction.x, direction.z) > 0;
+  const steps = Math.ceil(dt / SWIMMING.maxStep),
+    h = dt / steps;
+  const moving = Math.hypot(direction.x, direction.y, direction.z) > 0;
   if (moving && !state.moving) state.strokeTime = 0;
   state.moving = moving;
-  const low = bounds.min.y + bounds.clearance;
-  const high = bounds.max.y - bounds.clearance;
+  const low = bounds.min.y + bounds.clearance,
+    high = bounds.max.y - bounds.clearance;
+  const intentionalDepth =
+    Math.abs(direction.y) > SWIMMING.verticalInputThreshold;
   for (let i = 0; i < steps; i++) {
     const fromX = state.position.x,
       fromY = state.position.y,
       fromZ = state.position.z;
-    const phase = (state.strokeTime + h / 2) / feel.cycle;
-    const pulse = moving ? strokeEnvelope(phase, feel.active) : 0;
+    state.depthChanging =
+      intentionalDepth ||
+      (state.depthChanging &&
+        Math.abs(state.velocity.y) > SWIMMING.coastToHoverSpeed);
+    const pulse = moving
+      ? strokeEnvelope((state.strokeTime + h / 2) / feel.cycle, feel.active)
+      : 0;
     const force = moving
       ? 1 - feel.rhythm + (feel.rhythm * pulse * 2) / feel.active
       : 0;
     const blend = -Math.expm1(-feel.response * h);
-    for (const axis of HORIZONTAL_AXES) {
-      const target = direction[axis] * tuning.speed * feel.drag * force;
-      // Releasing input cuts propulsion immediately; existing velocity still coasts.
-      state.thrust[axis] = moving
-        ? state.thrust[axis] + (target - state.thrust[axis]) * blend
-        : 0;
-      const decay = Math.exp(-feel.drag * h);
-      const terminal = state.thrust[axis] / feel.drag;
-      state.position[axis] +=
-        terminal * h +
-        ((state.velocity[axis] - terminal) * (1 - decay)) / feel.drag;
-      state.velocity[axis] =
-        terminal + (state.velocity[axis] - terminal) * decay;
-      if (!moving && Math.abs(state.velocity[axis]) < SWIMMING.settleSpeed)
-        state.velocity[axis] = 0;
-    }
-    const vertical = Math.abs(direction.y) > SWIMMING.verticalInputThreshold;
     state.breathBlend +=
-      ((vertical || tuning.reducedMotion ? 0 : 1) - state.breathBlend) *
+      ((state.depthChanging || tuning.reducedMotion ? 0 : 1) -
+        state.breathBlend) *
       -Math.expm1(-SWIMMING.breathingFade * h);
     const breathPhase =
       ((state.breathingTime + h / 2) * 2 * Math.PI) / SWIMMING.breathingCycle;
-    // Fade breathing at the limits to avoid repeated contact or a clipped half-cycle drift.
     const margin = Math.max(
       0,
       Math.min(
@@ -161,32 +160,52 @@ export function integrateSwimming(
       ),
     );
     const buoyancy =
-      tuning.reducedMotion || vertical
+      tuning.reducedMotion || state.depthChanging
         ? 0
         : feel.breathing * Math.sin(breathPhase) * state.breathBlend * margin;
-    const forceY = vertical
-      ? direction.y *
-        tuning.speed *
-        SWIMMING.verticalSpeed *
-        SWIMMING.verticalDrag
+    const hover = state.depthChanging
+      ? 0
       : SWIMMING.hoverSpring * (state.neutralDepth - state.position.y) +
         buoyancy;
-    const decayY = Math.exp(-SWIMMING.verticalDrag * h);
-    const terminalY = forceY / SWIMMING.verticalDrag;
-    state.position.y +=
-      terminalY * h +
-      ((state.velocity.y - terminalY) * (1 - decayY)) / SWIMMING.verticalDrag;
-    state.velocity.y = terminalY + (state.velocity.y - terminalY) * decayY;
-    if (vertical)
-      state.neutralDepth = Math.max(
-        low,
-        Math.min(
-          high,
-          state.position.y + state.velocity.y / SWIMMING.verticalDrag,
-        ),
-      );
+    for (const axis of AXES) {
+      const target = direction[axis] * tuning.speed * feel.drag * force;
+      state.thrust[axis] = moving
+        ? state.thrust[axis] + (target - state.thrust[axis]) * blend
+        : 0;
+      const drag =
+        axis === 'y' && !state.depthChanging
+          ? SWIMMING.hoverDamping
+          : feel.drag;
+      const terminal = (state.thrust[axis] + (axis === 'y' ? hover : 0)) / drag;
+      const decay = Math.exp(-drag * h);
+      state.position[axis] +=
+        terminal * h + ((state.velocity[axis] - terminal) * (1 - decay)) / drag;
+      state.velocity[axis] =
+        terminal + (state.velocity[axis] - terminal) * decay;
+      if (
+        axis !== 'y' &&
+        !moving &&
+        Math.abs(state.velocity[axis]) < SWIMMING.settleSpeed
+      )
+        state.velocity[axis] = 0;
+    }
+    const integratedY = state.position.y;
     if (collision) collision.move(state, fromX, fromY, fromZ);
     clampToBounds(state, bounds);
+    if (state.depthChanging)
+      state.neutralDepth = Math.max(
+        low,
+        Math.min(high, state.position.y + state.velocity.y / feel.drag),
+      );
+    else if (moving && Math.abs(state.position.y - integratedY) > 1e-6) {
+      // Sliding along an inclined rock may establish a new depth, never a visual-only offset.
+      state.neutralDepth = Math.max(
+        low,
+        Math.min(high, state.neutralDepth + state.position.y - integratedY),
+      );
+      if (Math.abs(state.velocity.y) > SWIMMING.coastToHoverSpeed)
+        state.depthChanging = true;
+    }
     state.neutralDepth = Math.max(low, Math.min(high, state.neutralDepth));
     state.bodyPitch +=
       ((tuning.reducedMotion ? 0 : pulse * SWIMMING.bodyPitch) -
@@ -195,4 +214,18 @@ export function integrateSwimming(
     state.strokeTime = (state.strokeTime + h) % feel.cycle;
     state.breathingTime = (state.breathingTime + h) % SWIMMING.breathingCycle;
   }
+}
+
+/** Initial preview advances only resting buoyancy; no input, propulsion, or fish clock starts. */
+export function advanceHoverPreview(
+  state: SwimState,
+  dt: number,
+  tuning: SwimTuning,
+  bounds: Bounds,
+  collision?: CollisionWorld,
+): void {
+  state.velocity.x = state.velocity.z = 0;
+  state.thrust.x = state.thrust.y = state.thrust.z = 0;
+  state.depthChanging = false;
+  integrateSwimming(state, NO_PROPULSION, dt, tuning, bounds, collision);
 }

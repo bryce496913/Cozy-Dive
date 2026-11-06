@@ -2,6 +2,7 @@ import { AQUARIUM, SPAWN, SWIMMING } from '../config/world';
 import { SwimControls } from '../controls/SwimControls';
 import {
   integrateSwimming,
+  advanceHoverPreview,
   movementDirection,
   createSwimState,
   resetSwimming,
@@ -21,6 +22,11 @@ export class Application {
   private world?: UnderwaterScene;
   private controls?: SwimControls;
   private readonly state = createSwimState(SPAWN);
+  private readonly playerPresence = {
+    position: this.state.position,
+    velocity: this.state.velocity,
+    active: false,
+  };
   private readonly direction = { x: 0, y: 0, z: 0 };
   private readonly tuning: SwimTuning = {
     speed: DEFAULT_SETTINGS.speed,
@@ -149,6 +155,14 @@ export class Application {
         )
       : 0;
     this.previous = now;
+    if (!this.entered && !document.hidden)
+      advanceHoverPreview(
+        this.state,
+        dt,
+        this.tuning,
+        AQUARIUM,
+        this.world.aquarium.collision,
+      );
     if (this.controls.locked && !document.hidden) {
       this.elapsed += dt;
       this.controls.update(dt);
@@ -180,12 +194,14 @@ export class Application {
       'YXZ',
     );
     this.ui.setDepth(AQUARIUM.max.y - this.state.position.y);
+    this.playerPresence.active = this.controls.locked && !document.hidden;
     if (!document.hidden)
       this.world.render(
         this.elapsed,
         this.settings.reducedMotion,
         dt,
         this.controls.locked,
+        this.playerPresence,
       );
     this.frame = requestAnimationFrame(this.tick);
   };

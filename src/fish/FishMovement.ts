@@ -1,3 +1,4 @@
+import { updateDiverReaction, type PlayerPresence } from './FishDiverReaction';
 import { FishSchooling, type SchoolForces } from './FishSchooling';
 import { angleDifference, randomFish, type FishEntity } from './FishEntity';
 import { FISH_STEERING, FISH_TIMING, SCHOOLING_SAFETY } from './FishSpecies';
@@ -50,9 +51,12 @@ export function stepFish(
   habitat: FishHabitat,
   dt: number,
   school?: SchoolForces,
+  player?: PlayerPresence,
 ): void {
   if (!Number.isFinite(dt) || dt <= 0) return;
   dt = Math.min(dt, FISH_TIMING.step);
+  updateDiverReaction(fish, player, dt);
+  const reaction = fish.reaction;
   const p = fish.position,
     s = fish.species,
     b = habitat.bounds;
@@ -157,12 +161,17 @@ export function stepFish(
     tx += -nz * weight * 0.32 * side;
     tz += nx * weight * 0.32 * side;
   }
+  const obstacleX = tx - wanderX,
+    obstacleY = ty - wanderY,
+    obstacleZ = tz - wanderZ;
+  let wanderScale = 1;
   if (school) {
     const ax = tx - wanderX,
       ay = ty - wanderY,
       az = tz - wanderZ;
     const social =
-      Math.max(0, 1 - danger / SCHOOLING_SAFETY.socialFadeDanger) ** 2;
+      Math.max(0, 1 - danger / SCHOOLING_SAFETY.socialFadeDanger) ** 2 *
+      (1 - reaction.scatter * 0.9);
     let sx = school.separation.x,
       sy = school.separation.y,
       sz = school.separation.z;
@@ -178,22 +187,77 @@ export function stepFish(
       sz -= (az * inward) / lengthSquared;
     }
     const separation = 1 - danger * SCHOOLING_SAFETY.separationFade;
+    wanderScale = 1 - (1 - school.wander) * social;
     // Obstacles retain their original force; social attraction fades first in restricted space.
     tx =
       ax +
-      wanderX * (1 - (1 - school.wander) * social) +
+      wanderX * wanderScale +
       (school.alignment.x + school.cohesion.x) * social +
       sx * separation;
     ty =
       ay +
-      wanderY * (1 - (1 - school.wander) * social) +
+      wanderY * wanderScale +
       (school.alignment.y + school.cohesion.y) * social +
       sy * separation;
     tz =
       az +
-      wanderZ * (1 - (1 - school.wander) * social) +
+      wanderZ * wanderScale +
       (school.alignment.z + school.cohesion.z) * social +
       sz * separation;
+  }
+  if (reaction.awareness > 0) {
+    const ax = obstacleX,
+      ay = obstacleY,
+      az = obstacleZ;
+    // Preserve safety and personal space; only the individual wander intent recedes.
+    tx -= wanderX * wanderScale * reaction.awareness * 0.6;
+    ty -= wanderY * wanderScale * reaction.awareness * 0.6;
+    tz -= wanderZ * wanderScale * reaction.awareness * 0.6;
+    let ex = reaction.direction.x,
+      ey = reaction.direction.y,
+      ez = reaction.direction.z;
+    const avoidanceLength = ax * ax + ay * ay + az * az,
+      inward = ex * ax + ey * ay + ez * az;
+    if (danger > 0.15 && avoidanceLength > 1e-8 && inward < 0) {
+      ex -= (ax * inward) / avoidanceLength;
+      ey -= (ay * inward) / avoidanceLength;
+      ez -= (az * inward) / avoidanceLength;
+      if (Math.hypot(ex, ey, ez) < 0.3) {
+        const side = fish.id % 2 === 0 ? 1 : -1;
+        ex = -az * side;
+        ey = 0;
+        ez = ax * side;
+        if (Math.hypot(ex, ez) < 1e-6) {
+          ex = Math.cos(fish.yaw);
+          ez = -Math.sin(fish.yaw);
+        }
+        const length = Math.max(1e-8, Math.hypot(ex, ez));
+        ex /= length;
+        ez /= length;
+        reaction.probe.x = p.x + ex * 0.8;
+        reaction.probe.y = p.y;
+        reaction.probe.z = p.z + ez * 0.8;
+        if (!safeFishPosition(reaction.probe, fish.radius, habitat)) {
+          ex = -ex;
+          ez = -ez;
+          reaction.probe.x = p.x + ex * 0.8;
+          reaction.probe.z = p.z + ez * 0.8;
+          if (!safeFishPosition(reaction.probe, fish.radius, habitat)) {
+            const length = Math.sqrt(avoidanceLength);
+            ex = ax / length;
+            ey = ay / length;
+            ez = az / length;
+          }
+        }
+      }
+    }
+    const weight =
+      s.diver.steeringWeight *
+      reaction.awareness *
+      (0.45 + 0.55 * reaction.scatter);
+    tx += ex * weight;
+    ty += ey * weight;
+    tz += ez * weight;
   }
   const desiredYaw = Math.atan2(-tz, tx);
   const desiredPitch = clamp(
@@ -204,7 +268,11 @@ export function stepFish(
   let yawDelta = angleDifference(desiredYaw, fish.yaw),
     pitchDelta = desiredPitch - fish.pitch;
   const desiredTurn = Math.hypot(yawDelta, pitchDelta);
-  const limit = s.turnRate * fish.turnFactor * dt;
+  const limit =
+    s.turnRate *
+    fish.turnFactor *
+    (1 + reaction.scatter * (s.diver.turnMultiplier - 1)) *
+    dt;
   const factor = Math.min(1, limit / Math.max(1e-8, desiredTurn));
   yawDelta *= factor;
   pitchDelta *= factor;
@@ -214,7 +282,7 @@ export function stepFish(
     0.88 +
     0.12 *
       Math.sin(fish.age * (0.27 + fish.temperament * 0.09) + fish.id * 2.3);
-  const targetSpeed =
+  const cruiseSpeed =
     Math.min(
       s.maxSpeed * fish.speedFactor,
       s.speed * fish.speedFactor * variation,
@@ -222,10 +290,18 @@ export function stepFish(
     (1 - 0.45 * danger) *
     (1 - 0.3 * Math.min(1, desiredTurn)) *
     (1 - SCHOOLING_SAFETY.closingSpeedReduction * (school?.pressure ?? 0));
+  const escapeBlend =
+    reaction.scatter * (1 - danger) ** 2 * (1 - 0.7 * (school?.pressure ?? 0));
+  const targetSpeed =
+    cruiseSpeed +
+    (Math.max(cruiseSpeed, s.diver.escapeSpeed) - cruiseSpeed) * escapeBlend;
+  const acceleration =
+    s.acceleration +
+    (s.diver.reactionAcceleration - s.acceleration) * reaction.scatter;
   fish.speed += clamp(
     targetSpeed - fish.speed,
-    -s.acceleration * dt,
-    s.acceleration * dt,
+    -acceleration * dt,
+    acceleration * dt,
   );
   const vx = Math.cos(fish.yaw) * Math.cos(fish.pitch) * fish.speed,
     vy = Math.sin(fish.pitch) * fish.speed,
@@ -281,7 +357,7 @@ export class FishSimulation {
   get alpha(): number {
     return this.accumulator / FISH_TIMING.step;
   }
-  advance(dt: number, active: boolean): void {
+  advance(dt: number, active: boolean, player?: PlayerPresence): void {
     if (!active || !Number.isFinite(dt) || dt <= 0) return;
     this.accumulator += Math.min(dt, FISH_TIMING.step * FISH_TIMING.maxCatchUp);
     let catchUp = 0;
@@ -296,6 +372,7 @@ export class FishSimulation {
           this.habitat,
           FISH_TIMING.step,
           this.schooling.forFish(fish),
+          player,
         );
       this.accumulator = Math.max(0, this.accumulator - FISH_TIMING.step);
       this.time += FISH_TIMING.step;
