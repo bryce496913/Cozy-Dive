@@ -47,7 +47,7 @@ Existing body-size offsets, safe straight-route tests and stalled-target abandon
 
 ## Lifecycle and practical limits
 
-PlantSystem detaches its root before aquarium scenery disposal, then disposes instanced mesh resources, each template and the shared material once. Disposal/update after disposal is harmless. Metadata and shared arrays have no external listeners or timers. The temporary density setting is a validation option; the shipping aquarium uses 65 existing clusters, eight meadows and 45 fish.
+PlantSystem detaches its root before aquarium scenery disposal, then disposes instanced mesh resources, each template and the shared material once. Disposal/update after disposal is harmless. Metadata and shared arrays have no external listeners or timers. The temporary density setting is a validation option; the shipping aquarium uses 65 existing clusters, eight meadows and 40 fish.
 
 The result is stylized thin-leaf vegetation, not botanical growth, physically simulated stems, or real fluid dynamics. Plant metadata and shader currents assume the existing untransformed environment root. Current normal adjustment is a lightweight bend-slope approximation. Larger future habitats may benefit from spatial batching; this pass keeps at most 15 vegetation draws rather than a draw per leaf. Hardware MacBook Air performance remains a manual acceptance check.
 

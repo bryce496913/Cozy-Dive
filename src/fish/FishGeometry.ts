@@ -47,10 +47,7 @@ function body(
       r = profile(s, x);
     for (let j = 0; j <= columns; j++) {
       const a = (j / columns) * Math.PI * 2,
-        y =
-          s.id === 'panda-corydoras' && Math.cos(a) < 0
-            ? Math.max(-s.height * 0.28, ((Math.cos(a) * s.height) / 2) * r)
-            : ((Math.cos(a) * s.height) / 2) * r,
+        y = ((Math.cos(a) * s.height) / 2) * r,
         z = ((Math.sin(a) * s.width) / 2) * r;
       positions.push((x - pivot) * s.length, y, z);
       color
@@ -290,28 +287,6 @@ export class FishGeometry {
         color = s.secondaryAccent ?? s.accentColor;
       }
       const extra: { points: Point2[]; color: number }[] = [];
-      if (s.marking === 'panda-mask') {
-        extra.push(
-          {
-            points: [
-              { x: 0.27, y: s.height * 0.3 },
-              { x: 0.42, y: s.height * 0.28 },
-              { x: 0.43, y: -s.height * 0.22 },
-              { x: 0.29, y: -s.height * 0.24 },
-            ],
-            color: s.accentColor,
-          },
-          {
-            points: [
-              { x: -0.32, y: s.height * 0.15 },
-              { x: -0.22, y: s.height * 0.25 },
-              { x: -0.22, y: -s.height * 0.2 },
-              { x: -0.32, y: -s.height * 0.13 },
-            ],
-            color: s.accentColor,
-          },
-        );
-      }
       if (s.marking === 'lateral-stripe')
         extra.push({
           points: [
@@ -421,13 +396,7 @@ export class FishGeometry {
           { x: -0.19, y: -h * 0.7 },
           { x: 0.09, y: -h * 0.45 },
         ];
-    this.fins = mergeOwned([
-      fin(
-        s.marking === 'panda-mask' ? { ...s, finColor: 0x303934 } : s,
-        dorsal,
-      ),
-      fin(s, anal),
-    ]);
+    this.fins = mergeOwned([fin(s, dorsal), fin(s, anal)]);
     const tail: Point2[] = s.roundedFins
       ? [
           { x: -0.34, y: 0 },
@@ -504,35 +473,8 @@ export class FishGeometry {
     }
     const mouth = colored(new THREE.SphereGeometry(h * 0.045, 8, 6), 0x5d5140);
     mouth.scale(0.4, 0.3, 1.4);
-    mouth.translate(
-      s.length * (s.id === 'panda-corydoras' ? 0.46 : 0.496),
-      -h * (s.id === 'panda-corydoras' ? 0.24 : 0.018),
-      0,
-    );
+    mouth.translate(s.length * 0.496, -h * 0.018, 0);
     details.push(mouth);
-    if (s.id === 'panda-corydoras')
-      for (const side of [-1, 1])
-        for (const spread of [0.5, 1]) {
-          const curve = new THREE.CatmullRomCurve3([
-            new THREE.Vector3(s.length * 0.44, -h * 0.2, side * s.width * 0.16),
-            new THREE.Vector3(
-              s.length * 0.53,
-              -h * 0.3,
-              side * s.width * 0.32 * spread,
-            ),
-            new THREE.Vector3(
-              s.length * 0.58,
-              -h * 0.33,
-              side * s.width * 0.55 * spread,
-            ),
-          ]);
-          details.push(
-            colored(
-              new THREE.TubeGeometry(curve, 6, 0.004, 3, false),
-              0x797a66,
-            ),
-          );
-        }
     const eyes = mergeOwned(details);
     eyes.deleteAttribute('uv');
     // Static facial detail shares the body's material and draw; only articulated parts stay separate.
