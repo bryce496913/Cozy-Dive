@@ -101,6 +101,20 @@ export function selectBehaviorTarget(
         fish.species.id !== 'neon-tetra'
       )
         continue;
+      if (point.vegetation) {
+        // Soft habitat preferences only; scheduling, recovery and safety remain unchanged.
+        const preference =
+          fish.species.id === 'honey-gourami'
+            ? point.vegetation.broadLeaves
+              ? 1
+              : 0.45
+            : fish.species.id === 'neon-tetra'
+              ? point.vegetation.height > 1
+                ? 0.7
+                : 0.25
+              : 0.95;
+        if (random(b) > preference) continue;
+      }
       const angle = random(b) * Math.PI * 2,
         offset = fish.radius + 0.45;
       b.target.x =
@@ -116,7 +130,43 @@ export function selectBehaviorTarget(
       )
         return true;
     }
-  if (foraging) return false;
+  if (foraging) {
+    // Sparse habitat can defeat random trials even with a nearby suitable surface.
+    // A bounded nearest-region fallback avoids repeatedly dropping valid investigations.
+    let nearest = maxDistance,
+      found = false,
+      bestX = 0,
+      bestY = 0,
+      bestZ = 0;
+    if (points)
+      for (let i = 0; i < Math.min(points.length, 192); i++) {
+        const point = points[i];
+        if (point.kind === 'open-water' && fish.species.id !== 'neon-tetra')
+          continue;
+        const offset = fish.radius + 0.45;
+        b.target.x = point.position.x + point.normal.x * offset;
+        b.target.y = point.position.y + point.normal.y * offset;
+        b.target.z = point.position.z + point.normal.z * offset;
+        const distance = distanceToTarget(fish);
+        if (distance < 0.6 || distance >= nearest) continue;
+        if (
+          safeFishPosition(b.target, fish.radius + 0.15, habitat) &&
+          clearFishRoute(fish.position, b.target, fish.radius + 0.08, habitat)
+        ) {
+          nearest = distance;
+          found = true;
+          bestX = b.target.x;
+          bestY = b.target.y;
+          bestZ = b.target.z;
+        }
+      }
+    if (found) {
+      b.target.x = bestX;
+      b.target.y = bestY;
+      b.target.z = bestZ;
+    }
+    return found;
+  }
   // Open-water exploration remains useful in a habitat without interest metadata.
   for (let attempt = 0; attempt < 8; attempt++) {
     const angle = random(b) * Math.PI * 2,

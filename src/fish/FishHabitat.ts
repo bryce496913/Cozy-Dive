@@ -1,3 +1,7 @@
+import type {
+  PlantSpeciesId,
+  HabitatRegionId,
+} from '../environment/PlantSpecies';
 import type { Bounds, Vec3 } from '../config/world';
 import type { ConvexCollider } from '../player/collision';
 
@@ -5,6 +9,12 @@ export interface HabitatInterest {
   readonly kind: 'plant' | 'rock-edge' | 'open-water';
   readonly position: Readonly<Vec3>;
   readonly normal: Readonly<Vec3>;
+  readonly vegetation?: {
+    readonly species: PlantSpeciesId;
+    readonly region: HabitatRegionId;
+    readonly height: number;
+    readonly broadLeaves: boolean;
+  };
 }
 
 /** Shared read-only environment data; never invokes the player's collision solver. */

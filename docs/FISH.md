@@ -1,4 +1,4 @@
-# Fish simulation — v0.2 Pass 003
+# Fish simulation — v0.2 Pass 004 habitat integration
 
 The environment owns 16 freshwater fish: 8 neon tetras form moderately cohesive schools, 6 harlequin rasboras coordinate in looser groups, and 2 honey gouramis remain independent. All fish have size-aware personal space. Models, animation, seeded initial variations, fixed timing, player movement, and resource ownership are preserved from Pass 001. A small seeded intention scheduler adds occasional exploration, resting, foraging, observation, and recovery. There is no food resource, hunger mechanic, or fish UI.
 
@@ -119,7 +119,7 @@ Speed, social influence, intent weight and inspection gesture blend exponentiall
 
 ## Habitat interests and target safety
 
-`Aquarium` collects metadata as it generates the existing scenery, with no extra layout random draws: 65 plant-tip regions, 102 conservative major-rock edge/top points (three per hull), and five open-channel regions. `FishHabitat.interests` is a read-only optional list of plain `{kind, position, normal}` values; fish never inspect Three.js objects. Plant leaves remain passable.
+`Aquarium` collects metadata as it generates the existing scenery, with no extra layout random draws: 65 plant inspection regions from the owned PlantSystem, 102 conservative major-rock edge/top points (three per hull), and five open-channel regions. `FishHabitat.interests` is a read-only optional list of plain `{kind, position, normal}` values; fish never inspect Three.js objects. Plant leaves remain passable.
 
 Selection samples at most 24 points, offsetting by the body radius + 0.45 along the outward normal with a small individual tangent variation. Candidates must be nearby (4.5 units for foraging, 6 for exploration), fit the body with an extra margin, and have a clear straight route through the existing convex hull data. `clearFishRoute` uses segment/expanded-plane intervals with bounding-box rejection; no raycasting or navigation library is needed. Exploration has eight bounded local fallback attempts. Foraging fails quietly if no suitable interest is available.
 
@@ -127,9 +127,11 @@ Targets persist. They are revalidated against solids; lack of at least 0.15 unit
 
 At each fixed step, `FishSchooling.calculate()` still completes every neighbor influence first. Each `stepFish` then updates the existing diver envelope, selects its own behavior, blends intent, and runs the original safety/locomotion path. Behavior reads no neighboring mutable state. Reversing entity update order yields identical schedules and movement, and the fixed accumulator preserves 30/60/120 FPS equivalence. Pause advances neither scheduler nor gesture; interpolation retains previous/current inspection samples without snapping.
 
-## Preparation for Pass 004
+## Living vegetation metadata and preparation for Pass 005
 
-Vegetation and habitat visual refinements can attach richer tags or regions to the existing read-only interest interface. Preserve deterministic metadata, bounded target selection, body-size margins and resource ownership; do not couple behavior to scene traversal. This pass changes no scenery placement or models. Vegetation expansion, ambient audio, larger populations, food mechanics and new regions remain out of scope. Await manual macOS acceptance before beginning Pass 004. See `VALIDATION_V02_PASS_003.md` for executed results and limits.
+Pass 004 adds optional plain vegetation metadata (family, region, height, broad-leaf flag) without exposing meshes to fish. The existing target sampler applies soft family preferences: gouramis favor broad leaves, tetras prefer taller edges over low grass, and rasboras broadly accept planted habitat. Plant inspection positions come from channel-facing leaf vertices. If random forage trials miss nearby usable habitat, a nearest-safe fallback checks at most 192 regions. The original body-size margin, route validation and progress timeout remain; diver disturbance still overrides investigation. Behavior scheduling, state durations, schooling, models, animation and player physics are unchanged.
+
+PlantSystem owns interest generation and the same 65-cluster shipping count. See [PLANTS.md](PLANTS.md) for shapes, current field, seeded placement, rendering and lifecycle; see [Pass 004 validation](VALIDATION_V02_PASS_004.md) for executed results. Future regions can add metadata through this interface without scene traversal. No audio or further behavior system is introduced. Await manual macOS acceptance before beginning Pass 005.
 
 ## Limits
 

@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.2 / Pass 003 — Individual Behaviors** is a first-person, browser-based aquarium prototype: swim at your own pace through sand, rocks, plants, and soft blue-green water. No scores, timers, combat, accounts, or external assets.
+A quiet little world beneath the surface. **v0.2 / Pass 004 — Living Plants & Habitat** is a first-person, browser-based aquarium prototype: swim at your own pace through sand, rocks, plants, and soft blue-green water. No scores, timers, combat, accounts, or external assets.
 
 ## Stack and requirements
 
@@ -43,7 +43,7 @@ Click **Return to the Water** to resume. Look up or down and use W/S to change d
 ## Current features
 
 - Seeded procedural aquarium with rippled sand, embedded rocks, planted banks, visible glass seams, and 16 freshwater fish with species-specific social behavior.
-- Gentle plant sway, suspended particles, translucent light shafts, hemisphere and surface lighting, and distance fog.
+- Five procedural freshwater plant families in seeded habitat patches, with shared-current vertex bending, stable bases and smooth reduced-motion settling. Suspended particles, translucent light shafts, hemisphere and surface lighting, and distance fog.
 - First-person swimming with smooth kick-and-glide propulsion, weighted direction changes, progressive water drag, and damped breathing buoyancy. Bounded 1/240-second steps sample forces and integrate linear drag analytically; long frame gaps are capped at 100 ms.
 - A safe starting position, clearance from all six aquarium boundaries, and sliding collisions against the 34 major generated rocks. Thin foliage and decorative pebbles remain passable.
 - Pointer lock only following an explicit button click. Escape, loss of focus, and hidden tabs pause controls.
@@ -101,6 +101,10 @@ Reduced motion suppresses breathing force and visual pitch feedback while keepin
 
 After entry, pause/lock loss and visibility changes freeze every simulation clock and physical position. Propulsion resets; a resting breath retains its anchor and small vertical velocity for continuous resume. Pausing during intentional depth change captures the current resting depth and clears ascent/descent momentum. Natural steady peak vertical speed is about 8.3 cm/s; boundaries and rock contact can reduce breathing travel.
 
+## Living vegetation
+
+Vallisneria ribbons frame the rear/side banks, while Amazon Sword rosettes, Java Fern fronds, compact Anubias and low Hairgrass tufts add variety near rocks and sand edges. The central swimming channel stays open. Thin foliage remains passable; rocks keep the same solid hulls. Instanced templates share a current-driven material, and plant habitat metadata feeds existing fish investigation. See [vegetation architecture](docs/PLANTS.md) for generation, animation, ownership and limits.
+
 ## Environmental collision
 
 The player has a **28 cm spherical collision radius**, independent of the existing 65 cm glass/floor/surface clearance and the camera’s 8 cm near plane. The environment extracts static convex hull planes from the exact convex triangles and scale/tilt/position used to draw each major rock. Six pooled major templates and three pebble templates mix weathered boulders, sedimentary slabs, and fractured stones. Seeded low-frequency deformation, layered contours, creased normals, and restrained mineral vertex colors replace flat low-detail primitives. Displaced points are explicitly rebuilt with Three.js ConvexGeometry before either rendering or collider extraction; arbitrary concave triangle planes are never treated as hull planes. No separately guessed rock positions or extra runtime assets are used. The scenery seed and random-number sequence are unchanged.
@@ -115,7 +119,7 @@ For later tuning, adjust cadence/active fraction together, then drag/force respo
 
 ## Validation and manual testing
 
-See [v0.2 Pass 003 behavior validation](docs/VALIDATION_V02_PASS_003.md), [v0.2 Pass 002B validation](docs/VALIDATION_V02_PASS_002B.md), [v0.2 Pass 002 schooling validation](docs/VALIDATION_V02_PASS_002.md), [v0.2 Pass 001 fish validation](docs/VALIDATION_V02_PASS_001.md), [the Pass 003 validation record](docs/VALIDATION_PASS_003.md), [Pass 002 results](docs/VALIDATION_PASS_002.md) and [historical Pass 001 results](docs/VALIDATION.md) for executed checks, screenshots, and practical limits. Unit tests cover movement direction, diagonal normalization, pitch-relative forward movement, vertical movement, acceleration, drag, frame-rate equivalence, frame-gap protection, all six boundaries, valid spawn, and settings validation/storage.
+See [v0.2 Pass 004 vegetation validation](docs/VALIDATION_V02_PASS_004.md), [v0.2 Pass 003 behavior validation](docs/VALIDATION_V02_PASS_003.md), [v0.2 Pass 002B validation](docs/VALIDATION_V02_PASS_002B.md), [v0.2 Pass 002 schooling validation](docs/VALIDATION_V02_PASS_002.md), [v0.2 Pass 001 fish validation](docs/VALIDATION_V02_PASS_001.md), [the Pass 003 validation record](docs/VALIDATION_PASS_003.md), [Pass 002 results](docs/VALIDATION_PASS_002.md) and [historical Pass 001 results](docs/VALIDATION.md) for executed checks, screenshots, and practical limits. Unit tests cover movement direction, diagonal normalization, pitch-relative forward movement, vertical movement, acceleration, drag, frame-rate equivalence, frame-gap protection, all six boundaries, valid spawn, and settings validation/storage.
 
 To test manually:
 
