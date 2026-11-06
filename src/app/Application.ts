@@ -1,3 +1,4 @@
+import { AudioSystem } from '../audio/AudioSystem';
 import { AQUARIUM, SPAWN, SWIMMING } from '../config/world';
 import { SwimControls } from '../controls/SwimControls';
 import {
@@ -21,6 +22,7 @@ export class Application {
   private readonly ui: Interface;
   private world?: UnderwaterScene;
   private controls?: SwimControls;
+  private audio?: AudioSystem;
   private readonly state = createSwimState(SPAWN);
   private readonly playerPresence = {
     position: this.state.position,
@@ -59,15 +61,26 @@ export class Application {
       this.world = new UnderwaterScene(this.ui.sceneHost, () => {
         if (document.pointerLockElement) document.exitPointerLock();
         cancelAnimationFrame(this.frame);
+        this.audio?.setActive(false);
         this.ui.showError(
           'The graphics connection was interrupted. Reload this page to return to the water.',
           true,
         );
       });
+      this.audio = new AudioSystem(
+        this.world.aquarium.hardscape.formations.map((f) => ({
+          x: f.position.x,
+          y: f.position.y + 1.4,
+          z: f.position.z,
+        })),
+        { onStatus: (status) => this.ui.audioStatus(status) },
+      );
+      this.audio.setVisible(!document.hidden);
       this.controls = new SwimControls(
         this.world.renderer.domElement,
         (locked) => {
           if (locked) this.entered = true;
+          this.audio?.setActive(locked && !document.hidden);
           resetSwimming(this.state);
           this.previous = 0;
           this.ui.setLocked(locked, this.entered);
@@ -81,6 +94,7 @@ export class Application {
         'visibilitychange',
         () => {
           this.previous = 0;
+          this.audio?.setVisible(!document.hidden);
           this.controls?.clear();
           resetSwimming(this.state);
           if (document.hidden && this.controls?.locked)
@@ -93,11 +107,18 @@ export class Application {
         (event) => {
           // Cached pages retain their systems and resume after pageshow.
           if (!event.persisted) this.dispose();
+          else this.audio?.setVisible(false);
         },
+        { signal: this.abort.signal },
+      );
+      window.addEventListener(
+        'pageshow',
+        () => this.audio?.setVisible(!document.hidden),
         { signal: this.abort.signal },
       );
       this.frame = requestAnimationFrame(this.tick);
     } catch (error) {
+      this.audio?.dispose();
       this.world?.dispose();
       this.world = undefined;
       this.ui.showError(
@@ -116,6 +137,7 @@ export class Application {
       );
       return;
     }
+    this.audio?.unlockFromGesture();
     try {
       const request = canvas.requestPointerLock() as Promise<void> | undefined;
       request?.catch(this.lockError);
@@ -124,6 +146,7 @@ export class Application {
     }
   };
   private lockError = (): void => {
+    this.audio?.setActive(false);
     this.ui.showError(
       'Mouse capture was not granted. Click Enter again, or allow pointer lock in your browser.',
     );
@@ -131,6 +154,8 @@ export class Application {
   private changeSettings = (settings: Settings): void => {
     this.settings = settings;
     this.applySettings();
+    // Settings changes are direct user gestures; the initial preview still cannot unlock audio.
+    if (this.entered) this.audio?.unlockFromGesture();
     try {
       this.ui.storageResult(saveSettings(localStorage, settings));
     } catch {
@@ -138,6 +163,7 @@ export class Application {
     }
   };
   private applySettings(): void {
+    this.audio?.configure(this.settings);
     this.tuning.speed = this.settings.speed;
     this.tuning.feel = this.settings.swimmingFeel;
     this.tuning.reducedMotion = this.settings.reducedMotion;
@@ -193,6 +219,7 @@ export class Application {
       0,
       'YXZ',
     );
+    this.audio?.update(dt, this.state, this.tuning, this.controls.yaw);
     this.ui.setDepth(AQUARIUM.max.y - this.state.position.y);
     this.playerPresence.active = this.controls.locked && !document.hidden;
     if (!document.hidden)
@@ -210,6 +237,7 @@ export class Application {
     this.disposed = true;
     cancelAnimationFrame(this.frame);
     this.abort.abort();
+    this.audio?.dispose();
     this.controls?.dispose();
     this.world?.dispose();
     this.ui.dispose();

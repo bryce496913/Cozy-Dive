@@ -1,3 +1,4 @@
+import type { AudioStatus } from '../audio/AudioSystem';
 import type { Settings } from './settings';
 
 const wave =
@@ -22,7 +23,7 @@ export class Interface {
   ) {
     root.innerHTML = `
       <div class="scene" id="scene"></div><div class="vignette" aria-hidden="true"></div>
-      <header class="topbar"><a class="brand" href="./" aria-label="Cozy Diver home">${wave}<span>COZY DIVER</span></a><span class="edition">A LITTLE WORLD. A LITTLE PEACE.</span><button class="settings-toggle" aria-expanded="false" aria-controls="settings-panel">Settings <span aria-hidden="true">⚙</span></button></header>
+      <header class="topbar"><a class="brand" href="./" aria-label="Cozy Diver home">${wave}<span>COZY DIVER</span></a><span class="edition">A LITTLE WORLD. A LITTLE PEACE.</span><div class="preferences"><button id="audio-toggle" class="audio-toggle" type="button" aria-pressed="false">Mute audio</button><button class="settings-toggle" aria-expanded="false" aria-controls="settings-panel">Settings <span aria-hidden="true">⚙</span></button></div></header>
       <main class="overlay" id="overlay"><div class="welcome">
         <p class="eyebrow"><span></span> YOUR FIRST DIVE</p>
         <h1>Let the world<br>drift <em>away.</em></h1>
@@ -31,12 +32,15 @@ export class Interface {
         <p class="entry-note">Look up or down and swim to change depth.</p>
         <p class="status" id="status" role="status" aria-live="polite"></p>
       </div><div class="scene-label"><span class="label-line"></span><span>THE STILLWATER AQUARIUM<small>01 / FIRST DIVE</small></span></div></main>
-      <aside class="settings-panel" id="settings-panel" aria-label="Swimming settings" hidden>
+      <aside class="settings-panel" id="settings-panel" aria-label="Experience settings" hidden>
         <div class="panel-heading"><h2>Make yourself at home.</h2><button id="close-settings" aria-label="Close settings">×</button></div>
         <label for="sensitivity">Mouse sensitivity <output id="sensitivity-value"></output></label><input id="sensitivity" type="range" min="0.25" max="2.5" step="0.05" />
         <label for="speed">Swimming speed <output id="speed-value"></output></label><input id="speed" type="range" min="1" max="5" step="0.1" />
         <label for="swimming-feel">Swimming feel</label><select id="swimming-feel"><option value="relaxed">Relaxed</option><option value="natural">Natural</option><option value="responsive">Responsive</option></select>
         <label class="check"><input id="reduced-motion" type="checkbox" />Reduced camera motion</label><p>Direct mouse-look, with plant and particle motion still. Breathing buoyancy and subtle swimming sway are suppressed.</p>
+        <label class="check"><input id="audio-enabled" type="checkbox" />Ambient audio</label>
+        <label for="master-volume">Master volume <output id="master-volume-value"></output></label><input id="master-volume" type="range" min="0" max="100" step="1" />
+        <p id="audio-status" role="status">Audio begins when you enter. Press M while swimming to mute.</p>
         <p class="save-status" id="save-status" role="status">Preferences saved on this device.</p>
       </aside>
       <div class="swim-hud" hidden><span class="crosshair" aria-hidden="true">·</span><span class="hud-message">You have nowhere else to be.</span></div>
@@ -74,17 +78,26 @@ export class Interface {
     );
     const sensitivity = this.get<HTMLInputElement>('sensitivity'),
       speed = this.get<HTMLInputElement>('speed'),
-      reduced = this.get<HTMLInputElement>('reduced-motion');
+      reduced = this.get<HTMLInputElement>('reduced-motion'),
+      audio = this.get<HTMLInputElement>('audio-enabled'),
+      volume = this.get<HTMLInputElement>('master-volume'),
+      mute = this.get<HTMLButtonElement>('audio-toggle');
     const feel = this.get<HTMLSelectElement>('swimming-feel');
     feel.value = settings.swimmingFeel;
     sensitivity.value = String(settings.sensitivity);
     speed.value = String(settings.speed);
     reduced.checked = settings.reducedMotion;
+    audio.checked = settings.audioEnabled;
+    volume.value = String(Math.round(settings.masterVolume * 100));
     const update = (persist: boolean): void => {
       this.get('sensitivity-value').textContent =
         `${Number(sensitivity.value).toFixed(2)}×`;
       this.get('speed-value').textContent =
         `${Number(speed.value).toFixed(1)} m/s`;
+      this.get('master-volume-value').textContent = `${volume.value}%`;
+      mute.textContent = audio.checked ? 'Mute audio' : 'Enable audio';
+      mute.setAttribute('aria-pressed', String(!audio.checked));
+      mute.title = audio.checked ? 'Mute audio (M)' : 'Enable audio (M)';
       if (persist)
         onSettings({
           swimmingFeel:
@@ -94,10 +107,31 @@ export class Interface {
           sensitivity: Number(sensitivity.value),
           speed: Number(speed.value),
           reducedMotion: reduced.checked,
+          audioEnabled: audio.checked,
+          masterVolume: Number(volume.value) / 100,
         });
     };
-    for (const input of [sensitivity, speed, reduced, feel])
+    for (const input of [sensitivity, speed, reduced, feel, audio, volume])
       input.addEventListener('input', () => update(true), { signal });
+    const toggleAudio = (): void => {
+      audio.checked = !audio.checked;
+      update(true);
+    };
+    mute.addEventListener('click', toggleAudio, { signal });
+    document.addEventListener(
+      'keydown',
+      (event) => {
+        if (
+          event.code === 'KeyM' &&
+          !event.repeat &&
+          this.root.classList.contains('is-swimming')
+        ) {
+          event.preventDefault();
+          toggleAudio();
+        }
+      },
+      { signal },
+    );
     update(false);
   }
   private get<T extends HTMLElement>(id: string): T {
@@ -142,6 +176,14 @@ export class Interface {
       this.enter.disabled = true;
       this.enter.textContent = 'Water temporarily unavailable';
     }
+  }
+  audioStatus(status: AudioStatus): void {
+    this.get('audio-status').textContent =
+      status === 'unavailable'
+        ? 'Audio is unavailable in this browser. You can keep exploring silently.'
+        : status === 'blocked'
+          ? 'Audio is paused by the browser. Enter again or toggle audio to retry.'
+          : 'Audio begins when you enter. Press M while swimming to mute.';
   }
   dispose(): void {
     this.abort.abort();

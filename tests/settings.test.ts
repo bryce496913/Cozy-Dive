@@ -36,6 +36,8 @@ describe('settings', () => {
       sensitivity: 0.25,
       reducedMotion: true,
       swimmingFeel: 'natural',
+      audioEnabled: true,
+      masterVolume: 0.3,
     });
     expect(
       validateSettings({
@@ -92,6 +94,8 @@ it('migrates old preferences and validates swimming feel', () => {
     sensitivity: 1.4,
     reducedMotion: true,
     swimmingFeel: 'natural',
+    audioEnabled: true,
+    masterVolume: 0.3,
   });
   for (const swimmingFeel of ['relaxed', 'natural', 'responsive'] as const) {
     expect(saveSettings(store, { ...DEFAULT_SETTINGS, swimmingFeel })).toBe(
