@@ -10,7 +10,7 @@ export interface GrassPatch {
   readonly radius: number;
   readonly blades: number;
 }
-/** Irregular density-gradient meadows of single blades, not duplicated hairgrass tufts. */
+/** Irregular density-gradient tropical seagrass beds with shared single-blade templates. */
 export class MeadowSystem {
   readonly root = new THREE.Group();
   readonly patches: readonly GrassPatch[];
@@ -22,7 +22,7 @@ export class MeadowSystem {
     material: THREE.Material,
     seed = 92047,
   ) {
-    this.root.name = 'Freshwater grass meadows';
+    this.root.name = 'Tropical seagrass meadows';
     let state = seed >>> 0;
     const random = (): number => {
       state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
@@ -84,7 +84,7 @@ export class MeadowSystem {
       }
       const sign = -Math.sign(x);
       interests.push({
-        kind: 'grass-edge',
+        kind: 'seagrass-meadow',
         position: {
           x: x + sign * radius * 0.7,
           y: substrateHeight(x, z) + 0.2,
@@ -92,7 +92,7 @@ export class MeadowSystem {
         },
         normal: { x: sign * 0.8, y: 0.6, z: 0 },
         vegetation: {
-          species: 'meadow-grass',
+          species: 'turtle-grass-meadow',
           region: 'substrate-edge',
           height: 0.6,
           broadLeaves: false,

@@ -1,5 +1,5 @@
-/** Keep the original 16-fish regression scenarios explicit while production defaults expand to 45. */
-import { ORIGINAL_FISH_SPECIES } from '../../src/fish/FishSpecies';
+/** Keep the original 16-fish regression scenarios explicit while production uses the marine registry. */
+import { REGRESSION_FISH_SPECIES as ORIGINAL_FISH_SPECIES } from './regressionSpecies';
 import {
   spawnFish as spawnPopulation,
   populationCount as countPopulation,

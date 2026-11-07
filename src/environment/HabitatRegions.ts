@@ -1,3 +1,4 @@
+import { reefSurfaceHeight } from './MarineHabitat';
 import { insideRock } from '../fish/FishHabitat';
 import { AQUARIUM, SPAWN, type Vec3, type Bounds } from '../config/world';
 import type { ConvexCollider } from '../player/collision';
@@ -12,6 +13,7 @@ export interface PlantPlacement {
   readonly species: PlantSpecies;
   readonly region: HabitatRegionId;
   readonly position: Readonly<Vec3>;
+  readonly normal: Readonly<Vec3>;
   readonly height: number;
   readonly yaw: number;
   readonly template: number;
@@ -81,6 +83,7 @@ export function generatePlantPlacements(
   rocks: readonly ConvexCollider[],
   seed = 48193,
   density = 1,
+  fits?: (placement: PlantPlacement) => boolean,
 ): readonly PlantPlacement[] {
   if (!Number.isFinite(density) || density <= 0 || density > 3)
     throw new Error('Plant density must be in (0, 3].');
@@ -94,22 +97,49 @@ export function generatePlantPlacements(
     for (let i = 0; i < Math.round(species.count * density); i++) {
       const height =
         species.height[0] + random() * (species.height[1] - species.height[0]);
-      const radius = height * (species.reach + species.width * 0.5 + 0.12);
+      const radius = height * (species.reach + species.width * 0.5 + 0.12),
+        yaw = random() * Math.PI * 2,
+        template = Math.floor(random() * PLANT_TEMPLATES),
+        tint = 0.9 + random() * 0.2;
       let x = 0,
         z = 0,
-        placed = false;
+        placed = false,
+        rootY = 0,
+        normal: Vec3 = { x: 0, y: 1, z: 0 };
       const anchors = HABITAT_REGIONS[species.region].anchors;
       for (let attempt = 0; attempt < 600; attempt++) {
         const anchor = anchors[Math.floor(random() * anchors.length)];
         x = anchor[0] + (random() + random() - 1) * 3.5;
         z = anchor[1] + (random() + random() - 1) * 3.3;
+        if (species.category === 'coral' && rocks.length) {
+          const rock = rocks[Math.floor(random() * rocks.length)];
+          x = (rock.min.x + rock.max.x) / 2;
+          z = (rock.min.z + rock.max.z) / 2;
+          const top = reefSurfaceHeight(rock, x, z);
+          if (
+            top === undefined ||
+            rock.max.x - rock.min.x < 0.8 ||
+            rock.max.z - rock.min.z < 0.7
+          )
+            continue;
+          const face = rock.planes.reduce((best, p) =>
+            Math.abs(p.x * x + p.y * top + p.z * z - p.offset) <
+            Math.abs(best.x * x + best.y * top + best.z * z - best.offset)
+              ? p
+              : best,
+          );
+          normal = { x: face.x, y: face.y, z: face.z };
+          x += normal.x * 0.02;
+          z += normal.z * 0.02;
+          rootY = top + normal.y * 0.02;
+        } else rootY = substrateHeight(x, z) - 0.012;
         if (!plantFootprintClear(x, z, radius)) continue;
         let clear = true;
         // Enclose leaves at successive heights, including their maximum current displacement.
         // Upper leaves can extend above a low rock while the slender base remains beside it.
         for (let sample = 0; sample <= 16 && clear; sample++) {
           const t = sample / 16,
-            y = substrateHeight(x, z) - 0.012 + height * t * 0.85;
+            y = rootY + normal.y * height * t * 0.85;
           const envelope =
             height *
             (species.reach * t ** 1.7 +
@@ -117,7 +147,19 @@ export function generatePlantPlacements(
               0.06 +
               species.sway * t * t * 1.5);
           for (const rock of rocks)
-            if (insideRock({ x, y, z }, envelope, rock)) {
+            if (
+              insideRock(
+                {
+                  x: x + normal.x * height * t * 0.85,
+                  y,
+                  z: z + normal.z * height * t * 0.85,
+                },
+                species.category === 'coral'
+                  ? envelope * Math.min(1, t * 3)
+                  : envelope,
+                rock,
+              )
+            ) {
               clear = false;
               break;
             }
@@ -132,6 +174,22 @@ export function generatePlantPlacements(
           )
         )
           continue;
+        if (
+          fits &&
+          !fits({
+            id: placements.length,
+            species,
+            region: species.region,
+            position: { x, y: rootY, z },
+            normal,
+            height,
+            yaw,
+            template,
+            tint,
+            radius,
+          })
+        )
+          continue;
         placed = true;
         break;
       }
@@ -143,11 +201,12 @@ export function generatePlantPlacements(
         id: placements.length,
         species,
         region: species.region,
-        position: { x, y: substrateHeight(x, z) - 0.012, z },
+        position: { x, y: rootY, z },
+        normal,
         height,
-        yaw: random() * Math.PI * 2,
-        template: Math.floor(random() * PLANT_TEMPLATES),
-        tint: 0.9 + random() * 0.2,
+        yaw,
+        template,
+        tint,
         radius,
       });
     }

@@ -9,33 +9,28 @@ import { PLANT_SPECIES } from '../src/environment/PlantSpecies';
 import { samplePlantBend } from '../src/environment/PlantAnimation';
 import { safeFishPosition, insideRock } from '../src/fish/FishHabitat';
 import { spawnFish } from '../src/fish/FishSpawner';
-import {
-  FISH_SPECIES,
-  ORIGINAL_FISH_SPECIES,
-  fishPopulation,
-} from '../src/fish/FishSpecies';
+import { FISH_SPECIES, fishPopulation } from '../src/fish/FishSpecies';
 import { FishSystem } from '../src/fish/FishSystem';
 import { FishSimulation } from '../src/fish/FishMovement';
 import { angleDifference } from '../src/fish/FishEntity';
 import { CollisionWorld } from '../src/player/collision';
 const open = { bounds: AQUARIUM, rocks: [], substrateHeight };
 describe('five-species population and shared models', () => {
-  it('registers all five species and exact 16/20/40/60 population gates', () => {
+  it('registers all five species and exact 38/60 population gates', () => {
     expect(FISH_SPECIES.map((s) => s.id)).toEqual([
-      'neon-tetra',
-      'harlequin-rasbora',
-      'honey-gourami',
-      'endlers-livebearer',
-      'chili-rasbora',
+      'blue-green-chromis',
+      'pajama-cardinalfish',
+      'firefish-goby',
+      'yellow-assessor',
+      'royal-gramma',
     ]);
-    expect(FISH_SPECIES.map((s) => s.count)).toEqual([8, 6, 2, 4, 20]);
-    for (const count of [16, 20, 40, 60] as const)
+    expect(FISH_SPECIES.map((s) => s.count)).toEqual([20, 6, 6, 4, 2]);
+    for (const count of [38, 60] as const)
       expect(fishPopulation(count).reduce((n, s) => n + s.count, 0)).toBe(
         count,
       );
-    expect(FISH_SPECIES.slice(0, 3)).toEqual(ORIGINAL_FISH_SPECIES);
   });
-  it.each([16, 20, 40, 60] as const)(
+  it.each([38, 60] as const)(
     'spawns %i fish deterministically with safe bodies, personal space and a loose chili region',
     (count) => {
       const a = new Aquarium();
@@ -63,7 +58,9 @@ describe('five-species population and shared models', () => {
               ),
             ).toBeGreaterThan(f.radius + other.radius + 0.25);
         }
-        const chilis = fish.filter((f) => f.species.id === 'chili-rasbora');
+        const chilis = fish.filter(
+          (f) => f.species.id === 'blue-green-chromis',
+        );
         if (chilis.length)
           expect(
             Math.max(
@@ -75,24 +72,22 @@ describe('five-species population and shared models', () => {
       }
     },
   );
-  it('batches the real articulated parts and keeps four distinct Endler markings', () => {
+  it('batches all marine articulated parts and varies chromis tint without duplicating models', () => {
     const system = new FishSystem(open);
     try {
-      expect(system.visuals).toHaveLength(40);
+      expect(system.visuals).toHaveLength(38);
       expect(system.batches.length).toBe(5);
-      const endler = system.templates.filter(
-        (t) => t.species.id === 'endlers-livebearer',
-      );
-      expect(endler).toHaveLength(4);
+      expect(system.templates).toHaveLength(5);
+      const chromis = system.batches[0].meshes[0];
+      expect(chromis.instanceColor).not.toBeNull();
+      const colors = chromis.instanceColor!.array;
       expect(
         new Set(
-          endler.map((t) =>
-            JSON.stringify(
-              Array.from([...t.geometries][0].attributes.position.array),
-            ),
+          Array.from({ length: 20 }, (_, i) =>
+            Array.from(colors.slice(i * 3, i * 3 + 3)).join(','),
           ),
         ).size,
-      ).toBe(4);
+      ).toBeGreaterThan(3);
       const chili = system.batches.find((b) => b.visuals.length === 20)!;
       expect(chili.meshes.length).toBeLessThanOrEqual(8);
       const matrix = new THREE.Matrix4();
@@ -127,7 +122,7 @@ describe('five-species population and shared models', () => {
 describe('darting and school identity', () => {
   it('bounds asynchronous bursts, acceleration, turning and duty cycle without teleporting', () => {
     const fish = spawnFish(open, [
-        FISH_SPECIES.find((s) => s.id === 'chili-rasbora')!,
+        FISH_SPECIES.find((s) => s.id === 'blue-green-chromis')!,
       ]),
       sim = new FishSimulation(fish, open);
     const first = fish.map(() => -1);
@@ -179,7 +174,7 @@ describe('darting and school identity', () => {
     expect(peak).toBeGreaterThan(0.65);
   });
   it('retains a larger coherent chili group without leaders or synchronized clocks', () => {
-    const config = FISH_SPECIES.find((s) => s.id === 'chili-rasbora')!,
+    const config = FISH_SPECIES.find((s) => s.id === 'blue-green-chromis')!,
       a = new FishSimulation(spawnFish(open, [config]), open),
       b = new FishSimulation(
         spawnFish(open, [
@@ -229,7 +224,9 @@ describe('darting and school identity', () => {
   }, 20000);
   it('lets the chili school scatter and regroup after a close moving diver leaves', () => {
     const sim = new FishSimulation(
-        spawnFish(open, [FISH_SPECIES.find((s) => s.id === 'chili-rasbora')!]),
+        spawnFish(open, [
+          FISH_SPECIES.find((s) => s.id === 'blue-green-chromis')!,
+        ]),
         open,
       ),
       fish = sim.fish;
@@ -287,7 +284,7 @@ describe('darting and school identity', () => {
     expect(results[1]).toEqual(results[0]);
     expect(results[2]).toEqual(results[0]);
   });
-  it.each([20, 40, 60] as const)(
+  it.each([38, 60] as const)(
     'keeps %i fish safe and moving for three minutes around actual rocks and ornaments',
     (count) => {
       const a = new Aquarium();
@@ -299,7 +296,7 @@ describe('darting and school identity', () => {
           let player;
           if (i > 1800 && i < 1950) {
             const f =
-              sim.fish.find((f) => f.species.id === 'chili-rasbora') ??
+              sim.fish.find((f) => f.species.id === 'blue-green-chromis') ??
               sim.fish[0];
             player = {
               position: {
@@ -440,7 +437,9 @@ describe('hardscape and grass habitat', () => {
             0,
           ),
         ).toBeGreaterThan(960);
-        expect(q.interests.every((p) => p.kind === 'grass-edge')).toBe(true);
+        expect(q.interests.every((p) => p.kind === 'seagrass-meadow')).toBe(
+          true,
+        );
         for (const patch of q.patches) {
           expect(Math.abs(patch.x) - patch.radius).toBeGreaterThan(3.2);
           expect(patch.blades).toBeGreaterThanOrEqual(120);
@@ -538,12 +537,12 @@ describe('hardscape and grass habitat', () => {
       a.dispose();
     }
   });
-  it('raises flowing-plant tip motion selectively while roots and Anubias remain stable', () => {
+  it('raises flowing-plant tip motion selectively while marine roots remain stable', () => {
     expect(PLANT_SPECIES[0].sway).toBeGreaterThan(0.045);
     expect(PLANT_SPECIES[1].sway).toBeGreaterThan(0.014);
     expect(PLANT_SPECIES[2].sway).toBeGreaterThan(0.025);
     expect(PLANT_SPECIES[3].sway).toBe(0.006);
-    expect(PLANT_SPECIES[4].sway).toBeGreaterThan(0.022);
+    expect(PLANT_SPECIES[4].sway).toBeGreaterThan(0);
     const out = { x: 0, y: 0, z: 0 };
     for (const s of PLANT_SPECIES) {
       samplePlantBend(4, 3, 2, 1, s.frequency, 0, out);

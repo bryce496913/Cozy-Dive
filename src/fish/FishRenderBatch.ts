@@ -21,6 +21,10 @@ export class FishRenderBatch {
         visuals.length,
       );
       mesh.frustumCulled = true;
+      for (let instance = 0; instance < visuals.length; instance++) {
+        const tint: unknown = visuals[instance].root.userData.marineTint;
+        if (tint instanceof THREE.Color) mesh.setColorAt(instance, tint);
+      }
       mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
       mesh.name = `Articulated fish part ${i}`;
       this.root.add(mesh);

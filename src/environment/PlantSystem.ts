@@ -1,6 +1,10 @@
 import * as THREE from 'three';
 import type { ConvexCollider } from '../player/collision';
-import { safeFishPosition, type HabitatInterest } from '../fish/FishHabitat';
+import {
+  insideRock,
+  safeFishPosition,
+  type HabitatInterest,
+} from '../fish/FishHabitat';
 import { AQUARIUM } from '../config/world';
 import { createPlantGeometry } from './PlantGeometry';
 import { generatePlantPlacements, type PlantPlacement } from './HabitatRegions';
@@ -18,8 +22,7 @@ export class PlantSystem {
   readonly timeUniform = { value: 0 };
   private disposed = false;
   constructor(rocks: readonly ConvexCollider[], density = 1, seed = 48193) {
-    this.root.name = 'Living vegetation';
-    this.placements = generatePlantPlacements(rocks, seed, density);
+    this.root.name = 'Marine seagrass, macroalgae and soft corals';
     this.material = new THREE.MeshStandardMaterial({
       vertexColors: true,
       side: THREE.DoubleSide,
@@ -50,16 +53,72 @@ export class PlantSystem {
       color = new THREE.Color();
     for (const species of PLANT_SPECIES)
       for (let template = 0; template < PLANT_TEMPLATES; template++) {
-        const instances = this.placements.filter(
-          (p) => p.species === species && p.template === template,
-        );
-        if (!instances.length) continue;
         const geometry = createPlantGeometry(
           species,
           seed + PLANT_SPECIES.indexOf(species) * 193 + template * 41,
         );
         geometries.push(geometry);
         templates.set(`${species.id}/${template}`, geometry);
+      }
+    const probe = new THREE.Vector3(),
+      normal = new THREE.Vector3(),
+      yawRotation = new THREE.Quaternion();
+    try {
+      this.placements = generatePlantPlacements(
+        rocks,
+        seed,
+        density,
+        (plant) => {
+          const g = templates.get(`${plant.species.id}/${plant.template}`)!;
+          rotation
+            .setFromUnitVectors(
+              axis,
+              normal.set(plant.normal.x, plant.normal.y, plant.normal.z),
+            )
+            .multiply(yawRotation.setFromAxisAngle(axis, plant.yaw));
+          matrix.compose(
+            position.set(plant.position.x, plant.position.y, plant.position.z),
+            rotation,
+            scale.setScalar(plant.height),
+          );
+          const box = g
+            .boundingBox!.clone()
+            .applyMatrix4(matrix)
+            .expandByScalar(plant.height * plant.species.sway * 1.5 + 0.015);
+          const nearby = rocks.filter(
+            (r) =>
+              r.max.x >= box.min.x &&
+              r.min.x <= box.max.x &&
+              r.max.y >= box.min.y &&
+              r.min.y <= box.max.y &&
+              r.max.z >= box.min.z &&
+              r.min.z <= box.max.z,
+          );
+          if (!nearby.length) return true;
+          const p = g.attributes.position,
+            m = g.attributes.plantMotion;
+          for (let i = 0; i < p.count; i++) {
+            probe.fromBufferAttribute(p, i).applyMatrix4(matrix);
+            const margin =
+              plant.height * m.getX(i) * 1.5 +
+              (plant.species.category === 'coral' ? 0 : 0.015);
+            if (nearby.some((r) => insideRock(probe, margin, r))) return false;
+          }
+          return true;
+        },
+      );
+    } catch (error) {
+      geometries.forEach((g) => g.dispose());
+      this.material.dispose();
+      throw error;
+    }
+    for (const species of PLANT_SPECIES)
+      for (let template = 0; template < PLANT_TEMPLATES; template++) {
+        const instances = this.placements.filter(
+          (p) => p.species === species && p.template === template,
+        );
+        if (!instances.length) continue;
+        const geometry = templates.get(`${species.id}/${template}`)!;
         const mesh = new THREE.InstancedMesh(
           geometry,
           this.material,
@@ -69,7 +128,12 @@ export class PlantSystem {
         instances.forEach((plant, i) => {
           position.set(plant.position.x, plant.position.y, plant.position.z);
           scale.setScalar(plant.height);
-          rotation.setFromAxisAngle(axis, plant.yaw);
+          rotation
+            .setFromUnitVectors(
+              axis,
+              new THREE.Vector3(plant.normal.x, plant.normal.y, plant.normal.z),
+            )
+            .multiply(new THREE.Quaternion().setFromAxisAngle(axis, plant.yaw));
           matrix.compose(position, rotation, scale);
           mesh.setMatrixAt(i, matrix);
           color.setRGB(plant.tint, plant.tint, plant.tint);
@@ -86,21 +150,27 @@ export class PlantSystem {
       // Keep channel-facing upper-leaf inspection regions tied to actual template vertices.
       const vertices = templates.get(`${plant.species.id}/${plant.template}`)!
         .attributes.position;
-      const sign = -Math.sign(plant.position.x),
-        cos = Math.cos(plant.yaw),
-        sin = Math.sin(plant.yaw);
+      const sign = -Math.sign(plant.position.x);
       let x = plant.position.x,
         y = plant.position.y + plant.height * 0.85,
         z = plant.position.z,
         best = -Infinity;
+      position.set(plant.position.x, plant.position.y, plant.position.z);
+      rotation
+        .setFromUnitVectors(
+          axis,
+          normal.set(plant.normal.x, plant.normal.y, plant.normal.z),
+        )
+        .multiply(yawRotation.setFromAxisAngle(axis, plant.yaw));
       for (let i = 0; i < vertices.count; i++) {
-        const px =
-            plant.position.x +
-            plant.height * (vertices.getX(i) * cos - vertices.getZ(i) * sin),
-          py = plant.position.y + plant.height * vertices.getY(i),
-          pz =
-            plant.position.z +
-            plant.height * (vertices.getX(i) * sin + vertices.getZ(i) * cos);
+        const v = probe
+          .fromBufferAttribute(vertices, i)
+          .applyQuaternion(rotation)
+          .multiplyScalar(plant.height)
+          .add(position);
+        const px = v.x,
+          py = v.y,
+          pz = v.z;
         const score =
           sign * (px - plant.position.x) -
           0.5 * Math.abs(py - plant.position.y - plant.height * 0.7);
@@ -118,10 +188,16 @@ export class PlantSystem {
         }
       }
       const interest: HabitatInterest = {
-        kind: 'plant',
+        kind:
+          plant.species.category === 'coral'
+            ? 'coral-edge'
+            : plant.species.category === 'seagrass'
+              ? 'seagrass-meadow'
+              : 'reef-face',
         position: { x, y, z },
         normal: { x: sign * 0.8, y: 0.6, z: 0 },
         vegetation: {
+          category: plant.species.category,
           species: plant.species.id,
           region: plant.region,
           height: plant.height,

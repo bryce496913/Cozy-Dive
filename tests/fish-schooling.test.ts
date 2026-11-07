@@ -1,11 +1,9 @@
+import { REGRESSION_FISH_SPECIES as FISH_SPECIES } from './fixtures/regressionSpecies';
 import { describe, expect, it } from 'vitest';
 import { AQUARIUM, type Vec3 } from '../src/config/world';
 import { Aquarium } from '../src/environment/Aquarium';
 import { FishSchooling } from '../src/fish/FishSchooling';
-import {
-  ORIGINAL_FISH_SPECIES as FISH_SPECIES,
-  type SchoolingTuning,
-} from '../src/fish/FishSpecies';
+import { type SchoolingTuning } from '../src/fish/FishSpecies';
 import { FishSimulation, stepFish } from '../src/fish/FishMovement';
 import { spawnFish } from './fixtures/originalFish';
 import { safeFishPosition, type FishHabitat } from '../src/fish/FishHabitat';

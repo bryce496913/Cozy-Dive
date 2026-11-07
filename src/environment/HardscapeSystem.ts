@@ -1,3 +1,4 @@
+import { reefSurfaceHeight } from './MarineHabitat';
 import * as THREE from 'three';
 import { ConvexGeometry } from 'three/addons/geometries/ConvexGeometry.js';
 import {
@@ -21,11 +22,12 @@ function softHull(points: THREE.Vector3[]): THREE.BufferGeometry {
 export type HardscapeKind = 'branching' | 'rounded' | 'plate';
 export interface HardscapeFormation {
   readonly kind: HardscapeKind;
+  readonly role: 'stony-coral' | 'ornament';
   readonly position: THREE.Vector3;
   readonly colliders: readonly ConvexCollider[];
   readonly mesh: THREE.Mesh;
 }
-/** Coral-inspired freshwater ornaments. Exact convex component surfaces, never one oversized outer hull. */
+/** Attached stony reef colonies and separate aquarium ornaments, with exact structural convex surfaces. */
 export class HardscapeSystem {
   readonly root = new THREE.Group();
   readonly formations: readonly HardscapeFormation[];
@@ -34,8 +36,14 @@ export class HardscapeSystem {
   readonly geometries: readonly THREE.BufferGeometry[];
   readonly materials: readonly THREE.MeshStandardMaterial[];
   private disposed = false;
+  private readonly tissueGeometry = new THREE.SphereGeometry(0.022, 6, 4);
+  private readonly tissueMaterial = new THREE.MeshStandardMaterial({
+    color: 0xd3b3ac,
+    roughness: 0.88,
+  });
+  private readonly tissueMeshes: THREE.InstancedMesh[] = [];
   constructor(rocks: readonly ConvexCollider[], seed = 83471) {
-    this.root.name = 'Coral-inspired hardscape';
+    this.root.name = 'Reef corals and aquarium ornaments';
     let state = seed >>> 0;
     const random = (): number => {
       state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
@@ -45,26 +53,46 @@ export class HardscapeSystem {
       all: ConvexCollider[] = [],
       geometries: THREE.BufferGeometry[] = [],
       interests: HabitatInterest[] = [];
-    this.materials = [0xb5a58e, 0xb78169, 0x94858f].map(
-      (color) =>
-        new THREE.MeshStandardMaterial({
-          color,
-          vertexColors: true,
-          roughness: 0.95,
-          metalness: 0,
-        }),
-    );
+    this.materials = [0xb58b7e, 0x9685a0, 0x9c9e8c]
+      .map(
+        (color) =>
+          new THREE.MeshStandardMaterial({
+            color,
+            vertexColors: true,
+            roughness: 0.95,
+            metalness: 0,
+          }),
+      )
+      .concat(this.tissueMaterial);
     for (const kind of ['branching', 'rounded', 'plate'] as const)
       for (let variant = 0; variant < 3; variant++) {
         const radius = kind === 'branching' ? 0.95 : 1.05;
         let x = 0,
           z = 0,
-          placed = false;
+          placed = false,
+          surface = 0;
+        const living = variant < 2 && rocks.length > 0;
         for (let attempt = 0; attempt < 800; attempt++) {
           x = (random() < 0.5 ? -1 : 1) * (5 + random() * 10);
           z = -10 + random() * 20;
+          if (living) {
+            const support = rocks[Math.floor(random() * rocks.length)];
+            x = (support.min.x + support.max.x) / 2;
+            z = (support.min.z + support.max.z) / 2;
+            const top = reefSurfaceHeight(support, x, z);
+            if (
+              top === undefined ||
+              support.max.x - support.min.x < 1 ||
+              support.max.z - support.min.z < 0.8
+            )
+              continue;
+            surface = top;
+          } else surface = substrateHeight(x, z);
           if (!plantFootprintClear(x, z, radius + 0.4)) continue;
-          if (rocks.some((r) => insideRock({ x, y: 0.7, z }, radius + 0.45, r)))
+          if (
+            !living &&
+            rocks.some((r) => insideRock({ x, y: 0.7, z }, radius + 0.45, r))
+          )
             continue;
           if (
             formations.some(
@@ -77,7 +105,7 @@ export class HardscapeSystem {
           break;
         }
         if (!placed) throw new Error('No safe ornamental hardscape placement.');
-        const origin = new THREE.Vector3(x, substrateHeight(x, z) - 0.025, z),
+        const origin = new THREE.Vector3(x, surface - 0.025, z),
           parts: THREE.BufferGeometry[] = [],
           solids: ConvexCollider[] = [];
         const add = (
@@ -191,8 +219,8 @@ export class HardscapeSystem {
           }
         } else {
           add(
-            new THREE.CylinderGeometry(0.1, 0.16, 1, 9),
-            new THREE.Vector3(0, 0.45, 0),
+            new THREE.CylinderGeometry(0.1, 0.16, living ? 1.8 : 1, 9),
+            new THREE.Vector3(0, living ? 0.85 : 0.45, 0),
             new THREE.Vector3(1, 1, 1),
           );
           for (let layer = 0; layer < 3; layer++) {
@@ -225,7 +253,7 @@ export class HardscapeSystem {
               softHull(points),
               new THREE.Vector3(
                 Math.sin(layer * 2) * 0.15,
-                0.3 + layer * 0.3,
+                (living ? 1.2 : 0.3) + layer * 0.3,
                 0,
               ),
               new THREE.Vector3(1, 1, 1),
@@ -238,20 +266,68 @@ export class HardscapeSystem {
         geometries.push(geometry);
         const mesh = new THREE.Mesh(geometry, this.materials[variant]);
         mesh.position.copy(origin);
-        mesh.name = `${kind} ornament ${variant}`;
+        mesh.name = `${kind} ${living ? 'living stony coral' : 'aquarium ornament'} ${variant}`;
+        if (living) {
+          const p = geometry.attributes.position,
+            n = geometry.attributes.normal,
+            points: number[] = [];
+          for (
+            let index = 0;
+            index < p.count;
+            index += Math.max(3, Math.floor(p.count / 150))
+          ) {
+            if (n.getY(index) > 0.2 && p.getY(index) > 0.2) points.push(index);
+            if (points.length === 48) break;
+          }
+          const polyps = new THREE.InstancedMesh(
+              this.tissueGeometry,
+              this.tissueMaterial,
+              points.length,
+            ),
+            matrix = new THREE.Matrix4(),
+            q = new THREE.Quaternion();
+          points.forEach((index, i) => {
+            const normal = new THREE.Vector3(
+              n.getX(index),
+              n.getY(index),
+              n.getZ(index),
+            ).normalize();
+            q.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
+            matrix.compose(
+              new THREE.Vector3(
+                p.getX(index),
+                p.getY(index),
+                p.getZ(index),
+              ).addScaledVector(normal, 0.012),
+              q,
+              new THREE.Vector3(1, 0.4, 1),
+            );
+            polyps.setMatrixAt(i, matrix);
+          });
+          polyps.name = 'Living coral corallites (soft tissue)';
+          polyps.computeBoundingSphere();
+          mesh.add(polyps);
+          this.tissueMeshes.push(polyps);
+        }
         this.root.add(mesh);
         all.push(...solids);
-        formations.push({ kind, position: origin, colliders: solids, mesh });
+        formations.push({
+          kind,
+          role: living ? 'stony-coral' : 'ornament',
+          position: origin,
+          colliders: solids,
+          mesh,
+        });
         const sign = -Math.sign(x);
         interests.push({
-          kind: 'hardscape-edge',
+          kind: living ? 'coral-edge' : 'hardscape-edge',
           position: { x: x + sign * (radius + 0.1), y: origin.y + 0.7, z },
           normal: { x: sign, y: 0, z: 0 },
         });
       }
     this.formations = formations;
     this.colliders = all;
-    this.geometries = geometries;
+    this.geometries = [...geometries, this.tissueGeometry];
     this.interests = interests;
   }
   dispose(): void {
@@ -259,6 +335,7 @@ export class HardscapeSystem {
     this.disposed = true;
     this.root.removeFromParent();
     this.root.clear();
+    this.tissueMeshes.forEach((m) => m.dispose());
     this.geometries.forEach((g) => g.dispose());
     this.materials.forEach((m) => m.dispose());
   }

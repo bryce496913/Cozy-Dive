@@ -32,7 +32,31 @@ export function spawnFish(
       const radius = config.length * size * (config.radiusFactor ?? 0.56);
       const position = { x: 0, y: 0, z: 0 };
       let placed = false;
+      const candidates = config.habitatKinds
+        ? habitat.interests?.filter(
+            (p) =>
+              config.habitatKinds!.includes(p.kind) &&
+              safeFishPosition(p.position, radius + 0.15, habitat),
+          )
+        : undefined;
+      const priority = candidates?.length
+        ? Math.min(
+            ...candidates.map((p) => config.habitatKinds!.indexOf(p.kind)),
+          )
+        : -1;
+      const homes = candidates?.filter(
+        (p) => config.habitatKinds!.indexOf(p.kind) === priority,
+      );
+      let home = homes?.length
+        ? homes[(i + species.indexOf(config) * 7) % homes.length].position
+        : undefined;
       for (let attempt = 0; attempt < 400; attempt++) {
+        // Crowded anchors can retry another compatible shelter without relaxing any clearance.
+        if (homes?.length && attempt > 0 && attempt % 80 === 0)
+          home =
+            homes[
+              (i + species.indexOf(config) * 7 + attempt / 80) % homes.length
+            ].position;
         position.x = config.region.x + (random() * 2 - 1) * config.spread.x;
         position.y = Math.max(
           config.depth[0],
@@ -51,6 +75,11 @@ export function spawnFish(
                 random() *
                   (config.substrateOffset[1] - config.substrateOffset[0]),
             );
+        if (home) {
+          position.x = home.x + (random() * 2 - 1) * 1.3;
+          position.z = home.z + (random() * 2 - 1) * 1.3;
+          position.y = home.y + (random() * 2 - 1) * 0.25;
+        }
         if (!safeFishPosition(position, radius, habitat)) continue;
         if (
           Math.hypot(
@@ -94,6 +123,7 @@ export function spawnFish(
         id: fish.length,
         species: config,
         size,
+        shelter: home ? { ...home } : undefined,
         radius,
         speedFactor,
         turnFactor,

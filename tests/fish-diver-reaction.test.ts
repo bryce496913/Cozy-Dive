@@ -9,7 +9,7 @@ import { angleDifference } from '../src/fish/FishEntity';
 import { safeFishPosition } from '../src/fish/FishHabitat';
 import { FishSimulation, stepFish } from '../src/fish/FishMovement';
 import { spawnFish } from './fixtures/originalFish';
-import { ORIGINAL_FISH_SPECIES as FISH_SPECIES } from '../src/fish/FishSpecies';
+import { REGRESSION_FISH_SPECIES as FISH_SPECIES } from './fixtures/regressionSpecies';
 const open = { bounds: AQUARIUM, rocks: [] };
 function fixture(index = 0) {
   const f = spawnFish(open, [{ ...FISH_SPECIES[index], count: 1 }])[0];

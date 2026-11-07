@@ -30,22 +30,14 @@ afterAll(() => {
 
 it.each([
   { minutes: 5, count: 60 },
-  { minutes: 15, count: 40 },
-  { minutes: 30, count: 40 },
+  { minutes: 15, count: 38 },
+  { minutes: 30, count: 38 },
 ] as const)(
   'keeps the actual ecosystem stable for $minutes minutes with $count fish',
   ({ minutes, count }) => {
     const aquarium = new Aquarium();
     try {
-      const habitat = {
-        bounds: AQUARIUM,
-        rocks: aquarium.collision.colliders,
-        interests: [
-          ...aquarium.plants.interests,
-          ...aquarium.grass.interests,
-          ...aquarium.hardscape.interests,
-        ],
-      };
+      const habitat = aquarium.fish.simulation.habitat;
       const sim = new FishSimulation(
         spawnFish(habitat, fishPopulation(count)),
         habitat,
@@ -95,7 +87,9 @@ it.each([
           aquarium.collision,
         );
         if (frame % 30 === 0) collision.push(performance.now() - start);
-        const target = sim.fish.find((f) => f.species.id === 'chili-rasbora')!;
+        const target = sim.fish.find(
+          (f) => f.species.id === 'blue-green-chromis',
+        )!;
         const disturbance = time % 90 >= 60 && time % 90 < 65;
         const player = disturbance
           ? {
@@ -205,11 +199,7 @@ it.each([
 it('keeps the full real-habitat simulation identical across 30/60/120 render schedules', () => {
   const aquarium = new Aquarium();
   try {
-    const habitat = {
-      bounds: AQUARIUM,
-      rocks: aquarium.collision.colliders,
-      interests: aquarium.plants.interests,
-    };
+    const habitat = aquarium.fish.simulation.habitat;
     const results = [30, 60, 120].map((fps) => {
       const sim = new FishSimulation(spawnFish(habitat), habitat);
       for (let i = 0; i < fps * 30; i++)
