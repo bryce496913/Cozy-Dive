@@ -37,3 +37,5 @@ Each follows a tiny tangent-plane ellipse (0.055 × 0.075 units), roughly nine m
 The layer adds no collider, force, audio layer, setting or animation loop. Its seven tiny animals cannot be pushed, collected or damaged. The seahorse and frogfish use lightweight transforms; nudibranch motion uses five instance transforms and a scalar uniform. Materials/geometries and instance buffers have explicit idempotent owners and detach before generic scene cleanup.
 
 Appearance remains stylized, including simplified tail attachment, frogfish skin and surface paths. Close viewing and subjective comfort need manual macOS review. The original fish, anemone, moray, vegetation, ornaments, audio and locomotion remain in place.
+
+Pass 011 keeps this production architecture unchanged and adds whole-aquarium validation of clocks, transforms, resource counts, particles and lifecycle across extended sessions. Physical route and explicit browser failure checks complement the earlier per-system safety tests. See [current integration validation](VALIDATION_V02_PASS_011.md); final macOS acceptance remains pending.

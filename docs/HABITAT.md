@@ -1,6 +1,6 @@
 # Tropical reef habitat metadata
 
-Fish consume read-only anchors with `kind`, position, outward normal and optional stable `anchorId`. Regions support **open reef water, seagrass meadow, sandy floor, sheltered crevice entrance, reef face, coral edge and shaded overhang**. Vegetation records also identify category (seagrass, macroalgae, coral), family, height and broad-segment structure. The interface can later bind a creature to an anchor without implementing any location-bound creature now.
+Fish consume read-only anchors with `kind`, position, outward normal and optional stable `anchorId`. Regions support **open reef water, seagrass meadow, sandy floor, sheltered crevice entrance, reef face, coral edge and shaded overhang**. Vegetation records also identify category (seagrass, macroalgae, coral), family, height and broad-segment structure. The same metadata supports the host-associated and habitat-bound animals described below.
 
 `MarineHabitat.marineInterests` samples bounded deterministic free-space positions adjacent to real convex structures. Crevice anchors represent safe shelter entrances beside the reef, not simulated caves. Overhang points are admitted only if the body envelope fits below an elevated structural cap and outside every solid. Open-water and sand anchors remain in the central corridor. Existing surface/plant interests continue through the same bounded selector.
 
@@ -15,3 +15,5 @@ Pass 008 adds six reusable ornament anchors: `shipwreck-crevice`, `log-interior`
 `FishHabitat.creatureAnchors` exposes reusable `CreatureAnchor` data for `anemone-host`. It includes a validated center, unit orientation and three-unit body-inclusive home radius; the anemone also exposes its soft envelope, nearby water and safe escape directions. `moray-shelter` records `log-interior` as its source. See [anchored life](ANCHORED_LIFE.md).
 
 Pass 010 adds seven deterministic `DiscoveryHome` records with focus points, safe views and three swept approach legs. `SurfaceHome` links crawling/perching regions to real static convex faces and stable normals; moving lids are excluded. The seahorse references an existing vegetation placement. These metadata remain invisible to players. See [hidden discoveries](HIDDEN_LIFE.md).
+
+Pass 011 validates complete discovery routes with the production swimming integrator and the full collision world, plus passage through the arch and a clear circuit around the wreck. Validation-only waypoints are not shipped as player guidance or a navigation system. Per-species homes remain soft preferences; perching/crawling attachments remain bounded physical surface patches. See [integration evidence and limitations](VALIDATION_V02_PASS_011.md).

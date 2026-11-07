@@ -1,4 +1,4 @@
-> Historical Pass 002 PR description. Current population, controls and candidate status are documented in [README](../README.md) and [Pass 010 validation](VALIDATION_V02_PASS_010.md). Counts and checklist items below describe that earlier pass.
+> Historical Pass 002 PR description. Current population, controls and candidate status are documented in [README](../README.md) and [Pass 011 validation](VALIDATION_V02_PASS_011.md). Counts and checklist items below describe that earlier pass.
 
 # v0.2 Pass 002 — Schooling & Group Intelligence
 

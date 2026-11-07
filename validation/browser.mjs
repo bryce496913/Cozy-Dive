@@ -3,7 +3,7 @@ const { chromium } = await import(process.env.COZY_PLAYWRIGHT || 'playwright');
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
-const output = process.env.COZY_OUTPUT || '/tmp/cozy-pass006-browser';
+const output = process.env.COZY_OUTPUT || '/tmp/cozy011-browser';
 const samples = Number(process.env.COZY_SAMPLES || 12);
 const stats = (values) => {
   const s = [...values].sort((a, b) => a - b);
@@ -165,7 +165,7 @@ const stats = (values) => {
         (p) => p.species.id === 'soft-coral',
       );
       return [
-        { name: 'overview', position: [0, 8, 12], target: [0, 3, -3] },
+        { name: 'overview', position: [0, 9, 12], target: [0, 3, -3] },
         close('chromis-school', centroid('blue-green-chromis'), [1, 0.8, 4]),
         ...portraits,
         close('seagrass', [grass.x, 0.6, grass.z], [1.8, 1, 2]),
@@ -176,6 +176,7 @@ const stats = (values) => {
           [1.2, 0.6, 1.8],
         ),
         { name: 'floor', position: [0, 0.8, 3], target: [0, 1, -4] },
+        { name: 'glass-away', position: [0, 4.6, 9], target: [0, 4.6, 14] },
       ];
     });
     assert(
