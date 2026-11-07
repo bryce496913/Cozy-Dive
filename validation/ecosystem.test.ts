@@ -10,6 +10,7 @@ import { AQUARIUM, SPAWN } from '../src/config/world';
 import { createSwimState, integrateSwimming } from '../src/player/swimming';
 import { AudioEvents } from '../src/audio/AudioEvents';
 import { swimmingGain, AUDIO } from '../src/audio/AudioTuning';
+import { tropicalSnapshot } from './TropicalAudit';
 import { PlantClock } from '../src/environment/PlantAnimation';
 
 const reports: unknown[] = [];
@@ -51,6 +52,9 @@ it.each([
       const travel = sim.fish.map(() => 0),
         states = sim.fish.map(() => new Set<string>()),
         last = sim.fish.map((f) => ({ ...f.position }));
+      const initial = tropicalSnapshot(aquarium),
+        morayStates = new Set<string>(),
+        snapshots: ReturnType<typeof tropicalSnapshot>[] = [];
       const timings: number[] = [],
         collision: number[] = [];
       let eventCount = 0,
@@ -66,6 +70,10 @@ it.each([
           plants.update(3600, false, false);
           expect(events.advance(3600, false)).toBeUndefined();
           expect({ steps: sim.steps, time: plants.time }).toEqual(before);
+          const paused = tropicalSnapshot(aquarium);
+          aquarium.ornaments.update(3600, false, false);
+          aquarium.anchoredLife.update(3600, false, false);
+          expect(tropicalSnapshot(aquarium)).toEqual(paused);
           events.resume();
           voice = 0;
         }
@@ -174,12 +182,48 @@ it.each([
           });
         }
         if ((frame + 1) % 900 === 0) {
+          const snapshot = tropicalSnapshot(aquarium);
+          expect(snapshot.population).toEqual(initial.population);
+          expect(snapshot.geometries).toBe(initial.geometries);
+          expect(snapshot.materials).toBe(initial.materials);
+          expect(snapshot.finite).toBe(true);
+          expect(snapshot.hiddenAnimals).toBe(7);
+          expect(snapshot.hulls).toBe(139);
+          expect(snapshot.seahorseDistance).toBeLessThan(0.13);
+          expect(snapshot.frogfishDistance).toBeLessThan(0.11);
+          expect(snapshot.bubblesInside).toBe(true);
+          expect(snapshot.chest.active).toBeLessThanOrEqual(18);
+          expect(snapshot.chest.drawn).toBeLessThanOrEqual(18);
+          expect(snapshot.chest.bursts).toBeLessThanOrEqual(
+            snapshot.chest.openings,
+          );
+          expect(snapshot.clocks.every(Number.isFinite)).toBe(true);
+          expect(snapshot.moray.extension).toBeGreaterThanOrEqual(0);
+          expect(snapshot.moray.extension).toBeLessThanOrEqual(1);
+          expect(Number.isFinite(snapshot.moray.elapsed)).toBe(true);
+          for (const animal of snapshot.nudibranchs) {
+            expect(animal.distance).toBeLessThan(0.1);
+            expect(animal.surfaceDistance).toBeCloseTo(0.006, 6);
+          }
+          expect([
+            'hidden',
+            'peeking',
+            'resting',
+            'emerging',
+            'retreating',
+          ]).toContain(snapshot.moray.state);
+          morayStates.add(snapshot.moray.state);
+          snapshots.push(snapshot);
           minimumTravel = Math.min(minimumTravel, ...travel);
           expect(Math.min(...travel)).toBeGreaterThan(0.2);
           travel.fill(0);
         }
       }
       expect(sim.steps).toBe(minutes * 60 * 30);
+      expect(sim.fish.every((f) => f.corrections === 0)).toBe(true);
+      expect(morayStates.size).toBeGreaterThan(2);
+      expect(aquarium.ornaments.chest.cycle).toBeGreaterThan(2);
+      expect(aquarium.ornaments.bubbles.bursts).toBeGreaterThan(2);
       expect(eventCount).toBeGreaterThan(0);
       expect(eventCount).toBeLessThan((minutes * 60) / 28 + 1);
       expect(maximumScatter).toBeGreaterThan(0.2);
@@ -187,6 +231,8 @@ it.each([
       reports.push({
         minutes,
         count,
+        anchoredCheckpoints: snapshots,
+        morayStates: [...morayStates],
         seed: 38147,
         stepMs: summary(timings),
         swimmingCollisionFrameMs: summary(collision),

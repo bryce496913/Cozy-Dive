@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.2 / Pass 010 — Hidden Marine Discoveries (`0.2.0-rc.5`)** is a first-person, browser-based aquarium prototype: swim at your own pace through sand, rocks, plants, and soft blue-green water. No scores, timers, combat, accounts, or external assets.
+A quiet little world beneath the surface. **v0.2 / Pass 011 — Tropical Aquarium Integration & Final Validation (`0.2.0-rc.6`)** is a first-person, browser-based aquarium prototype: swim at your own pace through sand, rocks, plants, and soft blue-green water. No scores, timers, combat, accounts, or external assets.
 
 ## Stack and requirements
 
@@ -42,14 +42,14 @@ Vite binds to all interfaces for cloud development; use `npm run dev -- --host 1
 
 Click **Return to the Water** to resume. Look up or down and use W/S to change depth; A/D always strafe horizontally. Space and Shift have no swimming action. Pausing or losing browser focus clears held input and propulsion momentum while retaining a resting breath’s phase and small vertical velocity. Diagonal input is normalized. Subtle stroke-related pitch feedback stays below 0.07 degrees, with no roll or visual position offsets. Looking straight up/down is limited.
 
-This is a technical release candidate; final v0.2 approval awaits manual MacBook Air acceptance. See [Pass 010 validation](docs/VALIDATION_V02_PASS_010.md) and [repeatable benchmarks](validation/README.md).
+This is a technical release candidate; final v0.2 approval awaits manual MacBook Air acceptance. See [Pass 011 validation](docs/VALIDATION_V02_PASS_011.md) and [repeatable benchmarks](validation/README.md).
 
 ## Current features
 
 - Seeded procedural aquarium with rippled sand, embedded rocks, planted banks, visible glass seams, and 40 tropical marine fish across six species with distinct social behavior.
 - Six marine habitat forms (seagrass, macroalgae and soft corals) in seeded habitat patches, with shared-current vertex bending, stable bases and smooth reduced-motion settling. Suspended particles, translucent light shafts, hemisphere and surface lighting, and distance fog.
 - First-person swimming with smooth kick-and-glide propulsion, weighted direction changes, progressive water drag, and damped breathing buoyancy. Bounded 1/240-second steps sample forces and integrate linear drag analytically; long frame gaps are capped at 100 ms.
-- A safe starting position, clearance from all six aquarium boundaries, and sliding collisions against the 34 structural reef rocks and 39 convex coral/ornament components. Thin foliage and decorative pebbles remain passable.
+- A safe starting position, clearance from all six aquarium boundaries, and sliding collisions against 139 structural hulls: 34 reef rocks, 39 coral/older decorative components, and 66 components across six aquarium ornaments. Thin foliage and decorative pebbles remain passable.
 - Pointer lock only following an explicit button click. Escape, loss of focus, and hidden tabs pause controls.
 - Optional procedural underwater ambience, slow currents, gentle stroke-driven swimming sound, and sparse ornament-adjacent water details. Silent preview; audio fades on pause/mute and suspends in hidden tabs.
 - Mouse sensitivity, movement speed, swimming feel, reduced-motion, audio enable and volume preferences saved locally. Storage failure falls back to session settings. System reduced-motion preference is respected on first visit; the option uses direct mouse-look and freezes ambient sway.
@@ -65,6 +65,7 @@ src/
   config/       Aquarium dimensions, spawn, and movement tuning
   controls/     Pointer lock, keyboard, and smoothed yaw/pitch
   environment/  Deterministic procedural scenery and owned fish lifecycle
+  creatures/    Anemone, moray and seven hidden animals with owned local clocks
   fish/         Species, seeded spawning, pure steering, shared models, interpolation
   player/       Pure movement physics, convex collision sweeps, and sliding
   rendering/    Renderer, camera, fog, lighting, and resize lifecycle
@@ -95,7 +96,7 @@ The reef includes turtle grass, Caulerpa, Halimeda, red macroalgae, soft leather
 
 Patient exploration can also reveal one seahorse tucked beside vegetation, a camouflaged frogfish in the wreck, and five tiny surface-crawling nudibranchs. They have stable, safely viewable homes and no markers, notifications or collection mechanics. See [hidden marine discoveries](docs/HIDDEN_LIFE.md).
 
-See [fish](docs/FISH.md), [marine forms](docs/PLANTS.md), [habitat anchors](docs/HABITAT.md), and [Pass 010 validation](docs/VALIDATION_V02_PASS_010.md). Production uses 40 fish; the explicit temporary stress configuration uses 60. No new audio layers, feeding, aggression or damage mechanics are implemented.
+See [fish](docs/FISH.md), [marine forms](docs/PLANTS.md), [habitat anchors](docs/HABITAT.md), and [Pass 011 validation](docs/VALIDATION_V02_PASS_011.md). Production uses 40 fish; the explicit temporary stress configuration uses 60. No new audio layers, feeding, aggression or damage mechanics are implemented.
 
 ## Swimming physics and tuning
 
@@ -127,7 +128,7 @@ The player has a **28 cm spherical collision radius**, independent of the existi
 
 `src/environment/rockCollider.ts` performs one-time geometry extraction; `Aquarium.collision` owns the resulting `CollisionWorld`. The pure TypeScript solver in `src/player/collision.ts` uses a swept bounding-box rejection followed by expanded convex-plane intersection. Each bounded swimming substep submits its displacement after force integration. The earliest scenery or aquarium-wall contact removes only inward velocity and displacement; tangential motion slides along the contact. Several contacts can constrain a corner without clearing propulsion, breathing clocks, neutral depth, or the whole movement state. Sweeps prevent tunneling even across a large displacement. Exceptional initial overlaps recover toward a nearby free point outside the connected rock union, within the aquarium, rather than teleporting to spawn.
 
-All current plants are thin seagrass/leaf planes without substantial woody stems or structural bases, so **none are collidable**. The 55 decorative pebbles also remain passable. This avoids large invisible barriers around foliage. Future thick stems can register static convex hulls through the same collision interface without altering propulsion.
+Seagrass, macroalgae and flexible coral tissue remain passable. Solid reef rock and stony coral skeletons use matching convex components; soft living tissue does not add blocking hulls. The 55 decorative pebbles also remain passable. This avoids large invisible barriers around foliage. Future thick stems can register static convex hulls through the same collision interface without altering propulsion.
 
 Tune `COLLISION.playerRadius`, contact budget, numerical skin, and tolerance in `src/config/world.ts`. Broad-phase rejection, reusable contact buffers, and a bounded eight-contact solver keep normal steps allocation-free; there is no physics-engine dependency or extra rendering pass. Expanded face planes approximate a sphere against a convex rock conservatively at sharp edges/vertices, with a slight extra corner margin. Hulls are static and assume the environment root remains untransformed; rebuilding/moving scenery requires regenerating colliders. Sand still uses the existing floor clearance, rather than per-triangle terrain collision.
 
@@ -150,15 +151,15 @@ To test manually:
 9. Enable reduced motion and confirm breathing/sway stop while propulsion remains smooth. Pause near a boundary, wait, resume without held keys, and repeat after focus/tab loss.
 10. Approach major rocks from the front, side, above, below exposed edges, and diagonally. Continue holding input through several strokes: expect solid contact and smooth sliding, not vibration. Reverse away and check overlapping banks and nearby glass.
 11. Swim through seagrass and over decorative pebbles: there should be no large invisible plant barriers. Hover just above a rock and pause/resume in contact.
-12. Inspect all five marine species from side and front. Check chromis schooling and varied tints, cardinal face/band/spots, firefish dorsal pennants, yellow assessors and two-tone grammas. Observe shelter use, personal space, reef avoidance, scatter and gradual recovery.
+12. Inspect all six marine species from side and front. Check chromis schooling and varied tints, cardinal face/band/spots, firefish dorsal pennants, yellow assessors, two-tone grammas and the host-associated clownfish pair. Observe shelter use, personal space, reef avoidance, scatter and gradual recovery.
 13. Pause while watching fish, wait, and resume. Check that positions and fin animation freeze exactly, then continue smoothly. Repeat with reduced motion, tab/focus loss, and a refresh.
 14. Resize the browser and check canvas proportions and UI. Test a fresh visit with WebGL disabled to inspect the fallback message.
 
 ## Known limitations
 
 - Desktop keyboard/mouse only; mobile touch controls are outside this pass.
-- Collision covers major static rocks, solid ornament components and aquarium limits. Delicate foliage and decorative pebbles remain passable; there is no plant deformation, per-triangle sand collision, or dynamic rigid-body physics.
-- Schooling is local steering rather than global pathfinding or hard fish collision. Occasional close passes or temporary fragmentation are possible. Diver reactions are soft avoidance rather than hard player-fish collision. Foraging is visual activity only; there is no food system or identification UI. No office, passages, customization, ocean, sound, or progression.
+- Collision covers major static rocks, solid ornament components and aquarium limits. Delicate foliage and decorative pebbles remain passable; there is no contact-driven plant deformation, per-triangle sand collision, or dynamic rigid-body physics.
+- Schooling is local steering rather than global pathfinding or hard fish collision. Occasional close passes or temporary fragmentation are possible. Diver reactions are soft avoidance rather than hard player-fish collision. Foraging is visual activity only; there is no food system or identification UI. No office, passages, customization, ocean or progression.
 - Sand and light shafts are intentionally simple; this is a procedural first prototype, not final art. The water surface is a visual plane, not a fluid simulation.
 - Player position is not persisted. Only settings are saved, per origin in browser local storage.
 - Pointer lock may be restricted by embedded frames or browser policies; use a top-level page. Graphics-context loss requires reloading.
@@ -166,3 +167,5 @@ To test manually:
 - Browser coverage and performance claims are limited to the actual results in the validation record. Software-rendered Chromium does not establish ordinary-laptop GPU performance.
 
 The [roadmap](docs/ROADMAP.md) is provisional; future passes should preserve the quiet, low-pressure experience.
+
+Pass 011 integrates the complete tropical roster and six ornaments without changing production behavior. Deterministic physical route fixtures, full-scene long-session audits, graphics/input failure checks and retained browser evidence support this candidate. MacBook Air performance, Safari behavior, audio comfort and final v0.2 acceptance remain manual. No release, tag, automatic merge or v0.3 work is included.

@@ -1,4 +1,4 @@
-# Marine habitat forms — Pass 008
+# Marine habitat forms — Pass 011
 
 The active environment contains **65 marine habitat colonies/clumps** across six forms, plus eight irregular tropical seagrass meadows. Freshwater plant families are absent. The historical `PlantSystem` module name describes shared GPU deformation infrastructure, not biological taxonomy.
 
@@ -30,3 +30,5 @@ Stony skeletons stay rigid. Soft fingers, fans, algae and seagrass share slow po
 See [habitat metadata](HABITAT.md), [fish](FISH.md), and [Pass 008 validation](VALIDATION_V02_PASS_008.md). Geometry is stylized, not a species-identification or aquarium-care reference. Living-tissue collision and biological simulation are intentionally absent.
 
 Pass 009 adds one sea anemone outside the 65-clump vegetation registry. It is an animal with a dedicated merged tentacle mesh and shared current clock, attached to real reef rock and passable as soft tissue. Existing marine vegetation and meadow placement are unchanged. See [anchored life](ANCHORED_LIFE.md).
+
+Pass 011 verifies these counts alongside the complete tropical aquarium: 65 clumps/colonies, eight meadows and six stony colonies remain unchanged, plus the separate reef-attached anemone. The seahorse uses a stable sea-fan placement; crawlers use real static structural faces. Optional current clocks remain finite through extended scenarios and freeze/settle under pause/reduced motion. No freshwater plant registry is present in `src/`. See [current integration validation](VALIDATION_V02_PASS_011.md).

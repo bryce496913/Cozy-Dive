@@ -34,3 +34,5 @@ See [habitat metadata](HABITAT.md) and [Pass 008 validation](VALIDATION_V02_PASS
 Pass 009 uses the named `log-interior` anchor for a sheltered moray with a validated deformation envelope and soft retreat response. Ornament geometry, openings, chest motion and colliders remain unchanged. See [anchored life](ANCHORED_LIFE.md).
 
 Pass 010 exposes immutable `surfaceGroups` referencing the already generated structural components for habitat consumers. The frogfish and nudibranchs can use those real surfaces without changing ornament geometry, animated lid strategy, colliders or player passage. See [hidden discoveries](HIDDEN_LIFE.md).
+
+Pass 011 keeps this production architecture unchanged and adds whole-aquarium validation of clocks, transforms, resource counts, particles and lifecycle across extended sessions. Physical route and explicit browser failure checks complement the earlier per-system safety tests. See [current integration validation](VALIDATION_V02_PASS_011.md); final macOS acceptance remains pending.

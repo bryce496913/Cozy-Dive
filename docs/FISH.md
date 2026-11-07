@@ -1,6 +1,6 @@
-# Tropical marine fish — Pass 009
+# Tropical marine fish — Pass 011
 
-The active reef has **40 free-swimming fish**, all marine, including two host-associated clownfish. The separate moray is an anchored animal outside this registry.
+The active reef has **40 free-swimming fish**, all marine, including two host-associated clownfish. The moray, seahorse, frogfish and five nudibranchs belong to separate habitat-bound systems outside this registry.
 
 | Species             | Count | Model identity                                                                                             | Social/habitat role                                                                  |
 | ------------------- | ----: | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
@@ -23,7 +23,7 @@ The existing 30 Hz fixed step, bounded catch-up, stable ID order, consistent nei
 
 Chromis transfer the accepted 20-fish school: alignment radius/weight 3.6/1.65, cohesion 8.5/1.4, reconnect 13, up to 12 neighbors, wander .18. Burst intervals remain 5–11 seconds, duration .4–.8, target speed 1.05 and acceleration cap 1.6. Danger, pressure, sharp turns, resting and fear suppress voluntary bursts. Their larger compressed bodies use .62-length conservative radii; cardinals use .70 for their tall sail, firefish .60 for their pennant.
 
-Cardinals have weaker social attraction and more rest. The other three species are independent. Each receives a safe deterministic home from its preferred marine anchor categories when those exist. Spawn is near that anchor; ordinary wander samples a small home region rather than repeatedly expanding from the current position. A soft shelter intention, strengthened during firefish retreat, is considered only on a clear route and enters before authoritative obstacle/separation steering. Escape may leave the home region; normal motion brings the fish back gradually. Home radius is a preference, not a position lock.
+Cardinals have weaker social attraction and more rest. Firefish, assessors and grammas are independent. Each receives a safe deterministic home from its preferred marine anchor categories when those exist; clownfish use the separate anemone host described below. Spawn is near that anchor; ordinary wander samples a small home region rather than repeatedly expanding from the current position. A soft shelter intention, strengthened during firefish retreat, is considered only on a clear route and enters before authoritative obstacle/separation steering. Escape may leave the home region; normal motion brings the fish back gradually. Home radius is a preference, not a position lock.
 
 Behavior target trials remain bounded (24 random trials, at most 256 nearest-safe fallback checks, eight local exploration attempts). Preferred region filtering applies before route/position checks. Targets retain body offsets, straight convex route validation, progress timeout, asynchronous timing and disturbance/recovery priority. Existing small inspection gestures provide varied orientation near shelter without changing physical position or player camera.
 
@@ -40,3 +40,5 @@ Pass 008 introduced the ornament habitats; Pass 009 preserves the first 38 fish 
 Exactly two ocellaris clownfish use `anemone-host`, three white/dark bordered bands, rounded fins and a broad dedicated profile. Host-associated intentions replace generic wandering while reusing ordinary locomotion, personal space and solid safety. See [anchored life](ANCHORED_LIFE.md) and [Pass 009 validation](VALIDATION_V02_PASS_009.md).
 
 Pass 010 leaves all 40 ordinary fish, anatomy, tuning, IDs and locomotion unchanged. The hidden seahorse, frogfish and five nudibranchs belong to the separate habitat-bound layer; they are not added to this registry. See [hidden discoveries](HIDDEN_LIFE.md).
+
+Pass 011 retains the exact production roster and tuning. The extended 5/15/30-minute scenarios now also audit all anchored/hidden animals, real surface attachment, finite transforms, stable resource ownership and bounded chest particles alongside fish safety, activity progress and frame-rate determinism. The temporary 60-fish case is validation-only. See [current integration validation](VALIDATION_V02_PASS_011.md).

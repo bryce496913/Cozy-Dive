@@ -66,12 +66,27 @@ import fs from 'node:fs';
     await page.screenshot({ path: '/tmp/cozy-audio-settings.png' });
     await page.getByRole('button', { name: 'Close settings' }).click();
     await page.getByRole('button', { name: 'Enter the Water' }).click();
-    await page.waitForFunction(
-      () =>
-        !!document.pointerLockElement &&
-        document.querySelector('#overlay').hidden &&
-        window.__cozy.audio?.context?.state === 'running',
-    );
+    await page
+      .waitForFunction(
+        () =>
+          !!document.pointerLockElement &&
+          document.querySelector('#overlay').hidden &&
+          window.__cozy.audio?.context?.state === 'running',
+      )
+      .catch(async (error) => {
+        console.error(
+          'COZY_ENTRY_DIAGNOSTIC',
+          await page.evaluate(() => ({
+            locked: !!document.pointerLockElement,
+            overlayHidden: document.querySelector('#overlay')?.hidden,
+            audioState: window.__cozy?.audio?.context?.state,
+            contexts: window.__contexts?.length,
+            status: document.querySelector('#status')?.textContent,
+            audioStatus: document.querySelector('#audio-status')?.textContent,
+          })),
+        );
+        throw error;
+      });
     await page.waitForTimeout(500);
     assert.equal(await page.evaluate(() => window.__contexts.length), 1);
     await page.keyboard.press('Control+m');
@@ -335,10 +350,14 @@ import fs from 'node:fs';
       if ([0, 5, 15, 30].includes(minute)) {
         await cdp.send('HeapProfiler.collectGarbage');
         const heap = await cdp.send('Runtime.getHeapUsage');
-        const snapshot = await page.evaluate(() => {
+        const snapshot = await page.evaluate(async () => {
+          const { tropicalSnapshot } =
+            await import('/validation/TropicalAudit.ts');
           const a = window.__cozy,
             g = a.audio.graph;
           return {
+            tropical: tropicalSnapshot(a.world.aquarium),
+            uploaded: { ...a.world.renderer.info.memory },
             contexts: window.__contexts.length,
             nodes: g.nodes.length,
             buffers: g.buffers.length,
@@ -353,6 +372,20 @@ import fs from 'node:fs';
           };
         });
         assert.equal(snapshot.contexts, 1);
+        assert.equal(snapshot.tropical.hiddenAnimals, 7);
+        assert.equal(snapshot.tropical.finite, true);
+        assert.equal(snapshot.tropical.bubblesInside, true);
+        assert.equal(snapshot.tropical.geometries, 178);
+        assert.equal(snapshot.tropical.materials, 42);
+        assert.equal(snapshot.tropical.hulls, 139);
+        assert.equal(snapshot.corrections, 0);
+        if (longSession.length) {
+          assert.deepEqual(
+            snapshot.tropical.population,
+            longSession[0].tropical.population,
+          );
+          assert.deepEqual(snapshot.uploaded, longSession[0].uploaded);
+        }
         assert.equal(snapshot.nodes, 19);
         assert.equal(snapshot.buffers, 3);
         assert(snapshot.voices <= 1);
