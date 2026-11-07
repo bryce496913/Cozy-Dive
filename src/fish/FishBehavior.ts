@@ -1,3 +1,4 @@
+import { updateHostBehavior } from '../creatures/HostBehavior';
 import type { Vec3 } from '../config/world';
 import { COLLISION } from '../config/world';
 import { nextFishRandom, type FishEntity } from './FishEntity';
@@ -292,6 +293,10 @@ export function updateFishBehavior(
   player?: PlayerPresence,
 ): void {
   if (!Number.isFinite(dt) || dt <= 0) return;
+  if (fish.host) {
+    updateHostBehavior(fish, habitat, dt, player);
+    return;
+  }
   const b = fish.behavior,
     c = fish.species.behavior;
   b.previousGesture = b.gesture;

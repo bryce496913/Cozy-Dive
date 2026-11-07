@@ -6,7 +6,8 @@ export type SpeciesId =
   | 'pajama-cardinalfish'
   | 'royal-gramma'
   | 'yellow-assessor'
-  | 'firefish-goby';
+  | 'firefish-goby'
+  | 'ocellaris-clownfish';
 export interface SchoolingTuning {
   readonly enabled: boolean;
   readonly spacing: number;
@@ -48,10 +49,12 @@ export interface FishSpecies {
   readonly color: number;
   readonly backColor: number;
   readonly finColor: number;
-  readonly marking: 'chromis' | 'cardinal' | 'firefish' | 'assessor' | 'gramma';
+  readonly marking:
+    'chromis' | 'cardinal' | 'firefish' | 'assessor' | 'gramma' | 'clownfish';
   readonly inspectionPreference?: 'tall' | 'broad';
   readonly habitatKinds?: readonly import('./FishHabitat').HabitatKind[];
   readonly homeRadius?: number;
+  readonly hostAnchorId?: string;
   readonly radiusFactor?: number;
   readonly detail?: 'medium' | 'small';
   readonly substrateOffset?: readonly [number, number];
@@ -334,13 +337,64 @@ export const FISH_SPECIES: readonly FishSpecies[] = [
     habitatKinds: ['sheltered-crevice', 'reef-face', 'coral-edge'],
     homeRadius: 2.7,
   },
+  {
+    id: 'ocellaris-clownfish',
+    name: 'Ocellaris clownfish',
+    count: 2,
+    length: 0.68,
+    height: 0.32,
+    width: 0.16,
+    radiusFactor: 0.64,
+    color: 0xe16e30,
+    backColor: 0xa14f24,
+    finColor: 0xd77635,
+    marking: 'clownfish',
+    accentColor: 0xe7e2c9,
+    roundedFins: true,
+    detail: 'medium',
+    profile: [0.055, 0.25, 0.6, 0.88, 1, 1, 0.85, 0.1],
+    speed: 0.32,
+    maxSpeed: 0.62,
+    acceleration: 0.35,
+    turnRate: 2.6,
+    depth: [1.4, 8.5],
+    region: { x: -7, y: 4.8, z: 3 },
+    spread: { x: 1, y: 0.4, z: 1 },
+    wanderSeconds: [4, 8],
+    tailHz: 2.5,
+    tailAngle: 0.24,
+    schooling: {
+      ...independent,
+      separationRange: 1.15,
+      separationWeight: 3.5,
+      spacing: 0.3,
+    },
+    behavior: {
+      ...calm,
+      interval: [6, 12],
+      weights: [0.25, 0.65, 0.1, 0],
+      restSpeed: 0.1,
+      recoverySeconds: 5,
+    },
+    diver: {
+      ...response,
+      awarenessRadius: 3.5,
+      comfortRadius: 1.8,
+      sensitivity: 0.8,
+      escapeSpeed: 0.8,
+      reactionAcceleration: 0.8,
+      steeringWeight: 3.5,
+    },
+    hostAnchorId: 'anemone-host',
+    homeRadius: 3,
+  },
 ];
-export function fishPopulation(count: 38 | 60): readonly FishSpecies[] {
-  return count === 38
+export function fishPopulation(count: 40 | 60): readonly FishSpecies[] {
+  return count === 40
     ? FISH_SPECIES
     : FISH_SPECIES.map((s) =>
         s.id === 'blue-green-chromis'
-          ? { ...s, count: 42, spread: { x: 3.2, y: 1.2, z: 3.2 } }
+          ? { ...s, count: 40, spread: { x: 3.2, y: 1.2, z: 3.2 } }
           : s,
       );
 }

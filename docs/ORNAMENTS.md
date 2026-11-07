@@ -30,3 +30,5 @@ The existing sparse Web Audio scheduler can choose the chest-nearby and filter-c
 The subsystem detaches before generic scenery cleanup. It disposes each owned geometry/material, the instance buffer, and local particle resources exactly once. The collision world and fish share the same mutable lid collider object; static structural components remain immutable. No event listeners or timers are owned by ornaments.
 
 See [habitat metadata](HABITAT.md) and [Pass 008 validation](VALIDATION_V02_PASS_008.md) for evidence and pending manual acceptance.
+
+Pass 009 uses the named `log-interior` anchor for a sheltered moray with a validated deformation envelope and soft retreat response. Ornament geometry, openings, chest motion and colliders remain unchanged. See [anchored life](ANCHORED_LIFE.md).

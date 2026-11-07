@@ -30,8 +30,8 @@ afterAll(() => {
 
 it.each([
   { minutes: 5, count: 60 },
-  { minutes: 15, count: 38 },
-  { minutes: 30, count: 38 },
+  { minutes: 15, count: 40 },
+  { minutes: 30, count: 40 },
 ] as const)(
   'keeps the actual ecosystem stable for $minutes minutes with $count fish',
   ({ minutes, count }) => {
@@ -114,6 +114,7 @@ it.each([
           player,
           sim.fish,
         );
+        aquarium.anchoredLife.update(1 / 30, true, time % 120 > 110, player);
         sim.advance(1 / 30, true, player);
         if (frame % 30 === 0) timings.push(performance.now() - step);
         plants.update(1 / 30, true, time % 120 > 110);

@@ -243,7 +243,7 @@ const stats = (values) => {
       const q = window.__cozy.world.aquarium,
         h = q.fish.simulation.habitat,
         results = [];
-      for (const count of [38, 60]) {
+      for (const count of [40, 60]) {
         const f = new FishSystem(h, fishPopulation(count));
         const steps = [],
           poses = [],
@@ -282,7 +282,7 @@ const stats = (values) => {
       const { fishPopulation } = await import('/src/fish/FishSpecies.ts');
       const q = window.__cozy.world.aquarium,
         results = [];
-      for (const count of [38, 60]) {
+      for (const count of [40, 60]) {
         const f = new FishSystem(
             q.fish.simulation.habitat,
             fishPopulation(count),
@@ -419,7 +419,7 @@ const stats = (values) => {
     assert.deepEqual(errors, []);
     assert.equal(
       Object.values(inventory.population).reduce((a, b) => a + b, 0),
-      38,
+      40,
     );
     assert.equal(resources.audioState, 'closed');
     const report = {

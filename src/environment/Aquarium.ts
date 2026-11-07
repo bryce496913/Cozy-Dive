@@ -1,3 +1,4 @@
+import { AnchoredLife } from '../creatures/AnchoredLife';
 import { OrnamentSystem } from './ornaments/OrnamentSystem';
 import { marineInterests } from './MarineHabitat';
 import { HardscapeSystem } from './HardscapeSystem';
@@ -28,6 +29,7 @@ export class Aquarium {
   readonly ornaments: OrnamentSystem;
   readonly grass: MeadowSystem;
   readonly fish: FishSystem;
+  readonly anchoredLife: AnchoredLife;
   readonly plants: PlantSystem;
   private readonly motes: THREE.Points;
   private readonly beams: THREE.Group;
@@ -245,9 +247,17 @@ export class Aquarium {
           position: { x, y: substrateHeight(x, z), z },
           normal: { x: 0, y: 1, z: 0 },
         });
+    this.anchoredLife = new AnchoredLife(
+      { bounds: AQUARIUM, rocks: colliders },
+      this.rockColliders,
+      this.plants.placements,
+      this.ornaments.anchors,
+    );
+    this.root.add(this.anchoredLife.root);
     this.fish = new FishSystem({
       bounds: AQUARIUM,
       rocks: colliders,
+      creatureAnchors: [this.anchoredLife.anemone.host],
       interests,
       substrateHeight,
     });
@@ -267,12 +277,14 @@ export class Aquarium {
       player,
       this.fish.simulation.fish,
     );
+    this.anchoredLife.update(dt, active, reducedMotion, player);
     this.fish.update(dt, active, reducedMotion, player);
     this.plants.update(dt, active, reducedMotion);
     this.motes.position.y = reducedMotion ? 0 : Math.sin(time * 0.15) * 0.18;
     this.beams.rotation.y = reducedMotion ? 0 : Math.sin(time * 0.12) * 0.015;
   }
   dispose(): void {
+    this.anchoredLife.dispose();
     this.ornaments.dispose();
     this.fish.dispose();
     this.grass.dispose();

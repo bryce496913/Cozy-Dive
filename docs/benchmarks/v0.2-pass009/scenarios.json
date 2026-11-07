@@ -1,0 +1,157 @@
+{
+  "renderer": "Chromium, 960x640, pixel ratio 1; CPU render/finish submission and rAF measured separately; no hardware performance claim",
+  "backend": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+  "inventory": {
+    "population": {
+      "blue-green-chromis": 20,
+      "pajama-cardinalfish": 6,
+      "firefish-goby": 6,
+      "yellow-assessor": 4,
+      "royal-gramma": 2,
+      "ocellaris-clownfish": 2
+    },
+    "solids": 139,
+    "geometries": 168,
+    "materials": 38,
+    "audio": {
+      "nodes": 19,
+      "buffers": 3,
+      "bytes": 2048000,
+      "loops": 3
+    }
+  },
+  "renders": [],
+  "cpu": [
+    {
+      "count": 40,
+      "fixedStepMs": {
+        "mean": 0.7474999998509884,
+        "median": 0.30000001192092896,
+        "p95": 1.600000023841858,
+        "p99": 9.400000005960464,
+        "samples": 600
+      },
+      "poseMs": {
+        "mean": 0.12783333366115887,
+        "median": 0.09999999403953552,
+        "p95": 0.30000001192092896,
+        "p99": 0.699999988079071,
+        "samples": 600
+      },
+      "schoolingMs": {
+        "mean": 0.09433333317438762,
+        "median": 0.09999999403953552,
+        "p95": 0.30000001192092896,
+        "p99": 1.0999999940395355,
+        "samples": 600
+      },
+      "corrections": 0
+    },
+    {
+      "count": 60,
+      "fixedStepMs": {
+        "mean": 0.5641666667163372,
+        "median": 0.5,
+        "p95": 1.199999988079071,
+        "p99": 2.300000011920929,
+        "samples": 600
+      },
+      "poseMs": {
+        "mean": 0.19499999890724817,
+        "median": 0.19999998807907104,
+        "p95": 0.5,
+        "p99": 1.0999999940395355,
+        "samples": 600
+      },
+      "schoolingMs": {
+        "mean": 0.1836666676402092,
+        "median": 0.10000002384185791,
+        "p95": 0.4000000059604645,
+        "p99": 0.800000011920929,
+        "samples": 600
+      },
+      "corrections": 0
+    }
+  ],
+  "dense": [
+    {
+      "count": 40,
+      "fixedStepMs": {
+        "mean": 0.5236666665971279,
+        "median": 0.30000001192092896,
+        "p95": 1.7000000178813934,
+        "p99": 3.199999988079071,
+        "samples": 600
+      },
+      "maximumScatter": 0.9999593739981394,
+      "corrections": 0
+    },
+    {
+      "count": 60,
+      "fixedStepMs": {
+        "mean": 0.5098333331942558,
+        "median": 0.4000000059604645,
+        "p95": 1,
+        "p99": 1.5,
+        "samples": 600
+      },
+      "maximumScatter": 0.9999760626286336,
+      "corrections": 0
+    }
+  ],
+  "stressRendering": [
+    {
+      "culling": false,
+      "population": 60,
+      "calls": 202,
+      "triangles": 262334
+    },
+    {
+      "culling": true,
+      "population": 60,
+      "calls": 202,
+      "triangles": 262334
+    }
+  ],
+  "recreation": [
+    {
+      "before": {
+        "geometries": 113,
+        "textures": 1
+      },
+      "after": {
+        "geometries": 0,
+        "textures": 0
+      },
+      "audioState": "closed"
+    },
+    {
+      "before": {
+        "geometries": 113,
+        "textures": 1
+      },
+      "after": {
+        "geometries": 0,
+        "textures": 0
+      },
+      "audioState": "closed"
+    }
+  ],
+  "heap": {
+    "before": 15660384,
+    "disposed": 14268064
+  },
+  "resources": {
+    "before": {
+      "geometries": 122,
+      "textures": 1
+    },
+    "after": {
+      "geometries": 0,
+      "textures": 0
+    },
+    "audioState": "closed"
+  },
+  "errors": [],
+  "warnings": []
+}
