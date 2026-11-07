@@ -43,3 +43,5 @@ The continuous graph has **19 nodes**, including three looping buffer sources, p
 The key stays `cozy-diver.settings.v1`. New fields are `audioEnabled: boolean` and `masterVolume: number` in [0, 1]. Missing or invalid audio fields receive true/.3 while valid previous swimming preferences survive. Finite volumes clamp to the range; non-finite or wrong-type values fall back. Existing malformed/unavailable-storage handling remains intact.
 
 Functional validation, numerical output measurements, known limits and the pending human listening checklist are recorded in [Pass 005B validation and before/after previews](VALIDATION_V02_PASS_005B.md). Browser graphs and peak levels cannot establish perceived naturalness or long-session comfort.
+
+Pass 008 adds the validated chest-nearby and filter-corner anchor positions to the existing emitter-location pool (eleven locations total). The original event interval and single-voice budget remain unchanged. There is no chest-triggered voice, continuous filter loop or new sound layer; quiet idle observation remains the default.

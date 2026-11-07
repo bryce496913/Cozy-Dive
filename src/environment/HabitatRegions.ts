@@ -84,6 +84,7 @@ export function generatePlantPlacements(
   seed = 48193,
   density = 1,
   fits?: (placement: PlantPlacement) => boolean,
+  supports: readonly ConvexCollider[] = rocks,
 ): readonly PlantPlacement[] {
   if (!Number.isFinite(density) || density <= 0 || density > 3)
     throw new Error('Plant density must be in (0, 3].');
@@ -111,8 +112,8 @@ export function generatePlantPlacements(
         const anchor = anchors[Math.floor(random() * anchors.length)];
         x = anchor[0] + (random() + random() - 1) * 3.5;
         z = anchor[1] + (random() + random() - 1) * 3.3;
-        if (species.category === 'coral' && rocks.length) {
-          const rock = rocks[Math.floor(random() * rocks.length)];
+        if (species.category === 'coral' && supports.length) {
+          const rock = supports[Math.floor(random() * supports.length)];
           x = (rock.min.x + rock.max.x) / 2;
           z = (rock.min.z + rock.max.z) / 2;
           const top = reefSurfaceHeight(rock, x, z);

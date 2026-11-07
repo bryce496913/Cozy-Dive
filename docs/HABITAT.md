@@ -9,3 +9,5 @@ Fish consume read-only anchors with `kind`, position, outward normal and optiona
 Firefish, assessors and grammas choose deterministic safe homes from their highest available preferred category. A body-sized region that cannot fit is never selected. A home is optional in an empty test habitat and is always a soft intention: it does not lock orientation, teleport a fish, or override reef/glass safety. Disturbance and ordinary gradual recovery still run through the established diver system.
 
 See [fish tuning](FISH.md), [marine forms and structural ownership](PLANTS.md), and [validation](VALIDATION_V02_PASS_007.md). Complex cave navigation, aggression, anemones and location-bound creatures remain future work.
+
+Pass 008 adds six reusable ornament anchors: `shipwreck-crevice`, `log-interior`, `statue-rear`, `arch-shadow`, `chest-nearby`, and `filter-corner`. `OrnamentSystem.anchors` owns their validated positions and outward unit orientations; every anchor clears a 0.65-unit body envelope against the whole scene. No moray, clownfish or other anchored creature is implemented. See [ornaments](ORNAMENTS.md).

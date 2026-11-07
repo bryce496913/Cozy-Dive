@@ -1,0 +1,68 @@
+[
+  {
+    "minutes": 5,
+    "count": 60,
+    "seed": 38147,
+    "stepMs": {
+      "mean": 0.7352049733333494,
+      "median": 0.5002169999997932,
+      "p95": 1.6584400000001551,
+      "p99": 6.646582000000308
+    },
+    "swimmingCollisionFrameMs": {
+      "mean": 0.08312957666667596,
+      "median": 0.04920399999991787,
+      "p95": 0.21958300000005693,
+      "p99": 0.7149120000003677
+    },
+    "corrections": [],
+    "minimum30SecondTravel": 3.483693793896702,
+    "eventCount": 6,
+    "maximumScatter": 0.9999999982552711,
+    "activities": ["cruising", "exploring", "recovering", "foraging", "resting"]
+  },
+  {
+    "minutes": 15,
+    "count": 38,
+    "seed": 38147,
+    "stepMs": {
+      "mean": 0.34782271222218697,
+      "median": 0.27056099999936123,
+      "p95": 0.7028179999979329,
+      "p99": 1.4377980000008392
+    },
+    "swimmingCollisionFrameMs": {
+      "mean": 0.06975704222219874,
+      "median": 0.04938099999890255,
+      "p95": 0.18134199999985867,
+      "p99": 0.4138149999998859
+    },
+    "corrections": [],
+    "minimum30SecondTravel": 2.7895393725500277,
+    "eventCount": 14,
+    "maximumScatter": 0.9999999982552711,
+    "activities": ["cruising", "exploring", "recovering", "foraging", "resting"]
+  },
+  {
+    "minutes": 30,
+    "count": 38,
+    "seed": 38147,
+    "stepMs": {
+      "mean": 0.335567088333345,
+      "median": 0.2547340000019176,
+      "p95": 0.7374970000018948,
+      "p99": 1.2485510000042268
+    },
+    "swimmingCollisionFrameMs": {
+      "mean": 0.0723096016666932,
+      "median": 0.05052300000170362,
+      "p95": 0.19751800000085495,
+      "p99": 0.42386700000133715
+    },
+    "corrections": [],
+    "minimum30SecondTravel": 2.7895393725500277,
+    "eventCount": 30,
+    "maximumScatter": 0.9999999982552711,
+    "activities": ["cruising", "exploring", "recovering", "foraging", "resting"]
+  }
+]

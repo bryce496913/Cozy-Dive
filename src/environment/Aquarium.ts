@@ -1,3 +1,4 @@
+import { OrnamentSystem } from './ornaments/OrnamentSystem';
 import { marineInterests } from './MarineHabitat';
 import { HardscapeSystem } from './HardscapeSystem';
 import { MeadowSystem } from './MeadowSystem';
@@ -24,6 +25,7 @@ export class Aquarium {
   readonly collision: CollisionWorld;
   readonly rockColliders: readonly ConvexCollider[];
   readonly hardscape: HardscapeSystem;
+  readonly ornaments: OrnamentSystem;
   readonly grass: MeadowSystem;
   readonly fish: FishSystem;
   readonly plants: PlantSystem;
@@ -99,13 +101,27 @@ export class Aquarium {
     this.hardscape = new HardscapeSystem(this.rockColliders);
     this.root.add(this.hardscape.root);
     colliders.push(...this.hardscape.colliders);
+    this.ornaments = new OrnamentSystem(colliders);
+    this.root.add(this.ornaments.root);
+    colliders.push(...this.ornaments.colliders);
+    interests.push(...this.ornaments.anchors);
     this.collision = new CollisionWorld(colliders, AQUARIUM);
 
-    interests.push(...marineInterests(colliders));
-    this.plants = new PlantSystem(colliders);
+    interests.push(
+      ...marineInterests([...this.rockColliders, ...this.hardscape.colliders]),
+    );
+    const vegetationSolids = [
+      ...this.rockColliders,
+      ...this.hardscape.colliders,
+      ...this.ornaments.vegetationColliders,
+    ];
+    this.plants = new PlantSystem(vegetationSolids, 1, 48193, [
+      ...this.rockColliders,
+      ...this.hardscape.colliders,
+    ]);
     interests.push(...this.plants.interests);
     this.root.add(this.plants.root);
-    this.grass = new MeadowSystem(colliders, this.plants.material);
+    this.grass = new MeadowSystem(vegetationSolids, this.plants.material);
     this.root.add(this.grass.root);
     interests.push(...this.grass.interests, ...this.hardscape.interests);
     // Keep the pre-vegetation-pass scenery RNG stream for existing suspended particles.
@@ -244,12 +260,20 @@ export class Aquarium {
     active = false,
     player?: PlayerPresence,
   ): void {
+    this.ornaments.update(
+      dt,
+      active,
+      reducedMotion,
+      player,
+      this.fish.simulation.fish,
+    );
     this.fish.update(dt, active, reducedMotion, player);
     this.plants.update(dt, active, reducedMotion);
     this.motes.position.y = reducedMotion ? 0 : Math.sin(time * 0.15) * 0.18;
     this.beams.rotation.y = reducedMotion ? 0 : Math.sin(time * 0.12) * 0.015;
   }
   dispose(): void {
+    this.ornaments.dispose();
     this.fish.dispose();
     this.grass.dispose();
     this.hardscape.dispose();
