@@ -38,3 +38,5 @@ See [habitat metadata](HABITAT.md), [marine environment](PLANTS.md) and [Pass 00
 Pass 008 introduced the ornament habitats; Pass 009 preserves the first 38 fish and adds the host pair. Fish share the ornament structural colliders and use validated named anchors rather than generic anchors sampled from narrow planks. Nearby bodies hold the chest lid safely before it moves. See [ornaments](ORNAMENTS.md) and [Pass 008 validation](VALIDATION_V02_PASS_008.md).
 
 Exactly two ocellaris clownfish use `anemone-host`, three white/dark bordered bands, rounded fins and a broad dedicated profile. Host-associated intentions replace generic wandering while reusing ordinary locomotion, personal space and solid safety. See [anchored life](ANCHORED_LIFE.md) and [Pass 009 validation](VALIDATION_V02_PASS_009.md).
+
+Pass 010 leaves all 40 ordinary fish, anatomy, tuning, IDs and locomotion unchanged. The hidden seahorse, frogfish and five nudibranchs belong to the separate habitat-bound layer; they are not added to this registry. See [hidden discoveries](HIDDEN_LIFE.md).

@@ -20,6 +20,10 @@ interface MutableLid extends ConvexCollider {
   min: Vec3;
   max: Vec3;
 }
+export interface OrnamentSurfaceGroup {
+  readonly id: OrnamentKind;
+  readonly colliders: readonly ConvexCollider[];
+}
 export interface OrnamentAnchor extends HabitatInterest {
   readonly anchorId: string;
   readonly ornament: OrnamentKind;
@@ -29,6 +33,7 @@ export class OrnamentSystem {
   readonly root = new THREE.Group();
   readonly models: readonly OrnamentModel[];
   readonly colliders: readonly ConvexCollider[];
+  readonly surfaceGroups: readonly OrnamentSurfaceGroup[];
   readonly vegetationColliders: readonly ConvexCollider[];
   readonly anchors: readonly OrnamentAnchor[];
   readonly geometry = new OrnamentGeometry();
@@ -61,6 +66,7 @@ export class OrnamentSystem {
   private disposed = false;
   constructor(existing: readonly ConvexCollider[]) {
     this.root.name = 'Home aquarium ornaments';
+    const surfaceGroups: OrnamentSurfaceGroup[] = [];
     const models: OrnamentModel[] = [],
       solids: ConvexCollider[] = [],
       reserved: THREE.Box3[] = [];
@@ -76,9 +82,12 @@ export class OrnamentSystem {
       reserved.push(placeOrnament(m, [...existing, ...solids], reserved));
       this.root.add(m.root);
       models.push(m);
-      solids.push(...modelColliders(m));
+      const hulls = modelColliders(m);
+      solids.push(...hulls);
+      surfaceGroups.push({ id: kind, colliders: hulls });
     }
     this.models = models;
+    this.surfaceGroups = surfaceGroups;
     const lid = models.find((m) => m.kind === 'chest')!.lid!;
     this.sourcePlanes = rockCollider(lid.geometry, new THREE.Matrix4()).planes;
     this.lidCollider = {
