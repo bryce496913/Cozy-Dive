@@ -1,20 +1,18 @@
+import { REGRESSION_FISH_SPECIES as FISH_SPECIES } from './fixtures/regressionSpecies';
 import { describe, expect, it } from 'vitest';
 import { AQUARIUM, SPAWN } from '../src/config/world';
 import { Aquarium } from '../src/environment/Aquarium';
 import { safeFishPosition } from '../src/fish/FishHabitat';
 import { spawnFish, populationCount } from './fixtures/originalFish';
-import {
-  ORIGINAL_FISH_SPECIES as FISH_SPECIES,
-  FISH_STEERING,
-} from '../src/fish/FishSpecies';
+import { FISH_STEERING } from '../src/fish/FishSpecies';
 
 const openHabitat = { bounds: AQUARIUM, rocks: [] };
 describe('species and seeded spawning', () => {
-  it('registers distinct freshwater species with valid movement, shape, and population parameters', () => {
+  it('retains historical steering calibration roles with valid movement, shape, and population parameters', () => {
     expect(FISH_SPECIES.map((s) => s.id)).toEqual([
-      'neon-tetra',
-      'harlequin-rasbora',
-      'honey-gourami',
+      'blue-green-chromis',
+      'pajama-cardinalfish',
+      'royal-gramma',
     ]);
     expect(FISH_SPECIES.map((s) => s.count)).toEqual([8, 6, 2]);
     expect(populationCount()).toBe(16);

@@ -24,21 +24,21 @@ export class FishSystem {
     species: readonly FishSpecies[] = FISH_SPECIES,
     seed: number = FISH_TIMING.seed,
   ) {
-    this.root.name = 'Freshwater fish';
+    this.root.name = 'Tropical marine fish';
     this.simulation = new FishSimulation(
       spawnFish(habitat, species, seed),
       habitat,
     );
-    this.templates = species.flatMap((s) =>
-      Array.from(
-        { length: s.id === 'endlers-livebearer' ? 4 : 1 },
-        (_, variant) => new FishGeometry(s, variant),
-      ),
-    );
+    this.templates = species.map((s) => new FishGeometry(s));
     this.visuals = this.simulation.fish.map((fish) => {
-      const choices = this.templates.filter((t) => t.species === fish.species);
-      const template = choices[fish.id % choices.length];
+      const template = this.templates.find((t) => t.species === fish.species)!;
       const visual = template.create(fish.size);
+      if (fish.species.marking === 'chromis')
+        visual.root.userData.marineTint = new THREE.Color().setRGB(
+          0.87 + (fish.id % 5) * 0.025,
+          0.94 + (fish.id % 3) * 0.02,
+          0.91 + (fish.id % 4) * 0.025,
+        );
       visual.root.name = `${fish.species.name} ${fish.id + 1}`;
       if (!fish.species.detail) this.root.add(visual.root);
       return visual;
@@ -46,18 +46,13 @@ export class FishSystem {
     const batches: FishRenderBatch[] = [];
     for (const s of species)
       if (s.detail) {
-        const variants = s.id === 'endlers-livebearer' ? 4 : 1;
-        for (let variant = 0; variant < variants; variant++) {
-          const visuals = this.visuals.filter(
-            (_, i) =>
-              this.simulation.fish[i].species === s &&
-              this.simulation.fish[i].id % variants === variant,
-          );
-          if (visuals.length) {
-            const batch = new FishRenderBatch(visuals);
-            batches.push(batch);
-            this.root.add(batch.root);
-          }
+        const visuals = this.visuals.filter(
+          (_, i) => this.simulation.fish[i].species === s,
+        );
+        if (visuals.length) {
+          const batch = new FishRenderBatch(visuals);
+          batches.push(batch);
+          this.root.add(batch.root);
         }
       }
     this.batches = batches;

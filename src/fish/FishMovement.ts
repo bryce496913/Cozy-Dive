@@ -4,7 +4,11 @@ import { updateDiverReaction, type PlayerPresence } from './FishDiverReaction';
 import { FishSchooling, type SchoolForces } from './FishSchooling';
 import { angleDifference, randomFish, type FishEntity } from './FishEntity';
 import { FISH_STEERING, FISH_TIMING, SCHOOLING_SAFETY } from './FishSpecies';
-import { safeFishPosition, type FishHabitat } from './FishHabitat';
+import {
+  clearFishRoute,
+  safeFishPosition,
+  type FishHabitat,
+} from './FishHabitat';
 
 const clamp = (value: number, low: number, high: number): number =>
   Math.max(low, Math.min(high, value));
@@ -17,9 +21,13 @@ function chooseTarget(fish: FishEntity, habitat: FishHabitat): void {
   let found = false;
   for (let attempt = 0; attempt < 24; attempt++) {
     // Reject outward samples instead of clamping many targets onto the same wall/corner.
-    target.x = p.x + (randomFish(fish) * 2 - 1) * 8;
+    target.x =
+      (fish.shelter?.x ?? p.x) +
+      (randomFish(fish) * 2 - 1) * (s.homeRadius ?? 8);
     target.y = s.depth[0] + randomFish(fish) * (s.depth[1] - s.depth[0]);
-    target.z = p.z + (randomFish(fish) * 2 - 1) * 8;
+    target.z =
+      (fish.shelter?.z ?? p.z) +
+      (randomFish(fish) * 2 - 1) * (s.homeRadius ?? 8);
     if (s.substrateOffset)
       target.y = Math.max(
         fish.radius + 0.08,
@@ -133,6 +141,23 @@ export function stepFish(
     tx += (bx / length - tx) * weight;
     ty += (by / length - ty) * weight;
     tz += (bz / length - tz) * weight;
+  }
+  if (fish.shelter && s.homeRadius) {
+    const home = fish.shelter,
+      dx = home.x - p.x,
+      dy = home.y + 0.3 - p.y,
+      dz = home.z - p.z,
+      d = Math.hypot(dx, dy, dz);
+    // Low-priority shelter intention; reefs, separation and bounded locomotion still follow.
+    if (d > 0.6 && clearFishRoute(p, home, fish.radius + 0.05, habitat)) {
+      const weight = Math.max(
+        Math.min(1.4, d / s.homeRadius),
+        reaction.scatter * (s.id === 'firefish-goby' ? 2.8 : 1.2),
+      );
+      tx += (dx / d) * weight;
+      ty += (dy / d) * weight;
+      tz += (dz / d) * weight;
+    }
   }
   const wanderX = tx,
     wanderY = ty,

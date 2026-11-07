@@ -9,6 +9,7 @@ export interface FishEntity {
   readonly id: number;
   readonly species: FishSpecies;
   readonly size: number;
+  readonly shelter?: Readonly<Vec3>;
   readonly radius: number;
   readonly speedFactor: number;
   readonly turnFactor: number;

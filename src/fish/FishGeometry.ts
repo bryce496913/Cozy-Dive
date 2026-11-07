@@ -41,7 +41,8 @@ function body(
   const base = new THREE.Color(s.color),
     back = new THREE.Color(s.backColor),
     belly = new THREE.Color(0xd1c5a4),
-    color = new THREE.Color();
+    color = new THREE.Color(),
+    warmColor = new THREE.Color(s.accentColor);
   for (let i = 0; i <= rows; i++) {
     const x = THREE.MathUtils.lerp(start, end, i / rows),
       r = profile(s, x);
@@ -54,8 +55,17 @@ function body(
         .copy(base)
         .lerp(
           y > 0 ? back : belly,
-          Math.abs(Math.cos(a)) * (y > 0 ? 0.58 : 0.25),
+          Math.abs(Math.cos(a)) * (y > 0 ? 0.35 : 0.1),
         );
+      if (s.marking === 'cardinal') {
+        if (x > 0.13) color.setHex(0xd5c36e);
+        else if (x > -0.045) color.setHex(0x303c3d);
+        else color.setHex(0xc9bca9);
+      } else if (s.marking === 'firefish') {
+        const warm = THREE.MathUtils.smoothstep(-x, -0.12, 0.28);
+        color.lerp(warmColor, warm);
+      } else if (s.marking === 'gramma')
+        color.setHex(x < -0.035 ? s.accentColor : s.color);
       colors.push(color.r, color.g, color.b);
     }
   }
@@ -104,14 +114,7 @@ function skinPatch(
     p.push((x - pivot) * s.length, y, surfaceZ(s, x, y, side));
     c.push(tint.r, tint.g, tint.b);
   };
-  const divisions =
-    s.detail === 'small'
-      ? 3
-      : s.marking === 'endler-patches'
-        ? 6
-        : s.detail === 'medium'
-          ? 4
-          : 8;
+  const divisions = s.detail === 'small' ? 3 : 4;
   for (let triangle = 1; triangle < polygon.length - 1; triangle++) {
     const a = polygon[0],
       b = polygon[triangle],
@@ -189,7 +192,7 @@ function fin(
   const shape = new THREE.Shape();
   shape.moveTo((outline[0].x - pivot) * s.length, outline[0].y);
   if (s.roundedFins) {
-    // Rounded fin membranes keep the gourami silhouette distinct from the fork-tailed species.
+    // Rounded reef-fish membranes remain distinct from the forked pelagic tails.
     for (let i = 1; i < outline.length; i++) {
       const p = outline[i],
         next = outline[(i + 1) % outline.length];
@@ -224,24 +227,18 @@ export class FishGeometry {
   readonly materials = new Set<THREE.Material>();
   private readonly front: THREE.BufferGeometry;
   private readonly rear: THREE.BufferGeometry;
-  private readonly stripeFront?: THREE.BufferGeometry;
-  private readonly stripeRear?: THREE.BufferGeometry;
   private readonly fins: THREE.BufferGeometry;
   private readonly tail: THREE.BufferGeometry;
   private readonly pectoral: THREE.BufferGeometry;
   private readonly bodyMaterial: THREE.MeshStandardMaterial;
   private readonly finMaterial: THREE.MeshStandardMaterial;
-  private readonly stripeMaterial?: THREE.MeshStandardMaterial;
   private disposed = false;
-  constructor(
-    readonly species: FishSpecies,
-    readonly variant = 0,
-  ) {
+  constructor(readonly species: FishSpecies) {
     const s = species;
     this.bodyMaterial = new THREE.MeshStandardMaterial({
       vertexColors: true,
-      roughness: 0.65,
-      metalness: 0.06,
+      roughness: s.marking === 'chromis' ? 0.38 : 0.65,
+      metalness: s.marking === 'chromis' ? 0.2 : 0.06,
     });
     this.finMaterial = new THREE.MeshStandardMaterial({
       vertexColors: true,
@@ -252,137 +249,89 @@ export class FishGeometry {
       depthWrite: false,
       forceSinglePass: true,
     });
-    if (s.marking === 'neon-stripes')
-      this.stripeMaterial = new THREE.MeshStandardMaterial({
-        vertexColors: true,
-        emissive: 0x137dc2,
-        emissiveIntensity: 0.45,
-        roughness: 0.4,
-      });
     this.materials.add(this.bodyMaterial);
     this.materials.add(this.finMaterial);
-    if (this.stripeMaterial) this.materials.add(this.stripeMaterial);
     const mark = (front: boolean): THREE.BufferGeometry => {
-      const start = front ? JOINT - 0.005 : -0.36,
-        end = front ? 0.5 : JOINT + 0.005,
-        pivot = front ? 0 : JOINT;
-      const parts = [body(s, start, end, pivot)];
-      let polygon: Point2[] = [];
-      let color = 0;
-      if (s.marking === 'rear-wedge') {
-        polygon = [
-          { x: -0.32, y: 0 },
-          { x: 0.015, y: s.height * 0.34 },
-          { x: 0.015, y: -s.height * 0.34 },
-        ];
-        color = s.accentColor;
+      const pivot = front ? 0 : JOINT;
+      const parts = [
+        body(
+          s,
+          front ? JOINT - 0.005 : -0.36,
+          front ? 0.5 : JOINT + 0.005,
+          pivot,
+        ),
+      ];
+      if (s.marking === 'cardinal') {
+        // Rounded maroon spots on the cream rear, tessellated onto the actual body skin.
+        for (const x of [-0.28, -0.17, -0.065])
+          for (const row of [-1, 0, 1]) {
+            const y = row * s.height * profile(s, x) * 0.18,
+              points: Point2[] = [];
+            for (let i = 0; i < 8; i++) {
+              const a = (-i * Math.PI) / 4;
+              points.push({
+                x: x + Math.cos(a) * 0.024,
+                y: y + Math.sin(a) * s.height * profile(s, x) * 0.045,
+              });
+            }
+            const clipped = clipAtJoint(points, front);
+            if (clipped.length >= 3)
+              for (const side of [-1, 1])
+                parts.push(
+                  skinPatch(
+                    s,
+                    clipped,
+                    side,
+                    pivot,
+                    s.secondaryAccent ?? 0x985858,
+                  ),
+                );
+          }
       }
-      if (s.marking === 'neon-stripes') {
-        polygon = [
-          { x: -0.32, y: -s.height * 0.09 },
-          { x: 0.035, y: -s.height * 0.09 },
-          { x: 0.035, y: -s.height * 0.34 },
-          { x: -0.27, y: -s.height * 0.24 },
-        ];
-        color = s.secondaryAccent ?? s.accentColor;
-      }
-      const extra: { points: Point2[]; color: number }[] = [];
-      if (s.marking === 'lateral-stripe')
-        extra.push({
-          points: [
-            { x: -0.32, y: s.height * 0.04 },
-            { x: 0.38, y: s.height * 0.1 },
-            { x: 0.38, y: -s.height * 0.06 },
-            { x: -0.3, y: -s.height * 0.13 },
-          ],
-          color: s.accentColor,
-        });
-      if (s.marking === 'endler-patches') {
-        const shift = (variant - 1.5) * 0.035;
-        extra.push(
-          {
-            points: [
-              { x: -0.13 + shift, y: s.height * 0.18 },
-              { x: -0.1 + shift, y: s.height * 0.29 },
-              { x: 0.045 + shift, y: s.height * 0.28 },
-              { x: 0.105 + shift, y: s.height * 0.1 },
-              { x: 0.065 + shift, y: -s.height * 0.13 },
-              { x: -0.08 + shift, y: -s.height * 0.15 },
-            ],
-            color: 0x273b35,
-          },
-          {
-            points: [
-              { x: 0.11 + shift, y: s.height * 0.12 },
-              { x: 0.16, y: s.height * 0.23 },
-              { x: 0.29, y: s.height * 0.15 },
-              { x: 0.33, y: -s.height * 0.02 },
-              { x: 0.25, y: -s.height * 0.25 },
-              { x: 0.12, y: -s.height * 0.23 },
-              { x: 0.06 + shift, y: -s.height * 0.08 },
-            ],
-            color: [0xc68b38, 0xb9703a, 0xd39b49, 0xb8834b][variant % 4],
-          },
-          {
-            points: [
-              { x: -0.3, y: s.height * 0.05 },
-              { x: -0.12 + shift, y: s.height * 0.24 },
-              { x: -0.13 + shift, y: -s.height * 0.16 },
-              { x: -0.27, y: -s.height * 0.13 },
-            ],
-            color: [0x418b79, 0x5b8b99, 0x4c9270, 0x788c4b][variant % 4],
-          },
-        );
-      }
-      for (const patch of extra) {
-        const clipped = clipAtJoint(patch.points, front);
-        if (clipped.length >= 3)
-          for (const side of [-1, 1])
-            parts.push(skinPatch(s, clipped, side, pivot, patch.color));
-      }
-      const clipped = clipAtJoint(polygon, front);
-      if (clipped.length >= 3)
-        for (const side of [-1, 1])
-          parts.push(skinPatch(s, clipped, side, pivot, color));
       return mergeOwned(parts);
     };
     const front = mark(true);
     this.rear = mark(false);
-    if (s.marking === 'neon-stripes') {
-      const stripe = (front: boolean): THREE.BufferGeometry => {
-        const polygon = clipAtJoint(
-          [
-            { x: -0.3, y: s.height * 0.05 },
-            { x: 0.39, y: s.height * 0.08 },
-            { x: 0.39, y: -s.height * 0.04 },
-            { x: -0.3, y: -s.height * 0.07 },
-          ],
-          front,
-        );
-        return mergeOwned(
-          [-1, 1].map((side) =>
-            skinPatch(s, polygon, side, front ? 0 : JOINT, s.accentColor),
-          ),
-        );
-      };
-      this.stripeFront = stripe(true);
-      this.stripeRear = stripe(false);
-    }
     const h = s.height;
-    const dorsal: Point2[] = s.roundedFins
-      ? [
-          { x: -0.29, y: h * 0.18 },
-          { x: -0.27, y: h * 0.57 },
-          { x: -0.17, y: h * 0.69 },
-          { x: 0.02, y: h * 0.72 },
-          { x: 0.18, y: h * 0.56 },
-          { x: 0.2, y: h * 0.43 },
-        ]
-      : [
-          { x: -0.18, y: h * 0.32 },
-          { x: -0.07, y: h * (s.marking === 'neon-stripes' ? 0.95 : 0.92) },
-          { x: 0.12, y: h * 0.46 },
-        ];
+    const dorsal: Point2[] =
+      s.marking === 'firefish'
+        ? [
+            { x: 0.22, y: h * 0.25 },
+            { x: 0.16, y: h * 2.8 },
+            { x: 0.1, y: h * 2.5 },
+            { x: 0.035, y: h * 0.45 },
+            { x: -0.24, y: h * 0.65 },
+            { x: -0.31, y: h * 0.2 },
+          ]
+        : s.marking === 'cardinal'
+          ? [
+              { x: 0.19, y: h * 0.35 },
+              { x: 0.06, y: h * 1.15 },
+              { x: -0.02, y: h * 0.58 },
+              { x: -0.2, y: h * 0.85 },
+              { x: -0.31, y: h * 0.28 },
+            ]
+          : s.marking === 'gramma'
+            ? [
+                { x: 0.24, y: h * 0.36 },
+                { x: 0.13, y: h * 0.72 },
+                { x: -0.16, y: h * 0.75 },
+                { x: -0.31, y: h * 0.32 },
+              ]
+            : s.roundedFins
+              ? [
+                  { x: -0.29, y: h * 0.18 },
+                  { x: -0.27, y: h * 0.57 },
+                  { x: -0.17, y: h * 0.69 },
+                  { x: 0.02, y: h * 0.72 },
+                  { x: 0.18, y: h * 0.56 },
+                  { x: 0.2, y: h * 0.43 },
+                ]
+              : [
+                  { x: -0.18, y: h * 0.32 },
+                  { x: -0.07, y: h * 0.85 },
+                  { x: 0.12, y: h * 0.46 },
+                ];
     const anal: Point2[] = s.roundedFins
       ? [
           { x: -0.3, y: -h * 0.22 },
@@ -415,7 +364,11 @@ export class FishGeometry {
           { x: -0.49, y: -h * 0.13 },
           { x: -0.53, y: -h * 0.62 },
         ];
-    this.tail = fin(s, tail, -0.34);
+    this.tail = fin(
+      s.marking === 'gramma' ? { ...s, finColor: s.accentColor } : s,
+      tail,
+      -0.34,
+    );
     const pectoral = new THREE.Shape();
     pectoral.moveTo(0, 0);
     pectoral.bezierCurveTo(
@@ -429,7 +382,7 @@ export class FishGeometry {
     pectoral.quadraticCurveTo(-s.length * 0.05, h * 0.08, 0, 0);
     this.pectoral = colored(new THREE.ShapeGeometry(pectoral, 8), s.finColor);
     const details: THREE.BufferGeometry[] = [];
-    const eyeRadius = s.height * (s.roundedFins ? 0.065 : 0.09);
+    const eyeRadius = s.height * (s.marking === 'cardinal' ? 0.14 : 0.09);
     for (const side of [-1, 1]) {
       const x = 0.37,
         y = h * 0.085,
@@ -482,8 +435,6 @@ export class FishGeometry {
     for (const g of [
       this.front,
       this.rear,
-      this.stripeFront,
-      this.stripeRear,
       this.fins,
       this.tail,
       this.pectoral,
@@ -501,12 +452,8 @@ export class FishGeometry {
       mesh(this.front, this.bodyMaterial),
       mesh(this.fins, this.finMaterial),
     );
-    if (this.stripeFront && this.stripeMaterial)
-      root.add(mesh(this.stripeFront, this.stripeMaterial));
     rear.position.x = JOINT * this.species.length;
     rear.add(mesh(this.rear, this.bodyMaterial));
-    if (this.stripeRear && this.stripeMaterial)
-      rear.add(mesh(this.stripeRear, this.stripeMaterial));
     tail.position.x = (-0.34 - JOINT) * this.species.length;
     tail.add(mesh(this.tail, this.finMaterial));
     rear.add(tail);

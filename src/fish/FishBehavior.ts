@@ -97,18 +97,33 @@ export function selectBehaviorTarget(
       const point = points[Math.floor(random(b) * points.length)];
       if (
         foraging &&
-        point.kind === 'open-water' &&
-        fish.species.id !== 'neon-tetra'
+        (point.kind === 'open-water' || point.kind === 'open-reef') &&
+        fish.species.id !== 'blue-green-chromis'
+      )
+        continue;
+      if (
+        fish.species.habitatKinds &&
+        !fish.species.habitatKinds.includes(point.kind) &&
+        random(b) > 0.2
+      )
+        continue;
+      if (
+        fish.shelter &&
+        Math.hypot(
+          point.position.x - fish.shelter.x,
+          point.position.z - fish.shelter.z,
+        ) >
+          (fish.species.homeRadius ?? 4) + 1
       )
         continue;
       if (point.vegetation) {
         // Soft habitat preferences only; scheduling, recovery and safety remain unchanged.
         const preference =
-          fish.species.id === 'honey-gourami'
+          fish.species.inspectionPreference === 'broad'
             ? point.vegetation.broadLeaves
               ? 1
               : 0.45
-            : fish.species.id === 'neon-tetra'
+            : fish.species.inspectionPreference === 'tall'
               ? point.vegetation.height > 1
                 ? 0.7
                 : 0.25
@@ -141,7 +156,24 @@ export function selectBehaviorTarget(
     if (points)
       for (let i = 0; i < Math.min(points.length, 256); i++) {
         const point = points[i];
-        if (point.kind === 'open-water' && fish.species.id !== 'neon-tetra')
+        if (
+          (point.kind === 'open-water' || point.kind === 'open-reef') &&
+          fish.species.id !== 'blue-green-chromis'
+        )
+          continue;
+        if (
+          fish.species.habitatKinds &&
+          !fish.species.habitatKinds.includes(point.kind)
+        )
+          continue;
+        if (
+          fish.shelter &&
+          Math.hypot(
+            point.position.x - fish.shelter.x,
+            point.position.z - fish.shelter.z,
+          ) >
+            (fish.species.homeRadius ?? 4) + 1
+        )
           continue;
         const offset = fish.radius + 0.45;
         b.target.x = point.position.x + point.normal.x * offset;

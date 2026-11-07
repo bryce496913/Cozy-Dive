@@ -102,7 +102,9 @@ const stats = (values) => {
         },
       };
     });
-    const views = await page.evaluate(() => {
+    const views = await page.evaluate(async () => {
+      const { safeFishPosition, clearFishRoute } =
+        await import('/src/fish/FishHabitat.ts');
       const q = window.__cozy.world.aquarium,
         fish = q.fish.simulation.fish;
       const centroid = (id) => {
@@ -124,15 +126,56 @@ const stats = (values) => {
       });
       const grass = q.grass.patches[0],
         ornament = q.hardscape.formations[0].position;
+      const portraits = fish
+        .filter((f) =>
+          [
+            'pajama-cardinalfish',
+            'firefish-goby',
+            'yellow-assessor',
+            'royal-gramma',
+          ].includes(f.species.id),
+        )
+        .filter(
+          (f, i, all) =>
+            all.findIndex((g) => g.species.id === f.species.id) === i,
+        )
+        .map((f) => {
+          const p = [f.position.x, f.position.y, f.position.z],
+            h = q.fish.simulation.habitat;
+          for (const distance of [1.8, 1.2, 2.5])
+            for (const angle of [0, Math.PI, Math.PI / 3, -Math.PI / 3]) {
+              const v = {
+                x: p[0] + Math.sin(f.yaw + angle) * distance,
+                y: p[1] + 0.15,
+                z: p[2] + Math.cos(f.yaw + angle) * distance,
+              };
+              if (
+                safeFishPosition(v, 0.08, h) &&
+                clearFishRoute(v, f.position, 0.02, h)
+              )
+                return {
+                  name: f.species.id,
+                  position: [v.x, v.y, v.z],
+                  target: p,
+                };
+            }
+          return close(f.species.id, p, [0, 1.5, 2]);
+        });
+      const coral = q.plants.placements.find(
+        (p) => p.species.id === 'soft-coral',
+      );
       return [
-        { name: 'overview', position: [0, 9, 12], target: [0, 3, -3] },
-        close('tetra-school', centroid('neon-tetra'), [0, 1, 4]),
-        close('chili-school', centroid('chili-rasbora'), [1, 0.4, 2.5]),
-        close('gourami', centroid('honey-gourami'), [0, 0.5, 2.4]),
-        close('meadow', [grass.x, 0.6, grass.z], [1.8, 1, 2]),
-        close('hardscape', [ornament.x, 1, ornament.z], [3, 2, 4]),
+        { name: 'overview', position: [0, 8, 12], target: [0, 3, -3] },
+        close('chromis-school', centroid('blue-green-chromis'), [1, 0.8, 4]),
+        ...portraits,
+        close('seagrass', [grass.x, 0.6, grass.z], [1.8, 1, 2]),
+        close('reef', [ornament.x, ornament.y + 1, ornament.z], [3, 2, 4]),
+        close(
+          'soft-coral',
+          [coral.position.x, coral.position.y + 0.5, coral.position.z],
+          [1.2, 0.6, 1.8],
+        ),
         { name: 'floor', position: [0, 0.8, 3], target: [0, 1, -4] },
-        { name: 'glass-away', position: [0, 4.6, 9], target: [0, 4.6, 14] },
       ];
     });
     assert(
@@ -182,22 +225,25 @@ const stats = (values) => {
           });
       }
       await page.screenshot({ path: path.join(output, view.name + '.png') });
+      if (view.name === 'soft-coral') {
+        await page.evaluate(() => {
+          const w = window.__cozy.world;
+          for (let i = 0; i < 50; i++)
+            w.aquarium.plants.update(0.1, true, false);
+          w.render(25, false);
+        });
+        await page.screenshot({
+          path: path.join(output, 'soft-coral-motion.png'),
+        });
+      }
     }
     const cpu = await page.evaluate(async () => {
       const { FishSystem } = await import('/src/fish/FishSystem.ts');
       const { fishPopulation } = await import('/src/fish/FishSpecies.ts');
       const q = window.__cozy.world.aquarium,
-        h = {
-          bounds: q.collision.bounds,
-          rocks: q.collision.colliders,
-          interests: [
-            ...q.plants.interests,
-            ...q.grass.interests,
-            ...q.hardscape.interests,
-          ],
-        },
+        h = q.fish.simulation.habitat,
         results = [];
-      for (const count of [40, 60]) {
+      for (const count of [38, 60]) {
         const f = new FishSystem(h, fishPopulation(count));
         const steps = [],
           poses = [],
@@ -236,7 +282,7 @@ const stats = (values) => {
       const { fishPopulation } = await import('/src/fish/FishSpecies.ts');
       const q = window.__cozy.world.aquarium,
         results = [];
-      for (const count of [40, 60]) {
+      for (const count of [38, 60]) {
         const f = new FishSystem(
             q.fish.simulation.habitat,
             fishPopulation(count),
@@ -245,7 +291,7 @@ const stats = (values) => {
         let scatter = 0;
         for (let i = 0; i < 600; i++) {
           const target = f.simulation.fish.find(
-            (f) => f.species.id === 'chili-rasbora',
+            (f) => f.species.id === 'blue-green-chromis',
           );
           const player = {
             position: {
@@ -314,46 +360,6 @@ const stats = (values) => {
       q.root.add(original.root);
       return result;
     });
-    const broadleafObservation = await page.evaluate(() => {
-      const w = window.__cozy.world,
-        q = w.aquarium,
-        interests = q.plants.interests.filter((p) => p.vegetation?.broadLeaves);
-      let nearest;
-      for (let step = 0; step < 9000; step++) {
-        q.fish.update(1 / 30, true, false);
-        if (step % 30) continue;
-        nearest = undefined;
-        for (const f of q.fish.simulation.fish.filter(
-          (f) => f.species.id === 'honey-gourami',
-        ))
-          for (const plant of interests) {
-            const distance = Math.hypot(
-              f.position.x - plant.position.x,
-              f.position.y - plant.position.y,
-              f.position.z - plant.position.z,
-            );
-            if (!nearest || distance < nearest.distance)
-              nearest = { fish: f, plant, distance };
-          }
-        if (nearest.distance < 3) break;
-      }
-      const p = nearest.fish.position,
-        leaf = nearest.plant.position;
-      w.camera.position.set(p.x + 1.5, p.y + 1.2, p.z + 4);
-      w.camera.lookAt(
-        (p.x + leaf.x) / 2,
-        (p.y + leaf.y) / 2,
-        (p.z + leaf.z) / 2,
-      );
-      w.render(20, false);
-      return {
-        time: q.fish.simulation.time,
-        distance: nearest.distance,
-        activity: nearest.fish.behavior.activity,
-        plant: nearest.plant.vegetation.species,
-      };
-    });
-    await page.screenshot({ path: path.join(output, 'gourami-broadleaf.png') });
     await page.keyboard.press('Escape');
     await page.waitForFunction(() => !document.pointerLockElement);
     await page.screenshot({ path: path.join(output, 'pause.png') });
@@ -413,7 +419,7 @@ const stats = (values) => {
     assert.deepEqual(errors, []);
     assert.equal(
       Object.values(inventory.population).reduce((a, b) => a + b, 0),
-      40,
+      38,
     );
     assert.equal(resources.audioState, 'closed');
     const report = {
@@ -425,7 +431,6 @@ const stats = (values) => {
       cpu: cpuStats,
       dense: denseStats,
       stressRendering,
-      broadleafObservation,
       recreation,
       heap: { before: heap.usedSize, disposed: disposedHeap.usedSize },
       resources,

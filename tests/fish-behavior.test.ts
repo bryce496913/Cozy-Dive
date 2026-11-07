@@ -16,7 +16,7 @@ import {
 } from '../src/fish/FishHabitat';
 import { FishSimulation, stepFish } from '../src/fish/FishMovement';
 import { spawnFish } from './fixtures/originalFish';
-import { ORIGINAL_FISH_SPECIES as FISH_SPECIES } from '../src/fish/FishSpecies';
+import { REGRESSION_FISH_SPECIES as FISH_SPECIES } from './fixtures/regressionSpecies';
 import { FishSystem } from './fixtures/originalFish';
 
 const open: FishHabitat = {
@@ -191,7 +191,13 @@ describe('rest, exploration and foraging intentions', () => {
           true,
         ),
       ).toBe(false);
-      expect(h.interests?.filter((p) => p.kind === 'plant')).toHaveLength(65);
+      expect(
+        h.interests?.filter(
+          (p) =>
+            (p.vegetation && p.kind !== 'seagrass-meadow') ||
+            (p.vegetation && p.vegetation.species === 'turtle-grass'),
+        ),
+      ).toHaveLength(65);
       expect(h.interests?.filter((p) => p.kind === 'rock-edge')).toHaveLength(
         102,
       );

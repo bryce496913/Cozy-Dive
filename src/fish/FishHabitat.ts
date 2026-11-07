@@ -5,17 +5,27 @@ import type {
 import type { Bounds, Vec3 } from '../config/world';
 import type { ConvexCollider } from '../player/collision';
 
+export type HabitatKind =
+  | 'plant'
+  | 'rock-edge'
+  | 'open-water'
+  | 'hardscape-edge'
+  | 'substrate'
+  | 'grass-edge'
+  | 'open-reef'
+  | 'seagrass-meadow'
+  | 'sandy-floor'
+  | 'sheltered-crevice'
+  | 'reef-face'
+  | 'coral-edge'
+  | 'shaded-overhang';
 export interface HabitatInterest {
-  readonly kind:
-    | 'plant'
-    | 'rock-edge'
-    | 'open-water'
-    | 'hardscape-edge'
-    | 'substrate'
-    | 'grass-edge';
+  readonly kind: HabitatKind;
+  readonly anchorId?: string;
   readonly position: Readonly<Vec3>;
   readonly normal: Readonly<Vec3>;
   readonly vegetation?: {
+    readonly category?: 'seagrass' | 'macroalgae' | 'coral';
     readonly species: PlantSpeciesId;
     readonly region: HabitatRegionId;
     readonly height: number;

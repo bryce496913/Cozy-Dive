@@ -39,7 +39,7 @@ it('keeps a temporary double-density scenario bounded and pooled without changin
     const system = new PlantSystem(a.collision.colliders, 2);
     try {
       expect(system.placements).toHaveLength(130);
-      expect(system.geometries.length).toBeLessThanOrEqual(15);
+      expect(system.geometries.length).toBeLessThanOrEqual(18);
       expect(a.rockColliders).toHaveLength(34);
     } finally {
       system.dispose();

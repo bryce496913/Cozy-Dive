@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.2 / Pass 006 — release candidate (`0.2.0-rc.1`)** is a first-person, browser-based aquarium prototype: swim at your own pace through sand, rocks, plants, and soft blue-green water. No scores, timers, combat, accounts, or external assets.
+A quiet little world beneath the surface. **v0.2 / Pass 007 — Tropical Marine Aquarium (`0.2.0-rc.2`)** is a first-person, browser-based aquarium prototype: swim at your own pace through sand, rocks, plants, and soft blue-green water. No scores, timers, combat, accounts, or external assets.
 
 ## Stack and requirements
 
@@ -42,14 +42,14 @@ Vite binds to all interfaces for cloud development; use `npm run dev -- --host 1
 
 Click **Return to the Water** to resume. Look up or down and use W/S to change depth; A/D always strafe horizontally. Space and Shift have no swimming action. Pausing or losing browser focus clears held input and propulsion momentum while retaining a resting breath’s phase and small vertical velocity. Diagonal input is normalized. Subtle stroke-related pitch feedback stays below 0.07 degrees, with no roll or visual position offsets. Looking straight up/down is limited.
 
-This is a technical release candidate; final v0.2 approval awaits manual MacBook Air acceptance. See [Pass 006 validation](docs/VALIDATION_V02_PASS_006.md) and [repeatable benchmarks](validation/README.md).
+This is a technical release candidate; final v0.2 approval awaits manual MacBook Air acceptance. See [Pass 007 validation](docs/VALIDATION_V02_PASS_007.md) and [repeatable benchmarks](validation/README.md).
 
 ## Current features
 
-- Seeded procedural aquarium with rippled sand, embedded rocks, planted banks, visible glass seams, and 40 freshwater fish across five species with distinct social behavior.
-- Five procedural freshwater plant families in seeded habitat patches, with shared-current vertex bending, stable bases and smooth reduced-motion settling. Suspended particles, translucent light shafts, hemisphere and surface lighting, and distance fog.
+- Seeded procedural aquarium with rippled sand, embedded rocks, planted banks, visible glass seams, and 38 tropical marine fish across five species with distinct social behavior.
+- Six marine habitat forms (seagrass, macroalgae and soft corals) in seeded habitat patches, with shared-current vertex bending, stable bases and smooth reduced-motion settling. Suspended particles, translucent light shafts, hemisphere and surface lighting, and distance fog.
 - First-person swimming with smooth kick-and-glide propulsion, weighted direction changes, progressive water drag, and damped breathing buoyancy. Bounded 1/240-second steps sample forces and integrate linear drag analytically; long frame gaps are capped at 100 ms.
-- A safe starting position, clearance from all six aquarium boundaries, and sliding collisions against the 34 major generated rocks and 39 convex ornament components. Thin foliage and decorative pebbles remain passable.
+- A safe starting position, clearance from all six aquarium boundaries, and sliding collisions against the 34 structural reef rocks and 39 convex coral/ornament components. Thin foliage and decorative pebbles remain passable.
 - Pointer lock only following an explicit button click. Escape, loss of focus, and hidden tabs pause controls.
 - Optional procedural underwater ambience, slow currents, gentle stroke-driven swimming sound, and sparse ornament-adjacent water details. Silent preview; audio fades on pause/mute and suspends in hidden tabs.
 - Mouse sensitivity, movement speed, swimming feel, reduced-motion, audio enable and volume preferences saved locally. Storage failure falls back to session settings. System reduced-motion preference is respected on first visit; the option uses direct mouse-look and freezes ambient sway.
@@ -83,19 +83,15 @@ The soundscape uses soft procedural liquid textures: short muffled cavity resona
 
 See [audio architecture and settings](docs/AUDIO.md) and [Pass 005B validation and before/after listening previews](docs/VALIDATION_V02_PASS_005B.md). Functional checks do not establish subjective sound quality; human listening and MacBook Air acceptance remain pending.
 
-## A living freshwater aquarium
+## A tropical marine aquarium
 
-The initial population is **8 neon tetras**, **6 harlequin rasboras**, and **2 honey gouramis**. Neon tetras have blue/red lateral stripes and agile cruising; copper rasboras carry a dark rear wedge and make gentler turns; larger honey gouramis have deeper oval bodies, rounded fins, and slower upper-water movement. These are procedural, dimensional meshes with eyes, separate tails, dorsal/lower fins, and pectorals. Body size is a presentation scale for this miniature-diver world, rather than a claim about real adult lengths.
+The active roster is **20 blue-green chromis, 6 pajama cardinalfish, 6 firefish gobies, 4 yellow assessors and 2 royal grammas** (38 total). Chromis form the larger lively school; cardinals hover in loose groups; firefish retreat toward safe shelter; assessors and grammas explore local reef cover. The five freshwater species have been replaced. Two future clownfish are reserved for Pass 009 and are not present yet.
 
-Fish appear immediately and begin swimming when you enter the water. They use their own **fixed 30 Hz simulation**, with interpolated poses at the render frame rate and bounded catch-up. Holding pause or hiding the page freezes positions and animation without advancing their clock. Reduced motion suppresses optional banking and halves rear-body flex; essential tail and pectoral motion remains visible.
+Models have species-specific lofted bodies, distinctive marine patterns, eyes and articulated fins. Chromis vary in blue-green tint, cardinals carry yellow faces/bands/spots, firefish have extended dorsal pennants, and grammas have purple/gold bodies. All species use shared articulated instance batches with conservative moving bounds.
 
-Persistent individual targets, bounded speed/turn changes, soft preferred depths, and predictive rock/wall steering remain the basis of each fish’s movement. Neon tetras now form moderately cohesive schools; harlequin rasboras coordinate in looser groups; honey gouramis explore independently. All species maintain personal space through size-aware separation, including across species. Fish read the existing major-rock hulls without running or changing the player's collision solver. Conservative body radii and a final candidate-position guard protect against unusual near-contact conditions. Foliage and decorative pebbles remain passable. At every 30 Hz step, a consistent population snapshot supplies bounded nearest-neighbor alignment/cohesion and all-neighbor close separation. Obstacle danger fades social attraction and removes separation directed into the avoidance force, allowing schools to split around scenery and reconnect through ordinary swimming. There are no leaders, scripted paths, position tethers, or synchronized timers. A nearby diver smoothly raises awareness; close contact or faster approach produces stronger, individually varied escape steering. School attraction recedes during scatter and returns gradually afterward. Gouramis react more calmly. Individual seeded activity schedules now add occasional exploration, local resting, subtle surface foraging, and safe observation of a calm diver. Tetras favor social cruising, rasboras investigate more loosely, and gouramis hover longer and observe more often. Recent disturbance suppresses voluntary activity during bounded individual recovery. There is no hunger, food resource, or required feeding.
+The reef includes turtle grass, Caulerpa, Halimeda, red macroalgae, soft leather corals and sea fans, plus eight seagrass meadows. Six living stony colonies attach to reef rock alongside three separate aquarium ornaments. Coral is an animal, macroalgae is algae, and seagrass is a flowering marine plant. The sandy central channel remains open.
 
-The existing eight tetras, six rasboras and two gouramis remain. Four individually marked Endler’s livebearers explore independently, and twenty tiny chili rasboras form a larger mid/upper-water school with occasional asynchronous dart-and-glide movements. New fish use shared articulated render batches while retaining real 3D bodies, eyes and fins. Population counts are centrally configured; 16/20/40/60-fish scenarios support regression and performance checks.
-
-Population counts, body proportions, colors, habitat preferences, speed/turn limits, animation cadence, schooling, and diver-reaction parameters live in `src/fish/FishSpecies.ts`. The default seed reproduces initial positions and individual variations on refresh; live positions are not saved. Models/materials are shared per species and disposed through the environment lifecycle. See [fish architecture and tuning](docs/FISH.md) for ownership, movement, extension points, and limitations.
-
-![The first freshwater population](docs/screenshots/v0.2-pass001/aquarium.png)
+See [fish](docs/FISH.md), [marine forms](docs/PLANTS.md), [habitat anchors](docs/HABITAT.md), and [Pass 007 validation](docs/VALIDATION_V02_PASS_007.md). Production uses 38 fish; the explicit temporary stress configuration uses 60. No new audio layers, feeding, aggression, anemones or location-bound creatures are implemented.
 
 ## Swimming physics and tuning
 
@@ -119,7 +115,7 @@ After entry, pause/lock loss and visibility changes freeze every simulation cloc
 
 ## Living vegetation and decorative hardscape
 
-Vallisneria ribbons frame the rear/side banks, while Amazon Sword rosettes, Java Fern fronds, compact Anubias and low Hairgrass tufts add variety near rocks and sand edges. The central swimming channel stays open. Eight irregular freshwater grass meadows mix short strands with occasional taller ribbons. Thin foliage remains passable. Nine branching, lobed and plate ornaments add coral-inspired freshwater hardscape; their convex components are solid alongside the unchanged rock hulls. Instanced templates share a current-driven material, and plant habitat metadata feeds existing fish investigation. See [vegetation architecture](docs/PLANTS.md) for generation, animation, ownership and limits.
+Tropical seagrass frames sand margins; feathered and segmented macroalgae occupy reef banks. Soft corals and sea fans attach to supporting rock. Living rigid colonies and separate ornaments share exact structural collision hulls; flexible tissue stays passable. See [marine habitat forms](docs/PLANTS.md).
 
 ## Environmental collision
 
@@ -150,7 +146,7 @@ To test manually:
 9. Enable reduced motion and confirm breathing/sway stop while propulsion remains smooth. Pause near a boundary, wait, resume without held keys, and repeat after focus/tab loss.
 10. Approach major rocks from the front, side, above, below exposed edges, and diagonally. Continue holding input through several strokes: expect solid contact and smooth sliding, not vibration. Reverse away and check overlapping banks and nearby glass.
 11. Swim through seagrass and over decorative pebbles: there should be no large invisible plant barriers. Hover just above a rock and pause/resume in contact.
-12. Inspect all three fish species up close from the side and front. Check markings, eyes, fins, articulated tails, deliberate gouramis, and quicker tetras. Observe the tighter tetra school, looser rasbora group, independent gouramis, personal space, and rock/glass avoidance without synchronized circles.
+12. Inspect all five marine species from side and front. Check chromis schooling and varied tints, cardinal face/band/spots, firefish dorsal pennants, yellow assessors and two-tone grammas. Observe shelter use, personal space, reef avoidance, scatter and gradual recovery.
 13. Pause while watching fish, wait, and resume. Check that positions and fin animation freeze exactly, then continue smoothly. Repeat with reduced motion, tab/focus loss, and a refresh.
 14. Resize the browser and check canvas proportions and UI. Test a fresh visit with WebGL disabled to inspect the fallback message.
 

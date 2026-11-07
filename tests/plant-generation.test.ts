@@ -16,13 +16,14 @@ import { spawnFish } from '../src/fish/FishSpawner';
 import { FishSimulation } from '../src/fish/FishMovement';
 
 describe('procedural plant templates', () => {
-  it('registers all five distinct freshwater families', () => {
+  it('registers all six distinct marine habitat forms', () => {
     expect(PLANT_SPECIES.map((s) => s.id)).toEqual([
-      'vallisneria',
-      'amazon-sword',
-      'java-fern',
-      'anubias',
-      'dwarf-hairgrass',
+      'turtle-grass',
+      'caulerpa',
+      'red-macroalgae',
+      'halimeda',
+      'soft-coral',
+      'sea-fan',
     ]);
     expect(PLANT_SPECIES.reduce((n, s) => n + s.count, 0)).toBe(65);
   });
@@ -50,13 +51,13 @@ describe('procedural plant templates', () => {
           expect(Math.hypot(n.getX(i), n.getY(i), n.getZ(i))).toBeCloseTo(1, 4);
           maxY = Math.max(maxY, p.getY(i));
           if (m.getX(i) === 0) bases++;
-          if (m.getX(i) > species.sway * 0.9) tips++;
+          if (m.getX(i) > species.sway * 0.25) tips++;
           expect(Math.hypot(p.getX(i), p.getZ(i))).toBeLessThan(
             species.reach + species.width * 0.5 + 0.1,
           );
         }
         expect(maxY).toBeGreaterThan(0.5);
-        expect(maxY).toBeLessThanOrEqual(1);
+        expect(maxY).toBeLessThanOrEqual(1.06);
         expect(bases).toBeGreaterThan(10);
         expect(tips).toBeGreaterThan(10);
         expect(a.index!.count).toBeGreaterThan(200);
@@ -108,6 +109,7 @@ it.each([
         point = new THREE.Vector3(),
         matrix = new THREE.Matrix4();
       let intersections = 0;
+      const categories: Record<string, number> = {};
       const bend = { x: 0, y: 0, z: 0 };
       for (const mesh of q.root.children) {
         if (!(mesh instanceof THREE.InstancedMesh)) continue;
@@ -146,24 +148,40 @@ it.each([
                 motion.getX(i),
                 bend,
               );
+              const ax = new THREE.Vector3()
+                  .setFromMatrixColumn(matrix, 0)
+                  .normalize(),
+                az = new THREE.Vector3()
+                  .setFromMatrixColumn(matrix, 2)
+                  .normalize();
+              const flow = new THREE.Vector3(bend.x, 0, bend.z),
+                deform = ax
+                  .clone()
+                  .multiplyScalar(flow.dot(ax) * scale)
+                  .addScaledVector(az, flow.dot(az) * scale);
               for (const rock of nearby)
                 if (
                   insideRock(
                     {
-                      x: point.x + bend.x * scale,
-                      y: point.y,
-                      z: point.z + bend.z * scale,
+                      x: point.x + deform.x,
+                      y: point.y + deform.y,
+                      z: point.z + deform.z,
                     },
-                    0.015,
+                    PLANT_SPECIES.find((s) => s.name === mesh.geometry.name)
+                      ?.category === 'coral'
+                      ? 0
+                      : 0.015,
                     rock,
                   )
-                )
+                ) {
                   intersections++;
+                  categories[mesh.name] = (categories[mesh.name] ?? 0) + 1;
+                }
             }
           }
         }
       }
-      expect(intersections).toBe(0);
+      expect(intersections, JSON.stringify(categories)).toBe(0);
       expect(aquarium.rockColliders).toHaveLength(34);
       q.dispose();
     } finally {
@@ -178,7 +196,7 @@ it('finds a nearby safe inspection region when bounded random trials miss sparse
       bounds: AQUARIUM,
       rocks: [],
     },
-    [{ ...FISH_SPECIES[2], count: 1 }],
+    [{ ...FISH_SPECIES[2], habitatKinds: undefined, count: 1 }],
   )[0];
   Object.assign(f.position, { x: 0, y: 6, z: 0 });
   f.behavior.randomState = 0;

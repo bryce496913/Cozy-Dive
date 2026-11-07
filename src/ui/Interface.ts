@@ -46,7 +46,7 @@ export class Interface {
         <button class="enter" id="enter">Enter the Water ${arrow}</button>
         <p class="entry-note">Look up or down and swim to change depth.</p>
         <p class="status" id="status" role="status" aria-live="polite"></p>
-      </div><div class="scene-label"><span class="label-line"></span><span>THE STILLWATER AQUARIUM<small>01 / FIRST DIVE</small></span></div></main>
+      </div><div class="scene-label"><span class="label-line"></span><span>THE SUNLIT REEF AQUARIUM<small>01 / FIRST DIVE</small></span></div></main>
       <aside class="settings-panel" id="settings-panel" aria-label="Experience settings" hidden>
         <div class="panel-heading"><h2>Make yourself at home.</h2><button id="close-settings" aria-label="Close settings">×</button></div>
         <label for="sensitivity">Mouse sensitivity <output id="sensitivity-value"></output></label><input id="sensitivity" type="range" min="0.25" max="2.5" step="0.05" />

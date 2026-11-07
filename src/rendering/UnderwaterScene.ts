@@ -24,11 +24,11 @@ export class UnderwaterScene {
     this.renderer.toneMappingExposure = 1.35;
     this.renderer.domElement.setAttribute(
       'aria-label',
-      'A tranquil aquarium with sand, rocks and swaying plants',
+      'A tropical marine aquarium with reef fish, corals, macroalgae and seagrass',
     );
     host.append(this.renderer.domElement);
-    this.scene.background = new THREE.Color(0x18585e);
-    this.scene.fog = new THREE.FogExp2(0x18585e, 0.039);
+    this.scene.background = new THREE.Color(0x225d73);
+    this.scene.fog = new THREE.FogExp2(0x225d73, 0.026);
     this.scene.add(new THREE.HemisphereLight(0xc7f2e0, 0x546b56, 2.6));
     const sunlight = new THREE.DirectionalLight(0xfff1cf, 3.2);
     sunlight.position.set(-7, 18, 7);

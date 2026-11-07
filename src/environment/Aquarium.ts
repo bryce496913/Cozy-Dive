@@ -1,3 +1,4 @@
+import { marineInterests } from './MarineHabitat';
 import { HardscapeSystem } from './HardscapeSystem';
 import { MeadowSystem } from './MeadowSystem';
 import { substrateHeight } from './HabitatRegions';
@@ -42,9 +43,9 @@ export class Aquarium {
         z = positions.getZ(i);
       positions.setY(i, substrateHeight(x, z));
       color.setHSL(
-        0.12,
-        0.26,
-        0.57 + 0.035 * Math.sin(x * 2.6 + z * 0.65) + rand() * 0.04,
+        0.11,
+        0.23,
+        0.64 + 0.035 * Math.sin(x * 2.6 + z * 0.65) + rand() * 0.04,
       );
       color.toArray(colors, i * 3);
     }
@@ -100,6 +101,7 @@ export class Aquarium {
     colliders.push(...this.hardscape.colliders);
     this.collision = new CollisionWorld(colliders, AQUARIUM);
 
+    interests.push(...marineInterests(colliders));
     this.plants = new PlantSystem(colliders);
     interests.push(...this.plants.interests);
     this.root.add(this.plants.root);
