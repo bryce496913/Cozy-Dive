@@ -32,3 +32,5 @@ The subsystem detaches before generic scenery cleanup. It disposes each owned ge
 See [habitat metadata](HABITAT.md) and [Pass 008 validation](VALIDATION_V02_PASS_008.md) for evidence and pending manual acceptance.
 
 Pass 009 uses the named `log-interior` anchor for a sheltered moray with a validated deformation envelope and soft retreat response. Ornament geometry, openings, chest motion and colliders remain unchanged. See [anchored life](ANCHORED_LIFE.md).
+
+Pass 010 exposes immutable `surfaceGroups` referencing the already generated structural components for habitat consumers. The frogfish and nudibranchs can use those real surfaces without changing ornament geometry, animated lid strategy, colliders or player passage. See [hidden discoveries](HIDDEN_LIFE.md).

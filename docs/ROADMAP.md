@@ -15,10 +15,12 @@ These milestones describe direction, not commitments or a fixed release schedule
 
 The first pass intentionally excludes office scenes, fish AI, customization, hidden passages, large oceans, multiplayer, authentication, inventory, quests, complex physics, backend services, and mobile touch controls. Do not interpret roadmap entries as authorization to build them now.
 
-Pass 009 prepares `0.2.0-rc.4` for manual MacBook Air acceptance; it does not declare v0.2 complete. Potential v0.3 follow-ups include hardware-driven transparency/performance work, longer real-time browser soak coverage, and small optional interactions after their scope is agreed. No such feature is included in this candidate.
+Pass 010 prepares `0.2.0-rc.5` for manual MacBook Air acceptance; it does not declare v0.2 complete. Potential v0.3 follow-ups include hardware-driven transparency/performance work, longer real-time browser soak coverage, and small optional interactions after their scope is agreed. No such feature is included in this candidate.
 
 Pass 007 intentionally replaces the freshwater biological identity with a 38-fish tropical reef. Pass 009 adds the first host-associated pair and sheltered moray.
 
 Pass 008 adds six procedural home-aquarium ornaments, bounded chest/filter effects and named safe creature anchors. Those six props remain in Pass 009; swimming and the audio mix stay in place.
 
-Pass 009 adds one animated anemone, two local ocellaris clownfish (40 ordinary fish total), one sheltered moray, and scene-free creature-home metadata. Await manual testing before Pass 010; no aggression or feeding mechanics are introduced.
+Pass 009 adds one animated anemone, two local ocellaris clownfish (40 ordinary fish total), one sheltered moray, and scene-free creature-home metadata. Those animals remain in Pass 010, with no aggression or feeding mechanics.
+
+Pass 010 adds seven small hidden marine animals with stable habitat homes and safe observation routes, quiet local behavior and surface crawling. No gamified discovery layer is introduced. Await manual macOS acceptance before Pass 011.

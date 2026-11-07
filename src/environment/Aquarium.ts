@@ -252,6 +252,14 @@ export class Aquarium {
       this.rockColliders,
       this.plants.placements,
       this.ornaments.anchors,
+      [
+        ...this.ornaments.surfaceGroups,
+        ...this.hardscape.formations.map((f, i) => ({
+          id: `coral-${f.kind}-${i}`,
+          colliders: f.colliders,
+        })),
+        { id: 'reef', colliders: this.rockColliders },
+      ],
     );
     this.root.add(this.anchoredLife.root);
     this.fish = new FishSystem({

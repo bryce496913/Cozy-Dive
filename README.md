@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.2 / Pass 009 — Anchored Marine Life (`0.2.0-rc.4`)** is a first-person, browser-based aquarium prototype: swim at your own pace through sand, rocks, plants, and soft blue-green water. No scores, timers, combat, accounts, or external assets.
+A quiet little world beneath the surface. **v0.2 / Pass 010 — Hidden Marine Discoveries (`0.2.0-rc.5`)** is a first-person, browser-based aquarium prototype: swim at your own pace through sand, rocks, plants, and soft blue-green water. No scores, timers, combat, accounts, or external assets.
 
 ## Stack and requirements
 
@@ -42,7 +42,7 @@ Vite binds to all interfaces for cloud development; use `npm run dev -- --host 1
 
 Click **Return to the Water** to resume. Look up or down and use W/S to change depth; A/D always strafe horizontally. Space and Shift have no swimming action. Pausing or losing browser focus clears held input and propulsion momentum while retaining a resting breath’s phase and small vertical velocity. Diagonal input is normalized. Subtle stroke-related pitch feedback stays below 0.07 degrees, with no roll or visual position offsets. Looking straight up/down is limited.
 
-This is a technical release candidate; final v0.2 approval awaits manual MacBook Air acceptance. See [Pass 009 validation](docs/VALIDATION_V02_PASS_009.md) and [repeatable benchmarks](validation/README.md).
+This is a technical release candidate; final v0.2 approval awaits manual MacBook Air acceptance. See [Pass 010 validation](docs/VALIDATION_V02_PASS_010.md) and [repeatable benchmarks](validation/README.md).
 
 ## Current features
 
@@ -93,7 +93,9 @@ Models have species-specific lofted bodies, distinctive marine patterns, eyes an
 
 The reef includes turtle grass, Caulerpa, Halimeda, red macroalgae, soft leather corals and sea fans, plus eight seagrass meadows. Six living stony colonies attach to reef rock alongside three separate aquarium ornaments. Coral is an animal, macroalgae is algae, and seagrass is a flowering marine plant. The sandy central channel remains open.
 
-See [fish](docs/FISH.md), [marine forms](docs/PLANTS.md), [habitat anchors](docs/HABITAT.md), and [Pass 009 validation](docs/VALIDATION_V02_PASS_009.md). Production uses 40 fish; the explicit temporary stress configuration uses 60. No new audio layers, feeding, aggression or damage mechanics are implemented.
+Patient exploration can also reveal one seahorse tucked beside vegetation, a camouflaged frogfish in the wreck, and five tiny surface-crawling nudibranchs. They have stable, safely viewable homes and no markers, notifications or collection mechanics. See [hidden marine discoveries](docs/HIDDEN_LIFE.md).
+
+See [fish](docs/FISH.md), [marine forms](docs/PLANTS.md), [habitat anchors](docs/HABITAT.md), and [Pass 010 validation](docs/VALIDATION_V02_PASS_010.md). Production uses 40 fish; the explicit temporary stress configuration uses 60. No new audio layers, feeding, aggression or damage mechanics are implemented.
 
 ## Swimming physics and tuning
 

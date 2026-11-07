@@ -1,3 +1,5 @@
+import { HiddenLife } from './discoveries/HiddenLife';
+import type { DiscoverySurfaceGroup } from './discoveries/DiscoveryHabitat';
 import * as THREE from 'three';
 import { Anemone } from './Anemone';
 import { Moray } from './Moray';
@@ -11,12 +13,14 @@ export class AnchoredLife {
   readonly root = new THREE.Group();
   readonly anemone: Anemone;
   readonly moray: Moray;
+  readonly hidden: HiddenLife;
   private disposed = false;
   constructor(
     h: FishHabitat,
     supports: readonly ConvexCollider[],
     plants: readonly PlantPlacement[],
     anchors: readonly OrnamentAnchor[],
+    surfaces: readonly DiscoverySurfaceGroup[],
   ) {
     this.root.name = 'Anchored marine life';
     this.anemone = new Anemone(h, supports, plants);
@@ -26,7 +30,14 @@ export class AnchoredLife {
       this.anemone.dispose();
       throw error;
     }
-    this.root.add(this.anemone.root, this.moray.root);
+    try {
+      this.hidden = new HiddenLife(h, plants, surfaces);
+    } catch (error) {
+      this.anemone.dispose();
+      this.moray.dispose();
+      throw error;
+    }
+    this.root.add(this.anemone.root, this.moray.root, this.hidden.root);
   }
   update(
     dt: number,
@@ -35,6 +46,7 @@ export class AnchoredLife {
     player?: PlayerPresence,
   ): void {
     if (this.disposed) return;
+    this.hidden.update(dt, active, reduced, player);
     this.anemone.update(dt, active, reduced);
     this.moray.update(dt, active, reduced, player);
   }
@@ -42,6 +54,7 @@ export class AnchoredLife {
     if (this.disposed) return;
     this.disposed = true;
     this.root.removeFromParent();
+    this.hidden.dispose();
     this.anemone.dispose();
     this.moray.dispose();
     this.root.clear();
