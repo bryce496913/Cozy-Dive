@@ -36,7 +36,14 @@ function body(
   const positions: number[] = [],
     colors: number[] = [],
     indices: number[] = [];
-  const rows = s.detail === 'small' ? 10 : s.detail === 'medium' ? 16 : 24,
+  const rows =
+      s.marking === 'clownfish'
+        ? 64
+        : s.detail === 'small'
+          ? 10
+          : s.detail === 'medium'
+            ? 16
+            : 24,
     columns = s.detail === 'small' ? 10 : s.detail === 'medium' ? 16 : 28;
   const base = new THREE.Color(s.color),
     back = new THREE.Color(s.backColor),
@@ -57,6 +64,14 @@ function body(
           y > 0 ? back : belly,
           Math.abs(Math.cos(a)) * (y > 0 ? 0.35 : 0.1),
         );
+      if (s.marking === 'clownfish') {
+        const axis = x + 0.012 * Math.sin(a) * Math.sin(a * 2);
+        let distance = Infinity;
+        for (const center of [-0.275, -0.02, 0.27])
+          distance = Math.min(distance, Math.abs(axis - center));
+        if (distance < 0.027) color.setHex(0xeae4d5);
+        else if (distance < 0.041) color.setHex(0x30302b);
+      }
       if (s.marking === 'cardinal') {
         if (x > 0.13) color.setHex(0xd5c36e);
         else if (x > -0.045) color.setHex(0x303c3d);
@@ -212,7 +227,22 @@ function fin(
   shape.closePath();
   const geometry = new THREE.ShapeGeometry(shape);
   geometry.translate(0, 0, z);
-  return colored(geometry, s.finColor);
+  colored(geometry, s.finColor);
+  if (s.marking === 'clownfish') {
+    colored(geometry, 0x30302b);
+    geometry.computeBoundingBox();
+    const center = geometry.boundingBox!.getCenter(new THREE.Vector3());
+    const inner = geometry.clone();
+    inner.translate(-center.x, -center.y, -center.z);
+    inner.scale(0.9, 0.86, 1);
+    inner.translate(center.x, center.y, center.z);
+    colored(inner, s.finColor);
+    const reverse = inner.clone();
+    inner.translate(0, 0, 0.0015);
+    reverse.translate(0, 0, -0.0015);
+    return mergeOwned([geometry, inner, reverse]);
+  }
+  return geometry;
 }
 export interface FishVisual {
   readonly root: THREE.Group;
@@ -244,7 +274,7 @@ export class FishGeometry {
       vertexColors: true,
       roughness: 0.8,
       transparent: true,
-      opacity: 0.58,
+      opacity: s.marking === 'clownfish' ? 0.88 : 0.58,
       side: THREE.DoubleSide,
       depthWrite: false,
       forceSinglePass: true,
@@ -294,44 +324,52 @@ export class FishGeometry {
     this.rear = mark(false);
     const h = s.height;
     const dorsal: Point2[] =
-      s.marking === 'firefish'
+      s.marking === 'clownfish'
         ? [
-            { x: 0.22, y: h * 0.25 },
-            { x: 0.16, y: h * 2.8 },
-            { x: 0.1, y: h * 2.5 },
-            { x: 0.035, y: h * 0.45 },
-            { x: -0.24, y: h * 0.65 },
-            { x: -0.31, y: h * 0.2 },
+            { x: -0.3, y: h * 0.25 },
+            { x: -0.29, y: h * 0.72 },
+            { x: -0.12, y: h * 0.83 },
+            { x: 0.09, y: h * 0.76 },
+            { x: 0.27, y: h * 0.4 },
           ]
-        : s.marking === 'cardinal'
+        : s.marking === 'firefish'
           ? [
-              { x: 0.19, y: h * 0.35 },
-              { x: 0.06, y: h * 1.15 },
-              { x: -0.02, y: h * 0.58 },
-              { x: -0.2, y: h * 0.85 },
-              { x: -0.31, y: h * 0.28 },
+              { x: 0.22, y: h * 0.25 },
+              { x: 0.16, y: h * 2.8 },
+              { x: 0.1, y: h * 2.5 },
+              { x: 0.035, y: h * 0.45 },
+              { x: -0.24, y: h * 0.65 },
+              { x: -0.31, y: h * 0.2 },
             ]
-          : s.marking === 'gramma'
+          : s.marking === 'cardinal'
             ? [
-                { x: 0.24, y: h * 0.36 },
-                { x: 0.13, y: h * 0.72 },
-                { x: -0.16, y: h * 0.75 },
-                { x: -0.31, y: h * 0.32 },
+                { x: 0.19, y: h * 0.35 },
+                { x: 0.06, y: h * 1.15 },
+                { x: -0.02, y: h * 0.58 },
+                { x: -0.2, y: h * 0.85 },
+                { x: -0.31, y: h * 0.28 },
               ]
-            : s.roundedFins
+            : s.marking === 'gramma'
               ? [
-                  { x: -0.29, y: h * 0.18 },
-                  { x: -0.27, y: h * 0.57 },
-                  { x: -0.17, y: h * 0.69 },
-                  { x: 0.02, y: h * 0.72 },
-                  { x: 0.18, y: h * 0.56 },
-                  { x: 0.2, y: h * 0.43 },
+                  { x: 0.24, y: h * 0.36 },
+                  { x: 0.13, y: h * 0.72 },
+                  { x: -0.16, y: h * 0.75 },
+                  { x: -0.31, y: h * 0.32 },
                 ]
-              : [
-                  { x: -0.18, y: h * 0.32 },
-                  { x: -0.07, y: h * 0.85 },
-                  { x: 0.12, y: h * 0.46 },
-                ];
+              : s.roundedFins
+                ? [
+                    { x: -0.29, y: h * 0.18 },
+                    { x: -0.27, y: h * 0.57 },
+                    { x: -0.17, y: h * 0.69 },
+                    { x: 0.02, y: h * 0.72 },
+                    { x: 0.18, y: h * 0.56 },
+                    { x: 0.2, y: h * 0.43 },
+                  ]
+                : [
+                    { x: -0.18, y: h * 0.32 },
+                    { x: -0.07, y: h * 0.85 },
+                    { x: 0.12, y: h * 0.46 },
+                  ];
     const anal: Point2[] = s.roundedFins
       ? [
           { x: -0.3, y: -h * 0.22 },

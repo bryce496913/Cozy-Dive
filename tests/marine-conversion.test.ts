@@ -11,16 +11,17 @@ import { PLANT_SPECIES } from '../src/environment/PlantSpecies';
 import { reefSurfaceHeight } from '../src/environment/MarineHabitat';
 
 describe('tropical marine identity', () => {
-  it('replaces the active roster with exactly 38 marine fish and a temporary 60-fish stress registry', () => {
+  it('replaces the active roster with exactly 40 marine fish and a temporary 60-fish stress registry', () => {
     expect(FISH_SPECIES.map((s) => [s.id, s.count])).toEqual([
       ['blue-green-chromis', 20],
       ['pajama-cardinalfish', 6],
       ['firefish-goby', 6],
       ['yellow-assessor', 4],
       ['royal-gramma', 2],
+      ['ocellaris-clownfish', 2],
     ]);
     expect(fishPopulation(60).reduce((n, s) => n + s.count, 0)).toBe(60);
-    expect(new Set(FISH_SPECIES.map((s) => s.marking)).size).toBe(5);
+    expect(new Set(FISH_SPECIES.map((s) => s.marking)).size).toBe(6);
   });
   it.each(FISH_SPECIES)(
     'builds a shared dimensional $name silhouette with bounded fins and facial detail',

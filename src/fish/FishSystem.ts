@@ -33,7 +33,10 @@ export class FishSystem {
     this.visuals = this.simulation.fish.map((fish) => {
       const template = this.templates.find((t) => t.species === fish.species)!;
       const visual = template.create(fish.size);
-      if (fish.species.marking === 'chromis')
+      if (
+        fish.species.marking === 'chromis' ||
+        fish.species.marking === 'clownfish'
+      )
         visual.root.userData.marineTint = new THREE.Color().setRGB(
           0.87 + (fish.id % 5) * 0.025,
           0.94 + (fish.id % 3) * 0.02,

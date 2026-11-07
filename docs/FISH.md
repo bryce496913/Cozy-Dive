@@ -1,6 +1,6 @@
-# Tropical marine fish — Pass 007
+# Tropical marine fish — Pass 009
 
-The active reef has **38 free-swimming fish**, all marine. Two future anemone-associated clownfish are reserved for Pass 009; none are implemented here.
+The active reef has **40 free-swimming fish**, all marine, including two host-associated clownfish. The separate moray is an anchored animal outside this registry.
 
 | Species             | Count | Model identity                                                                                             | Social/habitat role                                                                  |
 | ------------------- | ----: | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
@@ -9,12 +9,13 @@ The active reef has **38 free-swimming fish**, all marine. Two future anemone-as
 | Firefish goby       |     6 | Elongated ivory-to-warm-red body and extended pennant dorsal                                               | Shy shelter-adjacent hovering; strong bounded escape and gradual return              |
 | Yellow assessor     |     4 | Compact warm yellow body and rounded reef fins                                                             | Independent shaded-rock/overhang exploration and cover inspection                    |
 | Royal gramma        |     2 | Purple front, golden rear/caudal fin and low continuous dorsal                                             | Independent crevice/reef-face association and local exploration                      |
+| Ocellaris clownfish |     2 | Broad orange body, three white/dark bordered bands, rounded dark-rimmed fins                               | Host-associated hover, short excursions, local diver retreat and return              |
 
 ## Rendering and ownership
 
 `FishSpecies.ts` contains only the active marine roster, anatomy and tuning. `FishGeometry` lofts species-specific profiles, dimensions, fins and vertex-color fields. Cardinal spots are tessellated onto the curved skin, not floating billboard decals. Eyes, articulated rear/tail and moving pectorals remain dimensional. No old freshwater marking/model branch remains in production.
 
-Five immutable templates own **25 geometries / 10 materials**. All five species use articulated instance batches; the 20 chromis share one template with deterministic instance colors. Body/fin transforms interpolate fixed-step poses; refreshed conservative instance spheres include fins/eyes for safe camera culling. Fin transparency remains sorted per batch, not per individual. Models share procedural anatomy infrastructure, not freshwater bodies with swapped colors.
+Six immutable templates own **30 geometries / 12 materials**. All six species use articulated instance batches; the 20 chromis share one template with deterministic instance colors. Body/fin transforms interpolate fixed-step poses; refreshed conservative instance spheres include fins/eyes for safe camera culling. Fin transparency remains sorted per batch, not per individual. Models share procedural anatomy infrastructure, not freshwater bodies with swapped colors.
 
 ## Simulation and shelter
 
@@ -28,10 +29,12 @@ Behavior target trials remain bounded (24 random trials, at most 256 nearest-saf
 
 ## Safety, determinism and tests
 
-`FishSpawner` uses stable seeded IDs 0–37, finite placement budgets, player exclusion and pairwise personal space. `fishPopulation(38 | 60)` supplies production and temporary stress populations; 60 raises chromis to 42 without changing the other groups. Safety tests use actual rock/coral/ornament hulls, not a scene raycast or the player's collision solver.
+`FishSpawner` uses stable seeded IDs 0–39 (original 0–37 preserved), finite placement budgets, player exclusion and pairwise personal space. `fishPopulation(40 | 60)` supplies production and temporary stress populations; 60 raises chromis to 40 without changing the other groups. Safety tests use actual rock/coral/ornament hulls, not a scene raycast or the player's collision solver.
 
-Historic 16-fish numerical steering calibrations are retained only in `tests/fixtures/regressionSpecies.ts`, using marine identities with their original numeric role parameters. They preserve earlier motion/reaction/scheduler regressions without exporting a compatibility registry or including old species/models in the production bundle. Current production-specific tests separately verify all 38 fish, anatomy, marine categories, shelter return, schooling, darting, collision, frame-rate equivalence and cleanup.
+Historic 16-fish numerical steering calibrations are retained only in `tests/fixtures/regressionSpecies.ts`, using marine identities with their original numeric role parameters. They preserve earlier motion/reaction/scheduler regressions without exporting a compatibility registry or including old species/models in the production bundle. Current production-specific tests separately verify all 40 fish, anatomy, marine categories, shelter return, schooling, darting, collision, frame-rate equivalence and cleanup.
 
 See [habitat metadata](HABITAT.md), [marine environment](PLANTS.md) and [Pass 007 validation](VALIDATION_V02_PASS_007.md). Fin sorting, stylized scale, soft personal space, and finite-range navigation remain limitations; biological husbandry/territorial aggression are not simulated.
 
-Pass 008 preserves this roster and tuning. Fish share the ornament structural colliders and use validated named anchors rather than generic anchors sampled from narrow planks. Nearby bodies hold the chest lid safely before it moves. See [ornaments](ORNAMENTS.md) and [Pass 008 validation](VALIDATION_V02_PASS_008.md).
+Pass 008 introduced the ornament habitats; Pass 009 preserves the first 38 fish and adds the host pair. Fish share the ornament structural colliders and use validated named anchors rather than generic anchors sampled from narrow planks. Nearby bodies hold the chest lid safely before it moves. See [ornaments](ORNAMENTS.md) and [Pass 008 validation](VALIDATION_V02_PASS_008.md).
+
+Exactly two ocellaris clownfish use `anemone-host`, three white/dark bordered bands, rounded fins and a broad dedicated profile. Host-associated intentions replace generic wandering while reusing ordinary locomotion, personal space and solid safety. See [anchored life](ANCHORED_LIFE.md) and [Pass 009 validation](VALIDATION_V02_PASS_009.md).

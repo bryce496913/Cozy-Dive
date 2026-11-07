@@ -32,6 +32,23 @@ export function spawnFish(
       const radius = config.length * size * (config.radiusFactor ?? 0.56);
       const position = { x: 0, y: 0, z: 0 };
       let placed = false;
+      const host = config.hostAnchorId
+        ? (habitat.creatureAnchors?.find(
+            (a) => a.id === config.hostAnchorId,
+          ) ?? {
+            id: config.hostAnchorId,
+            position: config.region,
+            orientation: { x: 0, y: 1, z: 0 },
+            homeRadius: config.homeRadius ?? 3,
+            habitatKind: 'coral-edge' as const,
+          })
+        : undefined;
+      if (
+        config.hostAnchorId &&
+        habitat.creatureAnchors &&
+        !habitat.creatureAnchors.some((a) => a.id === config.hostAnchorId)
+      )
+        throw new Error('Missing required fish host anchor.');
       const candidates = config.habitatKinds
         ? habitat.interests?.filter(
             (p) =>
@@ -47,9 +64,11 @@ export function spawnFish(
       const homes = candidates?.filter(
         (p) => config.habitatKinds!.indexOf(p.kind) === priority,
       );
-      let home = homes?.length
-        ? homes[(i + species.indexOf(config) * 7) % homes.length].position
-        : undefined;
+      let home =
+        host?.position ??
+        (homes?.length
+          ? homes[(i + species.indexOf(config) * 7) % homes.length].position
+          : undefined);
       for (let attempt = 0; attempt < 400; attempt++) {
         // Crowded anchors can retry another compatible shelter without relaxing any clearance.
         if (homes?.length && attempt > 0 && attempt % 80 === 0)
@@ -124,6 +143,7 @@ export function spawnFish(
         species: config,
         size,
         shelter: home ? { ...home } : undefined,
+        host,
         radius,
         speedFactor,
         turnFactor,
@@ -165,6 +185,11 @@ export function spawnFish(
       });
     }
   }
+  for (const f of fish)
+    if (f.host)
+      f.hostMate = fish.find(
+        (other) => other !== f && other.host?.id === f.host!.id,
+      )?.position;
   return fish;
 }
 export function populationCount(

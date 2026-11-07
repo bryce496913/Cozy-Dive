@@ -1,3 +1,4 @@
+import type { CreatureAnchor } from '../creatures/CreatureAnchor';
 import type { FishBurst } from './FishBurst';
 import type { FishBehavior } from './FishBehaviorTypes';
 import type { DiverReaction } from './FishDiverReaction';
@@ -10,6 +11,8 @@ export interface FishEntity {
   readonly species: FishSpecies;
   readonly size: number;
   readonly shelter?: Readonly<Vec3>;
+  readonly host?: CreatureAnchor;
+  hostMate?: Readonly<Vec3>;
   readonly radius: number;
   readonly speedFactor: number;
   readonly turnFactor: number;

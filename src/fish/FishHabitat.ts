@@ -1,3 +1,4 @@
+import type { CreatureAnchor } from '../creatures/CreatureAnchor';
 import type {
   PlantSpeciesId,
   HabitatRegionId,
@@ -35,6 +36,7 @@ export interface HabitatInterest {
 
 /** Shared read-only environment data; never invokes the player's collision solver. */
 export interface FishHabitat {
+  readonly creatureAnchors?: readonly CreatureAnchor[];
   readonly bounds: Bounds;
   readonly rocks: readonly ConvexCollider[];
   readonly interests?: readonly HabitatInterest[];

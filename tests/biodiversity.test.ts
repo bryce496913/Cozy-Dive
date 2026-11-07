@@ -15,22 +15,23 @@ import { FishSimulation } from '../src/fish/FishMovement';
 import { angleDifference } from '../src/fish/FishEntity';
 import { CollisionWorld } from '../src/player/collision';
 const open = { bounds: AQUARIUM, rocks: [], substrateHeight };
-describe('five-species population and shared models', () => {
-  it('registers all five species and exact 38/60 population gates', () => {
+describe('six-species population and shared models', () => {
+  it('registers all six species and exact 40/60 population gates', () => {
     expect(FISH_SPECIES.map((s) => s.id)).toEqual([
       'blue-green-chromis',
       'pajama-cardinalfish',
       'firefish-goby',
       'yellow-assessor',
       'royal-gramma',
+      'ocellaris-clownfish',
     ]);
-    expect(FISH_SPECIES.map((s) => s.count)).toEqual([20, 6, 6, 4, 2]);
-    for (const count of [38, 60] as const)
+    expect(FISH_SPECIES.map((s) => s.count)).toEqual([20, 6, 6, 4, 2, 2]);
+    for (const count of [40, 60] as const)
       expect(fishPopulation(count).reduce((n, s) => n + s.count, 0)).toBe(
         count,
       );
   });
-  it.each([38, 60] as const)(
+  it.each([40, 60] as const)(
     'spawns %i fish deterministically with safe bodies, personal space and a loose chili region',
     (count) => {
       const a = new Aquarium();
@@ -75,9 +76,9 @@ describe('five-species population and shared models', () => {
   it('batches all marine articulated parts and varies chromis tint without duplicating models', () => {
     const system = new FishSystem(open);
     try {
-      expect(system.visuals).toHaveLength(38);
-      expect(system.batches.length).toBe(5);
-      expect(system.templates).toHaveLength(5);
+      expect(system.visuals).toHaveLength(40);
+      expect(system.batches.length).toBe(6);
+      expect(system.templates).toHaveLength(6);
       const chromis = system.batches[0].meshes[0];
       expect(chromis.instanceColor).not.toBeNull();
       const colors = chromis.instanceColor!.array;
@@ -284,7 +285,7 @@ describe('darting and school identity', () => {
     expect(results[1]).toEqual(results[0]);
     expect(results[2]).toEqual(results[0]);
   });
-  it.each([38, 60] as const)(
+  it.each([40, 60] as const)(
     'keeps %i fish safe and moving for three minutes around actual rocks and ornaments',
     (count) => {
       const a = new Aquarium();

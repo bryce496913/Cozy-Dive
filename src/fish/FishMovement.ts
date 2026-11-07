@@ -28,6 +28,18 @@ function chooseTarget(fish: FishEntity, habitat: FishHabitat): void {
     target.z =
       (fish.shelter?.z ?? p.z) +
       (randomFish(fish) * 2 - 1) * (s.homeRadius ?? 8);
+    if (fish.host) {
+      target.y = fish.host.position.y + (randomFish(fish) - 0.3) * 0.8;
+      if (
+        Math.hypot(
+          target.x - fish.host.position.x,
+          target.y - fish.host.position.y,
+          target.z - fish.host.position.z,
+        ) >
+        fish.host.homeRadius * 0.65
+      )
+        continue;
+    }
     if (s.substrateOffset)
       target.y = Math.max(
         fish.radius + 0.08,
@@ -129,9 +141,13 @@ export function stepFish(
       distance < 0.4 &&
       (behavior.activity === 'resting' || behavior.arrived)
     ) {
-      bx = Math.cos(fish.yaw) * Math.cos(fish.pitch);
-      by = Math.sin(fish.pitch);
-      bz = -Math.sin(fish.yaw) * Math.cos(fish.pitch);
+      bx = fish.hostMate
+        ? fish.hostMate.x - p.x
+        : Math.cos(fish.yaw) * Math.cos(fish.pitch);
+      by = fish.hostMate ? fish.hostMate.y - p.y : Math.sin(fish.pitch);
+      bz = fish.hostMate
+        ? fish.hostMate.z - p.z
+        : -Math.sin(fish.yaw) * Math.cos(fish.pitch);
     }
     const length = Math.max(1e-8, Math.hypot(bx, by, bz));
     // Behavior modifies the low-priority intention, before any obstacle or separation force.
@@ -158,6 +174,18 @@ export function stepFish(
       ty += (dy / d) * weight;
       tz += (dz / d) * weight;
     }
+  }
+  if (fish.host) {
+    const h = fish.host,
+      d = Math.hypot(
+        p.x - h.position.x,
+        p.y - h.position.y,
+        p.z - h.position.z,
+      );
+    const w = Math.max(0, (d - 1.1) * 4);
+    tx += ((h.position.x - p.x) / Math.max(0.1, d)) * w;
+    ty += ((h.position.y - p.y) / Math.max(0.1, d)) * w;
+    tz += ((h.position.z - p.z) / Math.max(0.1, d)) * w;
   }
   const wanderX = tx,
     wanderY = ty,
@@ -287,6 +315,19 @@ export function stepFish(
     let ex = reaction.direction.x,
       ey = reaction.direction.y,
       ez = reaction.direction.z;
+    if (
+      fish.host &&
+      clearFishRoute(p, fish.behavior.target, fish.radius + 0.05, habitat)
+    ) {
+      const target = fish.behavior.target,
+        d = Math.max(
+          0.1,
+          Math.hypot(target.x - p.x, target.y - p.y, target.z - p.z),
+        );
+      ex = (target.x - p.x) / d;
+      ey = (target.y - p.y) / d;
+      ez = (target.z - p.z) / d;
+    }
     const avoidanceLength = ax * ax + ay * ay + az * az,
       inward = ex * ax + ey * ay + ez * az;
     if (danger > 0.15 && avoidanceLength > 1e-8 && inward < 0) {
@@ -388,6 +429,22 @@ export function stepFish(
     -acceleration * dt,
     acceleration * dt,
   );
+  if (fish.host) {
+    const h = fish.host,
+      dx = p.x - h.position.x,
+      dy = p.y - h.position.y,
+      dz = p.z - h.position.z,
+      d = Math.hypot(dx, dy, dz);
+    const heading =
+      dx * Math.cos(fish.yaw) * Math.cos(fish.pitch) +
+      dy * Math.sin(fish.pitch) -
+      dz * Math.sin(fish.yaw) * Math.cos(fish.pitch);
+    if (heading > 0)
+      fish.speed = Math.min(
+        fish.speed,
+        Math.max(0, (h.homeRadius - fish.radius - d) * 1.8),
+      );
+  }
   const vx = Math.cos(fish.yaw) * Math.cos(fish.pitch) * fish.speed,
     vy = Math.sin(fish.pitch) * fish.speed,
     vz = -Math.sin(fish.yaw) * Math.cos(fish.pitch) * fish.speed;
