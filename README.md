@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.2 / Pass 007 — Tropical Marine Aquarium (`0.2.0-rc.2`)** is a first-person, browser-based aquarium prototype: swim at your own pace through sand, rocks, plants, and soft blue-green water. No scores, timers, combat, accounts, or external assets.
+A quiet little world beneath the surface. **v0.2 / Pass 008 — Aquarium Ornaments (`0.2.0-rc.3`)** is a first-person, browser-based aquarium prototype: swim at your own pace through sand, rocks, plants, and soft blue-green water. No scores, timers, combat, accounts, or external assets.
 
 ## Stack and requirements
 
@@ -42,7 +42,7 @@ Vite binds to all interfaces for cloud development; use `npm run dev -- --host 1
 
 Click **Return to the Water** to resume. Look up or down and use W/S to change depth; A/D always strafe horizontally. Space and Shift have no swimming action. Pausing or losing browser focus clears held input and propulsion momentum while retaining a resting breath’s phase and small vertical velocity. Diagonal input is normalized. Subtle stroke-related pitch feedback stays below 0.07 degrees, with no roll or visual position offsets. Looking straight up/down is limited.
 
-This is a technical release candidate; final v0.2 approval awaits manual MacBook Air acceptance. See [Pass 007 validation](docs/VALIDATION_V02_PASS_007.md) and [repeatable benchmarks](validation/README.md).
+This is a technical release candidate; final v0.2 approval awaits manual MacBook Air acceptance. See [Pass 008 validation](docs/VALIDATION_V02_PASS_008.md) and [repeatable benchmarks](validation/README.md).
 
 ## Current features
 
@@ -85,13 +85,15 @@ See [audio architecture and settings](docs/AUDIO.md) and [Pass 005B validation a
 
 ## A tropical marine aquarium
 
+Six home-aquarium decorations now share the reef: a slowly opening treasure chest with occasional bubbles, corner filter, swimmable stone arch, miniature wreck, hollow driftwood log, and island-head statue. Openings have matching component collision; the chest lid holds safely when a player or fish is nearby. See [ornament architecture](docs/ORNAMENTS.md).
+
 The active roster is **20 blue-green chromis, 6 pajama cardinalfish, 6 firefish gobies, 4 yellow assessors and 2 royal grammas** (38 total). Chromis form the larger lively school; cardinals hover in loose groups; firefish retreat toward safe shelter; assessors and grammas explore local reef cover. The five freshwater species have been replaced. Two future clownfish are reserved for Pass 009 and are not present yet.
 
 Models have species-specific lofted bodies, distinctive marine patterns, eyes and articulated fins. Chromis vary in blue-green tint, cardinals carry yellow faces/bands/spots, firefish have extended dorsal pennants, and grammas have purple/gold bodies. All species use shared articulated instance batches with conservative moving bounds.
 
 The reef includes turtle grass, Caulerpa, Halimeda, red macroalgae, soft leather corals and sea fans, plus eight seagrass meadows. Six living stony colonies attach to reef rock alongside three separate aquarium ornaments. Coral is an animal, macroalgae is algae, and seagrass is a flowering marine plant. The sandy central channel remains open.
 
-See [fish](docs/FISH.md), [marine forms](docs/PLANTS.md), [habitat anchors](docs/HABITAT.md), and [Pass 007 validation](docs/VALIDATION_V02_PASS_007.md). Production uses 38 fish; the explicit temporary stress configuration uses 60. No new audio layers, feeding, aggression, anemones or location-bound creatures are implemented.
+See [fish](docs/FISH.md), [marine forms](docs/PLANTS.md), [habitat anchors](docs/HABITAT.md), and [Pass 008 validation](docs/VALIDATION_V02_PASS_008.md). Production uses 38 fish; the explicit temporary stress configuration uses 60. No new audio layers, feeding, aggression, anemones or location-bound creatures are implemented.
 
 ## Swimming physics and tuning
 

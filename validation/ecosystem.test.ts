@@ -47,7 +47,7 @@ it.each([
       const direction = { x: 0, y: 0, z: 0 },
         still = { x: 0, y: 0, z: 0 },
         plants = new PlantClock(),
-        events = new AudioEvents(9);
+        events = new AudioEvents(11);
       const travel = sim.fish.map(() => 0),
         states = sim.fish.map(() => new Set<string>()),
         last = sim.fish.map((f) => ({ ...f.position }));
@@ -107,6 +107,13 @@ it.each([
               active: moving,
             };
         const step = performance.now();
+        aquarium.ornaments.update(
+          1 / 30,
+          true,
+          time % 120 > 110,
+          player,
+          sim.fish,
+        );
         sim.advance(1 / 30, true, player);
         if (frame % 30 === 0) timings.push(performance.now() - step);
         plants.update(1 / 30, true, time % 120 > 110);

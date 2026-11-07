@@ -68,11 +68,16 @@ export class Application {
         );
       });
       this.audio = new AudioSystem(
-        this.world.aquarium.hardscape.formations.map((f) => ({
-          x: f.position.x,
-          y: f.position.y + 1.4,
-          z: f.position.z,
-        })),
+        [
+          ...this.world.aquarium.hardscape.formations.map((f) => ({
+            x: f.position.x,
+            y: f.position.y + 1.4,
+            z: f.position.z,
+          })),
+          ...this.world.aquarium.ornaments.anchors
+            .filter((a) => a.ornament === 'chest' || a.ornament === 'filter')
+            .map((a) => a.position),
+        ],
         { onStatus: (status) => this.ui.audioStatus(status) },
       );
       this.audio.setVisible(!document.hidden);

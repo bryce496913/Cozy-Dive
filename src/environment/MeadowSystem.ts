@@ -44,8 +44,8 @@ export class MeadowSystem {
         placed = false;
       const radius = 1.1 + random() * 0.5;
       for (let attempt = 0; attempt < 800; attempt++) {
-        x = (i % 2 ? -1 : 1) * (4.5 + random() * 10);
-        z = -10 + random() * 21;
+        x = (i % 2 ? -1 : 1) * (4.5 + random() * 11.6);
+        z = -11.5 + random() * 24;
         if (
           !plantFootprintClear(x, z, radius + 0.15) ||
           solids.some((s) => insideRock({ x, y: 0.45, z }, radius + 0.2, s)) ||

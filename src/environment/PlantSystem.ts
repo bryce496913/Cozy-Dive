@@ -21,7 +21,12 @@ export class PlantSystem {
   readonly clock = new PlantClock();
   readonly timeUniform = { value: 0 };
   private disposed = false;
-  constructor(rocks: readonly ConvexCollider[], density = 1, seed = 48193) {
+  constructor(
+    rocks: readonly ConvexCollider[],
+    density = 1,
+    seed = 48193,
+    supports: readonly ConvexCollider[] = rocks,
+  ) {
     this.root.name = 'Marine seagrass, macroalgae and soft corals';
     this.material = new THREE.MeshStandardMaterial({
       vertexColors: true,
@@ -106,6 +111,7 @@ export class PlantSystem {
           }
           return true;
         },
+        supports,
       );
     } catch (error) {
       geometries.forEach((g) => g.dispose());
@@ -187,6 +193,15 @@ export class PlantSystem {
           z = pz;
         }
       }
+      // Tilted coral tips can project beyond the coarse horizontal placement radius.
+      // Keep inspection metadata inside its bounded region before validating solid clearance.
+      const radial = Math.hypot(x - plant.position.x, z - plant.position.z);
+      if (radial > plant.radius * 0.95) {
+        const factor = (plant.radius * 0.95) / radial;
+        x = plant.position.x + (x - plant.position.x) * factor;
+        z = plant.position.z + (z - plant.position.z) * factor;
+      }
+      y = Math.min(y, plant.position.y + plant.height * 0.98);
       const interest: HabitatInterest = {
         kind:
           plant.species.category === 'coral'
