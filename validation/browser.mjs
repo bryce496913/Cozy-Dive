@@ -67,6 +67,7 @@ const stats = (values) => {
         a.audio.update(1 / 30, a.state, a.tuning, 0);
       }
     });
+    await page.screenshot({ path: path.join(output, 'normal-aquarium.png') });
     const backend = await page.evaluate(() => {
       const gl = window.__cozy.world.renderer.getContext(),
         info = gl.getExtension('WEBGL_debug_renderer_info');

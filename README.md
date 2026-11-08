@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.2 / Pass 011 — Tropical Aquarium Integration & Final Validation (`0.2.0-rc.6`)** is a first-person, browser-based aquarium prototype: swim at your own pace through sand, rocks, plants, and soft blue-green water. No scores, timers, combat, accounts, or external assets.
+A quiet little world beneath the surface. **v0.2 / Pass 012 — Visual Foundation & Asset Quality Benchmark (`0.2.0-rc.7`)** is a first-person, browser-based aquarium prototype: swim at your own pace through sand, rocks, plants, and soft blue-green water. No scores, timers, combat, accounts, or external assets.
 
 ## Stack and requirements
 
@@ -42,7 +42,7 @@ Vite binds to all interfaces for cloud development; use `npm run dev -- --host 1
 
 Click **Return to the Water** to resume. Look up or down and use W/S to change depth; A/D always strafe horizontally. Space and Shift have no swimming action. Pausing or losing browser focus clears held input and propulsion momentum while retaining a resting breath’s phase and small vertical velocity. Diagonal input is normalized. Subtle stroke-related pitch feedback stays below 0.07 degrees, with no roll or visual position offsets. Looking straight up/down is limited.
 
-This is a technical release candidate; final v0.2 approval awaits manual MacBook Air acceptance. See [Pass 011 validation](docs/VALIDATION_V02_PASS_011.md) and [repeatable benchmarks](validation/README.md).
+This is a technical release candidate; final v0.2 approval awaits manual MacBook Air acceptance. See [Pass 012 validation](docs/VALIDATION_V02_PASS_012.md) and [repeatable benchmarks](validation/README.md).
 
 ## Current features
 
@@ -96,7 +96,7 @@ The reef includes turtle grass, Caulerpa, Halimeda, red macroalgae, soft leather
 
 Patient exploration can also reveal one seahorse tucked beside vegetation, a camouflaged frogfish in the wreck, and five tiny surface-crawling nudibranchs. They have stable, safely viewable homes and no markers, notifications or collection mechanics. See [hidden marine discoveries](docs/HIDDEN_LIFE.md).
 
-See [fish](docs/FISH.md), [marine forms](docs/PLANTS.md), [habitat anchors](docs/HABITAT.md), and [Pass 011 validation](docs/VALIDATION_V02_PASS_011.md). Production uses 40 fish; the explicit temporary stress configuration uses 60. No new audio layers, feeding, aggression or damage mechanics are implemented.
+See [fish](docs/FISH.md), [marine forms](docs/PLANTS.md), [habitat anchors](docs/HABITAT.md), and [Pass 012 validation](docs/VALIDATION_V02_PASS_012.md). Production uses 40 fish; the explicit temporary stress configuration uses 60. No new audio layers, feeding, aggression or damage mechanics are implemented.
 
 ## Swimming physics and tuning
 
@@ -169,3 +169,19 @@ To test manually:
 The [roadmap](docs/ROADMAP.md) is provisional; future passes should preserve the quiet, low-pressure experience.
 
 Pass 011 integrates the complete tropical roster and six ornaments without changing production behavior. Deterministic physical route fixtures, full-scene long-session audits, graphics/input failure checks and retained browser evidence support this candidate. MacBook Air performance, Safari behavior, audio comfort and final v0.2 acceptance remain manual. No release, tag, automatic merge or v0.3 work is included.
+
+## Authored visual benchmark — opt in
+
+Pass 012 adds an original Blender-authored chromis, branching coral, embedded 512px PBR maps and an asynchronous GLB pipeline. The ordinary aquarium retains its existing presentation and gameplay. The new candidate is available separately; **its visual quality is not declared accepted**.
+
+```bash
+npm run dev
+# Open /benchmark.html for the clearly marked development showcase.
+npm run build:benchmark
+npm run preview -- --outDir dist-benchmark
+# Open /benchmark.html in this explicit benchmark build.
+```
+
+Enter/escape/WASD use the real swimming controls. The development panel shows loading/fallback and switches between original and benchmark assets. The normal production build emits only the ordinary aquarium entry, with no debug panel or GLB requests. Required model/maps are local; no runtime internet connection is needed.
+
+See [visual audit](docs/VISUAL_QUALITY_AUDIT.md), [art direction](docs/ART_DIRECTION.md), [asset workflow](docs/ASSET_PIPELINE.md), [licensing/inventory](docs/ASSET_MANIFEST.md), and [matched renders, animation, budgets and pending acceptance](docs/VALIDATION_V02_PASS_012.md). Await user acceptance before Pass 013 or broader model conversion.

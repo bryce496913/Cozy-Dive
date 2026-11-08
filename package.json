@@ -1,6 +1,6 @@
 {
   "name": "cozy-diver",
-  "version": "0.2.0-rc.6",
+  "version": "0.2.0-rc.7",
   "private": true,
   "type": "module",
   "engines": {
@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
-    "test:stress": "vitest run --config validation/vitest.config.ts --maxWorkers=1"
+    "test:stress": "vitest run --config validation/vitest.config.ts --maxWorkers=1",
+    "build:benchmark": "tsc --noEmit && vite build --mode benchmark"
   },
   "dependencies": {
     "three": "^0.187.0"

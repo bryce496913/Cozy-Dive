@@ -1,0 +1,89 @@
+[
+  {
+    "id": "chromis",
+    "file": "assets/models/fish/chromis.glb",
+    "sha256": "d9a1f350a3c063d7fcddb207fb0dd4d4c7e9e07a8d478891b5bdff611402f0e1",
+    "creator": "Cozy Diver original Blender authoring, Pass 012",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 1121864,
+    "visualPrimitives": 8,
+    "visualTriangles": 12686,
+    "collisionTriangles": 0,
+    "materials": 5,
+    "images": [
+      {
+        "name": "chromis-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 233713
+      },
+      {
+        "name": "chromis-base",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 189778
+      },
+      {
+        "name": "chromis-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 118454
+      },
+      {
+        "name": "chromis-fins",
+        "width": 512,
+        "height": 512,
+        "mode": "RGBA",
+        "encodedBytes": 80326
+      }
+    ],
+    "geometryAccessorBytes": 448144,
+    "animations": ["SwimPreview"],
+    "units": "aquarium world units; chromis matches the existing 0.46-unit species length",
+    "usage": "Development benchmark only; normal aquarium remains procedural"
+  },
+  {
+    "id": "acropora",
+    "file": "assets/models/coral/acropora.glb",
+    "sha256": "cde95c12fe985cff2d4b4dc8c4f0a797ee455fabfad5dc6919c31d1b9d24ca15",
+    "creator": "Cozy Diver original Blender authoring, Pass 012",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 3454388,
+    "visualPrimitives": 2,
+    "visualTriangles": 82416,
+    "collisionTriangles": 5666,
+    "materials": 2,
+    "images": [
+      {
+        "name": "acropora-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 365716
+      },
+      {
+        "name": "acropora-base",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 141639
+      },
+      {
+        "name": "acropora-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 178453
+      }
+    ],
+    "geometryAccessorBytes": 2680236,
+    "animations": [],
+    "units": "aquarium world units; chromis matches the existing 0.46-unit species length",
+    "usage": "Development benchmark only; normal aquarium remains procedural"
+  }
+]

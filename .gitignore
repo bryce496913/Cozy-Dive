@@ -5,3 +5,7 @@ playwright-report/
 test-results/
 .DS_Store
 *.local
+
+dist-benchmark/
+*.blend1
+__pycache__/
