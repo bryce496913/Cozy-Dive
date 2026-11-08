@@ -67,3 +67,21 @@ The integration harness uses `SwimRoutes.ts` to advance the actual swimming inte
 Await final user acceptance before closing v0.2 or starting v0.3. Use the complete [manual macOS checklist](../docs/VALIDATION_V02_PASS_011.md) with a production build; do not create a release or tag from validation scripts.
 
 After `npm run build`, serve `npm run preview -- --host 127.0.0.1 --port 5175` and run `COZY_URL=http://127.0.0.1:5175 COZY_OUTPUT=/tmp/cozy011-production node validation/production.mjs` with the same Playwright/Chromium overrides. This smoke check uses public DOM/input only, without served-source instrumentation: built asset loading, preview mouse policy, Enter/pointer lock, camera-directed W ascent visible in the depth readout, Escape and persisted volume. It does not measure laptop hardware performance or subjective audio.
+
+## Pass 012 authored asset benchmark
+
+The normal profile/lifecycle harnesses still target `/`. For the opt-in showcase, use the same `COZY_PLAYWRIGHT`/`COZY_CHROMIUM` overrides and run:
+
+```bash
+python3 tools/art/inspect_assets.py
+COZY_URL=http://127.0.0.1:5176 COZY_OUTPUT=/tmp/cozy012-visual node validation/visual-benchmark.mjs
+ffmpeg -y -framerate 30 -i /tmp/cozy012-visual/frames/%03d.png -c:v libvpx-vp9 -b:v 1400k -pix_fmt yuv420p /tmp/cozy012-visual/swimming.webm
+```
+
+Start the dev server at port 5176 first. Freeze served source during browser captures; Vite HMR invalidates pointer lock and capture state. The harness retains before/assets-only/after images at identical camera transforms and a controlled portrait pose. The animation restores and follows a real simulated fish. It tests local GLB loading, one request per model/cache owner, decoded maps, full 20-fish authored instancing, native swimming, convex collider validity, safe first-person cameras, pause/reduced motion, finite states, missing-model fallback, two recreations and GPU/audio cleanup. Rendering timings are software diagnostic intervals; video encodes 80 simulated 1/30-second frames, not measured hardware FPS.
+
+The normal `npm run build` excludes `benchmark.html`. `npm run build:benchmark` emits `dist-benchmark` for a separate production-mode asset test. Record normal and benchmark production checks independently. Re-run ordinary build/type/lint/tests/stress and native browser/audio regression checks. A serial-file test run may be used on a contended cloud runner without changing any assertion or timeout; document it explicitly rather than hiding an earlier timeout.
+
+[Pass 012 evidence](../docs/VALIDATION_V02_PASS_012.md) includes the user-facing visual gate status. File validity and passing technical tests do not establish professional-quality art or MacBook Air performance.
+
+For explicit production benchmark smoke validation, serve `dist-benchmark` at the selected port and run `COZY_URL=http://127.0.0.1:5177 COZY_OUTPUT=/tmp/cozy012-production-benchmark node validation/asset-smoke.mjs` with the same Playwright/Chromium overrides. The normal production harness remains `production.mjs` against the ordinary build. Source lint/format ignore only the generated `dist-benchmark` directory in addition to their existing generated-output exclusions.

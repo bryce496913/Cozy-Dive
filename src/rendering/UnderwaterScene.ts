@@ -2,11 +2,21 @@ import type { PlayerPresence } from '../fish/FishDiverReaction';
 import * as THREE from 'three';
 import { Aquarium } from '../environment/Aquarium';
 
+export interface Presentation {
+  update(): void;
+  dispose(): void;
+}
+
 export class UnderwaterScene {
   readonly scene = new THREE.Scene();
   readonly camera = new THREE.PerspectiveCamera(64, 1, 0.08, 80);
   readonly renderer: THREE.WebGLRenderer;
   readonly aquarium: Aquarium;
+  private presentation?: Presentation;
+  setPresentation(value: Presentation): void {
+    this.presentation?.dispose();
+    this.presentation = value;
+  }
   private readonly abort = new AbortController();
   private readonly resizeObserver: ResizeObserver;
   constructor(
@@ -70,9 +80,12 @@ export class UnderwaterScene {
     player?: PlayerPresence,
   ): void {
     this.aquarium.update(time, reducedMotion, dt, active, player);
+    this.presentation?.update();
     this.renderer.render(this.scene, this.camera);
   }
   dispose(): void {
+    this.presentation?.dispose();
+    this.presentation = undefined;
     this.abort.abort();
     this.resizeObserver.disconnect();
     this.aquarium.dispose();

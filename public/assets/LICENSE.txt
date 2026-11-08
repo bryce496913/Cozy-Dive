@@ -1,0 +1,9 @@
+Cozy Diver Pass 012 original model and texture assets
+
+The chromis and Acropora-inspired models, their original texture maps and Blender
+sources are dedicated to the public domain under CC0 1.0 Universal.
+https://creativecommons.org/publicdomain/zero/1.0/
+
+No third-party mesh, photograph pixel data, scan or game asset is incorporated.
+Reference links are for anatomy/morphology research only and are not redistributed.
+Blender is an authoring tool; its GPL license does not impose GPL on these outputs.

@@ -24,6 +24,7 @@ function randomSource(seed: number): () => number {
 export class Aquarium {
   readonly root = new THREE.Group();
   readonly collision: CollisionWorld;
+  private readonly solidColliders: ConvexCollider[];
   readonly rockColliders: readonly ConvexCollider[];
   readonly hardscape: HardscapeSystem;
   readonly ornaments: OrnamentSystem;
@@ -36,6 +37,7 @@ export class Aquarium {
   constructor() {
     const rand = randomSource(1729);
     const colliders: ConvexCollider[] = [];
+    this.solidColliders = colliders;
     const interests: HabitatInterest[] = [];
     const sandGeometry = new THREE.PlaneGeometry(36, 28, 90, 70);
     sandGeometry.rotateX(-Math.PI / 2);
@@ -270,6 +272,25 @@ export class Aquarium {
       substrateHeight,
     });
     this.root.add(this.fish.root);
+  }
+  /** Presentation overrides replace only their own structural hulls; the shared habitat keeps its identity. */
+  replacePresentationColliders(
+    previous: readonly ConvexCollider[],
+    next: readonly ConvexCollider[],
+  ): void {
+    let insertion = this.solidColliders.length;
+    for (const collider of previous) {
+      const index = this.solidColliders.indexOf(collider);
+      if (index >= 0) {
+        insertion = Math.min(insertion, index);
+        this.solidColliders.splice(index, 1);
+      }
+    }
+    this.solidColliders.splice(
+      insertion,
+      0,
+      ...next.filter((c) => !this.solidColliders.includes(c)),
+    );
   }
   update(
     time: number,

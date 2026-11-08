@@ -8,6 +8,7 @@ import {
   createSwimState,
   resetSwimming,
   type SwimTuning,
+  type SwimState,
 } from '../player/swimming';
 import { UnderwaterScene } from '../rendering/UnderwaterScene';
 import { Interface } from '../ui/Interface';
@@ -42,7 +43,10 @@ export class Application {
   private elapsed = 0;
   private disposed = false;
   private readonly abort = new AbortController();
-  constructor(root: HTMLElement) {
+  constructor(
+    root: HTMLElement,
+    configureWorld?: (world: UnderwaterScene, state: SwimState) => void,
+  ) {
     const prefersReduced = matchMedia(
       '(prefers-reduced-motion: reduce)',
     ).matches;
@@ -67,6 +71,7 @@ export class Application {
           true,
         );
       });
+      configureWorld?.(this.world, this.state);
       this.audio = new AudioSystem(
         [
           ...this.world.aquarium.hardscape.formations.map((f) => ({

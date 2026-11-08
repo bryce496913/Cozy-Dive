@@ -1,0 +1,22 @@
+{
+  "result": "PASS",
+  "assets": [
+    "http://127.0.0.1:5178/assets/index-zGrxjISX.js",
+    "http://127.0.0.1:5178/assets/index-BunRuY5r.css"
+  ],
+  "depth": "↓ 9.4 m BELOW THE SURFACE",
+  "swimmingDepth": "↓ 9.2 m BELOW THE SURFACE",
+  "errors": [],
+  "warnings": [],
+  "checks": [
+    "built assets load",
+    "preview does not capture mouse",
+    "Enter and pointer lock",
+    "camera-directed W ascent changes public depth readout",
+    "Escape pauses",
+    "volume persists after reload"
+  ],
+  "limitations": [
+    "Software-rendered Chromium; functional smoke check, not hardware performance or subjective audio acceptance."
+  ]
+}
