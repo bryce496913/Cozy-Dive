@@ -1,0 +1,226 @@
+{
+  "backend": "Chromium/SwiftShader; fixed camera fixtures, diagnostic CPU timings, no hardware FPS claim",
+  "inventory": {
+    "fish": {
+      "blue-green-chromis": 20,
+      "pajama-cardinalfish": 6,
+      "firefish-goby": 6,
+      "yellow-assessor": 4,
+      "royal-gramma": 2,
+      "ocellaris-clownfish": 2
+    },
+    "hulls": 435,
+    "geometries": 462,
+    "materials": 106,
+    "host": {
+      "id": "anemone-host",
+      "position": {
+        "x": -7.24426387209472,
+        "y": 3.436825262677046,
+        "z": 1.087165271420877
+      },
+      "orientation": {
+        "x": -0.01480467670286955,
+        "y": 0.9966112351256251,
+        "z": 0.08091271574418728
+      },
+      "homeRadius": 3,
+      "habitatKind": "coral-edge"
+    },
+    "moray": {
+      "id": "moray-shelter",
+      "sourceId": "log-interior",
+      "position": {
+        "x": 5.6000000000000005,
+        "y": 1.4366863314869949,
+        "z": 5.099999999999998
+      },
+      "orientation": {
+        "x": -0.29552020666133955,
+        "y": 0,
+        "z": 0.955336489125606
+      },
+      "homeRadius": 2.8,
+      "habitatKind": "sheltered-crevice"
+    },
+    "anemoneVertices": 36072,
+    "morayVertices": 3960
+  },
+  "views": [
+    {
+      "name": "overview",
+      "camera": [0, 13, 25],
+      "draws": 215,
+      "triangles": 1510967,
+      "eel": {
+        "state": "peeking",
+        "extension": 0.5608684261991236,
+        "time": 20.200000000000163
+      }
+    },
+    {
+      "name": "host-pair",
+      "camera": [-4.626794353585334, 4.498824633952927, 4.691688266842736],
+      "draws": 131,
+      "triangles": 1163404,
+      "eel": {
+        "state": "peeking",
+        "extension": 0.5608684261991236,
+        "time": 20.200000000000163
+      }
+    },
+    {
+      "name": "anemone",
+      "camera": [-5.9267943535853345, 3.9988246339529274, 3.1916882668427364],
+      "draws": 123,
+      "triangles": 1150148,
+      "eel": {
+        "state": "peeking",
+        "extension": 0.5608684261991236,
+        "time": 20.200000000000163
+      }
+    },
+    {
+      "name": "anemone-motion",
+      "before": 20.216700000000163,
+      "after": 25.21670000000041
+    },
+    {
+      "name": "clownfish",
+      "camera": [-8.162281350054837, 3.926765578279062, 3.6130769851537523],
+      "draws": 143,
+      "triangles": 1420460,
+      "eel": {
+        "state": "peeking",
+        "extension": 0.5608684261991236,
+        "time": 20.200000000000163
+      }
+    },
+    {
+      "name": "eel-hidden",
+      "camera": [5.270844426653529, 1.716686331486995, 8.871161175093812],
+      "draws": 150,
+      "triangles": 1312304,
+      "eel": {
+        "state": "hidden",
+        "extension": 0.00024139508749570154,
+        "time": 59.066666666665874
+      }
+    },
+    {
+      "name": "eel-peeking",
+      "camera": [5.270844426653529, 1.716686331486995, 8.871161175093812],
+      "draws": 150,
+      "triangles": 1312304,
+      "eel": {
+        "state": "peeking",
+        "extension": 0.5006552303531938,
+        "time": 87.46666666666427
+      }
+    },
+    {
+      "name": "eel-resting",
+      "camera": [5.270844426653529, 1.716686331486995, 8.871161175093812],
+      "draws": 150,
+      "triangles": 1312304,
+      "eel": {
+        "state": "resting",
+        "extension": 0.7601258914479027,
+        "time": 95.63333333333047
+      }
+    },
+    {
+      "name": "eel-emerging",
+      "camera": [5.270844426653529, 1.716686331486995, 8.871161175093812],
+      "draws": 150,
+      "triangles": 1312304,
+      "eel": {
+        "state": "emerging",
+        "extension": 0.9606176518553328,
+        "time": 118.59999999999583
+      }
+    },
+    {
+      "name": "eel-retreating",
+      "camera": [5.270844426653529, 1.716686331486995, 8.871161175093812],
+      "draws": 150,
+      "triangles": 1312304,
+      "eel": {
+        "state": "retreating",
+        "extension": 0.6407983287642018,
+        "time": 122.1666666666623
+      }
+    },
+    {
+      "name": "eel-head",
+      "camera": [5.2684264697011995, 1.5666863314869948, 8.033011932127991],
+      "draws": 149,
+      "triangles": 1299304,
+      "eel": {
+        "state": "resting",
+        "extension": 0.7604344758420123,
+        "time": 158.33333333332692
+      }
+    }
+  ],
+  "profile": {
+    "samples": 240,
+    "batchSize": 20,
+    "clownfishStepMs": {
+      "mean": 0.029520833333347856,
+      "p95": 0.03500000000058208,
+      "p99": 0.04499999999825377
+    },
+    "anchoredMs": {
+      "mean": 0.00712500000000241,
+      "p95": 0.014999999999417923,
+      "p99": 0.020000000001164153
+    },
+    "pair": [
+      {
+        "id": 38,
+        "size": 0.9927541948389262,
+        "homeDistance": 1.176404659166725,
+        "corrections": 0
+      },
+      {
+        "id": 39,
+        "size": 1.060180398169905,
+        "homeDistance": 0.9044210021162761,
+        "corrections": 0
+      }
+    ],
+    "hostCount": 1
+  },
+  "response": {
+    "before": 0.7604344758420123,
+    "after": 0.2531266480549118,
+    "state": "retreating",
+    "retreats": 1
+  },
+  "pause": {
+    "before": {
+      "anemone": 185.21669999999204,
+      "eel": 319.33333333337174,
+      "extension": 5.295595725162559e-12
+    },
+    "after": {
+      "anemone": 185.21669999999204,
+      "eel": 319.33333333337174,
+      "extension": 5.295595725162559e-12
+    }
+  },
+  "cleanup": {
+    "before": {
+      "geometries": 328,
+      "textures": 94
+    },
+    "after": {
+      "geometries": 0,
+      "textures": 0
+    },
+    "audio": "closed"
+  },
+  "errors": [],
+  "warnings": []
+}

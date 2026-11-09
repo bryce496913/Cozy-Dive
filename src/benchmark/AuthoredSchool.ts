@@ -1,6 +1,31 @@
 import * as THREE from 'three';
 import type { AssetLease } from '../assets/AssetLoader';
 import type { FishSystem } from '../fish/FishSystem';
+const TEXTURE_SLOTS = [
+  'map',
+  'normalMap',
+  'roughnessMap',
+  'metalnessMap',
+  'aoMap',
+  'alphaMap',
+] as const;
+/**
+ * Species libraries derived from one rig embed identical maps under the same image name. Point
+ * every clone at the first decoded copy so each map uploads once; the asset cache still owns and
+ * disposes its own (never-uploaded) duplicates.
+ */
+export function shareTextures(
+  material: THREE.MeshStandardMaterial,
+  pool: Map<string, THREE.Texture>,
+): void {
+  for (const slot of TEXTURE_SLOTS) {
+    const texture = material[slot];
+    if (!texture?.name) continue;
+    const shared = pool.get(texture.name);
+    if (shared) material[slot] = shared;
+    else pool.set(texture.name, texture);
+  }
+}
 /** Authored morph geometry + articulated pectorals, shared across the unchanged 20-fish simulation. */
 export class AuthoredSchool {
   readonly root = new THREE.Group();
@@ -14,6 +39,8 @@ export class AuthoredSchool {
     private readonly fish: FishSystem,
     private readonly leases: readonly AssetLease[],
     speciesId = 'blue-green-chromis',
+    /** Optional cross-species texture pool keyed by authored image name (identical maps upload once). */
+    sharedTextures?: Map<string, THREE.Texture>,
   ) {
     this.root.name = `Authored ${speciesId} school`;
     this.indices = fish.simulation.fish.flatMap((f, i) =>
@@ -50,6 +77,7 @@ export class AuthoredSchool {
           // Biological sheen is restrained; glTF maps retain local scale/roughness detail.
           material.metalness = 0;
           material.envMapIntensity = 0.35;
+          if (sharedTextures) shareTextures(material, sharedTextures);
         }
         materials.set(part.material, material);
         this.materials.add(material);

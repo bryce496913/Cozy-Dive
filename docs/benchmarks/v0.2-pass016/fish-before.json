@@ -1,0 +1,99 @@
+{
+  "base": "http://127.0.0.1:5174",
+  "views": [
+    {
+      "view": "chromis",
+      "species": "blue-green-chromis",
+      "calls": 114,
+      "triangles": 705636,
+      "memory": {
+        "geometries": 233,
+        "textures": 48
+      },
+      "cpuSubmitMs": [574.0999999999985, 3, 2.099999999998545]
+    },
+    {
+      "view": "chromis-school",
+      "species": "blue-green-chromis",
+      "calls": 115,
+      "triangles": 713059,
+      "memory": {
+        "geometries": 235,
+        "textures": 48
+      },
+      "cpuSubmitMs": [
+        3.6000000000058208, 1.6000000000058208, 1.1999999999970896
+      ]
+    },
+    {
+      "view": "cardinalfish",
+      "species": "pajama-cardinalfish",
+      "calls": 106,
+      "triangles": 768564,
+      "memory": {
+        "geometries": 236,
+        "textures": 48
+      },
+      "cpuSubmitMs": [
+        4.2000000000116415, 1.5999999999912689, 1.1000000000058208
+      ]
+    },
+    {
+      "view": "firefish",
+      "species": "firefish-goby",
+      "calls": 104,
+      "triangles": 810401,
+      "memory": {
+        "geometries": 237,
+        "textures": 48
+      },
+      "cpuSubmitMs": [2, 1.1999999999970896, 1.0999999999912689]
+    },
+    {
+      "view": "assessor",
+      "species": "yellow-assessor",
+      "calls": 62,
+      "triangles": 506129,
+      "memory": {
+        "geometries": 237,
+        "textures": 48
+      },
+      "cpuSubmitMs": [5.30000000000291, 1.1999999999970896, 0.8000000000029104]
+    },
+    {
+      "view": "gramma",
+      "species": "royal-gramma",
+      "calls": 105,
+      "triangles": 904225,
+      "memory": {
+        "geometries": 248,
+        "textures": 48
+      },
+      "cpuSubmitMs": [13.10000000000582, 2.099999999991269, 2.1000000000058208]
+    },
+    {
+      "view": "clownfish",
+      "species": "ocellaris-clownfish",
+      "calls": 148,
+      "triangles": 983459,
+      "memory": {
+        "geometries": 250,
+        "textures": 48
+      },
+      "cpuSubmitMs": [8.89999999999418, 5.100000000005821, 2.8999999999941792]
+    }
+  ],
+  "requests": [
+    "http://127.0.0.1:5174/assets/models/ornaments/reef-props.glb",
+    "http://127.0.0.1:5174/assets/models/creatures/anchored-life.glb",
+    "http://127.0.0.1:5174/assets/models/creatures/nudibranchs.glb",
+    "http://127.0.0.1:5174/assets/models/fish/clownfish.glb",
+    "http://127.0.0.1:5174/assets/models/reef/reef-environment.glb"
+  ],
+  "errors": [],
+  "pause": {
+    "schools": 1,
+    "frozen": true
+  },
+  "webglErrors": 0
+}

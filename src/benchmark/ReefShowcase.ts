@@ -85,6 +85,9 @@ export class ReefShowcase implements Presentation {
       if (b.visuals[0].root.name.startsWith('Blue-green chromis'))
         b.root.visible = value ? false : this.original[i];
     });
+    // Since Pass 016 the normal scene already swims authored chromis; never draw both schools.
+    const normal = this.world.authored.school('blue-green-chromis');
+    if (normal) normal.root.visible = !value;
     q.replacePresentationColliders(
       value ? this.formation.colliders : this.colliders,
       value ? this.colliders : this.formation.colliders,

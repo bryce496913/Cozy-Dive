@@ -46,8 +46,9 @@ try {
         n.textContent.includes('Preparing aquarium'),
       ),
   );
-  assert.equal(modelResponses.size, 5); // Pass 013 libraries + Pass 014 reef + Pass 015 nudibranchs
-  assert.deepEqual([...modelResponses.values()], [200, 200, 200, 200, 200]);
+  // Pass 013 libraries + Pass 014 reef + Pass 015 nudibranchs + Pass 016 fish (chromis and four species)
+  assert.equal(modelResponses.size, 10);
+  assert.deepEqual([...modelResponses.values()], Array(10).fill(200));
   assert.equal(
     await page
       .getByText('Some aquarium details could not load.', { exact: false })

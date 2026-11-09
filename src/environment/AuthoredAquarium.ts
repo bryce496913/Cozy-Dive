@@ -1,10 +1,21 @@
 import * as THREE from 'three';
 import { ConvexGeometry } from 'three/addons/geometries/ConvexGeometry.js';
 import { AssetLoader, type AssetLease } from '../assets/AssetLoader';
+import type { AssetId } from '../assets/AssetRegistry';
+import { FISH_SPECIES, type SpeciesId } from '../fish/FishSpecies';
 import { assetColliders } from '../assets/AssetCollision';
 import { AuthoredSchool } from '../benchmark/AuthoredSchool';
 import type { Aquarium } from './Aquarium';
 import type { ConvexCollider } from '../player/collision';
+/** Authored fish libraries and the species each drives (Pass 012/013 chromis and clownfish, Pass 016 rest). */
+const AUTHORED_FISH: readonly (readonly [AssetId, SpeciesId])[] = [
+  ['chromis', 'blue-green-chromis'],
+  ['cardinalfish', 'pajama-cardinalfish'],
+  ['firefish', 'firefish-goby'],
+  ['assessor', 'yellow-assessor'],
+  ['gramma', 'royal-gramma'],
+  ['clownfish', 'ocellaris-clownfish'],
+];
 /** The procedural moray skin replaces diffuse colour; authored skins carry their own pattern. */
 const AUTHORED_COLOUR_OVERRIDE =
   'diffuseColor.rgb=mix(diffuseColor.rgb,skin,vMorayMask);';
@@ -22,8 +33,8 @@ export class AuthoredAquarium {
     authored: readonly ConvexCollider[];
   }[] = [];
   private lid?: THREE.BufferGeometry;
-  private school?: AuthoredSchool;
-  private clownBatch?: THREE.Object3D;
+  private readonly schools = new Map<SpeciesId, AuthoredSchool>();
+  private readonly batches: THREE.Object3D[] = [];
   private readonly slugs: {
     mesh: THREE.Mesh;
     animal: { readonly pose: THREE.Object3D };
@@ -32,6 +43,14 @@ export class AuthoredAquarium {
   private enabled = false;
   constructor(private readonly q: Aquarium) {
     this.ready = this.load();
+  }
+  /** The authored school for a species, when ready (benchmarks compose their own). */
+  school(species: SpeciesId): AuthoredSchool | undefined {
+    return this.schools.get(species);
+  }
+  private speciesCount(species: SpeciesId): number {
+    return this.q.fish.simulation.fish.filter((f) => f.species.id === species)
+      .length;
   }
   private hide(root: THREE.Object3D): void {
     root.traverse((o) => {
@@ -100,8 +119,12 @@ export class AuthoredAquarium {
       this.loader.acquire('reefProps'),
       this.loader.acquire('anchored'),
       this.loader.acquire('nudibranchs'),
-      this.loader.acquire('clownfish'),
-      this.loader.acquire('clownfish'),
+      // One lightweight cloned rig per fish; each library decodes once.
+      ...AUTHORED_FISH.flatMap(([asset, species]) =>
+        Array.from({ length: this.speciesCount(species) }, () =>
+          this.loader.acquire(asset),
+        ),
+      ),
     ]);
     this.leases = results.flatMap((r) =>
       r.status === 'fulfilled' ? [r.value] : [],
@@ -112,7 +135,7 @@ export class AuthoredAquarium {
       return false;
     }
     try {
-      const [props, animals, slugs, ...clowns] = this.leases;
+      const [props, animals, slugs, ...fishLeases] = this.leases;
       const names = {
         log: 'Log',
         shipwreck: 'Shipwreck',
@@ -236,15 +259,26 @@ export class AuthoredAquarium {
         this.attachments.push(mesh);
         this.slugs.push({ mesh, animal });
       });
-      this.school = new AuthoredSchool(
-        this.q.fish,
-        clowns,
-        'ocellaris-clownfish',
-      );
-      this.q.root.add(this.school.root);
-      this.clownBatch = this.q.fish.batches.find((b) =>
-        b.visuals[0].root.name.startsWith('Ocellaris'),
-      )?.root;
+      // Pass 016: every species swims as an authored morph rig driven by the unchanged simulation.
+      let next = 0;
+      const fishTextures = new Map<string, THREE.Texture>();
+      for (const [, species] of AUTHORED_FISH) {
+        const count = this.speciesCount(species),
+          school = new AuthoredSchool(
+            this.q.fish,
+            fishLeases.slice(next, next + count),
+            species,
+            fishTextures,
+          );
+        next += count;
+        this.q.root.add(school.root);
+        this.schools.set(species, school);
+        const name = FISH_SPECIES.find((s) => s.id === species)!.name;
+        const batch = this.q.fish.batches.find((b) =>
+          b.visuals[0].root.name.startsWith(name),
+        );
+        if (batch) this.batches.push(batch.root);
+      }
       this.state = 'ready';
       this.setEnabled(true);
       return true;
@@ -268,8 +302,8 @@ export class AuthoredAquarium {
     this.attachments.forEach(
       (o) => (o.visible = value && !o.name.startsWith('DYNAMIC_')),
     );
-    if (this.school) this.school.root.visible = value;
-    if (this.clownBatch) this.clownBatch.visible = !value;
+    this.schools.forEach((school) => (school.root.visible = value));
+    this.batches.forEach((batch) => (batch.visible = !value));
     for (const h of this.hulls)
       this.q.replacePresentationColliders(
         value ? h.original : h.authored,
@@ -279,7 +313,7 @@ export class AuthoredAquarium {
   }
   update(): void {
     if (!this.enabled) return;
-    this.school?.update();
+    this.schools.forEach((school) => school.update());
     for (const { mesh, animal } of this.slugs) {
       mesh.matrix.copy(animal.pose.matrix);
       mesh.matrixWorldNeedsUpdate = true;
@@ -289,8 +323,8 @@ export class AuthoredAquarium {
     this.attachments.forEach((o) => o.removeFromParent());
     this.attachments.length = 0;
     this.slugs.length = 0;
-    this.school?.dispose();
-    this.school = undefined;
+    this.schools.forEach((school) => school.dispose());
+    this.schools.clear();
     this.ownedMaterials.forEach((m) => m.dispose());
     this.ownedMaterials.clear();
     this.lid?.dispose();
@@ -300,7 +334,7 @@ export class AuthoredAquarium {
     this.loader.dispose();
     this.originals.clear();
     this.hulls.length = 0;
-    this.clownBatch = undefined;
+    this.batches.length = 0;
   }
   dispose(): void {
     if (this.disposed) return;

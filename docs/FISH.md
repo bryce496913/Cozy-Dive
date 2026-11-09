@@ -42,3 +42,18 @@ Exactly two ocellaris clownfish use `anemone-host`, three white/dark bordered ba
 Pass 010 leaves all 40 ordinary fish, anatomy, tuning, IDs and locomotion unchanged. The hidden seahorse, frogfish and five nudibranchs belong to the separate habitat-bound layer; they are not added to this registry. See [hidden discoveries](HIDDEN_LIFE.md).
 
 Pass 011 retains the exact production roster and tuning. The extended 5/15/30-minute scenarios now also audit all anchored/hidden animals, real surface attachment, finite transforms, stable resource ownership and bounded chest particles alongside fish safety, activity progress and frame-rate determinism. The temporary 60-fish case is validation-only. See [current integration validation](VALIDATION_V02_PASS_011.md).
+
+## Pass 016 — authored reef fish
+
+Every free-swimming species now renders as an authored morph rig driven by the unchanged simulation. Body stroke morphs follow tail effort, pectorals follow the existing pivots, and instance poses come from the existing visuals.
+
+| Species             | Library                 | Authoring                                                                                                                        |
+| ------------------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Blue-green chromis  | `fish/chromis.glb`      | The accepted Pass 012 benchmark fish, promoted into the normal aquarium                                                          |
+| Pajama cardinalfish | `fish/cardinalfish.glb` | Deep body, tall fins, large red eyes; green-gold head, black bar, silver rear with orange-red spots                              |
+| Firefish goby       | `fish/firefish.glb`     | Slender body with a tall, swept-back dorsal pennant; yellow head, white body, orange-red rear, crimson tail and dark fin margins |
+| Yellow assessor     | `fish/assessor.glb`     | Rounder body, truncate tail; bright yellow, paler belly, orange fin edges                                                        |
+| Royal gramma        | `fish/gramma.glb`       | Slim; violet front fading to gold, black line through the eye, dark dorsal spot                                                  |
+| Ocellaris clownfish | `fish/clownfish.glb`    | Unchanged (Pass 013)                                                                                                             |
+
+The four new species reshape the accepted chromis rig (`tools/art/pass016/fish.py`). Each keeps its exact topology, both stroke morphs and pectoral pivots, and is scaled per axis to the species' length, height and width, plus species anatomy; eyes scale uniformly about their own centres. Colour comes from object-space vertex patterns over luminance-only versions of the accepted chromis scale and fin-ray maps. Procedural fish batches stay resident as the fallback, and pause, reduced motion and fish behaviour are unchanged.

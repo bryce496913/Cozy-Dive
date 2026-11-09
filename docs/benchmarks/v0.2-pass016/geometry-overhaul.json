@@ -1,0 +1,282 @@
+{
+  "views": [
+    {
+      "kind": "log",
+      "file": "log-before.png",
+      "enabled": false,
+      "calls": 171,
+      "triangles": 819745,
+      "memory": {
+        "geometries": 238,
+        "textures": 74
+      },
+      "softwareSynchronizedFrameMs": [988.5, 1.6999999999534339]
+    },
+    {
+      "kind": "log",
+      "file": "log-after.png",
+      "enabled": true,
+      "calls": 159,
+      "triangles": 1394741,
+      "memory": {
+        "geometries": 244,
+        "textures": 74
+      },
+      "softwareSynchronizedFrameMs": [14.300000000046566, 2.6000000000931323]
+    },
+    {
+      "kind": "shipwreck",
+      "file": "shipwreck-before.png",
+      "enabled": false,
+      "calls": 148,
+      "triangles": 699698,
+      "memory": {
+        "geometries": 274,
+        "textures": 74
+      },
+      "softwareSynchronizedFrameMs": [9.900000000139698, 1.5]
+    },
+    {
+      "kind": "shipwreck",
+      "file": "shipwreck-after.png",
+      "enabled": true,
+      "calls": 138,
+      "triangles": 996919,
+      "memory": {
+        "geometries": 291,
+        "textures": 80
+      },
+      "softwareSynchronizedFrameMs": [35, 8.799999999813735]
+    },
+    {
+      "kind": "arch",
+      "file": "arch-before.png",
+      "enabled": false,
+      "calls": 77,
+      "triangles": 662205,
+      "memory": {
+        "geometries": 294,
+        "textures": 80
+      },
+      "softwareSynchronizedFrameMs": [3, 1]
+    },
+    {
+      "kind": "arch",
+      "file": "arch-after.png",
+      "enabled": true,
+      "calls": 71,
+      "triangles": 839809,
+      "memory": {
+        "geometries": 294,
+        "textures": 80
+      },
+      "softwareSynchronizedFrameMs": [6, 1.6999999999534339]
+    },
+    {
+      "kind": "filter",
+      "file": "filter-before.png",
+      "enabled": false,
+      "calls": 50,
+      "triangles": 336940,
+      "memory": {
+        "geometries": 294,
+        "textures": 80
+      },
+      "softwareSynchronizedFrameMs": [1.5, 0.8000000000465661]
+    },
+    {
+      "kind": "filter",
+      "file": "filter-after.png",
+      "enabled": true,
+      "calls": 45,
+      "triangles": 386320,
+      "memory": {
+        "geometries": 294,
+        "textures": 80
+      },
+      "softwareSynchronizedFrameMs": [5.899999999906868, 1.3999999999068677]
+    },
+    {
+      "kind": "chest",
+      "file": "chest-before.png",
+      "enabled": false,
+      "calls": 168,
+      "triangles": 735533,
+      "memory": {
+        "geometries": 304,
+        "textures": 80
+      },
+      "softwareSynchronizedFrameMs": [2.800000000046566, 1.5999999998603016]
+    },
+    {
+      "kind": "chest",
+      "file": "chest-after.png",
+      "enabled": true,
+      "calls": 156,
+      "triangles": 1275370,
+      "memory": {
+        "geometries": 310,
+        "textures": 80
+      },
+      "softwareSynchronizedFrameMs": [5.399999999906868, 2.5]
+    },
+    {
+      "kind": "statue",
+      "file": "statue-before.png",
+      "enabled": false,
+      "calls": 96,
+      "triangles": 627795,
+      "memory": {
+        "geometries": 321,
+        "textures": 80
+      },
+      "softwareSynchronizedFrameMs": [3.199999999953434, 7]
+    },
+    {
+      "kind": "statue",
+      "file": "statue-after.png",
+      "enabled": true,
+      "calls": 94,
+      "triangles": 784777,
+      "memory": {
+        "geometries": 325,
+        "textures": 80
+      },
+      "softwareSynchronizedFrameMs": [5, 2.3999999999068677]
+    },
+    {
+      "kind": "seahorse",
+      "file": "seahorse-before.png",
+      "enabled": false,
+      "calls": 66,
+      "triangles": 494883,
+      "memory": {
+        "geometries": 325,
+        "textures": 80
+      },
+      "softwareSynchronizedFrameMs": [4.600000000093132, 1.0999999998603016]
+    },
+    {
+      "kind": "seahorse",
+      "file": "seahorse-after.png",
+      "enabled": true,
+      "calls": 63,
+      "triangles": 608891,
+      "memory": {
+        "geometries": 325,
+        "textures": 80
+      },
+      "softwareSynchronizedFrameMs": [2, 1]
+    },
+    {
+      "kind": "frogfish",
+      "file": "frogfish-before.png",
+      "enabled": false,
+      "calls": 127,
+      "triangles": 656598,
+      "memory": {
+        "geometries": 327,
+        "textures": 80
+      },
+      "softwareSynchronizedFrameMs": [6.7999999998137355, 1.3000000000465661]
+    },
+    {
+      "kind": "frogfish",
+      "file": "frogfish-after.png",
+      "enabled": true,
+      "calls": 114,
+      "triangles": 928635,
+      "memory": {
+        "geometries": 327,
+        "textures": 80
+      },
+      "softwareSynchronizedFrameMs": [3.199999999953434, 1.8999999999068677]
+    },
+    {
+      "kind": "moray",
+      "file": "moray-before.png",
+      "enabled": false,
+      "calls": 173,
+      "triangles": 833305,
+      "memory": {
+        "geometries": 327,
+        "textures": 80
+      },
+      "softwareSynchronizedFrameMs": [4.899999999906868, 3.800000000046566]
+    },
+    {
+      "kind": "moray",
+      "file": "moray-after.png",
+      "enabled": true,
+      "calls": 173,
+      "triangles": 1429713,
+      "memory": {
+        "geometries": 327,
+        "textures": 80
+      },
+      "softwareSynchronizedFrameMs": [13.400000000139698, 11.699999999953434]
+    },
+    {
+      "kind": "host-pair",
+      "file": "host-pair-before.png",
+      "enabled": false,
+      "calls": 120,
+      "triangles": 829270,
+      "memory": {
+        "geometries": 328,
+        "textures": 80
+      },
+      "softwareSynchronizedFrameMs": [3.4000000001396984, 6.599999999860302]
+    },
+    {
+      "kind": "host-pair",
+      "file": "host-pair-after.png",
+      "enabled": true,
+      "calls": 123,
+      "triangles": 1093828,
+      "memory": {
+        "geometries": 328,
+        "textures": 80
+      },
+      "softwareSynchronizedFrameMs": [8.099999999860302, 10]
+    }
+  ],
+  "requests": [
+    "http://127.0.0.1:5173/assets/models/ornaments/reef-props.glb",
+    "http://127.0.0.1:5173/assets/models/creatures/anchored-life.glb",
+    "http://127.0.0.1:5173/assets/models/creatures/nudibranchs.glb",
+    "http://127.0.0.1:5173/assets/models/fish/chromis.glb",
+    "http://127.0.0.1:5173/assets/models/fish/cardinalfish.glb",
+    "http://127.0.0.1:5173/assets/models/fish/firefish.glb",
+    "http://127.0.0.1:5173/assets/models/fish/assessor.glb",
+    "http://127.0.0.1:5173/assets/models/fish/gramma.glb",
+    "http://127.0.0.1:5173/assets/models/fish/clownfish.glb",
+    "http://127.0.0.1:5173/assets/models/reef/reef-environment.glb"
+  ],
+  "errors": [],
+  "animation": {
+    "rigs": 2,
+    "finite": true,
+    "moved": true,
+    "morphed": true,
+    "paused": true
+  },
+  "anatomy": {
+    "samples": 38644,
+    "intrusions": []
+  },
+  "inventory": {
+    "fish": 40,
+    "hidden": 7,
+    "hulls": 435
+  },
+  "cleanup": {
+    "geometries": 0,
+    "textures": 0
+  },
+  "fallback": "passed",
+  "pendingCleanup": {
+    "geometries": 0,
+    "textures": 0
+  }
+}

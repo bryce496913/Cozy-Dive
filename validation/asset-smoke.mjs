@@ -48,7 +48,7 @@ try {
     await p.evaluate(() => window.__visualBenchmark.world.authored.ready),
     true,
   );
-  assert.equal(models.length, 7); // includes the Pass 014 reef and Pass 015 nudibranchs
+  assert.equal(models.length, 12); // 10 normal-scene libraries + showcase chromis and Acropora
   assert.equal(await p.locator('#compare').isEnabled(), true);
   await p.getByRole('button', { name: 'Enter the Water' }).click();
   await p.waitForFunction(
