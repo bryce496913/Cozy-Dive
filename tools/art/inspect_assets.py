@@ -3,6 +3,7 @@ from pathlib import Path
 import struct,json,hashlib,io
 import numpy as np
 from PIL import Image
+import DracoPy  # Pass 017: shipped GLBs are Draco-compressed (KHR_draco_mesh_compression)
 R=Path(__file__).resolve().parents[2];rows=[]
 for relative in ['fish/chromis.glb','coral/acropora.glb','ornaments/reef-props.glb','creatures/anchored-life.glb','fish/clownfish.glb','reef/reef-environment.glb','creatures/nudibranchs.glb','fish/cardinalfish.glb','fish/firefish.glb','fish/assessor.glb','fish/gramma.glb']:
  p=R/'public/assets/models'/relative;b=p.read_bytes();magic,version,length=struct.unpack_from('<III',b);assert magic==0x46546c67 and version==2 and length==len(b)
@@ -16,13 +17,19 @@ for relative in ['fish/chromis.glb','coral/acropora.glb','ornaments/reef-props.g
   if 'bufferView' not in a:arrays.append(None);continue
   view=j['bufferViews'][a['bufferView']];types={5126:'<f4',5125:'<u4',5123:'<u2',5121:'u1'};count={'SCALAR':1,'VEC2':2,'VEC3':3,'VEC4':4,'MAT4':16}[a['type']];dt=np.dtype(types[a['componentType']]);start=view.get('byteOffset',0)+a.get('byteOffset',0);stride=view.get('byteStride',dt.itemsize*count)
   values=np.ndarray((a['count'],count),dtype=dt,buffer=blob,offset=start,strides=(stride,dt.itemsize));assert np.isfinite(values).all();geometryBytes+=values.nbytes;arrays.append(values.copy())
+ def geometry(primitive):
+  # Decoded float positions and triangles for plain or Draco-compressed primitives.
+  ext=primitive.get('extensions',{}).get('KHR_draco_mesh_compression')
+  if ext is None:return arrays[primitive['attributes']['POSITION']].astype(float),arrays[primitive['indices']].reshape(-1,3)
+  v=j['bufferViews'][ext['bufferView']];mesh=DracoPy.decode(blob[v.get('byteOffset',0):v.get('byteOffset',0)+v['byteLength']])
+  points=np.asarray(mesh.points,float).reshape(-1,3);assert np.isfinite(points).all() and len(points)>0;return points,np.asarray(mesh.faces).reshape(-1,3)
  visual=0;collision=0;meshes=0
  for node in j['nodes']:
   if 'mesh' not in node:continue
   for primitive in j['meshes'][node['mesh']]['primitives']:
    assert all(x in primitive['attributes'] for x in ['POSITION','NORMAL','TEXCOORD_0']);tri=j['accessors'][primitive['indices']]['count']//3
    if node.get('name','').startswith(('COLLIDER_','DYNAMIC_')):
-    collision+=tri;points=arrays[primitive['attributes']['POSITION']].astype(float);indices=arrays[primitive['indices']].reshape(-1,3)
+    collision+=tri;points,indices=geometry(primitive)
     # Hidden DCC collision meshes supply points. Runtime rebuilds exact convex faces
     # after glTF float32 conversion, independent of exporter cap triangulation.
     from scipy.spatial import ConvexHull
@@ -35,7 +42,7 @@ for relative in ['fish/chromis.glb','coral/acropora.glb','ornaments/reef-props.g
   from scipy.spatial import ConvexHull
   base=json.loads((R/'tools/art/pass014/baseline.json').read_text())
   named={n['name']:n for n in j['nodes']}
-  def pos(name):return arrays[j['meshes'][named[name]['mesh']]['primitives'][0]['attributes']['POSITION']].astype(float)
+  def pos(name):return geometry(j['meshes'][named[name]['mesh']]['primitives'][0])[0]
   def tris(name):return j['accessors'][j['meshes'][named[name]['mesh']]['primitives'][0]['indices']]['count']//3
   for i,t in enumerate(base['majorTemplates']):
    eq=ConvexHull(np.array(t['points'])).equations

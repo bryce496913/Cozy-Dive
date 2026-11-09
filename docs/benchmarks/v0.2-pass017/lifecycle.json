@@ -1,0 +1,367 @@
+{
+  "result": "PASS",
+  "swim": {
+    "gain": 0.024232560768723488,
+    "speed": 1.4754917257945261
+  },
+  "event": {
+    "voices": 1,
+    "time": 54.066600000000506,
+    "nodes": 19,
+    "loops": 3
+  },
+  "metrics": {
+    "contexts": 1,
+    "nodes": 19,
+    "loops": 3,
+    "buffers": 3,
+    "bufferBytes": 2048000,
+    "voices": 0,
+    "fish": 40
+  },
+  "longSession": [
+    {
+      "minute": 0,
+      "heapBytes": 25746108,
+      "tropical": {
+        "population": {
+          "blue-green-chromis": 20,
+          "pajama-cardinalfish": 6,
+          "firefish-goby": 6,
+          "yellow-assessor": 4,
+          "royal-gramma": 2,
+          "ocellaris-clownfish": 2
+        },
+        "geometries": 498,
+        "materials": 106,
+        "finite": true,
+        "ornaments": 6,
+        "hulls": 435,
+        "hiddenAnimals": 7,
+        "seahorseDistance": 0.000814480545838773,
+        "frogfishDistance": 0.06708203932499385,
+        "nudibranchs": [
+          {
+            "id": "nudibranch-1",
+            "distance": 0.05500007702234064,
+            "surfaceDistance": 0.0060000000000011156
+          },
+          {
+            "id": "nudibranch-2",
+            "distance": 0.07455319192022425,
+            "surfaceDistance": 0.0060000000000006715
+          },
+          {
+            "id": "nudibranch-3",
+            "distance": 0.05729402749724428,
+            "surfaceDistance": 0.006000000000000227
+          },
+          {
+            "id": "nudibranch-4",
+            "distance": 0.07121670399068478,
+            "surfaceDistance": 0.0060000000000011156
+          },
+          {
+            "id": "nudibranch-5",
+            "distance": 0.06283974818799472,
+            "surfaceDistance": 0.006000000000000449
+          }
+        ],
+        "moray": {
+          "state": "hidden",
+          "elapsed": 0.2333333333333333,
+          "extension": 0,
+          "time": 0.2333333333333333
+        },
+        "clocks": [
+          0.16783800111276898, 0.1678048987361969, 0.2333333333333333,
+          0.15043093885686043, 0.16783800111276898
+        ],
+        "chest": {
+          "time": 0,
+          "cycle": 0,
+          "openings": 0,
+          "bursts": 0,
+          "active": 0,
+          "drawn": 0
+        },
+        "bubblesInside": true
+      },
+      "uploaded": {
+        "geometries": 247,
+        "textures": 91
+      },
+      "contexts": 1,
+      "nodes": 19,
+      "buffers": 3,
+      "loops": 3,
+      "voices": 0,
+      "fish": 40,
+      "steps": 7,
+      "corrections": 0
+    },
+    {
+      "minute": 5,
+      "heapBytes": 26091312,
+      "tropical": {
+        "population": {
+          "blue-green-chromis": 20,
+          "pajama-cardinalfish": 6,
+          "firefish-goby": 6,
+          "yellow-assessor": 4,
+          "royal-gramma": 2,
+          "ocellaris-clownfish": 2
+        },
+        "geometries": 498,
+        "materials": 106,
+        "finite": true,
+        "ornaments": 6,
+        "hulls": 435,
+        "hiddenAnimals": 7,
+        "seahorseDistance": 0.0018038452352860863,
+        "frogfishDistance": 0.06708203932499385,
+        "nudibranchs": [
+          {
+            "id": "nudibranch-1",
+            "distance": 0.055000378177805745,
+            "surfaceDistance": 0.0060000000000011156
+          },
+          {
+            "id": "nudibranch-2",
+            "distance": 0.07454099902798733,
+            "surfaceDistance": 0.0060000000000006715
+          },
+          {
+            "id": "nudibranch-3",
+            "distance": 0.05732386489729595,
+            "surfaceDistance": 0.006000000000000227
+          },
+          {
+            "id": "nudibranch-4",
+            "distance": 0.07118385222778943,
+            "surfaceDistance": 0.0060000000000006715
+          },
+          {
+            "id": "nudibranch-5",
+            "distance": 0.062883224970352,
+            "surfaceDistance": 0.00599999999999945
+          }
+        ],
+        "moray": {
+          "state": "resting",
+          "elapsed": 2.333333333333335,
+          "extension": 0.754906279769677,
+          "time": 300.23333333335654
+        },
+        "clocks": [
+          0.3333330270674735, 0.333333027006214, 300.23333333335654,
+          0.333333027006214, 0.3333330270674735
+        ],
+        "chest": {
+          "time": 0,
+          "cycle": 0,
+          "openings": 0,
+          "bursts": 0,
+          "active": 0,
+          "drawn": 0
+        },
+        "bubblesInside": true
+      },
+      "uploaded": {
+        "geometries": 247,
+        "textures": 91
+      },
+      "contexts": 1,
+      "nodes": 19,
+      "buffers": 3,
+      "loops": 3,
+      "voices": 0,
+      "fish": 40,
+      "steps": 9007,
+      "corrections": 0
+    },
+    {
+      "minute": 15,
+      "heapBytes": 26272528,
+      "tropical": {
+        "population": {
+          "blue-green-chromis": 20,
+          "pajama-cardinalfish": 6,
+          "firefish-goby": 6,
+          "yellow-assessor": 4,
+          "royal-gramma": 2,
+          "ocellaris-clownfish": 2
+        },
+        "geometries": 498,
+        "materials": 106,
+        "finite": true,
+        "ornaments": 6,
+        "hulls": 435,
+        "hiddenAnimals": 7,
+        "seahorseDistance": 0.0018038452352860863,
+        "frogfishDistance": 0.06708203932499385,
+        "nudibranchs": [
+          {
+            "id": "nudibranch-1",
+            "distance": 0.055000378177805745,
+            "surfaceDistance": 0.0060000000000011156
+          },
+          {
+            "id": "nudibranch-2",
+            "distance": 0.07454099902798733,
+            "surfaceDistance": 0.0060000000000006715
+          },
+          {
+            "id": "nudibranch-3",
+            "distance": 0.05732386489729595,
+            "surfaceDistance": 0.006000000000000227
+          },
+          {
+            "id": "nudibranch-4",
+            "distance": 0.07118385222778943,
+            "surfaceDistance": 0.0060000000000006715
+          },
+          {
+            "id": "nudibranch-5",
+            "distance": 0.062883224970352,
+            "surfaceDistance": 0.00599999999999945
+          }
+        ],
+        "moray": {
+          "state": "resting",
+          "elapsed": 0.13333333333333333,
+          "extension": 0.6143298860834642,
+          "time": 900.2333333331719
+        },
+        "clocks": [
+          0.3333330270674735, 0.333333027006214, 900.2333333331719,
+          0.333333027006214, 0.3333330270674735
+        ],
+        "chest": {
+          "time": 0,
+          "cycle": 0,
+          "openings": 0,
+          "bursts": 0,
+          "active": 0,
+          "drawn": 0
+        },
+        "bubblesInside": true
+      },
+      "uploaded": {
+        "geometries": 247,
+        "textures": 91
+      },
+      "contexts": 1,
+      "nodes": 19,
+      "buffers": 3,
+      "loops": 3,
+      "voices": 0,
+      "fish": 40,
+      "steps": 27007,
+      "corrections": 0
+    },
+    {
+      "minute": 30,
+      "heapBytes": 26321312,
+      "tropical": {
+        "population": {
+          "blue-green-chromis": 20,
+          "pajama-cardinalfish": 6,
+          "firefish-goby": 6,
+          "yellow-assessor": 4,
+          "royal-gramma": 2,
+          "ocellaris-clownfish": 2
+        },
+        "geometries": 498,
+        "materials": 106,
+        "finite": true,
+        "ornaments": 6,
+        "hulls": 435,
+        "hiddenAnimals": 7,
+        "seahorseDistance": 0.0018038452352860863,
+        "frogfishDistance": 0.06708203932499385,
+        "nudibranchs": [
+          {
+            "id": "nudibranch-1",
+            "distance": 0.055000378177805745,
+            "surfaceDistance": 0.0060000000000011156
+          },
+          {
+            "id": "nudibranch-2",
+            "distance": 0.07454099902798733,
+            "surfaceDistance": 0.0060000000000006715
+          },
+          {
+            "id": "nudibranch-3",
+            "distance": 0.05732386489729595,
+            "surfaceDistance": 0.006000000000000227
+          },
+          {
+            "id": "nudibranch-4",
+            "distance": 0.07118385222778943,
+            "surfaceDistance": 0.0060000000000006715
+          },
+          {
+            "id": "nudibranch-5",
+            "distance": 0.062883224970352,
+            "surfaceDistance": 0.00599999999999945
+          }
+        ],
+        "moray": {
+          "state": "peeking",
+          "elapsed": 5.933333333333322,
+          "extension": 0.5875888368474421,
+          "time": 1800.2333333323534
+        },
+        "clocks": [
+          0.3333330270674735, 0.333333027006214, 1800.2333333323534,
+          0.333333027006214, 0.3333330270674735
+        ],
+        "chest": {
+          "time": 0,
+          "cycle": 0,
+          "openings": 0,
+          "bursts": 0,
+          "active": 0,
+          "drawn": 0
+        },
+        "bubblesInside": true
+      },
+      "uploaded": {
+        "geometries": 247,
+        "textures": 91
+      },
+      "contexts": 1,
+      "nodes": 19,
+      "buffers": 3,
+      "loops": 3,
+      "voices": 0,
+      "fish": 40,
+      "steps": 54007,
+      "corrections": 0
+    }
+  ],
+  "checks": [
+    "camera-directed ascent/descent",
+    "Space/Shift ignored",
+    "blur clears held input",
+    "modified M shortcuts ignored",
+    "silent preview",
+    "old settings migrate",
+    "gesture-started context",
+    "swimming audio",
+    "M mute/unmute",
+    "sparse voice rendered and released",
+    "Escape freeze",
+    "settings persistence",
+    "four pause/resume cycles",
+    "visibility handler",
+    "context closes on disposal",
+    "unsupported audio still permits swimming",
+    "no console errors"
+  ],
+  "limitations": [
+    "Headless software renderer; visibility handler used controlled hidden state",
+    "Functional Web Audio checks, not perceptual listening"
+  ]
+}

@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 from scipy.ndimage import gaussian_filter
-R=Path(__file__).resolve().parents[3]/'public/assets/textures/pass013';R.mkdir(parents=True,exist_ok=True)
+R=Path(__file__).resolve().parents[3]/'tools/art/textures/pass013';R.mkdir(parents=True,exist_ok=True)
 v,u=np.mgrid[0:512,0:512]/511;rng=np.random.default_rng(13013)
 def write(name,base,height,rough):
  def save(s,a):Image.fromarray(np.uint8(np.clip(a,0,1)*255)).save(R/f'{name}-{s}.png',optimize=True)

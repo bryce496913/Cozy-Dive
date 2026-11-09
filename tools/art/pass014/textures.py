@@ -10,7 +10,7 @@ import numpy as np
 from PIL import Image
 from scipy.spatial import cKDTree
 
-OUT = Path(__file__).resolve().parents[3] / 'public/assets/textures/pass014'
+OUT = Path(__file__).resolve().parents[3] / 'tools/art/textures/pass014'
 N = 512
 rng = np.random.default_rng(14014)
 v, u = np.mgrid[0:N, 0:N] / N

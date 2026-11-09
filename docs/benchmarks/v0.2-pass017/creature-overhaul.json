@@ -1,0 +1,183 @@
+{
+  "base": "http://127.0.0.1:5173",
+  "views": [
+    {
+      "view": "branching-coral",
+      "calls": 73,
+      "triangles": 704434,
+      "memory": {
+        "geometries": 260,
+        "textures": 94
+      },
+      "cpuSubmitMs": [
+        7.6000000005587935, 1.3999999994412065, 1.1000000005587935
+      ]
+    },
+    {
+      "view": "brain-coral",
+      "calls": 105,
+      "triangles": 949441,
+      "memory": {
+        "geometries": 271,
+        "textures": 94
+      },
+      "cpuSubmitMs": [24.799999999813735, 5.900000000372529, 3.7000000001862645]
+    },
+    {
+      "view": "boulder-coral",
+      "calls": 73,
+      "triangles": 644426,
+      "memory": {
+        "geometries": 284,
+        "textures": 94
+      },
+      "cpuSubmitMs": [2.900000000372529, 7.5, 1.5]
+    },
+    {
+      "view": "plate-coral",
+      "calls": 98,
+      "triangles": 959351,
+      "memory": {
+        "geometries": 286,
+        "textures": 94
+      },
+      "cpuSubmitMs": [6.7000000001862645, 2.099999999627471, 1.7000000001862645]
+    },
+    {
+      "view": "soft-coral",
+      "calls": 113,
+      "triangles": 1002897,
+      "memory": {
+        "geometries": 287,
+        "textures": 94
+      },
+      "cpuSubmitMs": [4.5, 2.099999999627471, 1.7000000001862645]
+    },
+    {
+      "view": "sea-fan",
+      "calls": 103,
+      "triangles": 934077,
+      "memory": {
+        "geometries": 287,
+        "textures": 94
+      },
+      "cpuSubmitMs": [9, 1.7999999998137355, 3.6000000005587935]
+    },
+    {
+      "view": "anemone",
+      "calls": 121,
+      "triangles": 1131224,
+      "memory": {
+        "geometries": 289,
+        "textures": 94
+      },
+      "cpuSubmitMs": [9, 9.200000000186265, 1.8999999994412065]
+    },
+    {
+      "view": "clownfish",
+      "calls": 121,
+      "triangles": 1128204,
+      "memory": {
+        "geometries": 290,
+        "textures": 94
+      },
+      "cpuSubmitMs": [10, 2.400000000372529, 3.7000000001862645]
+    },
+    {
+      "view": "moray",
+      "calls": 170,
+      "triangles": 1416153,
+      "memory": {
+        "geometries": 313,
+        "textures": 98
+      },
+      "cpuSubmitMs": [19.90000000037253, 5.099999999627471, 4]
+    },
+    {
+      "view": "frogfish",
+      "calls": 79,
+      "triangles": 702629,
+      "memory": {
+        "geometries": 348,
+        "textures": 104
+      },
+      "cpuSubmitMs": [29.700000000186265, 2.5, 2.2000000001862645]
+    },
+    {
+      "view": "seahorse",
+      "calls": 60,
+      "triangles": 638909,
+      "memory": {
+        "geometries": 349,
+        "textures": 104
+      },
+      "cpuSubmitMs": [3, 1.2000000001862645, 4.099999999627471]
+    },
+    {
+      "view": "nudibranch-1",
+      "calls": 46,
+      "triangles": 449746,
+      "memory": {
+        "geometries": 349,
+        "textures": 104
+      },
+      "cpuSubmitMs": [2.2999999998137355, 1.599999999627471, 1.400000000372529]
+    },
+    {
+      "view": "nudibranch-2",
+      "calls": 115,
+      "triangles": 999617,
+      "memory": {
+        "geometries": 349,
+        "textures": 104
+      },
+      "cpuSubmitMs": [4.7000000001862645, 1.7999999998137355, 1.5]
+    },
+    {
+      "view": "nudibranch-3",
+      "calls": 68,
+      "triangles": 669479,
+      "memory": {
+        "geometries": 352,
+        "textures": 104
+      },
+      "cpuSubmitMs": [2.7000000001862645, 1.2999999998137355, 1]
+    },
+    {
+      "view": "nudibranch-4",
+      "calls": 40,
+      "triangles": 371522,
+      "memory": {
+        "geometries": 352,
+        "textures": 104
+      },
+      "cpuSubmitMs": [
+        1.3999999994412065, 5.1000000005587935, 0.7999999998137355
+      ]
+    },
+    {
+      "view": "nudibranch-5",
+      "calls": 37,
+      "triangles": 353630,
+      "memory": {
+        "geometries": 352,
+        "textures": 104
+      },
+      "cpuSubmitMs": [2.2000000001862645, 3, 1.2000000001862645]
+    }
+  ],
+  "requests": [
+    "http://127.0.0.1:5173/assets/models/ornaments/reef-props.glb",
+    "http://127.0.0.1:5173/assets/models/creatures/anchored-life.glb",
+    "http://127.0.0.1:5173/assets/models/creatures/nudibranchs.glb",
+    "http://127.0.0.1:5173/assets/models/fish/chromis.glb",
+    "http://127.0.0.1:5173/assets/models/fish/cardinalfish.glb",
+    "http://127.0.0.1:5173/assets/models/fish/firefish.glb",
+    "http://127.0.0.1:5173/assets/models/fish/assessor.glb",
+    "http://127.0.0.1:5173/assets/models/fish/gramma.glb",
+    "http://127.0.0.1:5173/assets/models/fish/clownfish.glb",
+    "http://127.0.0.1:5173/assets/models/reef/reef-environment.glb"
+  ],
+  "errors": [],
+  "webglErrors": 0
+}

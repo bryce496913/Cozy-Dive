@@ -13,7 +13,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'pass014'))
 import textures as t14  # noqa: E402
 
-t14.OUT = Path(__file__).resolve().parents[3] / 'public/assets/textures/pass015'
+t14.OUT = Path(__file__).resolve().parents[3] / 'tools/art/textures/pass015'
 spectral, fbm, cells, write, N = t14.spectral, t14.fbm, t14.cells, t14.write, t14.N
 u, v = t14.u, t14.v
 

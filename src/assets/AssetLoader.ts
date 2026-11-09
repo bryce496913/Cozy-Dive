@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { clone } from 'three/addons/utils/SkeletonUtils.js';
 import { ASSET_REGISTRY, type AssetId } from './AssetRegistry';
 import {
@@ -24,13 +25,16 @@ interface Entry {
 export class AssetLoader {
   private readonly entries = new Map<AssetId, Entry>();
   private disposed = false;
+  private readonly read: (url: string) => Promise<LoadedAsset>;
+  /** Pass 017: shipped GLBs are Draco-compressed; the local decoder is created on first use. */
+  private draco?: DRACOLoader;
   constructor(
-    private readonly read: (
-      url: string,
-    ) => Promise<LoadedAsset> = AssetLoader.readLocal,
+    read?: (url: string) => Promise<LoadedAsset>,
     private readonly status?: (id: AssetId, state: AssetState) => void,
-  ) {}
-  private static readLocal(url: string): Promise<LoadedAsset> {
+  ) {
+    this.read = read ?? ((url) => this.readLocal(url));
+  }
+  private readLocal(url: string): Promise<LoadedAsset> {
     const manager = new THREE.LoadingManager();
     manager.setURLModifier((request) => {
       if (request.startsWith('blob:') || request.startsWith('data:'))
@@ -40,7 +44,14 @@ export class AssetLoader {
         throw Error('External runtime asset requests are forbidden');
       return resolved.href;
     });
-    return new GLTFLoader(manager).loadAsync(url);
+    if (!this.draco) {
+      // Local wasm decoder (public/assets/draco); two workers keep startup decoding brief
+      // without competing with the main thread for every core.
+      this.draco = new DRACOLoader(manager)
+        .setDecoderPath(`${import.meta.env.BASE_URL}assets/draco/`)
+        .setWorkerLimit(2);
+    }
+    return new GLTFLoader(manager).setDRACOLoader(this.draco).loadAsync(url);
   }
   async acquire(id: AssetId): Promise<AssetLease> {
     if (this.disposed) throw Error('Asset cache is disposed');
@@ -118,5 +129,8 @@ export class AssetLoader {
       this.free(entry);
     }
     this.entries.clear();
+    // Pending decodes settle first; the worker pool is released once nothing can use it.
+    this.draco?.dispose();
+    this.draco = undefined;
   }
 }

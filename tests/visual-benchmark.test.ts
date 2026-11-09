@@ -16,7 +16,12 @@ it('animates the shared authored morph rig without changing simulation, pauses e
     const before = JSON.stringify(fish.simulation.fish);
     school.update();
     expect(JSON.stringify(fish.simulation.fish)).toBe(before);
-    expect(school.meshes.every((m) => m.count === 20)).toBe(true);
+    // Without a camera every fish is drawn at full detail; the Pass 017 distance set is empty.
+    const full = school.meshes.filter((m) => !m.name.includes('_LOD1')),
+      far = school.meshes.filter((m) => m.name.includes('_LOD1'));
+    expect(full.every((m) => m.count === 20)).toBe(true);
+    expect(far.length).toBeGreaterThan(0);
+    expect(far.every((m) => m.count === 0)).toBe(true);
     const texture = school.meshes[0].morphTexture!,
       spy = vi.spyOn(texture, 'dispose');
     const pixels = texture.source.data.data;

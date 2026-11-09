@@ -25,11 +25,13 @@ export function assetFixture(): LoadedAsset {
       geometry.attributes.position.getZ(i) - 0.02,
     );
   }
+  // Pass 017: libraries carry a morphing distance level beside the full rig.
   for (const name of [
     'Body',
     'Median_Fins',
     'Pectoral_Left',
     'Pectoral_Right',
+    'Body_LOD1',
   ]) {
     const mesh = new THREE.Mesh(geometry, material);
     mesh.name = name;

@@ -4,7 +4,7 @@ All geometry/maps original to Cozy Diver; game frame X forward, Y up, Z flank.
 import bpy, math, random, json, bmesh
 from mathutils import Vector
 from pathlib import Path
-R=Path(__file__).resolve().parents[2];OUT=R/'public/assets/models';TEX=R/'public/assets/textures';random.seed(12012)
+R=Path(__file__).resolve().parents[2];OUT=R/'public/assets/models';TEX=R/'tools/art/textures';random.seed(12012)
 def xyz(p):return (p[0],-p[2],p[1])
 def reset():
  bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)

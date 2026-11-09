@@ -4,6 +4,7 @@ export const ASSET_REGISTRY = {
     requiredNodes: [
       'Chromis_Root',
       'Body',
+      'Body_LOD1',
       'Median_Fins',
       'Pectoral_Left',
       'Pectoral_Right',
@@ -63,6 +64,7 @@ export const ASSET_REGISTRY = {
     requiredNodes: [
       'Clownfish_Root',
       'Body',
+      'Body_LOD1',
       'Pectoral_Left',
       'Pectoral_Right',
     ],
@@ -102,6 +104,7 @@ export const ASSET_REGISTRY = {
     requiredNodes: [
       'Cardinalfish_Root',
       'Body',
+      'Body_LOD1',
       'Median_Fins',
       'Pectoral_Left',
       'Pectoral_Right',
@@ -115,6 +118,7 @@ export const ASSET_REGISTRY = {
     requiredNodes: [
       'Firefish_Root',
       'Body',
+      'Body_LOD1',
       'Median_Fins',
       'Pectoral_Left',
       'Pectoral_Right',
@@ -128,6 +132,7 @@ export const ASSET_REGISTRY = {
     requiredNodes: [
       'Assessor_Root',
       'Body',
+      'Body_LOD1',
       'Median_Fins',
       'Pectoral_Left',
       'Pectoral_Right',
@@ -141,6 +146,7 @@ export const ASSET_REGISTRY = {
     requiredNodes: [
       'Gramma_Root',
       'Body',
+      'Body_LOD1',
       'Median_Fins',
       'Pectoral_Left',
       'Pectoral_Right',

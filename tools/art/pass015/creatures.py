@@ -27,7 +27,7 @@ from scipy.spatial import cKDTree
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
-TEX = ROOT / 'public/assets/textures/pass015'
+TEX = ROOT / 'tools/art/textures/pass015'
 SOURCE = HERE / 'anchored-life.pass013.glb'  # accepted Pass 013 export, the pinned input
 OUT = ROOT / 'public/assets/models/creatures/anchored-life.glb'
 TAU = math.tau

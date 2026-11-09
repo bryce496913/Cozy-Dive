@@ -31,6 +31,7 @@ browser.newPage = async (options) => {
 const base = process.env.COZY_URL || 'http://127.0.0.1:5173';
 const report = { base, views: [], requests: [], errors: [] };
 const VIEWS = [
+  ['spawn', 'blue-green-chromis', -1],
   ['chromis', 'blue-green-chromis', 2.6],
   ['chromis-school', 'blue-green-chromis', 0],
   ['cardinalfish', 'pajama-cardinalfish', 2.2],
@@ -82,7 +83,11 @@ try {
         w.authored.update?.();
         w.scene.updateMatrixWorld(true);
         const target = root.getWorldPosition(new THREE.Vector3());
-        if (distance === 0) {
+        if (distance === -1) {
+          // The player's spawn view down the open channel: most fish are at swimming distance.
+          target.set(0, 3.4, -5);
+          w.camera.position.set(0, 4.6, 9);
+        } else if (distance === 0) {
           // Whole school: centroid of the species, viewed from the open channel side.
           target.set(0, 0, 0);
           const members = f.simulation.fish.filter(
@@ -111,17 +116,33 @@ try {
     );
     const metrics = await page.evaluate(() => {
       const w = window.__cozy.world;
-      const times = [];
-      for (let i = 0; i < 3; i++) {
-        const t = performance.now();
-        w.renderer.render(w.scene, w.camera);
-        times.push(performance.now() - t);
-      }
+      const draw = (camera) => {
+        // Pass 017: update(camera) applies the per-fish distance level; update() is all full detail.
+        w.authored.update(camera);
+        w.scene.updateMatrixWorld(true);
+        const times = [];
+        for (let i = 0; i < 3; i++) {
+          const t = performance.now();
+          w.renderer.render(w.scene, w.camera);
+          times.push(performance.now() - t);
+        }
+        return {
+          calls: w.renderer.info.render.calls,
+          triangles: w.renderer.info.render.triangles,
+          cpuSubmitMs: times,
+        };
+      };
+      const full = draw(undefined);
+      const lod = draw(w.camera); // leave the realistic level in place for the screenshot
+      const near = [...(w.authored.schools?.values?.() ?? [])].reduce(
+        (n, s) => n + (s.nearCount ?? 0),
+        0,
+      );
       return {
-        calls: w.renderer.info.render.calls,
-        triangles: w.renderer.info.render.triangles,
+        ...lod,
+        fullDetail: { calls: full.calls, triangles: full.triangles },
+        nearFish: near,
         memory: { ...w.renderer.info.memory },
-        cpuSubmitMs: times,
       };
     });
     await page.screenshot({ path: path.join(output, `${view}.png`) });

@@ -133,3 +133,14 @@ COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy016-after node validation/fi
 ```
 
 The harness freezes the simulation, frames the first fish of each species from its right side at a length-proportional distance, adds a whole-chromis-school view, records draws, triangles, GPU resources and submission time, and asserts that every authored school freezes exactly on pause.
+
+## Pass 017 fish LOD and compression
+
+`fish-overhaul.mjs` now records each view twice from the same camera, with the per-fish distance level and forced to full detail, plus the number of fish drawn at full detail. A spawn view down the channel shows the typical saving.
+
+```bash
+npm run build && npx vite preview --host 127.0.0.1 --port 5175
+COZY_URL=http://127.0.0.1:5175 COZY_OUTPUT=/tmp/cozy017-load node validation/load-budget.mjs
+```
+
+`load-budget.mjs` reports the bytes actually transferred (`request.sizes()`, split into models, decoder and scripts) and the time from navigation until the "Preparing aquarium details" status clears, over three fresh contexts. On localhost this time is dominated by decoding and SwiftShader shader preparation, not by download.

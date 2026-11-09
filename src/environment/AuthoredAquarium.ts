@@ -311,9 +311,10 @@ export class AuthoredAquarium {
       );
     this.q.ornaments.setLidCollisionGeometry(value ? this.lid : undefined);
   }
-  update(): void {
+  /** `camera` enables the Pass 017 per-fish distance level; without it every fish is full detail. */
+  update(camera?: THREE.Camera): void {
     if (!this.enabled) return;
-    this.schools.forEach((school) => school.update());
+    this.schools.forEach((school) => school.update(camera));
     for (const { mesh, animal } of this.slugs) {
       mesh.matrix.copy(animal.pose.matrix);
       mesh.matrixWorldNeedsUpdate = true;

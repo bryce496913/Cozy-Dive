@@ -1,5 +1,8 @@
-/* CPU access to exported authored GLBs for tests (no WebGL, no image decoding). */
+/* CPU access to exported authored GLBs for tests (no WebGL, no image decoding).
+ * Since Pass 017 shipped GLBs are Draco-compressed: primitives carrying
+ * KHR_draco_mesh_compression are decoded with the reference draco3dgltf decoder. */
 import { readFileSync } from 'node:fs';
+import draco3d from 'draco3dgltf';
 import * as THREE from 'three';
 import { ConvexGeometry } from 'three/addons/geometries/ConvexGeometry.js';
 import type { Aquarium } from '../src/environment/Aquarium';
@@ -30,6 +33,7 @@ interface GltfDocument {
       indices: number;
       material?: number;
       targets?: Record<string, number>[];
+      extensions?: { KHR_draco_mesh_compression?: DracoPrimitiveExtension };
     }[];
   }[];
   accessors: Accessor[];
@@ -41,6 +45,61 @@ interface GltfDocument {
   materials: { name: string; doubleSided?: boolean }[];
 }
 const SIZE: Record<string, number> = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4 };
+interface DracoPrimitiveExtension {
+  bufferView: number;
+  attributes: Record<string, number>;
+}
+type DracoModule = Awaited<ReturnType<typeof draco3d.createDecoderModule>>;
+const draco: DracoModule = await draco3d.createDecoderModule();
+
+/** Decode one Draco-compressed primitive into float attributes and triangle indices. */
+function decodeDraco(
+  data: Uint8Array,
+  attributes: Record<string, number>,
+  sizes: Record<string, number>,
+): { attributes: Record<string, Float32Array>; indices: Uint32Array } {
+  const decoder = new draco.Decoder(),
+    buffer = new draco.DecoderBuffer(),
+    mesh = new draco.Mesh();
+  try {
+    buffer.Init(
+      new Int8Array(data.buffer, data.byteOffset, data.byteLength),
+      data.byteLength,
+    );
+    const status = decoder.DecodeBufferToMesh(buffer, mesh);
+    if (!status.ok()) throw Error(`Draco decode failed: ${status.error_msg()}`);
+    const points = mesh.num_points(),
+      out: Record<string, Float32Array> = {};
+    for (const [semantic, id] of Object.entries(attributes)) {
+      const attribute = decoder.GetAttributeByUniqueId(mesh, id),
+        n = points * sizes[semantic],
+        ptr = draco._malloc(n * 4);
+      decoder.GetAttributeDataArrayForAllPoints(
+        mesh,
+        attribute,
+        draco.DT_FLOAT32,
+        n * 4,
+        ptr,
+      );
+      out[semantic] = new Float32Array(draco.HEAPF32.buffer, ptr, n).slice();
+      draco._free(ptr);
+    }
+    const faces = mesh.num_faces(),
+      ptr = draco._malloc(faces * 12);
+    decoder.GetTrianglesUInt32Array(mesh, faces * 12, ptr);
+    const indices = new Uint32Array(
+      draco.HEAPU32.buffer,
+      ptr,
+      faces * 3,
+    ).slice();
+    draco._free(ptr);
+    return { attributes: out, indices };
+  } finally {
+    draco.destroy(mesh);
+    draco.destroy(buffer);
+    draco.destroy(decoder);
+  }
+}
 
 export interface ReefPrimitive {
   readonly positions: Float32Array;
@@ -95,7 +154,31 @@ export class ReefAsset {
     const node = this.node(name);
     if (node.mesh === undefined) throw Error(`${name} has no mesh`);
     const p = this.doc.meshes[node.mesh].primitives[0],
-      material = this.doc.materials[p.material ?? 0];
+      material = this.doc.materials[p.material ?? 0],
+      compressed = p.extensions?.KHR_draco_mesh_compression;
+    if (compressed) {
+      const view = this.doc.bufferViews[compressed.bufferView],
+        start = view.byteOffset ?? 0,
+        sizes = Object.fromEntries(
+          Object.entries(p.attributes).map(([k, i]) => [
+            k,
+            SIZE[this.doc.accessors[i].type],
+          ]),
+        ),
+        decoded = decodeDraco(
+          this.bin.subarray(start, start + view.byteLength),
+          compressed.attributes,
+          sizes,
+        );
+      return {
+        positions: decoded.attributes.POSITION,
+        indices: decoded.indices,
+        attributes: Object.keys(p.attributes),
+        uvs: decoded.attributes.TEXCOORD_0,
+        material: material?.name ?? '',
+        doubleSided: material?.doubleSided ?? false,
+      };
+    }
     return {
       positions: this.read(p.attributes.POSITION) as Float32Array,
       indices: this.read(p.indices) as Uint32Array,
@@ -132,7 +215,10 @@ export class ReefAsset {
 }
 
 /** Mirror `AuthoredReef.setEnabled(true)` collider replacement on a CPU aquarium. */
-export function installReefHulls(q: Aquarium, asset = new ReefAsset()): void {
+export function installReefHulls(
+  q: Aquarium,
+  asset: ReefAsset = new ReefAsset(),
+): void {
   for (const rock of q.rocks)
     if (rock.solid && rock.collider)
       q.replacePresentationColliders(
