@@ -64,3 +64,33 @@ Use Blender 4.3.2 and the existing pinned Python art dependencies. `baseline.jso
 Each asset is local and self-contained. Loading status is visible until ready; any missing/invalid library leaves the original aquarium usable and reports the fallback. Pending disposal releases fulfilled leases after the remaining loads settle. Disposal restores colliders and original visibility, detaches authored parts, disposes instance/deformation material resources, and finally releases the cache. `setEnabled` exists for automated matched-pose comparisons; no debug panel is added to the normal UI.
 
 `collisions.json` records exact exported structural point sets and transforms for CPU-only collision/stress tests. Run the inspection scripts after any re-export. `validation/geometry-overhaul.mjs` captures all ten paired views, checks three deduplicated GLB requests, shader/page errors, disposal and missing-library fallback. The existing ornament/anchored/discovery harnesses now await the default authored scene. See [Pass 013 validation](VALIDATION_V02_PASS_013.md) for the measured limits and macOS checklist.
+
+## Pass 014 reef environment
+
+```bash
+npx vitest run --config tools/art/pass014/vitest.config.ts   # only when the accepted layout changes
+python3 tools/art/pass014/textures.py
+python3 tools/art/pass014/build.py      # with `pip install bpy==5.1.2` (Python 3.13)
+# or: blender -b --factory-startup --python tools/art/pass014/build.py  (Blender 5.1)
+python3 tools/art/inspect_assets.py
+```
+
+The cloud container for this pass could not download the Blender 4.3.2 application, so the reef library was built with Blender **5.1.2 as a Python module** (`bpy` from PyPI) and its bundled glTF exporter. Pass 012/013 sources are untouched and still regenerate with 4.3.2. The Pass 014 `.blend` is saved by 5.1 and will not open in 4.3.
+
+`baseline.extract.ts` records the accepted pre-Pass-014 structure: the six major and three pebble rock template hulls, all 34 rock placements, the nine hardscape formations' exact convex parts (recovered by plane vertex enumeration), and every plant template's radial envelope per 1/20 height band. The authoring code reads only this file, so regeneration never re-samples a changed world.
+
+Construction contracts:
+
+- **Rocks**: a level-5/4/3 icosphere is ray-cast onto the accepted hull from its centroid (the hull is star-shaped), then carved inward by archetype features. Every vertex is asserted inside the hull. Upward faces keep a small tolerance, and depth below the sand line is suppressed. Structural parts are k-means clusters of the carved surface, reduced to support points along 96 Fibonacci directions plus box diagonals. Each part is a subset of the accepted hull, so the reef never gains solid volume.
+- **Corals**: built from the formation parts' own points (principal axes for branches and stems, ray-cast lobes, hull-clamped plates). Passable growth may extend beyond the parts.
+- **Vegetation**: templates are normalised to unit height with roots at y = 0. A smooth height-dependent XZ fit keeps every band inside the procedural template's validated envelope.
+- **Export**: glTF Y-up (`export_yup=True`). Mesh children carry no transforms; roots are staged on a grid only for inspection, and the runtime ignores root translation. Closed solids are single-sided; algae and soft tissue are double-sided. Vertex colours are converted to linear before export.
+
+Runtime: `AuthoredReef` (owned by `UnderwaterScene`) leases the `reef` library through the shared `AssetLoader` contract. It then applies the following, with `setEnabled` toggling all of it atomically and restoring collider identity:
+
+- **Rocks**: 34 three-level `THREE.LOD` reef rocks on the exact accepted transforms. Each rock's hull is swapped for its authored parts via `replacePresentationColliders`.
+- **Corals**: nine formations replaced in place.
+- **Vegetation**: instanced plant and meadow geometry swapped while keeping instance matrices, the shared current uniform and the pause/reduced-motion clock.
+- **Substrate**: the PBR sand material adopted, plus pooled debris, a meadow understory and the flattened backdrop.
+
+Load failure, or disposal before load, leaves the procedural reef untouched. Disposal releases its materials, cloned sand textures, instanced buffers and lease exactly once. `validation/ReefAsset.ts` reads the GLB on the CPU for tests and stress scenarios, and `validation/reef-overhaul.mjs` captures the matched evidence.

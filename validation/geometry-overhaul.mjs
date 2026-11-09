@@ -14,6 +14,15 @@ const browser = await chromium.launch({
     '--use-angle=swiftshader',
   ],
 });
+// Pass 014: SwiftShader compiles the heavier reef's shader variants lazily on first
+// present (tens of seconds in software). Raise Playwright *action* timeouts only;
+// no assertion or measured budget changes. Override with COZY_ACTION_TIMEOUT.
+const openPage = browser.newPage.bind(browser);
+browser.newPage = async (options) => {
+  const page = await openPage(options);
+  page.setDefaultTimeout(Number(process.env.COZY_ACTION_TIMEOUT || 240000));
+  return page;
+};
 const base = process.env.COZY_URL || 'http://127.0.0.1:5173';
 const report = { views: [], requests: [], errors: [] };
 async function open() {
@@ -247,8 +256,9 @@ try {
       hulls: q.collision.colliders.length,
     };
   });
-  assert.deepEqual(report.inventory, { fish: 40, hidden: 7, hulls: 216 });
-  assert.equal(report.requests.length, 3);
+  // Pass 014: the reef library is the fourth local request; reef parts replace rock hulls.
+  assert.deepEqual(report.inventory, { fish: 40, hidden: 7, hulls: 435 });
+  assert.equal(report.requests.length, 4);
   assert.deepEqual(report.errors, []);
   report.cleanup = await page.evaluate(() => {
     const w = window.__cozy.world;
@@ -276,7 +286,9 @@ try {
     await fallback.evaluate(
       () => window.__cozy.world.aquarium.collision.colliders.length,
     ),
-    139,
+    // Procedural ornament hulls remain; the independent Pass 014 reef library still loads and
+    // replaces the 34 rock hulls with its 253 authored parts (139 - 34 + 253).
+    358,
   );
   assert.match(
     await fallback.getByRole('status').textContent(),

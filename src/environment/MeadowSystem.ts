@@ -14,6 +14,8 @@ export interface GrassPatch {
 export class MeadowSystem {
   readonly root = new THREE.Group();
   readonly patches: readonly GrassPatch[];
+  /** One instanced blade template per entry, in template order. */
+  readonly batches: readonly THREE.InstancedMesh[];
   readonly geometries: readonly THREE.BufferGeometry[];
   readonly interests: readonly HabitatInterest[];
   private disposed = false;
@@ -99,6 +101,8 @@ export class MeadowSystem {
         },
       });
     }
+    const batches: THREE.InstancedMesh[] = [];
+    this.batches = batches;
     const geometries: THREE.BufferGeometry[] = [],
       matrix = new THREE.Matrix4(),
       rotation = new THREE.Quaternion(),
@@ -129,6 +133,7 @@ export class MeadowSystem {
       mesh.computeBoundingSphere();
       if (mesh.boundingSphere) mesh.boundingSphere.radius += 0.3;
       this.root.add(mesh);
+      batches.push(mesh);
     }
     this.patches = patches;
     this.geometries = geometries;

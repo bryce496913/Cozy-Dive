@@ -15,6 +15,15 @@ const browser = await chromium.launch({
     '--use-angle=swiftshader',
   ],
 });
+// Pass 014: SwiftShader compiles the heavier reef's shader variants lazily on first
+// present (tens of seconds in software). Raise Playwright *action* timeouts only;
+// no assertion or measured budget changes. Override with COZY_ACTION_TIMEOUT.
+const openPage = browser.newPage.bind(browser);
+browser.newPage = async (options) => {
+  const page = await openPage(options);
+  page.setDefaultTimeout(Number(process.env.COZY_ACTION_TIMEOUT || 240000));
+  return page;
+};
 try {
   const page = await browser.newPage({ viewport: { width: 960, height: 640 } }),
     errors = [],
@@ -37,8 +46,8 @@ try {
         n.textContent.includes('Preparing aquarium'),
       ),
   );
-  assert.equal(modelResponses.size, 3);
-  assert.deepEqual([...modelResponses.values()], [200, 200, 200]);
+  assert.equal(modelResponses.size, 4); // three Pass 013 libraries + Pass 014 reef
+  assert.deepEqual([...modelResponses.values()], [200, 200, 200, 200]);
   assert.equal(
     await page
       .getByText('Some aquarium details could not load.', { exact: false })

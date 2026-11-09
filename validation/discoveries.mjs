@@ -15,6 +15,15 @@ const browser = await chromium.launch({
     '--use-angle=swiftshader',
   ],
 });
+// Pass 014: SwiftShader compiles the heavier reef's shader variants lazily on first
+// present (tens of seconds in software). Raise Playwright *action* timeouts only;
+// no assertion or measured budget changes. Override with COZY_ACTION_TIMEOUT.
+const openPage = browser.newPage.bind(browser);
+browser.newPage = async (options) => {
+  const page = await openPage(options);
+  page.setDefaultTimeout(Number(process.env.COZY_ACTION_TIMEOUT || 240000));
+  return page;
+};
 try {
   const page = await browser.newPage({
       viewport: { width: 1100, height: 750 },
@@ -91,7 +100,7 @@ try {
   });
   assert.equal(inventory.hiddenCount, 7);
   assert.equal(inventory.fish, 40);
-  assert.equal(inventory.hulls, 216);
+  assert.equal(inventory.hulls, 435); // Pass 014 authored reef parts
   const views = [];
   for (const name of [
     'overview',

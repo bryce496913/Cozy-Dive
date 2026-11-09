@@ -296,5 +296,168 @@
     "animations": ["SwimPreview"],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
+  },
+  {
+    "pass014": {
+      "trianglesByFamily": {
+        "Rock": 161280,
+        "Pebble": 960,
+        "Coral": 143504,
+        "Soft": 16499,
+        "Sea": 18564,
+        "Turtle": 2064,
+        "Caulerpa": 7942,
+        "Halimeda": 8080,
+        "Red": 12120,
+        "Meadow": 120,
+        "Shell": 898,
+        "Rubble": 150,
+        "Sand": 1
+      },
+      "rockLevels": [20480, 5120, 1280]
+    },
+    "id": "reef-environment",
+    "file": "assets/models/reef/reef-environment.glb",
+    "sha256": "4fe2bf99ca886e4240d7d7398f1e9fadbd05c51d0a57ab61d9bc440b7fc8b3a7",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 19467916,
+    "visualPrimitives": 60,
+    "visualTriangles": 372182,
+    "collisionTriangles": 9000,
+    "materials": 7,
+    "images": [
+      {
+        "name": "reef-rock-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 731025
+      },
+      {
+        "name": "reef-rock-base",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 409849
+      },
+      {
+        "name": "reef-rock-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 281319
+      },
+      {
+        "name": "coral-polyp-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 680412
+      },
+      {
+        "name": "coral-polyp-base",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 421423
+      },
+      {
+        "name": "coral-polyp-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 348331
+      },
+      {
+        "name": "coral-brain-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 776767
+      },
+      {
+        "name": "coral-brain-base",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 502330
+      },
+      {
+        "name": "coral-brain-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 401863
+      },
+      {
+        "name": "soft-tissue-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 667343
+      },
+      {
+        "name": "soft-tissue-base",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 397463
+      },
+      {
+        "name": "soft-tissue-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 71392
+      },
+      {
+        "name": "algae-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 203915
+      },
+      {
+        "name": "algae-base",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 167838
+      },
+      {
+        "name": "algae-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 82407
+      },
+      {
+        "name": "sand-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 406437
+      },
+      {
+        "name": "sand-base",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 204545
+      },
+      {
+        "name": "sand-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 123151
+      }
+    ],
+    "geometryAccessorBytes": 12439674,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium reef environment (Pass 014)"
   }
 ]

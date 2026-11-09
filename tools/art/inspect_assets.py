@@ -4,7 +4,7 @@ import struct,json,hashlib,io
 import numpy as np
 from PIL import Image
 R=Path(__file__).resolve().parents[2];rows=[]
-for relative in ['fish/chromis.glb','coral/acropora.glb','ornaments/reef-props.glb','creatures/anchored-life.glb','fish/clownfish.glb']:
+for relative in ['fish/chromis.glb','coral/acropora.glb','ornaments/reef-props.glb','creatures/anchored-life.glb','fish/clownfish.glb','reef/reef-environment.glb']:
  p=R/'public/assets/models'/relative;b=p.read_bytes();magic,version,length=struct.unpack_from('<III',b);assert magic==0x46546c67 and version==2 and length==len(b)
  n=struct.unpack_from('<I',b,12)[0];j=json.loads(b[20:20+n]);offset=20+n;bn,bt=struct.unpack_from('<II',b,offset);blob=b[offset+8:offset+8+bn];assert bt==0x004e4942
  assert all('uri' not in x for x in j.get('images',[]));assert all('uri' not in x for x in j['buffers'])
@@ -29,5 +29,22 @@ for relative in ['fish/chromis.glb','coral/acropora.glb','ornaments/reef-props.g
     hull=ConvexHull(points)
     assert np.max(points@hull.equations[:,:3].T+hull.equations[:,3])<1e-8
    else:visual+=tri;meshes+=1
- rows.append({'id':p.stem,'file':'assets/models/'+relative,'sha256':hashlib.sha256(b).hexdigest(),'creator':'Cozy Diver original Blender authoring; sources under tools/art/','license':'CC0-1.0','attribution':'Not required; authoring source retained','bytes':len(b),'visualPrimitives':meshes,'visualTriangles':visual,'collisionTriangles':collision,'materials':len(j.get('materials',[])),'images':images,'geometryAccessorBytes':geometryBytes,'animations':[x.get('name') for x in j.get('animations',[])],'units':'aquarium world units; library gallery root offsets are normalized at runtime','usage':'Default aquarium hero asset' if relative not in ['fish/chromis.glb','coral/acropora.glb'] else 'Development benchmark'})
+ budgets={}
+ if relative=='reef/reef-environment.glb':
+  # Pass 014: rock levels and structural parts stay inside the accepted pre-Pass-014 hulls.
+  from scipy.spatial import ConvexHull
+  base=json.loads((R/'tools/art/pass014/baseline.json').read_text())
+  named={n['name']:n for n in j['nodes']}
+  def pos(name):return arrays[j['meshes'][named[name]['mesh']]['primitives'][0]['attributes']['POSITION']].astype(float)
+  def tris(name):return j['accessors'][j['meshes'][named[name]['mesh']]['primitives'][0]['indices']]['count']//3
+  for i,t in enumerate(base['majorTemplates']):
+   eq=ConvexHull(np.array(t['points'])).equations
+   kids=[j['nodes'][k]['name'] for k in named[f'Rock_{i}_Root']['children']]
+   for name in kids:assert np.max(pos(name)@eq[:,:3].T+eq[:,3])<1e-4,name
+   assert sum(k.startswith('COLLIDER_') for k in kids)>=5
+  for n in j['nodes']:
+   if 'mesh' in n and not n['name'].startswith('COLLIDER_'):
+    group=n['name'].split('_')[0];budgets[group]=budgets.get(group,0)+tris(n['name'])
+  budgets={'trianglesByFamily':budgets,'rockLevels':[tris('Rock_0'),tris('Rock_0_LOD1'),tris('Rock_0_LOD2')]}
+ rows.append({**({'pass014':budgets} if budgets else {}),'id':p.stem,'file':'assets/models/'+relative,'sha256':hashlib.sha256(b).hexdigest(),'creator':'Cozy Diver original Blender authoring; sources under tools/art/','license':'CC0-1.0','attribution':'Not required; authoring source retained','bytes':len(b),'visualPrimitives':meshes,'visualTriangles':visual,'collisionTriangles':collision,'materials':len(j.get('materials',[])),'images':images,'geometryAccessorBytes':geometryBytes,'animations':[x.get('name') for x in j.get('animations',[])],'units':'aquarium world units; library gallery root offsets are normalized at runtime','usage':'Default aquarium reef environment (Pass 014)' if relative=='reef/reef-environment.glb' else 'Default aquarium hero asset' if relative not in ['fish/chromis.glb','coral/acropora.glb'] else 'Development benchmark'})
 out=R/'public/assets/manifest.json';out.write_text(json.dumps(rows,indent=2)+'\n');print(out);print(json.dumps(rows,indent=2))

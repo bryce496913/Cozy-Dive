@@ -3,7 +3,7 @@ import { OrnamentSystem } from './ornaments/OrnamentSystem';
 import { marineInterests } from './MarineHabitat';
 import { HardscapeSystem } from './HardscapeSystem';
 import { MeadowSystem } from './MeadowSystem';
-import { substrateHeight } from './HabitatRegions';
+import { sandRelief, substrateHeight } from './HabitatRegions';
 import { PlantSystem } from './PlantSystem';
 import type { HabitatInterest } from '../fish/FishHabitat';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
@@ -13,6 +13,15 @@ import { CollisionWorld, type ConvexCollider } from '../player/collision';
 import { rockCollider } from './rockCollider';
 import { createRockTemplates } from './RockGeometry';
 import { FishSystem } from '../fish/FishSystem';
+
+/** Placed procedural rock: authored presentations reuse the exact transform and structural hull. */
+export interface RockPlacement {
+  readonly mesh: THREE.Mesh;
+  /** Index into the major or pebble template family. */
+  readonly template: number;
+  readonly solid: boolean;
+  readonly collider?: ConvexCollider;
+}
 
 // Seeded scenery stays reproducible; no asset downloads or runtime randomness.
 function randomSource(seed: number): () => number {
@@ -26,6 +35,8 @@ export class Aquarium {
   readonly collision: CollisionWorld;
   private readonly solidColliders: ConvexCollider[];
   readonly rockColliders: readonly ConvexCollider[];
+  readonly rocks: readonly RockPlacement[];
+  readonly sand: THREE.Mesh;
   readonly hardscape: HardscapeSystem;
   readonly ornaments: OrnamentSystem;
   readonly grass: MeadowSystem;
@@ -62,10 +73,13 @@ export class Aquarium {
       new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95 }),
     );
     this.root.add(sand);
+    this.sand = sand;
 
     const rockTemplates = createRockTemplates();
     let rockIndex = 0,
       pebbleIndex = 0;
+    const rocks: RockPlacement[] = [];
+    this.rocks = rocks;
     const rockMaterials = [0x71827b, 0x858575, 0x929083, 0x62777a].map(
       (c) =>
         new THREE.MeshStandardMaterial({
@@ -76,6 +90,9 @@ export class Aquarium {
         }),
     );
     const rock = (x: number, z: number, size: number, solid = true): void => {
+      const template = solid
+        ? rockIndex % rockTemplates.major.length
+        : pebbleIndex % rockTemplates.pebbles.length;
       const geometry = solid
         ? rockTemplates.major[rockIndex++ % rockTemplates.major.length]
         : rockTemplates.pebbles[pebbleIndex++ % rockTemplates.pebbles.length];
@@ -88,10 +105,10 @@ export class Aquarium {
       mesh.scale.set(size, height, size * (0.65 + rand() * 0.5));
       mesh.position.set(x, height * 0.61, z);
       mesh.rotation.set(rand() * 0.3, rand() * 6, rand() * 0.25);
-      if (solid) {
-        mesh.updateMatrix();
-        colliders.push(rockCollider(geometry, mesh.matrix));
-      }
+      mesh.updateMatrix();
+      const collider = solid ? rockCollider(geometry, mesh.matrix) : undefined;
+      if (collider) colliders.push(collider);
+      rocks.push({ mesh, template, solid, collider });
       this.root.add(mesh);
     };
     // The central sand channel is open, with planted rocky banks on either side.
@@ -110,6 +127,11 @@ export class Aquarium {
     colliders.push(...this.ornaments.colliders);
     interests.push(...this.ornaments.anchors);
     this.collision = new CollisionWorld(colliders, AQUARIUM);
+    this.detailSand([
+      ...this.rockColliders,
+      ...this.hardscape.colliders,
+      ...this.ornaments.colliders,
+    ]);
 
     interests.push(
       ...marineInterests([...this.rockColliders, ...this.hardscape.colliders]),
@@ -272,6 +294,60 @@ export class Aquarium {
       substrateHeight,
     });
     this.root.add(this.fish.root);
+  }
+  /**
+   * Replace the accepted coarse sand (whose RNG draws are preserved above) with a denser rippled
+   * substrate. Uses its own seed; contact shading and banking come from nearby structural hulls.
+   */
+  private detailSand(solids: readonly ConvexCollider[]): void {
+    const g = new THREE.PlaneGeometry(36, 28, 216, 168);
+    g.rotateX(-Math.PI / 2);
+    const p = g.attributes.position,
+      colors = new Float32Array(p.count * 3),
+      color = new THREE.Color(),
+      grain = randomSource(271828);
+    for (let i = 0; i < p.count; i++) {
+      const x = p.getX(i),
+        z = p.getZ(i);
+      // Signed distance to the nearest structure footprint at sand level (planes are unit length).
+      let distance = Infinity;
+      for (const s of solids) {
+        if (
+          x < s.min.x - 0.8 ||
+          x > s.max.x + 0.8 ||
+          z < s.min.z - 0.8 ||
+          z > s.max.z + 0.8
+        )
+          continue;
+        let d = -Infinity;
+        for (const plane of s.planes) {
+          const h = Math.hypot(plane.x, plane.z);
+          if (h < 0.2) continue;
+          d = Math.max(
+            d,
+            (plane.x * x + plane.y * 0.05 + plane.z * z - plane.offset) / h,
+          );
+        }
+        distance = Math.min(distance, d);
+      }
+      const contact = Math.max(0, Math.min(1, 1 - distance / 0.6));
+      const relief = sandRelief(x, z, contact);
+      p.setY(i, substrateHeight(x, z) + relief);
+      const crest = relief / 0.03;
+      color.setHSL(
+        0.105 + (grain() - 0.5) * 0.012,
+        0.2 + contact * 0.04,
+        0.6 +
+          0.04 * Math.min(1, crest) +
+          (grain() - 0.5) * 0.03 -
+          contact * 0.1,
+      );
+      color.toArray(colors, i * 3);
+    }
+    g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    g.computeVertexNormals();
+    this.sand.geometry.dispose();
+    this.sand.geometry = g;
   }
   /** Presentation overrides replace only their own structural hulls; the shared habitat keeps its identity. */
   replacePresentationColliders(

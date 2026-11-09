@@ -2,6 +2,8 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { afterAll, expect, it } from 'vitest';
 import { installAuthoredHulls } from './AuthoredCollision';
+import { installReefHulls } from './ReefAsset';
+import { REEF_LAYOUT } from '../src/environment/ReefLayout';
 import { Aquarium } from '../src/environment/Aquarium';
 import { FishSimulation } from '../src/fish/FishMovement';
 import { spawnFish } from '../src/fish/FishSpawner';
@@ -37,13 +39,20 @@ it.each([
   { minutes: 5, count: 60, authored: true },
   { minutes: 15, count: 40, authored: true },
   { minutes: 30, count: 40, authored: true },
+  // Pass 014 production composition: authored ornaments plus authored reef-rock structure.
+  { minutes: 5, count: 60, authored: true, reef: true },
+  { minutes: 15, count: 40, authored: true, reef: true },
+  { minutes: 30, count: 40, authored: true, reef: true },
 ] as const)(
-  'keeps the actual ecosystem stable for $minutes minutes with $count fish (authored: $authored)',
+  'keeps the actual ecosystem stable for $minutes minutes with $count fish (authored: $authored, reef: $reef)',
   (options) => {
     const { minutes, count } = options;
     const aquarium = new Aquarium();
     try {
       if ('authored' in options) installAuthoredHulls(aquarium);
+      if ('reef' in options) installReefHulls(aquarium);
+      const expectedHulls = aquarium.collision.colliders.length;
+      let closestWall = Infinity;
       const habitat = aquarium.fish.simulation.habitat;
       const sim = new FishSimulation(
         spawnFish(habitat, fishPopulation(count)),
@@ -173,6 +182,12 @@ it.each([
           ).toBe(false);
           sim.fish.forEach((f, i) => {
             expect(safeFishPosition(f.position, f.radius, habitat)).toBe(true);
+            closestWall = Math.min(
+              closestWall,
+              f.position.z - AQUARIUM.min.z - f.radius,
+              f.position.x - AQUARIUM.min.x - f.radius,
+              AQUARIUM.max.x - f.position.x - f.radius,
+            );
             expect(
               [
                 f.speed,
@@ -194,7 +209,14 @@ it.each([
           expect(snapshot.materials).toBe(initial.materials);
           expect(snapshot.finite).toBe(true);
           expect(snapshot.hiddenAnimals).toBe(7);
-          expect(snapshot.hulls).toBe('authored' in options ? 216 : 139);
+          expect(snapshot.hulls).toBe(
+            'reef' in options
+              ? expectedHulls
+              : 'authored' in options
+                ? 216
+                : 139,
+          );
+          expect(aquarium.collision.colliders.length).toBe(expectedHulls);
           expect(snapshot.seahorseDistance).toBeLessThan(0.13);
           expect(snapshot.frogfishDistance).toBeLessThan(0.11);
           expect(snapshot.bubblesInside).toBe(true);
@@ -238,8 +260,13 @@ it.each([
       expect(eventCount).toBeLessThan((minutes * 60) / 28 + 1);
       expect(maximumScatter).toBeGreaterThan(0.2);
       expect(states.every((s) => s.size > 1)).toBe(true);
+      // Fish never swim into the rear/side reef relief that hugs the glass.
+      expect(closestWall).toBeGreaterThan(REEF_LAYOUT.backdropDepth);
       reports.push({
         authored: 'authored' in options,
+        reef: 'reef' in options,
+        hulls: expectedHulls,
+        closestWall,
         minutes,
         count,
         anchoredCheckpoints: snapshots,
