@@ -258,7 +258,7 @@ try {
   });
   // Pass 014: the reef library is the fourth local request; reef parts replace rock hulls.
   assert.deepEqual(report.inventory, { fish: 40, hidden: 7, hulls: 435 });
-  assert.equal(report.requests.length, 4);
+  assert.equal(report.requests.length, 5); // + Pass 015 nudibranch library
   assert.deepEqual(report.errors, []);
   report.cleanup = await page.evaluate(() => {
     const w = window.__cozy.world;

@@ -183,6 +183,7 @@ def sand():
 
 
 if __name__ == '__main__':
-    for build in (reef_rock, coral_polyp, coral_brain, soft_tissue, algae, sand):
+    # Pass 015 replaced the coral-polyp, coral-brain and soft-tissue sets (see tools/art/pass015).
+    for build in (reef_rock, algae, sand):
         build()
     print(OUT)

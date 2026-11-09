@@ -150,16 +150,58 @@
   {
     "id": "anchored-life",
     "file": "assets/models/creatures/anchored-life.glb",
-    "sha256": "aff615addf887d17435414584ccc902ed6700e5d051bbbb310033116631aa596",
+    "sha256": "a2a98b2b7d6d346017ed9cc67e23075fab9b3060f2d983ff5f051ac04b52f348",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 4088784,
+    "bytes": 8154176,
     "visualPrimitives": 22,
-    "visualTriangles": 111954,
+    "visualTriangles": 132354,
     "collisionTriangles": 0,
-    "materials": 8,
+    "materials": 9,
     "images": [
+      {
+        "name": "bony-plate-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 727920
+      },
+      {
+        "name": "bony-plate-base",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 243375
+      },
+      {
+        "name": "bony-plate-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 81997
+      },
+      {
+        "name": "frog-skin-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 645842
+      },
+      {
+        "name": "frog-skin-base",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 154181
+      },
+      {
+        "name": "frog-skin-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 207090
+      },
       {
         "name": "horse-normal",
         "width": 512,
@@ -182,70 +224,49 @@
         "encodedBytes": 115982
       },
       {
-        "name": "frog-normal",
+        "name": "eel-skin-normal",
         "width": 512,
         "height": 512,
         "mode": "RGB",
-        "encodedBytes": 144643
+        "encodedBytes": 669670
       },
       {
-        "name": "frog-base",
+        "name": "eel-skin-base",
         "width": 512,
         "height": 512,
         "mode": "RGB",
-        "encodedBytes": 127807
+        "encodedBytes": 235815
       },
       {
-        "name": "frog-orm",
+        "name": "eel-skin-orm",
         "width": 512,
         "height": 512,
         "mode": "RGB",
-        "encodedBytes": 115982
+        "encodedBytes": 300193
       },
       {
-        "name": "moray-normal",
+        "name": "tentacle-normal",
         "width": 512,
         "height": 512,
         "mode": "RGB",
-        "encodedBytes": 144643
+        "encodedBytes": 354536
       },
       {
-        "name": "moray-base",
+        "name": "tentacle-base",
         "width": 512,
         "height": 512,
         "mode": "RGB",
-        "encodedBytes": 100751
+        "encodedBytes": 162967
       },
       {
-        "name": "moray-orm",
+        "name": "tentacle-orm",
         "width": 512,
         "height": 512,
         "mode": "RGB",
-        "encodedBytes": 115982
-      },
-      {
-        "name": "anemone-normal",
-        "width": 512,
-        "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 144643
-      },
-      {
-        "name": "anemone-base",
-        "width": 512,
-        "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 66170
-      },
-      {
-        "name": "anemone-orm",
-        "width": 512,
-        "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 115982
+        "encodedBytes": 52333
       }
     ],
-    "geometryAccessorBytes": 2606828,
+    "geometryAccessorBytes": 3908716,
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
@@ -302,9 +323,9 @@
       "trianglesByFamily": {
         "Rock": 161280,
         "Pebble": 960,
-        "Coral": 143504,
-        "Soft": 16499,
-        "Sea": 18564,
+        "Coral": 436087,
+        "Soft": 32007,
+        "Sea": 22281,
         "Turtle": 2064,
         "Caulerpa": 7942,
         "Halimeda": 8080,
@@ -318,15 +339,15 @@
     },
     "id": "reef-environment",
     "file": "assets/models/reef/reef-environment.glb",
-    "sha256": "4fe2bf99ca886e4240d7d7398f1e9fadbd05c51d0a57ab61d9bc440b7fc8b3a7",
+    "sha256": "26d790ba35889f2f4936eb54a64eddc8b18ad3eabe448787c8209ee8eceac7bb",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 19467916,
-    "visualPrimitives": 60,
-    "visualTriangles": 372182,
+    "bytes": 32030532,
+    "visualPrimitives": 66,
+    "visualTriangles": 683990,
     "collisionTriangles": 9000,
-    "materials": 7,
+    "materials": 8,
     "images": [
       {
         "name": "reef-rock-normal",
@@ -350,67 +371,88 @@
         "encodedBytes": 281319
       },
       {
-        "name": "coral-polyp-normal",
+        "name": "coral-acropora-normal",
         "width": 512,
         "height": 512,
         "mode": "RGB",
-        "encodedBytes": 680412
+        "encodedBytes": 694385
       },
       {
-        "name": "coral-polyp-base",
+        "name": "coral-acropora-base",
         "width": 512,
         "height": 512,
         "mode": "RGB",
-        "encodedBytes": 421423
+        "encodedBytes": 249234
       },
       {
-        "name": "coral-polyp-orm",
+        "name": "coral-acropora-orm",
         "width": 512,
         "height": 512,
         "mode": "RGB",
-        "encodedBytes": 348331
+        "encodedBytes": 294501
       },
       {
         "name": "coral-brain-normal",
         "width": 512,
         "height": 512,
         "mode": "RGB",
-        "encodedBytes": 776767
+        "encodedBytes": 765841
       },
       {
         "name": "coral-brain-base",
         "width": 512,
         "height": 512,
         "mode": "RGB",
-        "encodedBytes": 502330
+        "encodedBytes": 275704
       },
       {
         "name": "coral-brain-orm",
         "width": 512,
         "height": 512,
         "mode": "RGB",
-        "encodedBytes": 401863
+        "encodedBytes": 515726
       },
       {
-        "name": "soft-tissue-normal",
+        "name": "coral-plate-normal",
         "width": 512,
         "height": 512,
         "mode": "RGB",
-        "encodedBytes": 667343
+        "encodedBytes": 706687
       },
       {
-        "name": "soft-tissue-base",
+        "name": "coral-plate-base",
         "width": 512,
         "height": 512,
         "mode": "RGB",
-        "encodedBytes": 397463
+        "encodedBytes": 260028
       },
       {
-        "name": "soft-tissue-orm",
+        "name": "coral-plate-orm",
         "width": 512,
         "height": 512,
         "mode": "RGB",
-        "encodedBytes": 71392
+        "encodedBytes": 123588
+      },
+      {
+        "name": "soft-polyp-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 699293
+      },
+      {
+        "name": "soft-polyp-base",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 279028
+      },
+      {
+        "name": "soft-polyp-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 240116
       },
       {
         "name": "algae-normal",
@@ -455,9 +497,49 @@
         "encodedBytes": 123151
       }
     ],
-    "geometryAccessorBytes": 12439674,
+    "geometryAccessorBytes": 24157838,
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
-    "usage": "Default aquarium reef environment (Pass 014)"
+    "usage": "Default aquarium reef environment (Pass 014-015)"
+  },
+  {
+    "id": "nudibranchs",
+    "file": "assets/models/creatures/nudibranchs.glb",
+    "sha256": "f93c8e55e22d96f2ddb334a2ac8534a889e37e36ed9708d05df6924108372459",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 2137024,
+    "visualPrimitives": 5,
+    "visualTriangles": 32601,
+    "collisionTriangles": 0,
+    "materials": 1,
+    "images": [
+      {
+        "name": "nudi-skin-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 660412
+      },
+      {
+        "name": "nudi-skin-base",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 224958
+      },
+      {
+        "name": "nudi-skin-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 109904
+      }
+    ],
+    "geometryAccessorBytes": 1134594,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium nudibranchs (Pass 015)"
   }
 ]

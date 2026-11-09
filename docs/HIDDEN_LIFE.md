@@ -39,3 +39,7 @@ The layer adds no collider, force, audio layer, setting or animation loop. Its s
 Appearance remains stylized, including simplified tail attachment, frogfish skin and surface paths. Close viewing and subjective comfort need manual macOS review. The original fish, anemone, moray, vegetation, ornaments, audio and locomotion remain in place.
 
 Pass 011 keeps this production architecture unchanged and adds whole-aquarium validation of clocks, transforms, resource counts, particles and lifecycle across extended sessions. Physical route and explicit browser failure checks complement the earlier per-system safety tests. See [current integration validation](VALIDATION_V02_PASS_011.md); final macOS acceptance remains pending.
+
+## Pass 015 authored nudibranchs and skins
+
+The five nudibranchs keep their homes, crawl paths, phases, variants and ripple, but now render as authored species (see [art direction](ART_DIRECTION.md)). Each authored mesh copies its animal's crawl-pose matrix every frame and stays inside the envelope `surfaceHome` validated: under a 0.285 crawling radius and under the 0.26 height, with 3 mm left for the ripple. The procedural instanced forms remain resident as the fallback. The seahorse and frogfish keep their pivots and homes; their skins are re-authored with rings, tubercles, warts and pattern of at most a few millimetres, and the frogfish sole is untouched. See [Pass 015 validation](VALIDATION_V02_PASS_015.md).

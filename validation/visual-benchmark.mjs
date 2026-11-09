@@ -185,7 +185,7 @@ try {
   });
   assert.equal(inventory.fish, 40);
   assert.equal(inventory.chromis, 20);
-  assert.equal(requests.length, 6); // includes the Pass 014 reef library
+  assert.equal(requests.length, 7); // includes the Pass 014 reef and Pass 015 nudibranchs
   const views = await page.evaluate(() => {
     const { world, showcase } = window.__visualBenchmark,
       q = world.aquarium,
@@ -490,7 +490,7 @@ try {
     nativeSwim,
     backend: 'Chromium / SwiftShader software renderer',
     loadMs,
-    initialModelRequests: requests.slice(0, 6),
+    initialModelRequests: requests.slice(0, 7),
     inventory,
     renders,
     isolated,

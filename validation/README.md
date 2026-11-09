@@ -115,3 +115,12 @@ The harness captures 16 identical-camera before/after pairs in one paused sessio
 The CPU stress suite adds Pass 014 production-composition scenarios (Pass 013 ornament hulls plus reef parts, 435 hulls) and asserts that fish never enter the 0.2-unit reef relief beside the glass. `validation/ReefAsset.ts` reads the exported GLB on the CPU for tests.
 
 Pass 014 raises Playwright's per-action timeout in the software-rendered harnesses to 240 s (`COZY_ACTION_TIMEOUT`). SwiftShader compiles the reef's shader variants lazily on first present, which can take over a minute. Assertions are unchanged. `validation/integration.mjs` currently fails on `main` at the frogfish approach leg against the Pass 013 wreck hulls; see [Pass 014 validation](../docs/VALIDATION_V02_PASS_014.md).
+
+## Pass 015 corals and creatures
+
+```bash
+COZY_URL=http://127.0.0.1:5174 COZY_OUTPUT=/tmp/cozy015-before node validation/creature-overhaul.mjs  # previous candidate
+COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy015-after node validation/creature-overhaul.mjs   # this branch
+```
+
+The harness fixes moray extension, discovery pose time and clocks, then captures 16 coral, anemone, clownfish, moray, frogfish, seahorse and nudibranch close-ups for one build. It records draws, triangles, GPU resources and CPU submission time. Serve the previous candidate from a separate clean clone so both runs use identical cameras.

@@ -1,4 +1,4 @@
-/* CPU access to the exported Pass 014 reef GLB for tests (no WebGL, no image decoding). */
+/* CPU access to exported authored GLBs for tests (no WebGL, no image decoding). */
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
 import { ConvexGeometry } from 'three/addons/geometries/ConvexGeometry.js';
@@ -45,6 +45,8 @@ export interface ReefPrimitive {
   readonly positions: Float32Array;
   readonly indices: Uint32Array;
   readonly attributes: readonly string[];
+  /** TEXCOORD_0 when present. */
+  readonly uvs?: Float32Array;
   readonly material: string;
   readonly doubleSided: boolean;
 }
@@ -97,6 +99,10 @@ export class ReefAsset {
       positions: this.read(p.attributes.POSITION) as Float32Array,
       indices: this.read(p.indices) as Uint32Array,
       attributes: Object.keys(p.attributes),
+      uvs:
+        p.attributes.TEXCOORD_0 === undefined
+          ? undefined
+          : (this.read(p.attributes.TEXCOORD_0) as Float32Array),
       material: material?.name ?? '',
       doubleSided: material?.doubleSided ?? false,
     };

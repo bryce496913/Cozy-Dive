@@ -63,6 +63,7 @@ function reefFixture(): {
       add(`${name}_${i}`);
   for (const prefix of Object.values(PLANT_TEMPLATE_NODES))
     for (let i = 0; i < 3; i++) add(`${prefix}_${i}`);
+  add('Coral_Massive_0_LOD1');
   add('Rubble_0');
   add('Rubble_1');
   add('Sand_Material').position.x = 40; // library spans a realistic staging extent

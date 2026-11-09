@@ -22,6 +22,11 @@ sys.path.insert(0, str(HERE))
 import reef_geometry as rg  # noqa: E402
 
 TEX = ROOT / 'public/assets/textures/pass014'
+
+
+def tex(name):
+    # Sets prefixed with a pass folder resolve beside pass014 (e.g. 'pass015/coral-plate').
+    return (TEX.parent / name) if '/' in name else (TEX / name)
 OUT = ROOT / 'public/assets/models/reef/reef-environment.glb'
 
 
@@ -36,9 +41,11 @@ def reset():
 MATERIALS = {
     # name: (texture set, base tint, roughness fallback, normal strength)
     'ReefRock': ('reef-rock', (1, 1, 1), 0.88, 1.0),
-    'CoralPolyp': ('coral-polyp', (1, 1, 1), 0.78, 0.8),
-    'CoralBrain': ('coral-brain', (1, 1, 1), 0.76, 0.9),
-    'SoftTissue': ('soft-tissue', (1, 1, 1), 0.74, 0.6),
+    # Pass 015 coral and soft-tissue maps (textures/pass015).
+    'CoralBranch': ('pass015/coral-acropora', (1, 1, 1), 0.7, 1.0),
+    'CoralPlate': ('pass015/coral-plate', (1, 1, 1), 0.72, 0.9),
+    'CoralBrain': ('pass015/coral-brain', (1, 1, 1), 0.72, 0.9),
+    'SoftTissue': ('pass015/soft-polyp', (1, 1, 1), 0.66, 0.8),
     'Algae': ('algae', (1, 1, 1), 0.66, 0.5),
     'Sand': ('sand', (1, 1, 1), 0.93, 0.8),
 }
@@ -63,19 +70,19 @@ def material(name):
     mix.blend_type = 'MULTIPLY'
     mix.inputs['Factor'].default_value = 1.0
     base = nodes.new('ShaderNodeTexImage')
-    base.image = bpy.data.images.load(str(TEX / f'{texture}-base.png'), check_existing=True)
+    base.image = bpy.data.images.load(str(tex(f'{texture}-base.png')), check_existing=True)
     links.new(base.outputs['Color'], mix.inputs[6])
     links.new(vc.outputs['Color'], mix.inputs[7])
     links.new(mix.outputs[2], p.inputs['Base Color'])
     normal = nodes.new('ShaderNodeTexImage')
-    normal.image = bpy.data.images.load(str(TEX / f'{texture}-normal.png'), check_existing=True)
+    normal.image = bpy.data.images.load(str(tex(f'{texture}-normal.png')), check_existing=True)
     normal.image.colorspace_settings.name = 'Non-Color'
     nmap = nodes.new('ShaderNodeNormalMap')
     nmap.inputs['Strength'].default_value = strength
     links.new(normal.outputs['Color'], nmap.inputs['Color'])
     links.new(nmap.outputs['Normal'], p.inputs['Normal'])
     orm = nodes.new('ShaderNodeTexImage')
-    orm.image = bpy.data.images.load(str(TEX / f'{texture}-orm.png'), check_existing=True)
+    orm.image = bpy.data.images.load(str(tex(f'{texture}-orm.png')), check_existing=True)
     orm.image.colorspace_settings.name = 'Non-Color'
     sep = nodes.new('ShaderNodeSeparateColor')
     links.new(orm.outputs['Color'], sep.inputs['Color'])

@@ -14,6 +14,8 @@ export const REEF_LAYOUT = {
   coralTexelScale: 2.2,
   /** Rock level distances: 20k-triangle hero, 5k mid and 1.3k far levels. */
   rockLodDistances: [0, 7, 16] as const,
+  /** Hero coral colonies switch to their low level beyond this distance. */
+  coralLodDistance: 10,
   sandRepeat: [26, 20] as const,
   /** Central channel half-width kept nearly free of debris. */
   channelHalfWidth: 2.6,
