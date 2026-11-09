@@ -316,7 +316,8 @@ describe('authored reef rock collision', () => {
 
 describe('production structural composition', () => {
   it('physically reaches every discovery with Pass 013 ornament and Pass 014 reef hulls together', async () => {
-    const { swimRoute } = await import('../validation/SwimRoutes');
+    const { integrationRoutes, swimRoute } =
+      await import('../validation/SwimRoutes');
     const { installAuthoredHulls } =
       await import('../validation/AuthoredCollision');
     const world = new Aquarium();
@@ -324,8 +325,8 @@ describe('production structural composition', () => {
       installAuthoredHulls(world);
       installReefHulls(world, asset);
       expect(world.collision.colliders.length).toBe(435);
-      // The conservative 0.65 sweep of the frogfish's final leg already grazes a Pass 013 wreck
-      // hull on main; the production integrator still slides through and arrives.
+      // Every route keeps its conservative 0.65 sweep clear in the composed structural world.
+      expect(integrationRoutes(world)).toHaveLength(9);
       for (const home of world.anchoredLife.hidden.homes) {
         const result = swimRoute(world, home.approach);
         expect(result.maximumError, home.id).toBeLessThan(0.075);

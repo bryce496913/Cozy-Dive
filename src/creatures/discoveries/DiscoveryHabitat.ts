@@ -25,12 +25,22 @@ export interface SurfaceHome extends DiscoveryHome {
   readonly planeIndex: number;
   readonly rotation: THREE.Quaternion;
 }
+/** Default eye height of a discovery view above its focus. */
+export const DISCOVERY_VIEW_LIFT = 0.55;
+/**
+ * The frogfish perches low on the wreck deck. Pass 013's authored wreck hulls overhang the
+ * default-height views there (none of them keeps 0.65 clearance), so its eye sits higher; the
+ * chosen view and approach legs are then clear with procedural, authored and reef hulls alike.
+ */
+export const FROGFISH_VIEW_LIFT = 0.9;
+export const FROGFISH_VIEW_DISTANCE = 1.3;
 /** A clear camera/body location with an explicit, swept, three-leg route from spawn. Initialization only. */
 export function discoveryView(
   center: Readonly<Vec3>,
   normal: Readonly<Vec3>,
   h: FishHabitat,
   distance = 1.25,
+  lift = DISCOVERY_VIEW_LIFT,
 ): { view: Vec3; focus: Vec3; approach: readonly Vec3[] } | undefined {
   const sky = { x: SPAWN.x, y: 11, z: SPAWN.z };
   for (const d of [distance, distance + 0.35])
@@ -39,7 +49,7 @@ export function discoveryView(
         sideZ = Math.sin(angle);
       const view = {
         x: center.x + sideX * d + normal.x * 0.4,
-        y: center.y + 0.55 + Math.max(0, normal.y) * 0.35,
+        y: center.y + lift + Math.max(0, normal.y) * 0.35,
         z: center.z + sideZ * d + normal.z * 0.4,
       };
       const above = { x: view.x, y: 11, z: view.z };
@@ -184,7 +194,16 @@ export function surfaceHome(
                 }
             if (!valid) continue;
             const target = p.clone().addScaledVector(n, height * 0.5 + 0.03),
-              view = discoveryView(target, n, h, id === 'frogfish' ? 1.3 : 0.9);
+              frogfish = id === 'frogfish',
+              view = frogfish
+                ? discoveryView(
+                    target,
+                    n,
+                    h,
+                    FROGFISH_VIEW_DISTANCE,
+                    FROGFISH_VIEW_LIFT,
+                  )
+                : discoveryView(target, n, h, 0.9);
             if (!view) continue;
             const rotation = new THREE.Quaternion().setFromRotationMatrix(
               new THREE.Matrix4().makeBasis(u, n, v),

@@ -93,7 +93,7 @@ Production composition: 435 hulls (Pass 013 ornaments + Pass 014 reef). `setEnab
 
 Using the production swimming integrator, all seven discovery approaches were swum in both the reef-only and full production compositions. So were the arch pass-through, the wreck circuit, spawn→channel, and the anemone and moray viewing approaches. The final error was 0.075 units or less.
 
-**Pre-existing, not introduced here:** on `main`, `validation/integration.mjs` fails `Unsafe route frogfish/3`. The conservative 0.65-unit sweep of the frogfish's last approach leg grazes a Pass 013 authored wreck hull. The diver still physically arrives (error 0.074), and the same holds with the reef. It is recorded as a follow-up rather than changed in this pass.
+**Pre-existing, not introduced here:** on `main`, `validation/integration.mjs` fails `Unsafe route frogfish/3`. The conservative 0.65-unit sweep of the frogfish's last approach leg grazes a Pass 013 authored wreck hull. The diver still physically arrives (error 0.074), and the same holds with the reef. It is recorded as a follow-up rather than changed in this pass. _Follow-up resolved:_ the frogfish view was raised (see [hidden life](HIDDEN_LIFE.md)), and `integration.mjs` passes again.
 
 ## 10. Before/after screenshots
 

@@ -4,6 +4,7 @@ import inventory from '../tools/art/pass013/collisions.json';
 import { Aquarium } from '../src/environment/Aquarium';
 import { installAuthoredHulls } from '../validation/AuthoredCollision';
 import { safeFishPosition } from '../src/fish/FishHabitat';
+import { integrationRoutes } from '../validation/SwimRoutes';
 
 it('preserves passable log/arch openings and accepted creature homes with authored structural hulls', () => {
   const q = new Aquarium();
@@ -40,6 +41,23 @@ it('preserves passable log/arch openings and accepted creature homes with author
     expect(q.ornaments.lidCollider).toBe(identity);
   } finally {
     q.dispose();
+  }
+});
+it('keeps every discovery approach, arch passage and wreck circuit clear with authored structural hulls', () => {
+  const procedural = new Aquarium(),
+    q = new Aquarium();
+  try {
+    installAuthoredHulls(q);
+    // Homes are chosen against procedural hulls; installing authored hulls must not move them.
+    expect(
+      q.anchoredLife.hidden.homes.map((h) => [h.sourceId, h.position]),
+    ).toEqual(
+      procedural.anchoredLife.hidden.homes.map((h) => [h.sourceId, h.position]),
+    );
+    expect(integrationRoutes(q).map((r) => r.id)).toContain('frogfish');
+  } finally {
+    q.dispose();
+    procedural.dispose();
   }
 });
 it('keeps every authored lid vertex inside the existing occupant sweep guard', () => {
