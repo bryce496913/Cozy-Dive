@@ -35,3 +35,7 @@ These are stylized animals, not biological care or anatomical references. The ee
 Pass 010 adds `AnchoredLife.hidden`: one seahorse, one frogfish and five nudibranchs with the same explicit ownership and active-time conventions. These seven animals stay outside the 40-fish registry. Their validated homes include reachable observation routes and surface references; the original host pair/anemone and moray are unchanged. See [hidden life](HIDDEN_LIFE.md).
 
 Pass 011 keeps this production architecture unchanged and adds whole-aquarium validation of clocks, transforms, resource counts, particles and lifecycle across extended sessions. Physical route and explicit browser failure checks complement the earlier per-system safety tests. See [current integration validation](VALIDATION_V02_PASS_011.md); final macOS acceptance remains pending.
+
+## Pass 015 skins
+
+The moray and host anemone keep every controller, uniform and attachment. The moray's authored body keeps its centreline parameter and GPU unfolding but shows an authored honeycomb skin instead of the procedural mottling. The anemone becomes a bubble-tip form (swollen magenta tips, a white sub-terminal band, a striped oral disc) under the same current clock and envelope. See [Pass 015 validation](VALIDATION_V02_PASS_015.md).

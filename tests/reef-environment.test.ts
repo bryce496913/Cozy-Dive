@@ -51,10 +51,13 @@ describe('Pass 014 reef library', () => {
       for (const attr of ['POSITION', 'NORMAL', 'TEXCOORD_0', 'COLOR_0'])
         expect(p.attributes, `${node.name}/${attr}`).toContain(attr);
       expect(p.positions.every(Number.isFinite), node.name).toBe(true);
-      expect(Math.max(...p.indices)).toBeLessThan(p.positions.length / 3);
+      expect(p.indices.reduce((a, b) => Math.max(a, b), 0)).toBeLessThan(
+        p.positions.length / 3,
+      );
     }
     expect(meshes).toBeGreaterThan(40);
-    expect(asset.bytes).toBeLessThan(24 * 1024 * 1024);
+    // Pass 015 hero corals (level-5 brain lobes, budding corallites) raised the library to ~31 MB.
+    expect(asset.bytes).toBeLessThan(34 * 1024 * 1024);
   });
   it('gives each rock archetype a hero silhouette and cheaper distance levels', () => {
     for (let i = 0; i < 6; i++) {

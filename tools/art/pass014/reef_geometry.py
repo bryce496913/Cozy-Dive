@@ -473,71 +473,116 @@ def principal_axis(points: np.ndarray) -> tuple[np.ndarray, np.ndarray, float]:
     return a, b, float(np.percentile(radial, 60))
 
 
+def colony_occlusion(m: Mesh, axis_top: float, radius: float, strength: float = 0.5) -> None:
+    """Darken the colony interior: low and near the growth axis is shaded by the surrounding canopy."""
+    r = np.hypot(m.positions[:, 0], m.positions[:, 2]) / max(radius, 1e-6)
+    h = np.clip(m.positions[:, 1] / max(axis_top, 1e-6), 0, 1)
+    exposure = np.clip(0.35 * r + 0.75 * h, 0, 1)
+    m.colors[:, :3] *= (1 - strength + strength * exposure)[:, None]
+
+
+def radial_corallites(spine: np.ndarray, radii: np.ndarray, rng, color, spacing: float = 0.024) -> list[Mesh]:
+    """Small tubular radial corallites budding from a branch, angled toward its growing tip."""
+    out = []
+    length = np.concatenate([[0], np.cumsum(np.linalg.norm(np.diff(spine, axis=0), axis=1))])
+    tangents = np.gradient(spine, axis=0)
+    for d in np.arange(spacing * 0.7, length[-1] - spacing * 0.5, spacing):
+        i = int(np.searchsorted(length, d)) - 1
+        i = max(0, min(i, len(spine) - 2))
+        f = (d - length[i]) / max(length[i + 1] - length[i], 1e-9)
+        c = spine[i] * (1 - f) + spine[i + 1] * f
+        r = radii[i] * (1 - f) + radii[i + 1] * f
+        t = tangents[i] / np.linalg.norm(tangents[i])
+        n, b = frame(t)
+        for _ in range(2):
+            a = rng.random() * TAU
+            out_dir = n * math.cos(a) + b * math.sin(a)
+            base = c + out_dir * r * 0.8
+            axis = out_dir * 0.75 + t * 0.66
+            axis /= np.linalg.norm(axis)
+            size = 0.011 + rng.random() * 0.008
+            out.append(tube(np.array([base, base + axis * size]), np.array([0.0062, 0.0042]), 5, color))
+    return out
+
+
 def branching_coral(formation: dict, variant: int) -> Asset:
-    """Acropora-like colony: primaries follow the structural capsules; growth beyond is passable."""
+    """Acropora-like colony: primaries follow the structural capsules; growth beyond is passable.
+
+    Pass 015: bushier flaring canopy, budding radial corallites on every outer branch, pale growing
+    tips over darker bases, and canopy occlusion toward the interior."""
     rng = np.random.default_rng(14100 + variant)
     noise = Waves(14110 + variant, 12, 3.0, 2)
     parts = [np.array(p) for p in formation['parts']]
-    tissue, tips = [], []
-    tint = [(0.80, 0.58, 0.46), (0.62, 0.56, 0.74), (0.72, 0.74, 0.50)][variant]
-    tip_tint = tuple(min(1.0, c * 1.3 + 0.08) for c in tint)
+    tissue, tips, cups = [], [], []
+    tint = [(0.74, 0.52, 0.40), (0.56, 0.50, 0.70), (0.66, 0.68, 0.44)][variant]
+    tip_tint = [(0.96, 0.86, 0.74), (0.86, 0.80, 0.96), (0.92, 0.94, 0.74)][variant]
     primaries = []
     for k, pts in enumerate(parts):
         a, b, radius = principal_axis(pts)
-        # The capsule hull is radius ~0.09 -> 0.045 plus endcaps; stay just inside it.
         a = a + (b - a) / np.linalg.norm(b - a) * radius * 0.8
         b = b - (b - a) / np.linalg.norm(b - a) * radius * 0.6
         ctrl = np.array([a, a * 0.66 + b * 0.34, a * 0.33 + b * 0.67, b])
         ctrl[1:3] += (rng.random((2, 3)) - 0.5) * 0.02
-        spine = curve(ctrl, 12)
-        t = np.linspace(0, 1, 12)
-        radii = (0.082 * (1 - t) + 0.04 * t) * (0.94 + 0.06 * np.sin(t * 9 + k))
-        tissue.append(tube(spine, radii, 10, tint, profile=lambda i, ang: 1 + 0.06 * math.sin(ang * 3 + i)))
+        spine = curve(ctrl, 14)
+        t = np.linspace(0, 1, 14)
+        radii = (0.082 * (1 - t) + 0.042 * t) * (0.94 + 0.06 * np.sin(t * 9 + k))
+        tissue.append(tube(spine, radii, 12, tint, profile=lambda i, ang: 1 + 0.06 * math.sin(ang * 3 + i)))
+        cups.extend(radial_corallites(spine[4:], radii[4:], rng, tint, 0.03))
+        tips.append(tube(np.array([spine[-1], spine[-1] + (spine[-1] - spine[-2]) / np.linalg.norm(spine[-1] - spine[-2]) * 0.035]),
+                         np.array([radii[-1] * 0.9, radii[-1] * 0.55]), 8, tip_tint))
         primaries.append((spine, radii))
-    # Fused junction collars where primaries leave each other.
     for spine, radii in primaries[1:]:
         tissue.append(blob(spine[0], radii[0] * 1.25, 2, tint, noise, 0.12, (1, 0.8, 1)))
-    # Secondary and tertiary passable growth with irregular directions and thickness.
     out = 0
     for spine, radii in primaries:
-        for j in range(7 + rng.integers(0, 4)):
-            i = int(rng.integers(3, 11))
+        for j in range(11 + rng.integers(0, 4)):
+            i = int(rng.integers(2, 13))
             start = spine[i]
-            tangent = spine[min(i + 1, 11)] - spine[i - 1]
+            tangent = spine[min(i + 1, 13)] - spine[i - 1]
             tangent /= np.linalg.norm(tangent)
             side = rng.standard_normal(3)
             side -= tangent * side @ tangent
             side /= np.linalg.norm(side)
-            direction = tangent * 0.55 + side * 0.65 + np.array([0, 0.45, 0])
+            direction = tangent * 0.5 + side * 0.62 + np.array([0, 0.55, 0])
             direction /= np.linalg.norm(direction)
-            length = 0.12 + rng.random() * 0.2
-            bend = np.array([0, 0.04, 0]) + (rng.random(3) - 0.5) * 0.05
+            length = 0.14 + rng.random() * 0.22
+            bend = np.array([0, 0.05, 0]) + (rng.random(3) - 0.5) * 0.05
             ctrl = np.array([start, start + direction * length * 0.5 + bend * 0.5, start + direction * length + bend])
-            sp = curve(ctrl, 6)
-            r0 = radii[i] * (0.6 + rng.random() * 0.15)
-            rr = np.linspace(r0, 0.02, 6)
-            tissue.append(tube(sp, rr, 7, tint))
-            tips.append(tube(np.array([sp[-1], sp[-1] + direction * 0.03]), np.array([0.018, 0.011]), 6,
-                             tip_tint))
+            sp = curve(ctrl, 7)
+            r0 = radii[i] * (0.62 + rng.random() * 0.15)
+            rr = np.linspace(r0, 0.021, 7)
+            tissue.append(tube(sp, rr, 8, tint))
+            cups.extend(radial_corallites(sp[1:], rr[1:], rng, tint))
+            tips.append(tube(np.array([sp[-1], sp[-1] + direction * 0.03]), np.array([0.019, 0.011]), 7, tip_tint))
             out += 1
-            if rng.random() < 0.6:  # tertiary
-                p0 = sp[3]
-                d2 = direction + (rng.random(3) - 0.5) * 0.8
-                d2[1] = abs(d2[1]) + 0.3
+            for _ in range(int(rng.random() < 0.85) + int(rng.random() < 0.4)):  # tertiaries
+                p0 = sp[int(rng.integers(2, 6))]
+                d2 = direction + (rng.random(3) - 0.5) * 0.9
+                d2[1] = abs(d2[1]) + 0.35
                 d2 /= np.linalg.norm(d2)
-                sp2 = curve(np.array([p0, p0 + d2 * 0.06, p0 + d2 * 0.11]), 4)
-                tissue.append(tube(sp2, np.linspace(rr[3] * 0.8, 0.012, 4), 6, tint))
-                tips.append(tube(np.array([sp2[-1], sp2[-1] + d2 * 0.022]), np.array([0.013, 0.008]), 6,
-                                 tip_tint))
-    # Encrusting basal plate where the colony meets rock or sand.
+                L = 0.07 + rng.random() * 0.07
+                sp2 = curve(np.array([p0, p0 + d2 * L * 0.55, p0 + d2 * L]), 5)
+                r2 = np.linspace(rr[3] * 0.8, 0.014, 5)
+                tissue.append(tube(sp2, r2, 7, tint))
+                cups.extend(radial_corallites(sp2[1:], r2[1:], rng, tint, 0.026))
+                tips.append(tube(np.array([sp2[-1], sp2[-1] + d2 * 0.022]), np.array([0.014, 0.008]), 6, tip_tint))
     base = blob(np.array([0, 0.0, 0]), 0.2, 3, tint, noise, 0.2, (1.15, 0.18, 1.0))
     tissue.append(base)
-    body = merge('Coral_Branching_%d' % variant, 'CoralPolyp', tissue)
-    shade_by_height(body, 0.0, 1.8, 0.82)
-    tipmesh = merge('Coral_Branching_%d_Tips' % variant, 'CoralPolyp', tips)
-    return Asset('Coral_Branching_%d' % variant, [body, tipmesh], [p for p in parts],
+    body = merge('Coral_Branching_%d' % variant, 'CoralBranch', tissue + cups)
+    top = body.positions[:, 1].max()
+    colony_occlusion(body, top, 0.6, 0.5)
+    # Growth gradient: darker, older skeleton below, paler toward the canopy.
+    h = np.clip(body.positions[:, 1] / top, 0, 1)[:, None]
+    body.colors[:, :3] = body.colors[:, :3] * (0.75 + 0.25 * h) + np.array(tip_tint) * 0.18 * h ** 2
+    body.colors[:, :3] = np.clip(body.colors[:, :3], 0, 1)
+    # Distance level: same skeleton without the budding corallites (they read as texture far away).
+    far = merge('Coral_Branching_%d_LOD1' % variant, 'CoralBranch', tissue)
+    colony_occlusion(far, top, 0.6, 0.5)
+    hf = np.clip(far.positions[:, 1] / top, 0, 1)[:, None]
+    far.colors[:, :3] = np.clip(far.colors[:, :3] * (0.75 + 0.25 * hf) + np.array(tip_tint) * 0.18 * hf ** 2, 0, 1)
+    tipmesh = merge('Coral_Branching_%d_Tips' % variant, 'CoralBranch', tips)
+    return Asset('Coral_Branching_%d' % variant, [body, far, tipmesh], [p for p in parts],
                  {'kind': 'branching', 'formation': formation['index'], 'passableGrowth': out})
-
 
 def shade_by_height(m: Mesh, y0: float, y1: float, low: float) -> None:
     t = np.clip((m.positions[:, 1] - y0) / (y1 - y0), 0, 1)
@@ -545,58 +590,76 @@ def shade_by_height(m: Mesh, y0: float, y1: float, low: float) -> None:
 
 
 def massive_coral(formation: dict, variant: int) -> Asset:
-    """Lobed brain / boulder colony: each structural lobe carved inward with maze-like valleys."""
+    """Lobed brain / boulder colony: each structural lobe carved inward with maze-like valleys.
+
+    Pass 015: hero lobes at icosphere level 5 so meanders resolve as sharp ridges and valleys, a
+    level-3 distance LOD, raised collines with paler crests and dark green-brown valleys."""
     parts = [np.array(p) for p in formation['parts']]
-    tint = [(0.78, 0.72, 0.58), (0.74, 0.64, 0.66), (0.68, 0.70, 0.62)][variant]
-    valley_tint = [(0.52, 0.54, 0.42), (0.50, 0.44, 0.50), (0.56, 0.54, 0.48)][variant]
-    meshes = []
-    maze = Waves(14200 + variant, 32, 12.0, 2)
+    tint = [(0.66, 0.56, 0.38), (0.66, 0.50, 0.50), (0.66, 0.64, 0.54)][variant]
+    valley_tint = [(0.30, 0.40, 0.22), (0.36, 0.26, 0.34), (0.46, 0.44, 0.36)][variant]
+    crest_tint = [(0.90, 0.80, 0.58), (0.88, 0.72, 0.70), (0.80, 0.80, 0.70)][variant]
+    maze = Waves(14200 + variant, 48, 52.0, 1)  # ~0.12-unit meander wavelength: 8-10 valleys per lobe
     warp = Waves(14230 + variant, 12, 2.0, 2)
-    for k, pts in enumerate(parts):
-        ray = HullRay(pts)
-        d, f = icosphere(4)
-        r, hn = ray.cast(d)
-        adj = neighbours(len(d), f)
-        rounded = laplacian(r[:, None], adj, 14)[:, 0]
-        base = ray.center + d * np.minimum(rounded, r)[:, None]
-        if variant < 2:
-            # Zero crossings of band-limited noise form a meandering maze of valleys.
-            field = maze(base + warp(base)[:, None] * 0.08)
-            field /= field.std() + 1e-9
-            valley = np.exp(-(field / 0.3) ** 2)
-            depth = valley * 0.04
-        else:
-            field = Waves(14250 + k, 18, 9.0, 2)(base)
-            field /= field.std() + 1e-9
-            valley = np.clip(-field, 0, 1.5) / 1.5
-            depth = valley * 0.035
-        # Underside tucks in toward the substrate so lobes read as massed growth, not balls.
-        tuck = smoothstep(0.0, -0.8, d[:, 1]) * 0.12
-        depth += np.maximum(r - rounded, 0) + tuck * (r - depth)
-        depth = laplacian(depth[:, None], adj, 1)[:, 0]
-        depth = np.minimum(depth, r * 0.45)
-        p = ray.center + d * (np.minimum(rounded, r) - depth)[:, None]
-        n = vertex_normals(p, f)
-        col = np.array(tint) * (1 - valley[:, None]) + np.array(valley_tint) * valley[:, None]
-        col *= (0.65 + 0.35 * smoothstep(-0.6, 0.3, d[:, 1]))[:, None]
-        uv = box_uv(p, n, 3.0)
-        meshes.append(Mesh(f'Coral_Massive_{variant}_Lobe_{k}', 'CoralBrain' if variant < 2 else 'CoralPolyp', p, f,
-                           uv, np.concatenate([col, np.ones((len(p), 1))], 1)))
-    body = merge(f'Coral_Massive_{variant}', meshes[0].material, meshes)
-    return Asset(f'Coral_Massive_{variant}', [body], parts, {'kind': 'rounded', 'formation': formation['index']})
+    levels = {}
+    for level, suffix in ((5 if variant < 2 else 4, ''), (3, '_LOD1')):
+        meshes = []
+        for k, pts in enumerate(parts):
+            ray = HullRay(pts)
+            d, f = icosphere(level)
+            r, hn = ray.cast(d)
+            adj = neighbours(len(d), f)
+            rounded = laplacian(r[:, None], adj, 6 * (level - 1))[:, 0]
+            base = ray.center + d * np.minimum(rounded, r)[:, None]
+            if variant < 2:
+                field = maze(base + warp(base)[:, None] * 0.04)
+                field /= field.std() + 1e-9
+                valley = np.exp(-(field / 0.32) ** 2)
+                crest = np.clip(np.abs(field) - 0.8, 0, 1.2) / 1.2
+                depth = valley * 0.03 - crest * 0.004
+            else:
+                # Porites-like hummocks: cellular lobules separated by creased valleys.
+                cell_pts = np.random.default_rng(14260 + k).standard_normal((70, 3))
+                cell_pts = ray.center + cell_pts / np.linalg.norm(cell_pts, axis=1, keepdims=True) * np.median(r)
+                dd, _ = cKDTree(cell_pts).query(base, k=2)
+                ridge = np.clip((dd[:, 1] - dd[:, 0]) / 0.06, 0, 1)
+                valley = 1 - ridge
+                crest = smoothstep(0.6, 1.0, ridge)
+                depth = valley ** 1.5 * 0.05
+            tuck = smoothstep(0.0, -0.8, d[:, 1]) * 0.12
+            depth = depth + np.maximum(r - rounded, 0) + tuck * (r - depth)
+            depth = np.clip(depth, -0.004, None)
+            depth = np.minimum(depth, r * 0.45)
+            p = ray.center + d * (np.minimum(rounded, r) - depth)[:, None]
+            n = vertex_normals(p, f)
+            col = np.array(tint) * (1 - valley[:, None]) + np.array(valley_tint) * valley[:, None]
+            col = col * (1 - crest[:, None] * 0.6) + np.array(crest_tint) * crest[:, None] * 0.6
+            if variant == 2:  # mottled tan / purple-grey patches typical of boulder Porites
+                patch = smoothstep(-0.2, 0.4, Waves(14270, 10, 4.0, 2)(p))
+                col = col * (1 - patch[:, None] * 0.5) + np.array([0.56, 0.48, 0.58]) * patch[:, None] * 0.5
+            col *= (0.55 + 0.45 * smoothstep(-0.6, 0.3, d[:, 1]))[:, None]
+            uv = box_uv(p, n, 3.0)
+            meshes.append(Mesh(f'Coral_Massive_{variant}_Lobe_{k}', '', p, f, uv,
+                               np.concatenate([np.clip(col, 0, 1), np.ones((len(p), 1))], 1)))
+        levels[suffix] = merge(f'Coral_Massive_{variant}{suffix}', 'CoralBrain' if variant < 2 else 'CoralPlate', meshes)
+    return Asset(f'Coral_Massive_{variant}', [levels[''], levels['_LOD1']], parts,
+                 {'kind': 'rounded', 'formation': formation['index']})
 
 def plate_coral(formation: dict, variant: int) -> Asset:
     """Tiered plating colony: organic trunk and struts carrying scalloped, ridged, upturned plates."""
     parts = [np.array(p) for p in formation['parts']]
     rng = np.random.default_rng(14300 + variant)
-    tint = [(0.72, 0.62, 0.42), (0.76, 0.56, 0.52), (0.58, 0.60, 0.70)][variant]
-    rim_tint = tuple(min(1.0, c * 1.25) for c in tint)
+    tint = [(0.62, 0.54, 0.36), (0.70, 0.50, 0.46), (0.50, 0.54, 0.64)][variant]
+    rim_tint = [(0.92, 0.86, 0.66), (0.94, 0.80, 0.74), (0.80, 0.86, 0.92)][variant]
     stem_pts, plates = parts[0], parts[1:]
     a, b, radius = principal_axis(stem_pts)
     pieces = []
-    spine = curve(np.array([a + [0, 0.02, 0], a * 0.6 + b * 0.4 + [0.02, 0, 0.01], b - [0, 0.05, 0]]), 10)
-    pieces.append(tube(spine, np.linspace(radius * 0.95, radius * 0.7, 10), 12, tint,
-                       profile=lambda i, ang: 1 + 0.07 * math.sin(ang * 3 + i * 0.9)))
+    spine = curve(np.array([a + [0, 0.02, 0], a * 0.6 + b * 0.4 + [0.025, 0, 0.015], b - [0, 0.05, 0]]), 16)
+    # Gnarled, buttressed trunk: lobed fused-branch cross-section that twists and bulges upward.
+    trunk_r = radius * (0.98 - 0.25 * np.linspace(0, 1, 16) + 0.08 * np.sin(np.linspace(0, 9, 16)))
+    trunk = tube(spine, trunk_r, 16, tuple(c * 0.72 for c in tint),
+                 profile=lambda i, ang: 1 + 0.18 * math.sin(ang * 4 + i * 0.45) + 0.06 * math.sin(ang * 9 + i))
+    trunk.colors[:, :3] *= (0.75 + 0.25 * np.clip((trunk.positions[:, 1] - a[1]) / max(b[1] - a[1], 1e-6), 0, 1))[:, None]
+    pieces.append(trunk)
     rim_noise = Waves(14310 + variant, 10, 2.0, 3)
     for k, pts in enumerate(plates):
         c = pts.mean(0)
@@ -617,13 +680,13 @@ def plate_coral(formation: dict, variant: int) -> Asset:
                 upturn = 0.05 * t ** 3
                 ridge = 0.005 * math.sin(ang * 70 + t * 4) * t
                 mid = c[1] - 0.01 + wave + upturn
-                half = thick * (0.62 * (1 - t) + 0.28)
+                half = thick * (0.7 * (1 - t) + 0.34)
                 top_pos.append([c[0] + dirv[0] * rad, mid + half + ridge, c[2] + dirv[2] * rad])
                 bot_pos.append([c[0] + dirv[0] * rad, mid - half * 0.8, c[2] + dirv[2] * rad])
                 uv.append([dirv[0] * rad * 2 + 0.5, dirv[2] * rad * 2 + 0.5])
-                growth = 0.5 + 0.5 * math.sin(t * 34)
-                rim = smoothstep(0.8, 1.0, np.array(t))
-                col.append(np.array(tint) * (0.92 + 0.08 * growth) * (1 - rim) + np.array(rim_tint) * rim)
+                growth = 0.5 + 0.5 * math.sin(t * 34 + 0.6 * math.sin(ang * 5))
+                rim = smoothstep(0.7, 1.0, np.array(t))
+                col.append(np.array(tint) * (0.82 + 0.18 * growth) * (1 - rim) + np.array(rim_tint) * rim)
         pos = np.array(top_pos + bot_pos)
         uv = np.array(uv + uv)
         col = np.array(col + col)
@@ -666,15 +729,15 @@ def plate_coral(formation: dict, variant: int) -> Asset:
             rad = rr * 0.84 * t
             base_pt = np.array([c[0] + math.cos(ang) * rad, c[1] + thick * 0.35 + 0.05 * t ** 3,
                                 c[2] + math.sin(ang) * rad])
-            h = 0.02 + rng.random() * 0.025
-            pieces.append(tube(np.array([base_pt, base_pt + [0.003, h, 0.002]]), np.array([0.009, 0.006]), 5,
-                               rim_tint))
+            h = 0.012 + rng.random() * 0.014
+            pieces.append(tube(np.array([base_pt, base_pt + [0.003, h, 0.002]]), np.array([0.008, 0.0055]), 5,
+                               tuple(c * 0.85 for c in rim_tint)))
         strut = curve(np.array([spine[min(9, 3 + k * 3)], (spine[min(9, 3 + k * 3)] + c) / 2 + [0, -0.02, 0],
                                 c - [0, thick * 0.5, 0]]), 6)
         pieces.append(tube(strut, np.linspace(radius * 0.6, radius * 0.45, 6), 8, tint, cap=False))
     base = blob(a + [0, 0.02, 0], radius * 2.0, 3, tint, Waves(14320, 8, 3, 2), 0.2, (1.2, 0.25, 1.1))
     pieces.append(base)
-    body = merge(f'Coral_Plate_{variant}', 'CoralPolyp', pieces)
+    body = merge(f'Coral_Plate_{variant}', 'CoralPlate', pieces)
     return Asset(f'Coral_Plate_{variant}', [body], parts, {'kind': 'plate', 'formation': formation['index']})
 
 def fit_envelope(m: Mesh, species: str, template: int, slack: float = 1.04) -> Mesh:
@@ -710,7 +773,7 @@ def fit_envelope(m: Mesh, species: str, template: int, slack: float = 1.04) -> M
 def soft_coral(template: int) -> Mesh:
     """Finger leather coral: lobed fleshy trunk dividing into irregular tapering fingers."""
     rng = np.random.default_rng(14400 + template)
-    tint = [(0.78, 0.66, 0.50), (0.70, 0.62, 0.66), (0.66, 0.70, 0.56)][template]
+    tint = [(0.80, 0.68, 0.48), (0.78, 0.60, 0.62), (0.62, 0.70, 0.50)][template]
     parts = []
     trunk = curve(np.array([[0, 0, 0], [0.02, 0.18, 0.01], [-0.01, 0.34, 0.02]]), 8)
     parts.append(tube(trunk, np.linspace(0.11, 0.085, 8), 12, tint, cap=False,
@@ -725,7 +788,7 @@ def soft_coral(template: int) -> Mesh:
         parts.append(tube(sp, rr, 9, tint, profile=lambda i, a: 1 + 0.1 * math.sin(a * 2 + i * 1.3)
                           + 0.05 * math.sin(a * 7 + i * 2.1), phase=phase))
         if depth < 2:
-            for _ in range(2 + int(rng.random() < 0.5)):
+            for _ in range(3 + int(rng.random() < 0.6)):
                 d = direction + (rng.random(3) - 0.5) * 1.1
                 d[1] = abs(d[1]) + 0.5
                 d /= np.linalg.norm(d)
@@ -737,11 +800,16 @@ def soft_coral(template: int) -> Mesh:
     for k in range(3 + template % 2):
         ang = k / (3 + template % 2) * TAU + rng.random() * 0.6
         d = np.array([math.cos(ang) * 0.5, 0.85, math.sin(ang) * 0.5])
-        grow(trunk[-1], d / np.linalg.norm(d), 0.32, 0.085, 0, rng.random())
+        grow(trunk[-1], d / np.linalg.norm(d), 0.32, 0.095, 0, rng.random())
     m = merge(f'Soft_Coral_{template}', 'SoftTissue', parts)
     m.positions[:, 1] = np.maximum(m.positions[:, 1], 0)
     m.positions[:, 1] *= 1 / max(1e-6, m.positions[:, 1].max())
-    shade_by_height(m, 0, 1, 0.7)
+    # Darker, stalk-like base; paler, polyp-dense finger tips; faint per-finger hue drift.
+    h = m.positions[:, 1][:, None]
+    tip = tuple(min(1.0, c * 1.25 + 0.06) for c in tint)
+    m.colors[:, :3] = m.colors[:, :3] * (0.55 + 0.45 * h) + np.array(tip) * 0.3 * h ** 3
+    drift = Waves(14450 + template, 8, 6.0, 1)(m.positions)[:, None]
+    m.colors[:, :3] = np.clip(m.colors[:, :3] * (1 + 0.08 * drift), 0, 1)
     return fit_envelope(m, 'soft-coral', template)
 
 
@@ -768,23 +836,23 @@ def sea_fan(template: int) -> Mesh:
         tip = pts[-1]
         if abs(tip[0]) > 0.4 or tip[1] > 1.0:
             return
-        parts.append(tube(curve(pts, 5), np.linspace(radius, radius * 0.8, 5), 4, tint,
+        parts.append(tube(curve(pts, 5), np.linspace(radius, radius * 0.8, 5), 5, tint,
                           phase=0.3 + 0.5 * tip[1]))
         nodes.extend(pts[1:])
         if depth < 6:
             for side in (-1, 1):
                 if rng.random() < 0.88:
                     branch(tip[0], tip[1], angle + side * (0.3 + rng.random() * 0.3),
-                           length * (0.82 + rng.random() * 0.12), max(0.0055, radius * 0.82), depth + 1)
+                           length * (0.82 + rng.random() * 0.12), max(0.0068, radius * 0.84), depth + 1)
 
     for k in (-1, 0, 1):
-        branch(0, 0.26, k * 0.5, 0.15, 0.016, 0)
+        branch(0, 0.26, k * 0.5, 0.15, 0.019, 0)
     # Anastomoses: short connections between nearby branch tips build the mesh-like lattice.
     nodes_arr = np.array(nodes)
     tree = cKDTree(nodes_arr)
     for i, j in sorted(tree.query_pairs(0.06))[:260]:
         if rng.random() < 0.45 and np.linalg.norm(nodes_arr[i] - nodes_arr[j]) > 0.02:
-            parts.append(tube(np.array([nodes_arr[i], nodes_arr[j]]), np.array([0.0045, 0.0045]), 4, tint,
+            parts.append(tube(np.array([nodes_arr[i], nodes_arr[j]]), np.array([0.0055, 0.0055]), 4, tint,
                               cap=False, phase=0.3 + 0.5 * nodes_arr[i][1]))
     m = merge(f'Sea_Fan_{template}', 'SoftTissue', parts)
     m.positions[:, 1] = np.maximum(m.positions[:, 1], 0)
@@ -983,11 +1051,11 @@ def shell(template: int) -> Mesh:
         m = tube(spine, 0.009 * (1 - t) + 0.0015, 6, (0.80, 0.70, 0.60),
                  profile=lambda i, a: 1 + 0.15 * math.sin(i * 1.6))
         m.positions = m.positions[:, [1, 0, 2]] * [1, 1, 1] + [0, 0.007, 0]  # lying on its side
-        m.name, m.material = f'Shell_{template}', 'CoralPolyp'
+        m.name, m.material = f'Shell_{template}', 'CoralPlate'
         m.positions[:, 1] = np.maximum(m.positions[:, 1], 0)
         return m
     uv = box_uv(p, vertex_normals(p, f), 20)
-    return Mesh(f'Shell_{template}', 'CoralPolyp', p, f, uv, col)
+    return Mesh(f'Shell_{template}', 'CoralPlate', p, f, uv, col)
 
 
 def rubble(template: int) -> Mesh:
@@ -999,7 +1067,7 @@ def rubble(template: int) -> Mesh:
         b = a + np.array([(rng.random() - 0.5) * 0.12, 0.004, (rng.random() - 0.5) * 0.12])
         parts.append(tube(np.array([a, (a + b) / 2 + [0, 0.006, 0], b]), np.array([0.012, 0.011, 0.008]), 6,
                           (0.92, 0.89, 0.82)))
-    m = merge(f'Rubble_{template}', 'CoralPolyp', parts)
+    m = merge(f'Rubble_{template}', 'CoralBranch', parts)
     return m
 
 

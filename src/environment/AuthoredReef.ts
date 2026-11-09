@@ -292,7 +292,18 @@ export class AuthoredReef {
             : node.material;
         const mesh = new THREE.Mesh(node.geometry, material);
         mesh.name = node.name;
-        group.add(mesh);
+        // Pass 015 hero colonies carry a cheaper distance level where authored.
+        const far = this.lease!.model.getObjectByName(`${name + suffix}_LOD1`);
+        if (far instanceof THREE.Mesh) {
+          const lod = new THREE.LOD();
+          lod.name = `${node.name} levels`;
+          lod.addLevel(mesh, 0);
+          lod.addLevel(
+            new THREE.Mesh(far.geometry, material),
+            REEF_LAYOUT.coralLodDistance,
+          );
+          group.add(lod);
+        } else group.add(mesh);
       }
       if (!group.children.length) throw Error(`Missing reef coral ${name}`);
       this.root.add(group);

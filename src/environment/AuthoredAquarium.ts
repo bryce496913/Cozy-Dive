@@ -5,6 +5,9 @@ import { assetColliders } from '../assets/AssetCollision';
 import { AuthoredSchool } from '../benchmark/AuthoredSchool';
 import type { Aquarium } from './Aquarium';
 import type { ConvexCollider } from '../player/collision';
+/** The procedural moray skin replaces diffuse colour; authored skins carry their own pattern. */
+const AUTHORED_COLOUR_OVERRIDE =
+  'diffuseColor.rgb=mix(diffuseColor.rgb,skin,vMorayMask);';
 /** Presentation resources follow the existing controllers; simulation and home selection stay authoritative. */
 export class AuthoredAquarium {
   readonly ready: Promise<boolean>;
@@ -21,6 +24,10 @@ export class AuthoredAquarium {
   private lid?: THREE.BufferGeometry;
   private school?: AuthoredSchool;
   private clownBatch?: THREE.Object3D;
+  private readonly slugs: {
+    mesh: THREE.Mesh;
+    animal: { readonly pose: THREE.Object3D };
+  }[] = [];
   private disposed = false;
   private enabled = false;
   constructor(private readonly q: Aquarium) {
@@ -67,8 +74,20 @@ export class AuthoredAquarium {
         Array.isArray(o.material) ? o.material : [o.material]
       ).map((original) => {
         const m = original.clone();
-        m.onBeforeCompile = source.onBeforeCompile;
-        m.customProgramCacheKey = source.customProgramCacheKey;
+        // Keep the controller's vertex deformation, but let authored vertex colour and maps
+        // (Pass 015 skins) replace any procedural colour override in the source shader.
+        m.onBeforeCompile = (
+          shader: THREE.WebGLProgramParametersWithUniforms,
+          renderer: THREE.WebGLRenderer,
+        ) => {
+          source.onBeforeCompile(shader, renderer);
+          shader.fragmentShader = shader.fragmentShader.replace(
+            AUTHORED_COLOUR_OVERRIDE,
+            '',
+          );
+        };
+        m.customProgramCacheKey = () =>
+          `${source.customProgramCacheKey()}-authored-colour`;
         m.side = THREE.DoubleSide;
         this.ownedMaterials.add(m);
         return m;
@@ -80,6 +99,7 @@ export class AuthoredAquarium {
     const results = await Promise.allSettled([
       this.loader.acquire('reefProps'),
       this.loader.acquire('anchored'),
+      this.loader.acquire('nudibranchs'),
       this.loader.acquire('clownfish'),
       this.loader.acquire('clownfish'),
     ]);
@@ -92,7 +112,7 @@ export class AuthoredAquarium {
       return false;
     }
     try {
-      const [props, animals, ...clowns] = this.leases;
+      const [props, animals, slugs, ...clowns] = this.leases;
       const names = {
         log: 'Log',
         shipwreck: 'Shipwreck',
@@ -179,6 +199,43 @@ export class AuthoredAquarium {
         },
         2,
       );
+      // Pass 015 nudibranchs follow the existing crawl poses; procedural instances are hidden.
+      const nudis = this.q.anchoredLife.hidden.nudibranchs;
+      this.hide(nudis.root);
+      nudis.animals.forEach((animal, i) => {
+        const source = slugs.model.getObjectByName(`Nudibranch_${i + 1}`);
+        if (!(source instanceof THREE.Mesh))
+          throw Error(`Missing nudibranch ${i + 1}`);
+        if (!(source.material instanceof THREE.MeshStandardMaterial))
+          throw Error('Nudibranch material is not PBR');
+        const material = source.material.clone();
+        const phase = { value: animal.phase };
+        material.onBeforeCompile = (shader) => {
+          shader.uniforms.nudiTime = nudis.timeUniform;
+          shader.uniforms.nudiPhase = phase;
+          shader.vertexShader = shader.vertexShader
+            .replace(
+              '#include <common>',
+              '#include <common>\nuniform float nudiTime;uniform float nudiPhase;',
+            )
+            .replace(
+              '#include <begin_vertex>',
+              `#include <begin_vertex>
+      float nudiFlex=pow(clamp(position.y/.25,0.,1.),2.);
+      transformed.y+=sin(nudiTime*.7+position.z*19.+nudiPhase)*.003*nudiFlex;
+      transformed.x+=cos(nudiTime*.55+position.z*11.+nudiPhase)*.002*nudiFlex;`,
+            );
+        };
+        material.customProgramCacheKey = () => 'nudibranch-authored-ripple-v1';
+        this.ownedMaterials.add(material);
+        const mesh = new THREE.Mesh(source.geometry, material);
+        mesh.name = `Authored ${animal.id}`;
+        mesh.matrixAutoUpdate = false;
+        mesh.matrix.copy(animal.pose.matrix);
+        nudis.root.add(mesh);
+        this.attachments.push(mesh);
+        this.slugs.push({ mesh, animal });
+      });
       this.school = new AuthoredSchool(
         this.q.fish,
         clowns,
@@ -221,11 +278,17 @@ export class AuthoredAquarium {
     this.q.ornaments.setLidCollisionGeometry(value ? this.lid : undefined);
   }
   update(): void {
-    if (this.enabled) this.school?.update();
+    if (!this.enabled) return;
+    this.school?.update();
+    for (const { mesh, animal } of this.slugs) {
+      mesh.matrix.copy(animal.pose.matrix);
+      mesh.matrixWorldNeedsUpdate = true;
+    }
   }
   private cleanup(): void {
     this.attachments.forEach((o) => o.removeFromParent());
     this.attachments.length = 0;
+    this.slugs.length = 0;
     this.school?.dispose();
     this.school = undefined;
     this.ownedMaterials.forEach((m) => m.dispose());

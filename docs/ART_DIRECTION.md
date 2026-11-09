@@ -62,3 +62,17 @@ Soft corals are fleshy, lobed, branching fingers. Gorgonian fans are gently cupp
 Sand gains ripples, shallow depressions and banking against structures, all above the habitat reference surface. A tileable grain, grit and micro-ripple map adds detail, and pooled shells and coral rubble add scale. Depth comes from flattened low-detail reef rock layered against the rear and side glass (within 0.2 units) and a centre-weighted meadow understory. The tank stays a tank: nothing is placed outside the glass, and the central channel stays open.
 
 Do not hide geometry with fog or darkness, or judge it by triangle counts. Review against the matched renders in [Pass 014 validation](VALIDATION_V02_PASS_014.md).
+
+## Pass 015 — corals and creatures to the reef standard
+
+The Pass 014 rocks and sand set the bar: multi-scale relief, continuous object-space colour and pattern, cavity and underside occlusion, and fine tileable micro-detail maps. Pass 015 applies the same recipe to everything living in the tank.
+
+- **Corals.** Branching colonies bud tubular radial corallites on every outer branch, with pale growing tips over a darker, shaded interior. Brain colonies use double-resolution lobes, so 8–10 sharp meanders cross each lobe, with pale collines and dark green-brown valleys. The boulder colony has Porites-style hummocks with mottled tan and purple patches. Plate colonies get a gnarled, buttressed trunk and banded plates. Soft corals have darker stalks and paler, polyp-dense finger tips, and fans are denser. New maps provide corallite cups and septa, brain septa, plate costae and extended eight-armed polyps.
+- **Creatures.** Each is re-authored on its accepted mesh, so pivots, frames and animation contracts are untouched:
+  - **Frogfish**: warty, ochre-orange skin with rust blotches, dark ocelli and a pale belly.
+  - **Seahorse**: raised bony rings and tubercles, dark seams and saddles, white speckle.
+  - **Moray**: subtle skin folds under a continuous honeycomb reticulation that runs from body to head.
+  - **Host anemone**: a bubble-tip form, with green-tan tentacles, a white sub-terminal band, swollen magenta tips and a striped oral disc.
+- **Nudibranchs.** Five authored species replace the procedural lozenges, one per accepted variant. Aeolids have oral tentacles, lamellate rhinophores and rows of spindle cerata with banded tips. Dorids have a flared, undulating mantle with a contrasting border, raised spots, lamellate rhinophores and a bipinnate gill plume.
+
+Colour stays restrained and natural. Pattern belongs to the animal's form (continuous across joined parts), not to UV islands. Review against the matched captures in [Pass 015 validation](VALIDATION_V02_PASS_015.md).

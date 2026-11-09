@@ -1,0 +1,371 @@
+{
+  "result": "PASS",
+  "nativeSwim": {
+    "position": {
+      "x": 13.26541034884937,
+      "y": 3.2546939558857755,
+      "z": 2.5511614425702196
+    },
+    "inside": false
+  },
+  "backend": "Chromium / SwiftShader software renderer",
+  "loadMs": 3415,
+  "initialModelRequests": [
+    "http://127.0.0.1:5173/assets/models/ornaments/reef-props.glb",
+    "http://127.0.0.1:5173/assets/models/creatures/anchored-life.glb",
+    "http://127.0.0.1:5173/assets/models/creatures/nudibranchs.glb",
+    "http://127.0.0.1:5173/assets/models/fish/clownfish.glb",
+    "http://127.0.0.1:5173/assets/models/reef/reef-environment.glb",
+    "http://127.0.0.1:5173/assets/models/coral/acropora.glb",
+    "http://127.0.0.1:5173/assets/models/fish/chromis.glb"
+  ],
+  "inventory": {
+    "maxCollisionPlaneViolation": 3.552713678800501e-15,
+    "fish": 40,
+    "chromis": 20,
+    "school": {
+      "geometries": 8,
+      "materials": 5,
+      "textures": 4,
+      "geometryTypedArrayBytes": 510388,
+      "estimatedRGBA8TextureBytesWithMips": 5592405.333333333
+    },
+    "coral": {
+      "geometries": 102,
+      "materials": 2,
+      "textures": 3,
+      "geometryTypedArrayBytes": 2680236,
+      "estimatedRGBA8TextureBytesWithMips": 4194304
+    },
+    "coralColliders": 100,
+    "hulls": 530,
+    "animations": 0,
+    "geometryNote": "Typed-array bytes exclude driver copies; RGBA8 texture estimate excludes compression, morph textures and shadow maps. Shared image maps counted once per resource set."
+  },
+  "renders": [
+    {
+      "view": "chromis-close",
+      "mode": "before",
+      "id": "chromis-close",
+      "position": [14.225410348849369, 4.589170767123875, 1.0307814884344082],
+      "target": [14.065410348849369, 4.559170767123875, 0.3807814884344083],
+      "draws": 105,
+      "triangles": 800369,
+      "memory": {
+        "geometries": 123,
+        "textures": 27
+      }
+    },
+    {
+      "view": "chromis-close",
+      "mode": "assets-only",
+      "id": "chromis-close",
+      "position": [14.225410348849369, 4.589170767123875, 1.0307814884344082],
+      "target": [14.065410348849369, 4.559170767123875, 0.3807814884344083],
+      "draws": 107,
+      "triangles": 1035969,
+      "memory": {
+        "geometries": 131,
+        "textures": 35
+      }
+    },
+    {
+      "view": "chromis-close",
+      "mode": "after",
+      "id": "chromis-close",
+      "position": [14.225410348849369, 4.589170767123875, 1.0307814884344082],
+      "target": [14.065410348849369, 4.559170767123875, 0.3807814884344083],
+      "draws": 114,
+      "triangles": 1299025,
+      "memory": {
+        "geometries": 131,
+        "textures": 35
+      }
+    },
+    {
+      "view": "chromis-side",
+      "mode": "before",
+      "id": "chromis-side",
+      "position": [14.065410348849369, 4.559170767123875, 1.1807814884344083],
+      "target": [14.065410348849369, 4.559170767123875, 0.3807814884344083],
+      "draws": 100,
+      "triangles": 744487,
+      "memory": {
+        "geometries": 131,
+        "textures": 35
+      }
+    },
+    {
+      "view": "chromis-side",
+      "mode": "assets-only",
+      "id": "chromis-side",
+      "position": [14.065410348849369, 4.559170767123875, 1.1807814884344083],
+      "target": [14.065410348849369, 4.559170767123875, 0.3807814884344083],
+      "draws": 103,
+      "triangles": 1031247,
+      "memory": {
+        "geometries": 131,
+        "textures": 35
+      }
+    },
+    {
+      "view": "chromis-side",
+      "mode": "after",
+      "id": "chromis-side",
+      "position": [14.065410348849369, 4.559170767123875, 1.1807814884344083],
+      "target": [14.065410348849369, 4.559170767123875, 0.3807814884344083],
+      "draws": 110,
+      "triangles": 1294303,
+      "memory": {
+        "geometries": 131,
+        "textures": 35
+      }
+    },
+    {
+      "view": "coral-close",
+      "mode": "before",
+      "id": "coral-close",
+      "position": [15.16541034884937, 2.8091707671238746, 0.7307814884344083],
+      "target": [14.36541034884937, 2.5091707671238748, -0.11921851156559171],
+      "draws": 146,
+      "triangles": 986705,
+      "memory": {
+        "geometries": 168,
+        "textures": 44
+      }
+    },
+    {
+      "view": "coral-close",
+      "mode": "assets-only",
+      "id": "coral-close",
+      "position": [15.16541034884937, 2.8091707671238746, 0.7307814884344083],
+      "target": [14.36541034884937, 2.5091707671238748, -0.11921851156559171],
+      "draws": 148,
+      "triangles": 1302323,
+      "memory": {
+        "geometries": 168,
+        "textures": 44
+      }
+    },
+    {
+      "view": "coral-close",
+      "mode": "after",
+      "id": "coral-close",
+      "position": [15.16541034884937, 2.8091707671238746, 0.7307814884344083],
+      "target": [14.36541034884937, 2.5091707671238748, -0.11921851156559171],
+      "draws": 155,
+      "triangles": 1565379,
+      "memory": {
+        "geometries": 168,
+        "textures": 44
+      }
+    },
+    {
+      "view": "reef-composition",
+      "mode": "before",
+      "id": "reef-composition",
+      "position": [12.065410348849369, 4.759170767123875, 4.5807814884344085],
+      "target": [13.96541034884937, 3.359170767123875, -0.11921851156559171],
+      "draws": 97,
+      "triangles": 740093,
+      "memory": {
+        "geometries": 171,
+        "textures": 44
+      }
+    },
+    {
+      "view": "reef-composition",
+      "mode": "assets-only",
+      "id": "reef-composition",
+      "position": [12.065410348849369, 4.759170767123875, 4.5807814884344085],
+      "target": [13.96541034884937, 3.359170767123875, -0.11921851156559171],
+      "draws": 99,
+      "triangles": 1055711,
+      "memory": {
+        "geometries": 171,
+        "textures": 44
+      }
+    },
+    {
+      "view": "reef-composition",
+      "mode": "after",
+      "id": "reef-composition",
+      "position": [12.065410348849369, 4.759170767123875, 4.5807814884344085],
+      "target": [13.96541034884937, 3.359170767123875, -0.11921851156559171],
+      "draws": 106,
+      "triangles": 1318767,
+      "memory": {
+        "geometries": 171,
+        "textures": 44
+      }
+    },
+    {
+      "view": "swimming-distance",
+      "mode": "before",
+      "id": "swimming-distance",
+      "position": [12.96541034884937, 3.459170767123875, 3.280781488434408],
+      "target": [14.36541034884937, 2.659170767123875, -0.11921851156559171],
+      "draws": 94,
+      "triangles": 742537,
+      "memory": {
+        "geometries": 171,
+        "textures": 44
+      }
+    },
+    {
+      "view": "swimming-distance",
+      "mode": "assets-only",
+      "id": "swimming-distance",
+      "position": [12.96541034884937, 3.459170767123875, 3.280781488434408],
+      "target": [14.36541034884937, 2.659170767123875, -0.11921851156559171],
+      "draws": 96,
+      "triangles": 1058155,
+      "memory": {
+        "geometries": 171,
+        "textures": 44
+      }
+    },
+    {
+      "view": "swimming-distance",
+      "mode": "after",
+      "id": "swimming-distance",
+      "position": [12.96541034884937, 3.459170767123875, 3.280781488434408],
+      "target": [14.36541034884937, 2.659170767123875, -0.11921851156559171],
+      "draws": 103,
+      "triangles": 1321211,
+      "memory": {
+        "geometries": 171,
+        "textures": 44
+      }
+    },
+    {
+      "view": "full-aquarium",
+      "mode": "before",
+      "id": "full-aquarium",
+      "position": [0, 9, 12],
+      "target": [0, 3, -3],
+      "draws": 173,
+      "triangles": 967940,
+      "memory": {
+        "geometries": 214,
+        "textures": 61
+      }
+    },
+    {
+      "view": "full-aquarium",
+      "mode": "assets-only",
+      "id": "full-aquarium",
+      "position": [0, 9, 12],
+      "target": [0, 3, -3],
+      "draws": 175,
+      "triangles": 1203540,
+      "memory": {
+        "geometries": 214,
+        "textures": 61
+      }
+    },
+    {
+      "view": "full-aquarium",
+      "mode": "after",
+      "id": "full-aquarium",
+      "position": [0, 9, 12],
+      "target": [0, 3, -3],
+      "draws": 182,
+      "triangles": 1466596,
+      "memory": {
+        "geometries": 214,
+        "textures": 61
+      }
+    }
+  ],
+  "isolated": [
+    {
+      "asset": "school",
+      "upgraded": false,
+      "draws": 6,
+      "triangles": 18120
+    },
+    {
+      "asset": "school",
+      "upgraded": true,
+      "draws": 8,
+      "triangles": 253720
+    },
+    {
+      "asset": "coral",
+      "upgraded": false,
+      "draws": 2,
+      "triangles": 2398
+    },
+    {
+      "asset": "coral",
+      "upgraded": true,
+      "draws": 2,
+      "triangles": 82416
+    }
+  ],
+  "schoolUpdateMs": {
+    "mean": 0.06553124999991258,
+    "median": 0.06000000000931323,
+    "p95": 0.09000000001396984,
+    "p99": 0.16000000000931322,
+    "samples": 160
+  },
+  "frameSubmissionMs": {
+    "mean": 12.341666666596817,
+    "median": 5.399999999906868,
+    "p95": 63.40000000037253,
+    "p99": 63.40000000037253,
+    "samples": 12
+  },
+  "rafIntervalMs": {
+    "mean": 51.51818181818155,
+    "median": 16.70000000001164,
+    "p95": 283.3999999999942,
+    "p99": 283.3999999999942,
+    "samples": 11
+  },
+  "animation": {
+    "paused": true,
+    "finite": true
+  },
+  "safety": {
+    "fish": 40,
+    "corrections": 0,
+    "finite": true
+  },
+  "cleanup": {
+    "before": {
+      "geometries": 271,
+      "textures": 67
+    },
+    "after": {
+      "geometries": 0,
+      "textures": 0
+    },
+    "audio": "closed"
+  },
+  "fallback": {
+    "visibleOriginalChromis": true,
+    "population": 40
+  },
+  "recreation": [
+    {
+      "geometries": 0,
+      "textures": 0
+    },
+    {
+      "geometries": 0,
+      "textures": 0
+    }
+  ],
+  "errors": [],
+  "warnings": [],
+  "limitations": [
+    "Portrait fish position is a controlled presentation fixture, identical in A/B captures; locomotion sequence follows an actual simulated fish.",
+    "Before/assets-only/after share camera transforms and simulation pose. Assets-only retains original lighting.",
+    "Video frames advance the real fixed-step ecosystem by 1/30 s; encoding at 30 FPS is not measured hardware FPS.",
+    "Texture memory is an RGBA8+mips estimate, not driver VRAM. Software timing cannot establish MacBook Air performance.",
+    "Visual quality gates remain subject to user acceptance; surrounding rocks and other assets remain Pass 011."
+  ]
+}

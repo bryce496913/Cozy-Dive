@@ -45,6 +45,19 @@ export const ASSET_REGISTRY = {
     maxDimension: 26,
     requireMorphs: false,
   },
+  nudibranchs: {
+    path: 'assets/models/creatures/nudibranchs.glb',
+    requiredNodes: [
+      'Nudibranch_1',
+      'Nudibranch_2',
+      'Nudibranch_3',
+      'Nudibranch_4',
+      'Nudibranch_5',
+    ],
+    minDimension: 15,
+    maxDimension: 30,
+    requireMorphs: false,
+  },
   clownfish: {
     path: 'assets/models/fish/clownfish.glb',
     requiredNodes: [
@@ -67,6 +80,7 @@ export const ASSET_REGISTRY = {
       'Pebble_0',
       'Coral_Branching_0',
       'Coral_Massive_0',
+      'Coral_Massive_0_LOD1',
       'Coral_Plate_0',
       'Soft_Coral_0',
       'Sea_Fan_0',

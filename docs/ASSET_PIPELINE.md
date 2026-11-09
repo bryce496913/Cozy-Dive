@@ -94,3 +94,20 @@ Runtime: `AuthoredReef` (owned by `UnderwaterScene`) leases the `reef` library t
 - **Substrate**: the PBR sand material adopted, plus pooled debris, a meadow understory and the flattened backdrop.
 
 Load failure, or disposal before load, leaves the procedural reef untouched. Disposal releases its materials, cloned sand textures, instanced buffers and lease exactly once. `validation/ReefAsset.ts` reads the GLB on the CPU for tests and stress scenarios, and `validation/reef-overhaul.mjs` captures the matched evidence.
+
+## Pass 015 corals, creatures and nudibranchs
+
+```bash
+python3 tools/art/pass015/textures.py
+python3 tools/art/pass014/build.py         # reef library with the Pass 015 coral builders and maps
+python3 tools/art/pass015/creatures.py     # re-authors the pinned Pass 013 creature export
+python3 tools/art/pass015/nudibranchs.py
+python3 tools/art/inspect_assets.py
+```
+
+All three use Blender 5.1.2's Python module, as in Pass 014.
+
+- **Creatures.** `creatures.py` imports `anchored-life.pass013.glb`; a Blender glTF import/export roundtrip was verified lossless for every node, root offset and vertex. It then applies a simple subdivision where density is needed (the moray body and seahorse tail), a few millimetres of relief along the normal, and object-space vertex colour with cavity and underside occlusion, and assigns new skin materials. The moray body keeps `z = 1 − v` (its GPU centreline parameter), and the frogfish sole receives no relief.
+- **Runtime.** `AuthoredAquarium` strips the procedural moray shader's colour override (keeping its deformation) so the authored skin shows. It attaches one authored nudibranch per animal under the existing nudibranch root, copying each animal's crawl-pose matrix every frame. It reproduces the mantle ripple from the shared nudibranch clock (pause and reduced motion unchanged) and hides the procedural instances.
+- **Reef.** `AuthoredReef` builds a `THREE.LOD` (switching at 10 units) for any coral that has an `_LOD1` level.
+- **Evidence.** `validation/creature-overhaul.mjs` captures matched coral and creature close-ups for one build. Run it against the previous candidate and this branch.

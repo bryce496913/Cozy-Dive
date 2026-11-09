@@ -1,0 +1,252 @@
+{
+  "renderer": "Chromium SwiftShader software rendering; camera fixtures, not player navigation or hardware FPS measurements",
+  "inventory": {
+    "ownedGeometryCount": 422,
+    "ownedMaterialCount": 81,
+    "fish": 40,
+    "solids": 435,
+    "grass": [
+      {
+        "x": 10.802086353022606,
+        "z": 9.65548986941576,
+        "radius": 1.5545531163457782,
+        "blades": 159
+      },
+      {
+        "x": -14.950204190146177,
+        "z": 11.813085969537497,
+        "radius": 1.1967548293992878,
+        "blades": 130
+      },
+      {
+        "x": 15.595864582527428,
+        "z": -9.98423457890749,
+        "radius": 1.2840673284605146,
+        "blades": 148
+      },
+      {
+        "x": -7.447924702148884,
+        "z": -2.596759606152773,
+        "radius": 1.464319778745994,
+        "blades": 140
+      },
+      {
+        "x": 5.077054809685796,
+        "z": 9.387201521545649,
+        "radius": 1.417551852669567,
+        "blades": 147
+      },
+      {
+        "x": -7.586395024042576,
+        "z": 11.705068182200193,
+        "radius": 1.5479209606070072,
+        "blades": 155
+      },
+      {
+        "x": 13.095115639362485,
+        "z": 6.702755153179169,
+        "radius": 1.191472740052268,
+        "blades": 126
+      },
+      {
+        "x": -4.859217650350184,
+        "z": 4.012767497450113,
+        "radius": 1.4567427049856634,
+        "blades": 147
+      }
+    ],
+    "anchors": [
+      {
+        "kind": "shaded-overhang",
+        "anchorId": "arch-shadow",
+        "ornament": "arch",
+        "position": {
+          "x": -14.7,
+          "y": 1.430701307474276,
+          "z": -11.7
+        },
+        "normal": {
+          "x": 0.247403959254523,
+          "y": 0,
+          "z": 0.968912421710645
+        }
+      },
+      {
+        "kind": "sheltered-crevice",
+        "anchorId": "shipwreck-crevice",
+        "ornament": "shipwreck",
+        "position": {
+          "x": -10.932803724005115,
+          "y": 1.0074869920195197,
+          "z": 11.046425415447496
+        },
+        "normal": {
+          "x": 0.247403959254523,
+          "y": 0,
+          "z": 0.968912421710645
+        }
+      },
+      {
+        "kind": "sheltered-crevice",
+        "anchorId": "log-interior",
+        "ornament": "log",
+        "position": {
+          "x": 5.6000000000000005,
+          "y": 1.4366863314869949,
+          "z": 5.099999999999998
+        },
+        "normal": {
+          "x": -0.29552020666133955,
+          "y": 0,
+          "z": 0.955336489125606
+        }
+      },
+      {
+        "kind": "shaded-overhang",
+        "anchorId": "statue-rear",
+        "ornament": "statue",
+        "position": {
+          "x": 15.017870929272098,
+          "y": 1.1498252650139948,
+          "z": 2.831893475454012
+        },
+        "normal": {
+          "x": 0.19866933079506124,
+          "y": 0,
+          "z": -0.9800665778412416
+        }
+      },
+      {
+        "kind": "sandy-floor",
+        "anchorId": "chest-nearby",
+        "ornament": "chest",
+        "position": {
+          "x": -5.64428871035995,
+          "y": 1.1502000289984957,
+          "z": 11.831607327763418
+        },
+        "normal": {
+          "x": -0.247403959254523,
+          "y": 0,
+          "z": 0.968912421710645
+        }
+      },
+      {
+        "kind": "reef-face",
+        "anchorId": "filter-corner",
+        "ornament": "filter",
+        "position": {
+          "x": 16.95,
+          "y": 8,
+          "z": -11.49
+        },
+        "normal": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        }
+      }
+    ],
+    "models": [
+      {
+        "kind": "filter",
+        "position": [16.95, 8, -13.39],
+        "rotation": [0, 0, 0, "XYZ"]
+      },
+      {
+        "kind": "arch",
+        "position": [-14.7, 0.08070130747427605, -11.7],
+        "rotation": [0, 0.25, 0, "XYZ"]
+      },
+      {
+        "kind": "shipwreck",
+        "position": [-11.2, -0.012513007980480342, 10],
+        "rotation": [0, 0.25, 0, "XYZ"]
+      },
+      {
+        "kind": "log",
+        "position": [5.6000000000000005, 0.1566863314869949, 5.099999999999998],
+        "rotation": [0, -0.3, 0, "XYZ"]
+      },
+      {
+        "kind": "statue",
+        "position": [14.7, 0.049825265013994806, 4.399999999999999],
+        "rotation": [0, -0.2, 0, "XYZ"]
+      },
+      {
+        "kind": "chest",
+        "position": [-5.1, 0.05020002899849554, 9.7],
+        "rotation": [0, -0.25, 0, "XYZ"]
+      }
+    ]
+  },
+  "views": [
+    {
+      "kind": "overview",
+      "calls": 204,
+      "triangles": 1085935,
+      "camera": [0, 13, 25]
+    },
+    {
+      "kind": "chest",
+      "calls": 148,
+      "triangles": 906894,
+      "camera": [-2.3999999999999995, 2.7502000289984956, 13.899999999999999]
+    },
+    {
+      "kind": "filter",
+      "calls": 43,
+      "triangles": 342380,
+      "camera": [14.95, 8.5, -9.39]
+    },
+    {
+      "kind": "arch",
+      "calls": 67,
+      "triangles": 728951,
+      "camera": [-11, 3.1807013074742763, -6.499999999999999]
+    },
+    {
+      "kind": "shipwreck",
+      "calls": 132,
+      "triangles": 864043,
+      "camera": [-7.8999999999999995, 3.4874869920195195, 14.5]
+    },
+    {
+      "kind": "log",
+      "calls": 149,
+      "triangles": 969709,
+      "camera": [6.300000000000001, 2.156686331486995, 9.699999999999998]
+    },
+    {
+      "kind": "statue",
+      "calls": 88,
+      "triangles": 651901,
+      "camera": [12, 3.4498252650139944, 8.599999999999998]
+    }
+  ],
+  "animation": {
+    "before": {
+      "time": 11.499999999999975,
+      "angle": 1.0718749999999955,
+      "bubbles": 18
+    },
+    "paused": {
+      "time": 11.499999999999975,
+      "angle": 1.0718749999999955,
+      "bubbles": 18
+    },
+    "burstCount": 1
+  },
+  "cleanup": {
+    "before": {
+      "geometries": 288,
+      "textures": 54
+    },
+    "after": {
+      "geometries": 0,
+      "textures": 0
+    },
+    "audio": "closed"
+  },
+  "errors": []
+}

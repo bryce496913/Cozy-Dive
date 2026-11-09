@@ -48,7 +48,7 @@ try {
     await p.evaluate(() => window.__visualBenchmark.world.authored.ready),
     true,
   );
-  assert.equal(models.length, 6); // includes the Pass 014 reef library
+  assert.equal(models.length, 7); // includes the Pass 014 reef and Pass 015 nudibranchs
   assert.equal(await p.locator('#compare').isEnabled(), true);
   await p.getByRole('button', { name: 'Enter the Water' }).click();
   await p.waitForFunction(
