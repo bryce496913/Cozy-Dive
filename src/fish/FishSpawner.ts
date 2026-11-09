@@ -8,7 +8,11 @@ import {
   type FishSpecies,
 } from './FishSpecies';
 import type { FishEntity } from './FishEntity';
-import { safeFishPosition, type FishHabitat } from './FishHabitat';
+import {
+  safeFishPosition,
+  clearFishRoute,
+  type FishHabitat,
+} from './FishHabitat';
 
 /** All allocation and population validation happen at initialization. */
 export function spawnFish(
@@ -128,8 +132,8 @@ export function spawnFish(
         throw new Error(
           `No safe spawn found for ${config.name}; reduce population or adjust habitat.`,
         );
-      const yaw = (random() * 2 - 1) * Math.PI,
-        pitch = (random() * 2 - 1) * 0.12;
+      let yaw = (random() * 2 - 1) * Math.PI;
+      const pitch = (random() * 2 - 1) * 0.12;
       const speedFactor = 0.88 + random() * 0.24,
         turnFactor = 0.88 + random() * 0.24,
         temperament = 0.8 + random() * 0.4;
@@ -138,6 +142,40 @@ export function spawnFish(
       const targetTime = random() * 3,
         individualSeed = (random() * 4294967296) >>> 0,
         age = random() * 30;
+      // Keep seeded positions and RNG consumption; only reject an initial heading
+      // whose existing steering look-ahead already crosses a solid. This is setup,
+      // not a change to the ongoing steering/avoidance controller.
+      const ahead = { x: 0, y: 0, z: 0 },
+        originalYaw = yaw;
+      let headingClear = false;
+      for (let turn = 0; turn <= 16; turn++) {
+        const offset =
+          ((Math.ceil(turn / 2) * Math.PI) / 8) * (turn % 2 ? 1 : -1);
+        const candidate = originalYaw + offset;
+        ahead.x =
+          position.x +
+          Math.cos(candidate) *
+            Math.cos(pitch) *
+            speed *
+            FISH_STEERING.lookAheadSeconds;
+        ahead.y =
+          position.y + Math.sin(pitch) * speed * FISH_STEERING.lookAheadSeconds;
+        ahead.z =
+          position.z -
+          Math.sin(candidate) *
+            Math.cos(pitch) *
+            speed *
+            FISH_STEERING.lookAheadSeconds;
+        if (clearFishRoute(position, ahead, radius, habitat)) {
+          yaw =
+            turn === 0
+              ? originalYaw
+              : Math.atan2(Math.sin(candidate), Math.cos(candidate));
+          headingClear = true;
+          break;
+        }
+      }
+      const initialSpeed = headingClear ? speed : 0;
       fish.push({
         id: fish.length,
         species: config,
@@ -151,16 +189,16 @@ export function spawnFish(
         position,
         previousPosition: { ...position },
         velocity: {
-          x: Math.cos(yaw) * Math.cos(pitch) * speed,
-          y: Math.sin(pitch) * speed,
-          z: -Math.sin(yaw) * Math.cos(pitch) * speed,
+          x: Math.cos(yaw) * Math.cos(pitch) * initialSpeed,
+          y: Math.sin(pitch) * initialSpeed,
+          z: -Math.sin(yaw) * Math.cos(pitch) * initialSpeed,
         },
         target: { ...position },
         yaw,
         previousYaw: yaw,
         pitch,
         previousPitch: pitch,
-        speed,
+        speed: initialSpeed,
         phase,
         previousPhase: phase,
         bank: 0,

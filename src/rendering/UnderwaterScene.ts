@@ -1,3 +1,4 @@
+import { AuthoredAquarium } from '../environment/AuthoredAquarium';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
 import * as THREE from 'three';
 import { Aquarium } from '../environment/Aquarium';
@@ -12,6 +13,9 @@ export class UnderwaterScene {
   readonly camera = new THREE.PerspectiveCamera(64, 1, 0.08, 80);
   readonly renderer: THREE.WebGLRenderer;
   readonly aquarium: Aquarium;
+  readonly authored: AuthoredAquarium;
+  private readonly assetStatus = document.createElement('p');
+  private disposed = false;
   private presentation?: Presentation;
   setPresentation(value: Presentation): void {
     this.presentation?.dispose();
@@ -48,6 +52,19 @@ export class UnderwaterScene {
     this.scene.add(fill);
     this.aquarium = new Aquarium();
     this.scene.add(this.aquarium.root);
+    this.assetStatus.textContent = 'Preparing aquarium details…';
+    this.assetStatus.setAttribute('role', 'status');
+    this.assetStatus.style.cssText =
+      'position:absolute;bottom:1rem;left:1rem;color:white;pointer-events:none;font:14px sans-serif';
+    host.append(this.assetStatus);
+    this.authored = new AuthoredAquarium(this.aquarium);
+    void this.authored.ready.then((ready) => {
+      if (this.disposed) return;
+      if (ready) this.assetStatus.remove();
+      else
+        this.assetStatus.textContent =
+          'Some aquarium details could not load. You can still explore.';
+    });
     this.camera.rotation.order = 'YXZ';
     this.resizeObserver = new ResizeObserver(this.resize);
     this.resizeObserver.observe(host);
@@ -80,14 +97,18 @@ export class UnderwaterScene {
     player?: PlayerPresence,
   ): void {
     this.aquarium.update(time, reducedMotion, dt, active, player);
+    this.authored.update();
     this.presentation?.update();
     this.renderer.render(this.scene, this.camera);
   }
   dispose(): void {
+    this.disposed = true;
+    this.assetStatus.remove();
     this.presentation?.dispose();
     this.presentation = undefined;
     this.abort.abort();
     this.resizeObserver.disconnect();
+    this.authored.dispose();
     this.aquarium.dispose();
     this.scene.clear();
     this.renderer.dispose();

@@ -13,13 +13,14 @@ export class AuthoredSchool {
   constructor(
     private readonly fish: FishSystem,
     private readonly leases: readonly AssetLease[],
+    speciesId = 'blue-green-chromis',
   ) {
-    this.root.name = 'Authored chromis school';
+    this.root.name = `Authored ${speciesId} school`;
     this.indices = fish.simulation.fish.flatMap((f, i) =>
-      f.species.id === 'blue-green-chromis' ? [i] : [],
+      f.species.id === speciesId ? [i] : [],
     );
     if (this.indices.length !== leases.length)
-      throw Error('Authored school must preserve chromis count');
+      throw Error(`Authored school must preserve ${speciesId} count`);
     this.rigs = leases.map((lease) => {
       const wrapper = new THREE.Group();
       wrapper.add(lease.model);
@@ -87,7 +88,14 @@ export class AuthoredSchool {
       rig.position.copy(source.root.position);
       rig.quaternion.copy(source.root.quaternion);
       rig.scale.copy(source.root.scale);
-      const effort = Math.max(-1, Math.min(1, source.tail.rotation.y / 0.3));
+      const effort = Math.max(
+        -1,
+        Math.min(
+          1,
+          source.tail.rotation.y /
+            this.fish.simulation.fish[this.indices[i]].species.tailAngle,
+        ),
+      );
       for (const part of this.parts[i]) {
         if (part.morphTargetInfluences && part.morphTargetDictionary) {
           part.morphTargetInfluences[part.morphTargetDictionary.Stroke_Left] =

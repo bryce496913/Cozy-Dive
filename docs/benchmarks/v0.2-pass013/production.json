@@ -1,0 +1,25 @@
+{
+  "result": "PASS",
+  "assets": [
+    "http://127.0.0.1:5180/assets/index-BSjJr2hk.js",
+    "http://127.0.0.1:5180/assets/index-BunRuY5r.css",
+    "http://127.0.0.1:5180/assets/models/ornaments/reef-props.glb",
+    "http://127.0.0.1:5180/assets/models/creatures/anchored-life.glb",
+    "http://127.0.0.1:5180/assets/models/fish/clownfish.glb"
+  ],
+  "depth": "\u2193 9.4 m BELOW THE SURFACE",
+  "swimmingDepth": "\u2193 9.2 m BELOW THE SURFACE",
+  "errors": [],
+  "warnings": [],
+  "checks": [
+    "built assets load",
+    "preview does not capture mouse",
+    "Enter and pointer lock",
+    "camera-directed W ascent changes public depth readout",
+    "Escape pauses",
+    "volume persists after reload"
+  ],
+  "limitations": [
+    "Software-rendered Chromium; functional smoke check, not hardware performance or subjective audio acceptance."
+  ]
+}

@@ -37,6 +37,10 @@ try {
   await page.waitForFunction(
     () => window.__cozy?.world?.renderer.info.render.calls > 0,
   );
+  const authored = await page.evaluate(
+    () => window.__cozy.world.authored.ready,
+  );
+  assert.equal(authored, true);
   await page
     .getByRole('button', { name: 'Enter the Water', exact: true })
     .click();
@@ -153,6 +157,7 @@ try {
         w.camera.lookAt(target);
       }
       w.camera.updateMatrixWorld(true);
+      w.authored.update();
       w.renderer.render(w.scene, w.camera);
       return {
         name,
@@ -174,6 +179,7 @@ try {
           n = w.aquarium.anchoredLife.anemone,
           before = n.clock.time;
         for (let i = 0; i < 150; i++) n.update(1 / 30, true, false);
+        w.authored.update();
         w.renderer.render(w.scene, w.camera);
         return { before, after: n.clock.time };
       });
@@ -193,6 +199,7 @@ try {
         velocity: { x: 0, y: 0, z: 0 },
         active: true,
       });
+    w.authored.update();
     w.renderer.render(w.scene, w.camera);
     return {
       before,

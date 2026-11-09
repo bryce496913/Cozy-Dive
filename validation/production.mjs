@@ -18,15 +18,33 @@ const browser = await chromium.launch({
 try {
   const page = await browser.newPage({ viewport: { width: 960, height: 640 } }),
     errors = [],
-    warnings = [];
+    warnings = [],
+    modelResponses = new Map();
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => {
     if (m.type() === 'error') errors.push(m.text());
     if (m.type() === 'warning') warnings.push(m.text());
   });
+  page.on('response', (r) => {
+    if (r.url().includes('.glb')) modelResponses.set(r.url(), r.status());
+  });
   await page.goto(process.env.COZY_URL || 'http://127.0.0.1:5175');
   await page.waitForFunction(() => !!document.querySelector('canvas'));
   await page.screenshot({ path: path.join(output, 'preview.png') });
+  await page.waitForFunction(
+    () =>
+      !Array.from(document.querySelectorAll('[role=status]')).some((n) =>
+        n.textContent.includes('Preparing aquarium'),
+      ),
+  );
+  assert.equal(modelResponses.size, 3);
+  assert.deepEqual([...modelResponses.values()], [200, 200, 200]);
+  assert.equal(
+    await page
+      .getByText('Some aquarium details could not load.', { exact: false })
+      .count(),
+    0,
+  );
   assert.equal(await page.evaluate(() => !!document.pointerLockElement), false);
   await page.getByRole('button', { name: 'Enter the Water' }).click();
   await page.waitForFunction(

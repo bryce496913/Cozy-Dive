@@ -35,6 +35,10 @@ try {
   await page.waitForFunction(
     () => window.__cozy?.world?.renderer.info.render.calls > 0,
   );
+  const authored = await page.evaluate(
+    () => window.__cozy.world.authored.ready,
+  );
+  assert.equal(authored, true);
   await page
     .getByRole('button', { name: 'Enter the Water', exact: true })
     .click();
@@ -116,6 +120,7 @@ try {
         w.camera.lookAt(target);
       }
       w.camera.updateMatrixWorld(true);
+      w.authored.update();
       w.renderer.render(w.scene, w.camera);
       return {
         kind,
@@ -140,6 +145,7 @@ try {
     w.camera.position.copy(target).add({ x: 2.8, y: 2.2, z: 4 });
     w.camera.lookAt(target);
     w.camera.updateMatrixWorld(true);
+    w.authored.update();
     w.renderer.render(w.scene, w.camera);
     const before = {
       time: o.chest.time,

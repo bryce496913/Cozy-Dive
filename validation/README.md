@@ -85,3 +85,21 @@ The normal `npm run build` excludes `benchmark.html`. `npm run build:benchmark` 
 [Pass 012 evidence](../docs/VALIDATION_V02_PASS_012.md) includes the user-facing visual gate status. File validity and passing technical tests do not establish professional-quality art or MacBook Air performance.
 
 For explicit production benchmark smoke validation, serve `dist-benchmark` at the selected port and run `COZY_URL=http://127.0.0.1:5177 COZY_OUTPUT=/tmp/cozy012-production-benchmark node validation/asset-smoke.mjs` with the same Playwright/Chromium overrides. The normal production harness remains `production.mjs` against the ordinary build. Source lint/format ignore only the generated `dist-benchmark` directory in addition to their existing generated-output exclusions.
+
+## Pass 013 authored geometry
+
+Use the same Playwright/Chromium environment variables above with a running dev server:
+
+```bash
+COZY_OUTPUT=/tmp/cozy013-geometry node validation/geometry-overhaul.mjs
+COZY_OUTPUT=/tmp/cozy013-ornaments node validation/ornaments.mjs
+COZY_OUTPUT=/tmp/cozy013-anchored node validation/anchored-life.mjs
+COZY_OUTPUT=/tmp/cozy013-discoveries node validation/discoveries.mjs
+COZY_OUTPUT=/tmp/cozy013-lifecycle node validation/lifecycle.mjs
+```
+
+The normal scene now awaits three authored local libraries. The geometry harness records ten identical-pose before/after pairs, deduplicated loading, actual seahorse/frogfish vertex clearance, missing-library fallback, complete cleanup and disposal with requests pending. Its two synchronized software frames per view drain the GPU queue before screenshots; these diagnostic timings are not target-machine FPS. `COZY_GEOMETRY_PROBE=1` skips image capture while retaining the ownership/clearance/fallback checks.
+
+Resident normal-world inventory is now 373 geometries / 65 materials / 216 hulls (includes hidden original geometry retained for comparison/fallback); fish and hidden counts remain 40 / 7. The lifecycle soak asserts those exact counts and unchanged 19 audio nodes / three buffers. The CPU stress suite separately runs original and authored structural worlds at 5, 15 and 30 minutes, plus render-schedule equivalence. Regenerate the exact GLB point inventory with `python3 tools/art/pass013/collision_inventory.py` after an ornament export. Run CPU tests and software-rendered browser jobs sequentially to avoid unrelated five-second unit-test timeouts under CPU contention.
+
+The benchmark still replaces chromis and one coral, composing with the new normal hero layer. Its startup now makes five unique model requests; its comparison button only toggles the chromis/coral presentation. For production, build normally and point `validation/production.mjs` at `npm run preview`; it checks the three successful GLB responses as well as public controls/settings.

@@ -49,7 +49,7 @@ export class OrnamentSystem {
     depthWrite: false,
   });
   readonly lidCollider: MutableLid;
-  private readonly sourcePlanes: readonly {
+  private sourcePlanes: readonly {
     x: number;
     y: number;
     z: number;
@@ -188,6 +188,16 @@ export class OrnamentSystem {
     this.outflow.name = 'Subtle local filter outflow';
     models.find((m) => m.kind === 'filter')!.root.add(this.outflow);
     this.drawOutflow();
+  }
+  /** Replace hinge-local shape while preserving the shared moving collider identity. */
+  setLidCollisionGeometry(geometry?: THREE.BufferGeometry): void {
+    const source =
+      geometry ?? this.models.find((m) => m.kind === 'chest')!.lid!.geometry;
+    this.sourcePlanes = rockCollider(source, new THREE.Matrix4()).planes;
+    this.lidCollider.planes = this.sourcePlanes.map((p) => ({ ...p }));
+    source.computeBoundingBox();
+    this.lidBox.copy(source.boundingBox!);
+    this.syncLid();
   }
   private syncLid(): void {
     const m = this.models.find((m) => m.kind === 'chest')!;

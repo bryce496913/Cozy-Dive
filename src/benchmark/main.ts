@@ -8,7 +8,7 @@ const panel = document.createElement('aside');
 panel.style.cssText =
   'position:fixed;top:92px;left:24px;pointer-events:none;z-index:10;background:#092f39e8;border:1px solid #93b6b655;padding:12px 16px;border-radius:8px;color:#dce9e5;font:13px system-ui;max-width:330px';
 panel.innerHTML =
-  '<strong>Pass 012 · Visual benchmark</strong><p role="status" id="asset-state">Loading locally bundled GLB assets…</p><button id="compare" disabled>View Pass 011 assets</button> <a href="/" style="color:#b4d4d0">Normal aquarium</a><small style="display:block;margin-top:8px">Development showcase. Enter to swim. Escape to compare. Visual acceptance pending.</small>';
+  '<strong>Pass 012 · Visual benchmark</strong><p role="status" id="asset-state">Loading locally bundled GLB assets…</p><button id="compare" disabled>View original chromis / coral</button> <a href="/" style="color:#b4d4d0">Normal aquarium</a><small style="display:block;margin-top:8px">Development showcase. Enter to swim. Escape to compare. Chromis reference; hero geometry review pending.</small>';
 document.body.append(panel);
 const status = panel.querySelector<HTMLElement>('#asset-state')!,
   button = panel.querySelector<HTMLButtonElement>('#compare')!;
@@ -57,7 +57,7 @@ button.addEventListener('click', () => {
   upgraded = !upgraded;
   showcase?.setUpgraded(upgraded);
   button.textContent = upgraded
-    ? 'View Pass 011 assets'
+    ? 'View original chromis / coral'
     : 'View benchmark assets';
 });
 void load();

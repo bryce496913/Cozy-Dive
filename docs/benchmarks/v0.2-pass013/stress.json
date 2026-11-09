@@ -1,0 +1,574 @@
+[
+  {
+    "authored": false,
+    "minutes": 5,
+    "count": 60,
+    "morayStates": ["resting", "hidden", "peeking", "emerging", "retreating"],
+    "seed": 38147,
+    "stepMs": {
+      "mean": 1.1592495999999983,
+      "median": 0.6836270000003424,
+      "p95": 2.2877739999994446,
+      "p99": 11.05306500000006
+    },
+    "swimmingCollisionFrameMs": {
+      "mean": 0.09332220666666975,
+      "median": 0.049624999999650754,
+      "p95": 0.27280700000028446,
+      "p99": 0.7756890000000567
+    },
+    "corrections": [],
+    "minimum30SecondTravel": 1.4320877423384961,
+    "eventCount": 6,
+    "maximumScatter": 0.9999999982552711,
+    "activities": [
+      "cruising",
+      "exploring",
+      "recovering",
+      "foraging",
+      "resting"
+    ],
+    "checkpointCount": 10,
+    "finalCheckpoint": {
+      "population": {
+        "blue-green-chromis": 20,
+        "pajama-cardinalfish": 6,
+        "firefish-goby": 6,
+        "yellow-assessor": 4,
+        "royal-gramma": 2,
+        "ocellaris-clownfish": 2
+      },
+      "geometries": 178,
+      "materials": 42,
+      "finite": true,
+      "ornaments": 6,
+      "hulls": 139,
+      "hiddenAnimals": 7,
+      "seahorseDistance": 0.028646488986751224,
+      "frogfishDistance": 0.09219544457292941,
+      "nudibranchs": [
+        {
+          "id": "nudibranch-1",
+          "distance": 0.05610263257284173,
+          "surfaceDistance": 0.006000000000000227
+        },
+        {
+          "id": "nudibranch-2",
+          "distance": 0.0726005648425847,
+          "surfaceDistance": 0.0060000000000006715
+        },
+        {
+          "id": "nudibranch-3",
+          "distance": 0.060876068277249874,
+          "surfaceDistance": 0.006000000000000227
+        },
+        {
+          "id": "nudibranch-4",
+          "distance": 0.06749169067231926,
+          "surfaceDistance": 0.0060000000000006715
+        },
+        {
+          "id": "nudibranch-5",
+          "distance": 0.06713406284464433,
+          "surfaceDistance": 0.005999999999999339
+        }
+      ],
+      "moray": {
+        "state": "resting",
+        "elapsed": 2.1000000000000023,
+        "extension": 0.7475211798509273,
+        "time": 300.000000000023
+      },
+      "clocks": [
+        280.06666605402074, 280.06666605402074, 300.000000000023,
+        280.0333327206874, 0
+      ],
+      "chest": {
+        "time": 0.18304200402542983,
+        "cycle": 8,
+        "openings": 8,
+        "bursts": 8,
+        "active": 0,
+        "drawn": 0
+      },
+      "bubblesInside": true
+    }
+  },
+  {
+    "authored": false,
+    "minutes": 15,
+    "count": 40,
+    "morayStates": ["resting", "hidden", "peeking", "emerging", "retreating"],
+    "seed": 38147,
+    "stepMs": {
+      "mean": 0.49690094222222897,
+      "median": 0.3558759999978065,
+      "p95": 1.0677900000009686,
+      "p99": 2.3687080000017886
+    },
+    "swimmingCollisionFrameMs": {
+      "mean": 0.07192601111114022,
+      "median": 0.050975000001926674,
+      "p95": 0.17978699999730452,
+      "p99": 0.3759639999989304
+    },
+    "corrections": [],
+    "minimum30SecondTravel": 1.7301111297405842,
+    "eventCount": 14,
+    "maximumScatter": 0.9999999982552711,
+    "activities": [
+      "cruising",
+      "exploring",
+      "recovering",
+      "foraging",
+      "resting"
+    ],
+    "checkpointCount": 30,
+    "finalCheckpoint": {
+      "population": {
+        "blue-green-chromis": 20,
+        "pajama-cardinalfish": 6,
+        "firefish-goby": 6,
+        "yellow-assessor": 4,
+        "royal-gramma": 2,
+        "ocellaris-clownfish": 2
+      },
+      "geometries": 178,
+      "materials": 42,
+      "finite": true,
+      "ornaments": 6,
+      "hulls": 139,
+      "hiddenAnimals": 7,
+      "seahorseDistance": 0.029399089400038863,
+      "frogfishDistance": 0.09219544457292941,
+      "nudibranchs": [
+        {
+          "id": "nudibranch-1",
+          "distance": 0.06088371817704656,
+          "surfaceDistance": 0.006000000000002004
+        },
+        {
+          "id": "nudibranch-2",
+          "distance": 0.06748396777290115,
+          "surfaceDistance": 0.006000000000000227
+        },
+        {
+          "id": "nudibranch-3",
+          "distance": 0.06714187187106795,
+          "surfaceDistance": 0.005999999999999783
+        },
+        {
+          "id": "nudibranch-4",
+          "distance": 0.061222971199225595,
+          "surfaceDistance": 0.00600000000000156
+        },
+        {
+          "id": "nudibranch-5",
+          "distance": 0.07237046650635463,
+          "surfaceDistance": 0.005999999999998895
+        }
+      ],
+      "moray": {
+        "state": "peeking",
+        "elapsed": 6.766666666666652,
+        "extension": 0.592779460629179,
+        "time": 899.9999999998388
+      },
+      "clocks": [
+        830.2333311889568, 830.2333311889568, 899.9999999998388,
+        830.1999978556235, 0
+      ],
+      "chest": {
+        "time": 27.94800259726738,
+        "cycle": 23,
+        "openings": 24,
+        "bursts": 24,
+        "active": 18,
+        "drawn": 0
+      },
+      "bubblesInside": true
+    }
+  },
+  {
+    "authored": false,
+    "minutes": 30,
+    "count": 40,
+    "morayStates": ["resting", "hidden", "peeking", "emerging", "retreating"],
+    "seed": 38147,
+    "stepMs": {
+      "mean": 0.40012967888883094,
+      "median": 0.31701299999986077,
+      "p95": 0.816858999998658,
+      "p99": 1.53359300000011
+    },
+    "swimmingCollisionFrameMs": {
+      "mean": 0.06781870611106974,
+      "median": 0.04718899999716086,
+      "p95": 0.18994399999792222,
+      "p99": 0.42200799999409355
+    },
+    "corrections": [],
+    "minimum30SecondTravel": 1.2545017269491603,
+    "eventCount": 30,
+    "maximumScatter": 0.9999999982552711,
+    "activities": [
+      "cruising",
+      "exploring",
+      "recovering",
+      "foraging",
+      "resting"
+    ],
+    "checkpointCount": 60,
+    "finalCheckpoint": {
+      "population": {
+        "blue-green-chromis": 20,
+        "pajama-cardinalfish": 6,
+        "firefish-goby": 6,
+        "yellow-assessor": 4,
+        "royal-gramma": 2,
+        "ocellaris-clownfish": 2
+      },
+      "geometries": 178,
+      "materials": 42,
+      "finite": true,
+      "ornaments": 6,
+      "hulls": 139,
+      "hiddenAnimals": 7,
+      "seahorseDistance": 0.017278242891548383,
+      "frogfishDistance": 0.09219544457292941,
+      "nudibranchs": [
+        {
+          "id": "nudibranch-1",
+          "distance": 0.06907155097907837,
+          "surfaceDistance": 0.006000000000000227
+        },
+        {
+          "id": "nudibranch-2",
+          "distance": 0.059323254540861445,
+          "surfaceDistance": 0.006000000000000227
+        },
+        {
+          "id": "nudibranch-3",
+          "distance": 0.07355013208035201,
+          "surfaceDistance": 0.006000000000000227
+        },
+        {
+          "id": "nudibranch-4",
+          "distance": 0.0554124913767734,
+          "surfaceDistance": 0.0060000000000006715
+        },
+        {
+          "id": "nudibranch-5",
+          "distance": 0.07498786404486635,
+          "surfaceDistance": 0.005999999999999894
+        }
+      ],
+      "moray": {
+        "state": "peeking",
+        "elapsed": 5.6999999999999895,
+        "extension": 0.5855562327615208,
+        "time": 1799.9999999990202
+      },
+      "clocks": [
+        1650.8333287376502, 1650.8333287376502, 1799.9999999990202,
+        1650.8333287376502, 0
+      ],
+      "chest": {
+        "time": 11.406161188171662,
+        "cycle": 48,
+        "openings": 49,
+        "bursts": 49,
+        "active": 0,
+        "drawn": 0
+      },
+      "bubblesInside": true
+    }
+  },
+  {
+    "authored": true,
+    "minutes": 5,
+    "count": 60,
+    "morayStates": ["resting", "hidden", "peeking", "emerging", "retreating"],
+    "seed": 38147,
+    "stepMs": {
+      "mean": 0.7696457566664321,
+      "median": 0.6429480000006151,
+      "p95": 1.395172000004095,
+      "p99": 3.834201000005123
+    },
+    "swimmingCollisionFrameMs": {
+      "mean": 0.08317338666684615,
+      "median": 0.06367899999895599,
+      "p95": 0.20643599999311846,
+      "p99": 0.5089750000042841
+    },
+    "corrections": [],
+    "minimum30SecondTravel": 1.3599143367805469,
+    "eventCount": 6,
+    "maximumScatter": 0.9999999982552711,
+    "activities": [
+      "cruising",
+      "exploring",
+      "recovering",
+      "foraging",
+      "resting"
+    ],
+    "checkpointCount": 10,
+    "finalCheckpoint": {
+      "population": {
+        "blue-green-chromis": 20,
+        "pajama-cardinalfish": 6,
+        "firefish-goby": 6,
+        "yellow-assessor": 4,
+        "royal-gramma": 2,
+        "ocellaris-clownfish": 2
+      },
+      "geometries": 178,
+      "materials": 42,
+      "finite": true,
+      "ornaments": 6,
+      "hulls": 216,
+      "hiddenAnimals": 7,
+      "seahorseDistance": 0.028646488986751224,
+      "frogfishDistance": 0.09219544457292941,
+      "nudibranchs": [
+        {
+          "id": "nudibranch-1",
+          "distance": 0.05610263257284173,
+          "surfaceDistance": 0.006000000000000227
+        },
+        {
+          "id": "nudibranch-2",
+          "distance": 0.0726005648425847,
+          "surfaceDistance": 0.0060000000000006715
+        },
+        {
+          "id": "nudibranch-3",
+          "distance": 0.060876068277249874,
+          "surfaceDistance": 0.006000000000000227
+        },
+        {
+          "id": "nudibranch-4",
+          "distance": 0.06749169067231926,
+          "surfaceDistance": 0.0060000000000006715
+        },
+        {
+          "id": "nudibranch-5",
+          "distance": 0.06713406284464433,
+          "surfaceDistance": 0.005999999999999339
+        }
+      ],
+      "moray": {
+        "state": "resting",
+        "elapsed": 2.1000000000000023,
+        "extension": 0.7475211798509273,
+        "time": 300.000000000023
+      },
+      "clocks": [
+        280.06666605402074, 280.06666605402074, 300.000000000023,
+        280.0333327206874, 0
+      ],
+      "chest": {
+        "time": 0.18304200402542983,
+        "cycle": 8,
+        "openings": 8,
+        "bursts": 8,
+        "active": 0,
+        "drawn": 0
+      },
+      "bubblesInside": true
+    }
+  },
+  {
+    "authored": true,
+    "minutes": 15,
+    "count": 40,
+    "morayStates": ["resting", "hidden", "peeking", "emerging", "retreating"],
+    "seed": 38147,
+    "stepMs": {
+      "mean": 0.5714574044444372,
+      "median": 0.46858800000336487,
+      "p95": 1.246817999999621,
+      "p99": 2.054390000004787
+    },
+    "swimmingCollisionFrameMs": {
+      "mean": 0.1060943866667286,
+      "median": 0.06818100000964478,
+      "p95": 0.28145100000256207,
+      "p99": 0.9779359999956796
+    },
+    "corrections": [],
+    "minimum30SecondTravel": 1.5438713544014138,
+    "eventCount": 14,
+    "maximumScatter": 0.9999999982552711,
+    "activities": [
+      "cruising",
+      "exploring",
+      "recovering",
+      "foraging",
+      "resting",
+      "observing"
+    ],
+    "checkpointCount": 30,
+    "finalCheckpoint": {
+      "population": {
+        "blue-green-chromis": 20,
+        "pajama-cardinalfish": 6,
+        "firefish-goby": 6,
+        "yellow-assessor": 4,
+        "royal-gramma": 2,
+        "ocellaris-clownfish": 2
+      },
+      "geometries": 178,
+      "materials": 42,
+      "finite": true,
+      "ornaments": 6,
+      "hulls": 216,
+      "hiddenAnimals": 7,
+      "seahorseDistance": 0.029399089400038863,
+      "frogfishDistance": 0.09219544457292941,
+      "nudibranchs": [
+        {
+          "id": "nudibranch-1",
+          "distance": 0.06088371817704656,
+          "surfaceDistance": 0.006000000000002004
+        },
+        {
+          "id": "nudibranch-2",
+          "distance": 0.06748396777290115,
+          "surfaceDistance": 0.006000000000000227
+        },
+        {
+          "id": "nudibranch-3",
+          "distance": 0.06714187187106795,
+          "surfaceDistance": 0.005999999999999783
+        },
+        {
+          "id": "nudibranch-4",
+          "distance": 0.061222971199225595,
+          "surfaceDistance": 0.00600000000000156
+        },
+        {
+          "id": "nudibranch-5",
+          "distance": 0.07237046650635463,
+          "surfaceDistance": 0.005999999999998895
+        }
+      ],
+      "moray": {
+        "state": "peeking",
+        "elapsed": 6.766666666666652,
+        "extension": 0.592779460629179,
+        "time": 899.9999999998388
+      },
+      "clocks": [
+        830.2333311889568, 830.2333311889568, 899.9999999998388,
+        830.1999978556235, 0
+      ],
+      "chest": {
+        "time": 27.94800259726738,
+        "cycle": 23,
+        "openings": 24,
+        "bursts": 24,
+        "active": 18,
+        "drawn": 0
+      },
+      "bubblesInside": true
+    }
+  },
+  {
+    "authored": true,
+    "minutes": 30,
+    "count": 40,
+    "morayStates": ["resting", "hidden", "peeking", "emerging", "retreating"],
+    "seed": 38147,
+    "stepMs": {
+      "mean": 0.544068083333065,
+      "median": 0.4321649999910733,
+      "p95": 1.1328940000094008,
+      "p99": 2.08249899999646
+    },
+    "swimmingCollisionFrameMs": {
+      "mean": 0.10016544722221928,
+      "median": 0.06716299999970943,
+      "p95": 0.2709820000018226,
+      "p99": 0.599145000000135
+    },
+    "corrections": [],
+    "minimum30SecondTravel": 1.3491025970032398,
+    "eventCount": 30,
+    "maximumScatter": 0.9999999982552711,
+    "activities": [
+      "cruising",
+      "exploring",
+      "recovering",
+      "foraging",
+      "resting",
+      "observing"
+    ],
+    "checkpointCount": 60,
+    "finalCheckpoint": {
+      "population": {
+        "blue-green-chromis": 20,
+        "pajama-cardinalfish": 6,
+        "firefish-goby": 6,
+        "yellow-assessor": 4,
+        "royal-gramma": 2,
+        "ocellaris-clownfish": 2
+      },
+      "geometries": 178,
+      "materials": 42,
+      "finite": true,
+      "ornaments": 6,
+      "hulls": 216,
+      "hiddenAnimals": 7,
+      "seahorseDistance": 0.017278242891548383,
+      "frogfishDistance": 0.09219544457292941,
+      "nudibranchs": [
+        {
+          "id": "nudibranch-1",
+          "distance": 0.06907155097907837,
+          "surfaceDistance": 0.006000000000000227
+        },
+        {
+          "id": "nudibranch-2",
+          "distance": 0.059323254540861445,
+          "surfaceDistance": 0.006000000000000227
+        },
+        {
+          "id": "nudibranch-3",
+          "distance": 0.07355013208035201,
+          "surfaceDistance": 0.006000000000000227
+        },
+        {
+          "id": "nudibranch-4",
+          "distance": 0.0554124913767734,
+          "surfaceDistance": 0.0060000000000006715
+        },
+        {
+          "id": "nudibranch-5",
+          "distance": 0.07498786404486635,
+          "surfaceDistance": 0.005999999999999894
+        }
+      ],
+      "moray": {
+        "state": "peeking",
+        "elapsed": 5.6999999999999895,
+        "extension": 0.5855562327615208,
+        "time": 1799.9999999990202
+      },
+      "clocks": [
+        1650.8333287376502, 1650.8333287376502, 1799.9999999990202,
+        1650.8333287376502, 0
+      ],
+      "chest": {
+        "time": 11.406161188171662,
+        "cycle": 48,
+        "openings": 49,
+        "bursts": 49,
+        "active": 0,
+        "drawn": 0
+      },
+      "bubblesInside": true
+    }
+  }
+]
