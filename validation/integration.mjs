@@ -15,6 +15,15 @@ const browser = await chromium.launch({
     '--use-angle=swiftshader',
   ],
 });
+// Pass 014: SwiftShader compiles the heavier reef's shader variants lazily on first
+// present (tens of seconds in software). Raise Playwright *action* timeouts only;
+// no assertion or measured budget changes. Override with COZY_ACTION_TIMEOUT.
+const openPage = browser.newPage.bind(browser);
+browser.newPage = async (options) => {
+  const page = await openPage(options);
+  page.setDefaultTimeout(Number(process.env.COZY_ACTION_TIMEOUT || 240000));
+  return page;
+};
 const url = process.env.COZY_URL || 'http://127.0.0.1:5173';
 async function instrument(page) {
   await page.route('**/src/main.ts*', async (route) => {

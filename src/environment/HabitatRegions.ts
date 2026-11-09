@@ -61,6 +61,33 @@ export const HABITAT_REGIONS = {
 export function substrateHeight(x: number, z: number): number {
   return 0.035 * Math.sin(x * 2.6 + z * 0.65) + 0.025 * Math.sin(z * 4);
 }
+/** Visual-only sand relief above `substrateHeight`, in [0, SAND_RELIEF_MAX] world units.
+ *
+ * Ripples, shallow depressions (relief falls to zero) and sand banked against structures.
+ * The rendered sand never drops below the habitat reference, so roots, ornaments and debris
+ * resting on `substrateHeight` are buried by at most SAND_RELIEF_MAX instead of floating. */
+export const SAND_RELIEF_MAX = 0.07;
+export function sandRelief(x: number, z: number, contact = 0): number {
+  const warp =
+    0.35 * Math.sin(x * 0.23 + z * 0.31) + 0.2 * Math.sin(z * 0.17 - x * 0.11);
+  const ripple =
+    0.5 +
+    0.5 *
+      Math.sin(
+        (x * 0.42 + z * 0.91) * 5.2 + warp * 4 + Math.sin(x * 1.3) * 0.6,
+      );
+  const fine = 0.5 + 0.5 * Math.sin((x * 1.1 - z * 0.6) * 9.5 + warp * 6);
+  const depression =
+    Math.min(
+      1,
+      Math.abs(Math.sin(x * 0.37 + 1.1) * Math.sin(z * 0.43 - 0.6)) * 3.2,
+    ) ** 0.6;
+  const relief = (ripple * 0.022 + fine * 0.006) * depression;
+  return Math.min(
+    SAND_RELIEF_MAX,
+    relief + Math.max(0, Math.min(1, contact)) * 0.04,
+  );
+}
 export function plantFootprintClear(
   x: number,
   z: number,

@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.2 / Pass 013 — Authored Geometry Overhaul (`0.2.0-rc.7`)** is a first-person, browser-based aquarium prototype: swim at your own pace through sand, rocks, plants, and soft blue-green water. No scores, timers, combat, accounts, or external asset services.
+A quiet little world beneath the surface. **v0.2 / Pass 014 — Reef, Coral & Background Environment Overhaul (`0.2.0-rc.8`)** is a first-person, browser-based aquarium prototype: swim at your own pace through rippled sand, carved reef rock, corals, seagrass and soft blue-green water. No scores, timers, combat, accounts, or external asset services.
 
 ## Stack and requirements
 
@@ -42,7 +42,7 @@ Vite binds to all interfaces for cloud development; use `npm run dev -- --host 1
 
 Click **Return to the Water** to resume. Look up or down and use W/S to change depth; A/D always strafe horizontally. Space and Shift have no swimming action. Pausing or losing browser focus clears held input and propulsion momentum while retaining a resting breath’s phase and small vertical velocity. Diagonal input is normalized. Subtle stroke-related pitch feedback stays below 0.07 degrees, with no roll or visual position offsets. Looking straight up/down is limited.
 
-This is a technical release candidate; final v0.2 approval awaits manual MacBook Air acceptance. See [Pass 013 validation](docs/VALIDATION_V02_PASS_013.md) and [repeatable benchmarks](validation/README.md).
+This is a technical release candidate; final v0.2 approval awaits manual MacBook Air acceptance. See [Pass 014 validation](docs/VALIDATION_V02_PASS_014.md), [Pass 013 validation](docs/VALIDATION_V02_PASS_013.md) and [repeatable benchmarks](validation/README.md).
 
 ## Current features
 
@@ -160,7 +160,8 @@ To test manually:
 - Desktop keyboard/mouse only; mobile touch controls are outside this pass.
 - Collision covers major static rocks, solid ornament components and aquarium limits. Delicate foliage and decorative pebbles remain passable; there is no contact-driven plant deformation, per-triangle sand collision, or dynamic rigid-body physics.
 - Schooling is local steering rather than global pathfinding or hard fish collision. Occasional close passes or temporary fragmentation are possible. Diver reactions are soft avoidance rather than hard player-fish collision. Foraging is visual activity only; there is no food system or identification UI. No office, passages, customization, ocean or progression.
-- Sand and light shafts are intentionally simple; this is a procedural first prototype, not final art. The water surface is a visual plane, not a fluid simulation.
+- Sand is a rippled procedural surface with authored PBR detail (visual relief sits up to 7 cm above the habitat reference); light shafts remain simple and the full lighting overhaul is reserved for a later pass. The water surface is a visual plane, not a fluid simulation.
+- The authored reef library is a 19.5 MB local GLB (no mesh/texture compression yet). Reef rocks are carved inside their accepted footprints, so the overall layout and rock placement are unchanged from Pass 013.
 - Player position is not persisted. Only settings are saved, per origin in browser local storage.
 - Pointer lock may be restricted by embedded frames or browser policies; use a top-level page. Graphics-context loss requires reloading.
 - The build reports a bundle-size advisory for Three.js (see the current validation record for measured size). No runtime asset downloads are needed.
@@ -189,3 +190,14 @@ See [visual audit](docs/VISUAL_QUALITY_AUDIT.md), [art direction](docs/ART_DIREC
 ### v0.2 Pass 013 candidate
 
 The normal aquarium now loads original authored ornament, anchored-creature and clownfish GLBs locally, following the existing behavior and animation controllers. A visible loading/fallback status keeps exploration available if a library fails. See [validation and paired screenshots](docs/VALIDATION_V02_PASS_013.md), [asset inventory](docs/ASSET_MANIFEST.md) and [reproduction commands](docs/ASSET_PIPELINE.md). The separate Pass 012 benchmark remains available. This pass requires user review and macOS acceptance before merging or starting another pass.
+
+### v0.2 Pass 014 candidate
+
+The environment itself now uses the authored workflow:
+
+- **Rocks**: four reef-rock archetypes (porous limestone, organic outcrop, layered sedimentary, crevice/overhang) are carved from the accepted rock hulls and rendered with three LOD levels and triplanar limestone maps.
+- **Corals**: authored branching, brain/boulder and tiered plate corals sit on the existing colony structure.
+- **Vegetation**: soft corals, sea fans, seagrass and three macroalgae families are richer, with unchanged current motion, pause and reduced-motion behaviour.
+- **Sand and depth**: rippled PBR sand with shells and coral rubble, a layered meadow understory, and a low reef relief hugging the rear and side glass.
+
+Collision gains convex crevice parts that never add solid volume. Every Pass 013 ornament, creature, home and route is preserved. A loading/fallback status keeps the procedural reef if the library fails. See [validation, matched screenshots and budgets](docs/VALIDATION_V02_PASS_014.md), [art direction](docs/ART_DIRECTION.md), [asset inventory](docs/ASSET_MANIFEST.md) and [reproduction](docs/ASSET_PIPELINE.md). This pass awaits user review and MacBook Air acceptance before merging or starting another pass.

@@ -103,3 +103,15 @@ The normal scene now awaits three authored local libraries. The geometry harness
 Resident normal-world inventory is now 373 geometries / 65 materials / 216 hulls (includes hidden original geometry retained for comparison/fallback); fish and hidden counts remain 40 / 7. The lifecycle soak asserts those exact counts and unchanged 19 audio nodes / three buffers. The CPU stress suite separately runs original and authored structural worlds at 5, 15 and 30 minutes, plus render-schedule equivalence. Regenerate the exact GLB point inventory with `python3 tools/art/pass013/collision_inventory.py` after an ornament export. Run CPU tests and software-rendered browser jobs sequentially to avoid unrelated five-second unit-test timeouts under CPU contention.
 
 The benchmark still replaces chromis and one coral, composing with the new normal hero layer. Its startup now makes five unique model requests; its comparison button only toggles the chromis/coral presentation. For production, build normally and point `validation/production.mjs` at `npm run preview`; it checks the three successful GLB responses as well as public controls/settings.
+
+## Pass 014 reef environment
+
+```bash
+COZY_OUTPUT=/tmp/cozy014-reef node validation/reef-overhaul.mjs
+```
+
+The harness captures 16 identical-camera before/after pairs in one paused session: the shipped Pass 013 world, then the same view with the authored reef enabled. It records draws, triangles (with a per-family breakdown), GPU resource counts, CPU submission and synchronized software frame time per view. It then checks the four deduplicated GLB requests, WebGL errors, collider identity across toggles, disposal back to Pass 013 GPU counts, and that a missing reef library keeps the Pass 013 world (216 hulls) with the fallback notice. `COZY_VIEWS=wide,crevice` limits capture to selected views and skips the lifecycle checks.
+
+The CPU stress suite adds Pass 014 production-composition scenarios (Pass 013 ornament hulls plus reef parts, 435 hulls) and asserts that fish never enter the 0.2-unit reef relief beside the glass. `validation/ReefAsset.ts` reads the exported GLB on the CPU for tests.
+
+Pass 014 raises Playwright's per-action timeout in the software-rendered harnesses to 240 s (`COZY_ACTION_TIMEOUT`). SwiftShader compiles the reef's shader variants lazily on first present, which can take over a minute. Assertions are unchanged. `validation/integration.mjs` currently fails on `main` at the frogfish approach leg against the Pass 013 wreck hulls; see [Pass 014 validation](../docs/VALIDATION_V02_PASS_014.md).

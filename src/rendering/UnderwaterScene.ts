@@ -1,4 +1,5 @@
 import { AuthoredAquarium } from '../environment/AuthoredAquarium';
+import { AuthoredReef } from '../environment/AuthoredReef';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
 import * as THREE from 'three';
 import { Aquarium } from '../environment/Aquarium';
@@ -14,6 +15,9 @@ export class UnderwaterScene {
   readonly renderer: THREE.WebGLRenderer;
   readonly aquarium: Aquarium;
   readonly authored: AuthoredAquarium;
+  readonly reef: AuthoredReef;
+  /** Resolves once authored libraries settle and their programs are compiled. */
+  readonly prepared: Promise<boolean>;
   private readonly assetStatus = document.createElement('p');
   private disposed = false;
   private presentation?: Presentation;
@@ -58,13 +62,28 @@ export class UnderwaterScene {
       'position:absolute;bottom:1rem;left:1rem;color:white;pointer-events:none;font:14px sans-serif';
     host.append(this.assetStatus);
     this.authored = new AuthoredAquarium(this.aquarium);
-    void this.authored.ready.then((ready) => {
-      if (this.disposed) return;
-      if (ready) this.assetStatus.remove();
-      else
-        this.assetStatus.textContent =
-          'Some aquarium details could not load. You can still explore.';
-    });
+    this.reef = new AuthoredReef(this.aquarium);
+    // Each library falls back independently; the status stays until both have settled and
+    // their shader programs are compiled, so the first swimming frame does not hitch.
+    this.prepared = Promise.all([this.authored.ready, this.reef.ready]).then(
+      async (ready) => {
+        if (this.disposed) return false;
+        try {
+          // Parallel compilation where available; otherwise compile once behind the status.
+          if (this.renderer.extensions.has('KHR_parallel_shader_compile'))
+            await this.renderer.compileAsync(this.scene, this.camera);
+          else this.renderer.compile(this.scene, this.camera);
+        } catch (error) {
+          console.warn('Cozy Diver: shader warm-up skipped.', error);
+        }
+        if (this.disposed) return false;
+        if (ready.every(Boolean)) this.assetStatus.remove();
+        else
+          this.assetStatus.textContent =
+            'Some aquarium details could not load. You can still explore.';
+        return ready.every(Boolean);
+      },
+    );
     this.camera.rotation.order = 'YXZ';
     this.resizeObserver = new ResizeObserver(this.resize);
     this.resizeObserver.observe(host);
@@ -108,6 +127,7 @@ export class UnderwaterScene {
     this.presentation = undefined;
     this.abort.abort();
     this.resizeObserver.disconnect();
+    this.reef.dispose();
     this.authored.dispose();
     this.aquarium.dispose();
     this.scene.clear();

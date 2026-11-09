@@ -1,0 +1,33 @@
+{
+  "result": "PASS",
+  "models": [
+    "http://127.0.0.1:5177/assets/models/ornaments/reef-props.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/anchored-life.glb",
+    "http://127.0.0.1:5177/assets/models/fish/clownfish.glb",
+    "http://127.0.0.1:5177/assets/models/reef/reef-environment.glb",
+    "http://127.0.0.1:5177/assets/models/coral/acropora.glb",
+    "http://127.0.0.1:5177/assets/models/fish/chromis.glb"
+  ],
+  "resources": {
+    "fish": 40,
+    "originalClownVisible": [false],
+    "after": {
+      "geometries": 0,
+      "textures": 0
+    },
+    "audio": "closed"
+  },
+  "errors": [],
+  "warnings": [],
+  "checks": [
+    "bundled production GLB and embedded PBR images decode",
+    "one request per model",
+    "real Enter/W swimming/Escape",
+    "comparison toggles without reloading",
+    "40 fish preserved",
+    "graphics/audio/cache cleanup"
+  ],
+  "limitations": [
+    "Explicit benchmark build only; software renderer, no hardware FPS or subjective art acceptance."
+  ]
+}

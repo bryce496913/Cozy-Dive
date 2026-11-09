@@ -16,6 +16,15 @@ import fs from 'node:fs';
       '--autoplay-policy=user-gesture-required',
     ],
   });
+  // Pass 014: SwiftShader compiles the heavier reef's shader variants lazily on first
+  // present (tens of seconds in software). Raise Playwright *action* timeouts only;
+  // no assertion or measured budget changes. Override with COZY_ACTION_TIMEOUT.
+  const openPage = browser.newPage.bind(browser);
+  browser.newPage = async (options) => {
+    const page = await openPage(options);
+    page.setDefaultTimeout(Number(process.env.COZY_ACTION_TIMEOUT || 240000));
+    return page;
+  };
   try {
     const page = await browser.newPage({
         viewport: { width: 1100, height: 800 },
@@ -383,9 +392,11 @@ import fs from 'node:fs';
         assert.equal(snapshot.tropical.hiddenAnimals, 7);
         assert.equal(snapshot.tropical.finite, true);
         assert.equal(snapshot.tropical.bubblesInside, true);
-        assert.equal(snapshot.tropical.geometries, 373);
-        assert.equal(snapshot.tropical.materials, 65);
-        assert.equal(snapshot.tropical.hulls, 216);
+        // Pass 014 adds the authored reef layer: 411 resident geometries, 73 materials and
+        // 435 hulls (each reef rock's accepted hull replaced by its authored convex parts).
+        assert.equal(snapshot.tropical.geometries, 411);
+        assert.equal(snapshot.tropical.materials, 73);
+        assert.equal(snapshot.tropical.hulls, 435);
         assert.equal(snapshot.corrections, 0);
         if (longSession.length) {
           assert.deepEqual(

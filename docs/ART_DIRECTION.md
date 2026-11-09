@@ -37,3 +37,28 @@ The accepted Pass 012 chromis direction is the reference: anatomical cross secti
 Seahorse torso/head profiles, crown and tapering gripping coil replace uniform primitive reads. Frogfish get fleshy lips, eye hoods, dermal tassels, webbed weight-bearing feet and a branching lure. Moray anatomy has a continuous deforming body/median fin and separate modeled head/jaw/eyes. The anemone has a dimensional pedal/oral disc and 96 varied sinuous tentacles. Clownfish retain the accepted morph workflow with fuller species proportions, white bands/dark margins and a rounded tail. These changes should earn their geometry through visible form, not only smoother subdivisions. Existing unconverted reef/background fish remain outside this pass.
 
 The aquarium keeps its current quiet palette, original lighting, swimming, audio and creature routines. Target-machine visual/performance approval remains the user's review of the unmerged PR; software-rendered Linux captures document candidate appearance and technical compatibility, not macOS acceptance.
+
+## Pass 014 — reef, coral and background environment
+
+The environment now follows the same slightly stylised realism as the accepted Pass 012 chromis. The rule for reef structure is **carve, don't inflate**: every reef rock is a dense authored surface carved _inward_ from its accepted structural hull, so silhouettes can break up without adding solid volume. Upward faces that carry corals, plants and the host anemone keep a shallow tolerance. Four archetypes are distributed over the six accepted rock silhouettes:
+
+- **Porous reef limestone**: flat-bottomed solution holes, broad erosion embayments and rounded fracture faces.
+- **Organic reef outcrop**: lobes left standing between deep recesses, with small ledges and undercuts.
+- **Layered sedimentary reef rock**: per-stratum recesses, weathered bedding seams, overhanging lips and planar broken faces.
+- **Crevice and overhang**: two narrow clefts and a shaded undercut beneath an upper ledge.
+
+Fine pores, corallite cups, brain ridges and blade striations live in 512² normal/ORM maps, not geometry. Rock colour is warm grey and beige mineral with cool-grey patches, a faint green-grey film on upward faces and sparse muted coralline pink. Recesses are darker, fresh fracture faces are lighter, and a sand-dusted band blends each rock into the substrate. Rocks sample their maps triplanarly in world space, so the 34 non-uniformly scaled placements keep a consistent texel density with no UV seams.
+
+Hard corals follow the exact structural parts their colliders already describe, adding passable growth beyond them:
+
+- **Branching**: primaries follow the structural capsules, with fused collars, irregular secondary and tertiary growth, lighter axial tips and an encrusting basal plate.
+- **Massive**: each lobe is carved with maze-like valleys (zero crossings of band-limited noise), or with knobbly lobules for the boulder variant. Lobe undersides are tucked so the colony reads as massed growth, not stacked balls.
+- **Plate**: an organic trunk carries struts and tiered plates with scalloped, upturned and ridged rims, concentric growth bands, shaded undersides and short rim branchlets.
+
+The palette is restrained cream, peach, muted pink, sandy yellow, warm grey, lavender, soft green and occasional blue-green.
+
+Soft corals are fleshy, lobed, branching fingers. Gorgonian fans are gently cupped, anastomosing lattices on a stout holdfast. Turtle grass forms 12–15-blade clumps with droop, twist, yellowing tips and pale bases. Caulerpa has stolons with pinnate fronds, Halimeda has segmented calcified chains, and red algae fork dichotomously. Every plant template stays inside the radial envelope its accepted placement validated, and keeps the existing current, pause and reduced-motion contract.
+
+Sand gains ripples, shallow depressions and banking against structures, all above the habitat reference surface. A tileable grain, grit and micro-ripple map adds detail, and pooled shells and coral rubble add scale. Depth comes from flattened low-detail reef rock layered against the rear and side glass (within 0.2 units) and a centre-weighted meadow understory. The tank stays a tank: nothing is placed outside the glass, and the central channel stays open.
+
+Do not hide geometry with fog or darkness, or judge it by triangle counts. Review against the matched renders in [Pass 014 validation](VALIDATION_V02_PASS_014.md).

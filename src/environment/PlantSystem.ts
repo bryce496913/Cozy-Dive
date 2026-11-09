@@ -8,12 +8,22 @@ import {
 import { AQUARIUM } from '../config/world';
 import { createPlantGeometry } from './PlantGeometry';
 import { generatePlantPlacements, type PlantPlacement } from './HabitatRegions';
-import { PLANT_SPECIES, PLANT_TEMPLATES } from './PlantSpecies';
+import {
+  PLANT_SPECIES,
+  PLANT_TEMPLATES,
+  type PlantSpecies,
+} from './PlantSpecies';
 import { PlantClock, PLANT_VERTEX_GLSL } from './PlantAnimation';
 
+export interface PlantBatch {
+  readonly species: PlantSpecies;
+  readonly template: number;
+  readonly mesh: THREE.InstancedMesh;
+}
 /** Environment-owned instanced vegetation. Meshes, geometry and material have exactly one owner. */
 export class PlantSystem {
   readonly root = new THREE.Group();
+  readonly batches: readonly PlantBatch[];
   readonly placements: readonly PlantPlacement[];
   readonly interests: readonly HabitatInterest[];
   readonly geometries: readonly THREE.BufferGeometry[];
@@ -118,6 +128,8 @@ export class PlantSystem {
       this.material.dispose();
       throw error;
     }
+    const batches: PlantBatch[] = [];
+    this.batches = batches;
     for (const species of PLANT_SPECIES)
       for (let template = 0; template < PLANT_TEMPLATES; template++) {
         const instances = this.placements.filter(
@@ -150,6 +162,7 @@ export class PlantSystem {
         if (mesh.boundingBox) mesh.boundingBox.expandByScalar(0.65);
         if (mesh.boundingSphere) mesh.boundingSphere.radius += 0.65;
         this.root.add(mesh);
+        batches.push({ species, template, mesh });
       }
     this.geometries = geometries;
     this.interests = this.placements.map((plant) => {

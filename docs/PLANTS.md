@@ -32,3 +32,21 @@ See [habitat metadata](HABITAT.md), [fish](FISH.md), and [Pass 008 validation](V
 Pass 009 adds one sea anemone outside the 65-clump vegetation registry. It is an animal with a dedicated merged tentacle mesh and shared current clock, attached to real reef rock and passable as soft tissue. Existing marine vegetation and meadow placement are unchanged. See [anchored life](ANCHORED_LIFE.md).
 
 Pass 011 verifies these counts alongside the complete tropical aquarium: 65 clumps/colonies, eight meadows and six stony colonies remain unchanged, plus the separate reef-attached anemone. The seahorse uses a stable sea-fan placement; crawlers use real static structural faces. Optional current clocks remain finite through extended scenarios and freeze/settle under pause/reduced motion. No freshwater plant registry is present in `src/`. See [current integration validation](VALIDATION_V02_PASS_011.md).
+
+## Pass 014 authored vegetation and reef structure
+
+Counts and placements are unchanged: 65 clumps/colonies, eight meadows with their accepted blades, six living stony colonies, three stony ornaments and 34 structural rocks. When the reef library is ready, `AuthoredReef` swaps each instanced template for an authored form and keeps every instance matrix, the shared `plantTime` uniform and `PlantClock`. Pause, reduced motion and the root-fixed, tip-flexible current profile behave exactly as before.
+
+| Form                     | Pass 014 authored construction                                                                                 |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| Turtle grass             | 12–15 strap blades per clump: varied width and length, droop, twist, pale bases, yellowing tips, rhizome knot  |
+| Feather Caulerpa         | Creeping stolon with 5–6 upright rachises carrying paired tapering pinnules                                    |
+| Red branching macroalgae | Four-level dichotomous forks of slightly flattened, darkening-to-tip branches                                  |
+| Halimeda                 | Branching chains of kidney-notched calcified segments, greener at the growing tips                             |
+| Finger leather coral     | Lobed trunk dividing into irregular fleshy fingers with rounded polyp-studded tips                             |
+| Sea fan / gorgonian      | Holdfast and stout stem, then a cupped, six-level branching lattice joined by anastomoses                      |
+| Meadow blade             | Three tapered, curved, twisted blade templates; plus a short centre-weighted understory layer with ragged gaps |
+
+Each authored template is normalised to unit height and fitted, band by band, inside the radial envelope that its accepted procedural template used when placement was validated. Tests confirm that no authored vegetation vertex (above the embedded root) enters a structural hull by more than 3 cm. The seahorse's grip point on its sea-fan stem (22% height on the stem axis) is preserved.
+
+Stony colonies swap to authored branching, brain/boulder and tiered plate corals built from the exact structural parts their colliders already describe. Collision is unchanged for corals. Structural reef rocks swap to carved authored rocks whose convex parts lie inside the accepted hulls (see [habitat](HABITAT.md)). See [Pass 014 validation](VALIDATION_V02_PASS_014.md).
