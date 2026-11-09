@@ -14,9 +14,8 @@ const status = panel.querySelector<HTMLElement>('#asset-state')!,
   button = panel.querySelector<HTMLButtonElement>('#compare')!;
 button.style.pointerEvents = 'auto';
 panel.querySelector<HTMLAnchorElement>('a')!.style.pointerEvents = 'auto';
-const loader = new AssetLoader(undefined, (id, state) => {
-  status.textContent = `${id}: ${state} · local asset cache`;
-});
+// Created once the world exists: KTX2 textures need the renderer to pick a GPU transcode format.
+let loader: AssetLoader | undefined;
 let world: UnderwaterScene | undefined;
 const app = new Application(
   document.querySelector<HTMLDivElement>('#app')!,
@@ -38,6 +37,13 @@ let showcase: ReefShowcase | undefined,
   disposed = false;
 async function load(): Promise<void> {
   if (!world) return;
+  loader = new AssetLoader(
+    undefined,
+    (id, state) => {
+      status.textContent = `${id}: ${state} · local asset cache`;
+    },
+    world.renderer,
+  );
   try {
     showcase = await ReefShowcase.create(world, loader);
     if (disposed) {
@@ -65,7 +71,7 @@ const dispose = () => {
   if (disposed) return;
   disposed = true;
   app.dispose();
-  loader.dispose();
+  loader?.dispose();
   panel.remove();
 };
 window.addEventListener('pagehide', dispose, { once: true });
@@ -80,7 +86,9 @@ Object.assign(window, {
     get showcase() {
       return showcase;
     },
-    loader,
+    get loader() {
+      return loader;
+    },
     dispose,
   },
 });

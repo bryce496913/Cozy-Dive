@@ -1,6 +1,6 @@
 {
   "name": "cozy-diver",
-  "version": "0.2.0-rc.11",
+  "version": "0.2.0-rc.12",
   "private": true,
   "type": "module",
   "engines": {
@@ -31,6 +31,7 @@
     "draco3dgltf": "^1.5.9",
     "eslint": "^10.14.0",
     "globals": "^17.14.0",
+    "ktx2-encoder": "^0.6.0",
     "prettier": "^3.9.10",
     "sharp": "^0.35.5",
     "typescript": "^6.0.3",

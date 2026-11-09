@@ -2,11 +2,11 @@
   {
     "id": "chromis",
     "file": "assets/models/fish/chromis.glb",
-    "sha256": "b1ebf3af268c29843217a5c92247242e19794566c34971fbd58321031230b1e4",
+    "sha256": "ff124774df2ef618017c449b90b947e45fe33ec3cf411e913457366d33aecf20",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 612956,
+    "bytes": 610884,
     "visualPrimitives": 14,
     "visualTriangles": 14449,
     "collisionTriangles": 0,
@@ -16,29 +16,33 @@
         "name": "chromis-normal",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 147926
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 146091
       },
       {
         "name": "chromis-base",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 13532
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 48803
       },
       {
         "name": "chromis-orm",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 85354
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 30157
       },
       {
         "name": "chromis-fins",
         "width": 512,
         "height": 512,
-        "mode": "RGBA",
-        "encodedBytes": 12046
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 32214
       }
     ],
     "geometryAccessorBytes": 171948,
@@ -49,11 +53,11 @@
   {
     "id": "acropora",
     "file": "assets/models/coral/acropora.glb",
-    "sha256": "d28cc8637853174b222f66c4b3a081ac2d6a264d0372a788d28af88b773e8304",
+    "sha256": "cc975a99a4b1b801412663e50434215f4ba56c7835bd9da8eaad169987064cd3",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 827744,
+    "bytes": 833748,
     "visualPrimitives": 2,
     "visualTriangles": 82416,
     "collisionTriangles": 5666,
@@ -63,22 +67,25 @@
         "name": "acropora-normal",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 203092
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 286435
       },
       {
         "name": "acropora-base",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 3532
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 19871
       },
       {
         "name": "acropora-orm",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 138930
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 48650
       }
     ],
     "geometryAccessorBytes": 0,
@@ -89,13 +96,13 @@
   {
     "id": "reef-props",
     "file": "assets/models/ornaments/reef-props.glb",
-    "sha256": "265411d73bc1a3f5d7e60e741f541df0b9a58440dfb048f5d544e848442c2d8e",
+    "sha256": "2c6877e858ec34010088bade799fc5380f21e37cb89b0e6b773820536268e5d5",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 1100680,
+    "bytes": 1085160,
     "visualPrimitives": 22,
-    "visualTriangles": 99248,
+    "visualTriangles": 99232,
     "collisionTriangles": 8828,
     "materials": 8,
     "images": [
@@ -103,43 +110,49 @@
         "name": "wood-normal",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 169776
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 189429
       },
       {
         "name": "wood-base",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 7680
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 38413
       },
       {
         "name": "wood-orm",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 73994
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 23167
       },
       {
         "name": "stone-normal",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 247552
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 275329
       },
       {
         "name": "stone-base",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 4098
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 23728
       },
       {
         "name": "stone-orm",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 73974
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 12584
       }
     ],
     "geometryAccessorBytes": 0,
@@ -150,11 +163,11 @@
   {
     "id": "anchored-life",
     "file": "assets/models/creatures/anchored-life.glb",
-    "sha256": "0340309091490b88f79396552e7a6c8bf9c02a2f86fcbf3698051c869f647fcf",
+    "sha256": "966fbf52c70cb508bfc544cda7005c20c621babcb89d2951421caa6c371d31d8",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 3195560,
+    "bytes": 2392920,
     "visualPrimitives": 22,
     "visualTriangles": 132354,
     "collisionTriangles": 0,
@@ -164,106 +177,121 @@
         "name": "bony-plate-normal",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 547136
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 334473
       },
       {
         "name": "bony-plate-base",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 59714
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 74838
       },
       {
         "name": "bony-plate-orm",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 59424
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 22668
       },
       {
         "name": "frog-skin-normal",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 503288
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 337762
       },
       {
         "name": "frog-skin-base",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 29614
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 64794
       },
       {
         "name": "frog-skin-orm",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 132784
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 50733
       },
       {
         "name": "horse-normal",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 112326
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 92927
       },
       {
         "name": "horse-base",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 7654
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 33028
       },
       {
         "name": "horse-orm",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 65452
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 8813
       },
       {
         "name": "eel-skin-normal",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 491462
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 333100
       },
       {
         "name": "eel-skin-base",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 70642
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 78385
       },
       {
         "name": "eel-skin-orm",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 154988
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 69240
       },
       {
         "name": "tentacle-normal",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 248744
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 194849
       },
       {
         "name": "tentacle-base",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 49316
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 60121
       },
       {
         "name": "tentacle-orm",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 44728
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 20113
       }
     ],
     "geometryAccessorBytes": 0,
@@ -274,11 +302,11 @@
   {
     "id": "clownfish",
     "file": "assets/models/fish/clownfish.glb",
-    "sha256": "712502aac7d01be592efd55844d25a80c01a1a0a3d8b9482d0b6fcaba3b05977",
+    "sha256": "6bdebab56a34fd5bf803d16b1a36701cf6dd326ee83a1508360d97080d1fa642",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 520028,
+    "bytes": 465088,
     "visualPrimitives": 14,
     "visualTriangles": 14449,
     "collisionTriangles": 0,
@@ -288,29 +316,33 @@
         "name": "clown-normal",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 106178
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 79479
       },
       {
         "name": "clown-base",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 5134
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 21514
       },
       {
         "name": "clown-orm",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 55858
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 10570
       },
       {
         "name": "clown-fins",
         "width": 512,
         "height": 512,
-        "mode": "RGBA",
-        "encodedBytes": 924
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 2049
       }
     ],
     "geometryAccessorBytes": 170880,
@@ -339,11 +371,11 @@
     },
     "id": "reef-environment",
     "file": "assets/models/reef/reef-environment.glb",
-    "sha256": "34cd02549e1013bec433dfca2450be04e9cd36d611cd90965aaf357217b3b282",
+    "sha256": "5cc8ae1c502d7eae0b29677b14ba7f58cafeeb10f41bbebc022f560467ab5666",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 7753480,
+    "bytes": 6112116,
     "visualPrimitives": 66,
     "visualTriangles": 682246,
     "collisionTriangles": 9000,
@@ -353,148 +385,169 @@
         "name": "reef-rock-normal",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 577784
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 339221
       },
       {
         "name": "reef-rock-base",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 68126
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 84918
       },
       {
         "name": "reef-rock-orm",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 163146
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 73701
       },
       {
         "name": "coral-acropora-normal",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 569222
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 331472
       },
       {
         "name": "coral-acropora-base",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 70602
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 76964
       },
       {
         "name": "coral-acropora-orm",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 165036
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 68452
       },
       {
         "name": "coral-brain-normal",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 596032
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 337877
       },
       {
         "name": "coral-brain-base",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 89586
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 81820
       },
       {
         "name": "coral-brain-orm",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 280664
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 77209
       },
       {
         "name": "coral-plate-normal",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 552696
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 330981
       },
       {
         "name": "coral-plate-base",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 74684
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 75010
       },
       {
         "name": "coral-plate-orm",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 62626
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 29154
       },
       {
         "name": "soft-polyp-normal",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 520962
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 334263
       },
       {
         "name": "soft-polyp-base",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 80488
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 78619
       },
       {
         "name": "soft-polyp-orm",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 153520
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 53359
       },
       {
         "name": "algae-normal",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 106684
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 153990
       },
       {
         "name": "algae-base",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 14004
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 55722
       },
       {
         "name": "algae-orm",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 52346
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 32404
       },
       {
         "name": "sand-normal",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 342196
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 277890
       },
       {
         "name": "sand-base",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 20226
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 53940
       },
       {
         "name": "sand-orm",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 59848
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 30765
       }
     ],
     "geometryAccessorBytes": 0,
@@ -505,11 +558,11 @@
   {
     "id": "nudibranchs",
     "file": "assets/models/creatures/nudibranchs.glb",
-    "sha256": "c0bf8e7d6909048f21de1c1a374fc53172b2c5e31d046b18d09a47a5a28f82b8",
+    "sha256": "5ba9e1fab1f61d7ee3a6be66fb4d48287a2877fb991f93e664dab95abf43d34e",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 712200,
+    "bytes": 550476,
     "visualPrimitives": 5,
     "visualTriangles": 32533,
     "collisionTriangles": 0,
@@ -519,22 +572,25 @@
         "name": "nudi-skin-normal",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 467274
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 326829
       },
       {
         "name": "nudi-skin-base",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 54956
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 74287
       },
       {
         "name": "nudi-skin-orm",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 53224
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 10871
       }
     ],
     "geometryAccessorBytes": 0,
@@ -545,11 +601,11 @@
   {
     "id": "cardinalfish",
     "file": "assets/models/fish/cardinalfish.glb",
-    "sha256": "24526e2895059b0481c3f81da628411fd98f5e9476401ebcb7974f496e98c741",
+    "sha256": "a37e31117d8b05a99ceb4cb94be6df4f011507099e408c16e0ddb4d2bddcad21",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 639624,
+    "bytes": 613300,
     "visualPrimitives": 14,
     "visualTriangles": 14449,
     "collisionTriangles": 0,
@@ -559,29 +615,33 @@
         "name": "chromis-normal",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 147926
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 146091
       },
       {
         "name": "fish-scales-base",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 6050
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 24177
       },
       {
         "name": "chromis-orm",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 85354
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 30157
       },
       {
         "name": "fin-rays",
         "width": 512,
         "height": 512,
-        "mode": "RGBA",
-        "encodedBytes": 32460
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 45279
       }
     ],
     "geometryAccessorBytes": 171360,
@@ -592,11 +652,11 @@
   {
     "id": "firefish",
     "file": "assets/models/fish/firefish.glb",
-    "sha256": "a1289fb2ab0a61d4f6ca34411d0ab1b55a4c02e65a9170d0609c6ec5a334c367",
+    "sha256": "8658154ef7f6acd068bc3a2153c6ba4f799d6f9199c8bfdb716549d2d92a4db4",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 635400,
+    "bytes": 609116,
     "visualPrimitives": 14,
     "visualTriangles": 14448,
     "collisionTriangles": 0,
@@ -606,29 +666,33 @@
         "name": "chromis-normal",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 147926
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 146091
       },
       {
         "name": "fish-scales-base",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 6050
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 24177
       },
       {
         "name": "chromis-orm",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 85354
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 30157
       },
       {
         "name": "fin-rays",
         "width": 512,
         "height": 512,
-        "mode": "RGBA",
-        "encodedBytes": 32460
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 45279
       }
     ],
     "geometryAccessorBytes": 171288,
@@ -639,11 +703,11 @@
   {
     "id": "assessor",
     "file": "assets/models/fish/assessor.glb",
-    "sha256": "5940a068b6aced1b4eaad3f3cf802f1c5cdea19b654c6b8800c79f01be582b59",
+    "sha256": "99aedee8301cd7507774b9325345e5d481ef75eda28b422f8355fafe4acdab5e",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 636024,
+    "bytes": 609652,
     "visualPrimitives": 14,
     "visualTriangles": 14448,
     "collisionTriangles": 0,
@@ -653,29 +717,33 @@
         "name": "chromis-normal",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 147926
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 146091
       },
       {
         "name": "fish-scales-base",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 6050
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 24177
       },
       {
         "name": "chromis-orm",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 85354
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 30157
       },
       {
         "name": "fin-rays",
         "width": 512,
         "height": 512,
-        "mode": "RGBA",
-        "encodedBytes": 32460
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 45279
       }
     ],
     "geometryAccessorBytes": 171312,
@@ -686,11 +754,11 @@
   {
     "id": "gramma",
     "file": "assets/models/fish/gramma.glb",
-    "sha256": "5c27cdc1b9ea2f9c44f8363a7975469dd6ba897adc12a33ef4d76d60fc028906",
+    "sha256": "db21afce3494812042792e43438b93eb283a25faa375028cc0bb01338feff788",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 636476,
+    "bytes": 610156,
     "visualPrimitives": 14,
     "visualTriangles": 14450,
     "collisionTriangles": 0,
@@ -700,29 +768,33 @@
         "name": "chromis-normal",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 147926
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 146091
       },
       {
         "name": "fish-scales-base",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 6050
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 24177
       },
       {
         "name": "chromis-orm",
         "width": 512,
         "height": 512,
-        "mode": "RGB",
-        "encodedBytes": 85354
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 30157
       },
       {
         "name": "fin-rays",
         "width": 512,
         "height": 512,
-        "mode": "RGBA",
-        "encodedBytes": 32460
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 45279
       }
     ],
     "geometryAccessorBytes": 170976,

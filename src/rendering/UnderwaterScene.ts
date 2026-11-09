@@ -1,5 +1,6 @@
 import { AuthoredAquarium } from '../environment/AuthoredAquarium';
 import { AuthoredReef } from '../environment/AuthoredReef';
+import { AssetLoader } from '../assets/AssetLoader';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
 import * as THREE from 'three';
 import { Aquarium } from '../environment/Aquarium';
@@ -61,8 +62,12 @@ export class UnderwaterScene {
     this.assetStatus.style.cssText =
       'position:absolute;bottom:1rem;left:1rem;color:white;pointer-events:none;font:14px sans-serif';
     host.append(this.assetStatus);
-    this.authored = new AuthoredAquarium(this.aquarium);
-    this.reef = new AuthoredReef(this.aquarium);
+    // KTX2 textures need the renderer to choose a GPU-compressed transcode target.
+    this.authored = new AuthoredAquarium(this.aquarium, this.renderer);
+    this.reef = new AuthoredReef(
+      this.aquarium,
+      new AssetLoader(undefined, undefined, this.renderer),
+    );
     // Each library falls back independently; the status stays until both have settled and
     // their shader programs are compiled, so the first swimming frame does not hitch.
     this.prepared = Promise.all([this.authored.ready, this.reef.ready]).then(

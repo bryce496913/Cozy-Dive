@@ -144,3 +144,14 @@ COZY_URL=http://127.0.0.1:5175 COZY_OUTPUT=/tmp/cozy017-load node validation/loa
 ```
 
 `load-budget.mjs` reports the bytes actually transferred (`request.sizes()`, split into models, decoder and scripts) and the time from navigation until the "Preparing aquarium details" status clears, over three fresh contexts. On localhost this time is dominated by decoding and SwiftShader shader preparation, not by download.
+
+## Pass 018 KTX2 texture memory
+
+`texture-memory.mjs` loads the benchmark entry on a dev server, waits until the aquarium is prepared, and sums resident texture bytes over every material in the scene (including shader uniforms). It counts each shared texture source once, takes compressed textures from their transcoded mip data and plain images as RGBA8 with a 4/3 mip chain. It also reports the WebGL compressed-format extensions and the GPU formats actually chosen, so an RGBA fallback is visible.
+
+```bash
+COZY_URL=http://127.0.0.1:5174 COZY_OUTPUT=/tmp/cozy018-before node validation/texture-memory.mjs  # previous candidate
+COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy018-after node validation/texture-memory.mjs   # this branch
+```
+
+Set `COZY_GPU_ARGS` (space-separated Chromium flags) to replace the default SwiftShader flags on a machine with a real GPU. The byte totals are computed from texture data, not read from the driver.

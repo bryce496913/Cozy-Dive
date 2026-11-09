@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 import { clone } from 'three/addons/utils/SkeletonUtils.js';
 import { ASSET_REGISTRY, type AssetId } from './AssetRegistry';
 import {
@@ -28,9 +29,12 @@ export class AssetLoader {
   private readonly read: (url: string) => Promise<LoadedAsset>;
   /** Pass 017: shipped GLBs are Draco-compressed; the local decoder is created on first use. */
   private draco?: DRACOLoader;
+  /** Pass 018: KTX2/Basis textures stay compressed on the GPU; needs the renderer's capabilities. */
+  private ktx2?: KTX2Loader;
   constructor(
     read?: (url: string) => Promise<LoadedAsset>,
     private readonly status?: (id: AssetId, state: AssetState) => void,
+    private readonly renderer?: THREE.WebGLRenderer,
   ) {
     this.read = read ?? ((url) => this.readLocal(url));
   }
@@ -51,7 +55,16 @@ export class AssetLoader {
         .setDecoderPath(`${import.meta.env.BASE_URL}assets/draco/`)
         .setWorkerLimit(2);
     }
-    return new GLTFLoader(manager).setDRACOLoader(this.draco).loadAsync(url);
+    const gltf = new GLTFLoader(manager).setDRACOLoader(this.draco);
+    if (this.renderer) {
+      // Local Basis transcoder (public/assets/basis): picks ASTC / BC7 / BC1-3 / ETC2 per device.
+      this.ktx2 ??= new KTX2Loader(manager)
+        .setTranscoderPath(`${import.meta.env.BASE_URL}assets/basis/`)
+        .setWorkerLimit(2)
+        .detectSupport(this.renderer);
+      gltf.setKTX2Loader(this.ktx2);
+    }
+    return gltf.loadAsync(url);
   }
   async acquire(id: AssetId): Promise<AssetLease> {
     if (this.disposed) throw Error('Asset cache is disposed');
@@ -132,5 +145,7 @@ export class AssetLoader {
     // Pending decodes settle first; the worker pool is released once nothing can use it.
     this.draco?.dispose();
     this.draco = undefined;
+    this.ktx2?.dispose();
+    this.ktx2 = undefined;
   }
 }

@@ -120,7 +120,7 @@ Full regeneration order (each step reads the previous step's uncompressed output
 python3 tools/art/pass016/fish.py            # four species from the pinned accepted chromis
 python3 tools/art/pass017/fish_lod.py        # adds *_LOD1 levels to all six fish libraries
 # (other authoring scripts as in Passes 012-015, writing uncompressed GLBs)
-node tools/art/pass017/compress.mjs          # last step: Draco geometry + WebP textures, in place
+node tools/art/pass017/compress.mjs          # last step: Draco geometry + KTX2 textures (Pass 018), in place
 python3 tools/art/inspect_assets.py
 ```
 
@@ -130,3 +130,18 @@ python3 tools/art/inspect_assets.py
 - **Compression settings.** Positions use 16-bit quantization, normals 10-bit, UVs 14-bit and colours 8-bit (edgebreaker). Colour maps are WebP at quality 88; normal and ORM maps are near-lossless WebP. Primitives with morph targets stay uncompressed (Draco does not cover morphs). Node transforms are untouched, so controller-local frames and collision point sets keep their meaning.
 - **Runtime.** `AssetLoader` lazily owns a `DRACOLoader` (two workers) that decodes with the local `public/assets/draco/` wasm decoder (Apache-2.0), and disposes it with its cache. No runtime network requests are added.
 - **Tooling.** Tests decode Draco through `draco3dgltf` (`validation/ReefAsset.ts`); the Python inspector uses DracoPy.
+
+## Pass 018 KTX2 textures
+
+`compress.mjs` now also converts every embedded image to KTX2 (`KHR_texture_basisu`) with a full mip chain, so textures stay block-compressed in GPU memory. It uses `ktx2-encoder` 0.6.0 (Basis Universal, wasm), so no native tools are needed.
+
+- **Lossless sources.** Before encoding, each image is replaced by its original authoring PNG from `tools/art/textures/**` (matched by image name), so the Basis encode starts from the lossless map rather than from the Pass 017 WebP. The script fails if any texture is left in another format.
+- **Modes.**
+  - Normal maps: UASTC with RDO (quality 1) and Zstandard supercompression, linear.
+  - Colour maps: ETC1S (quality 230, effort 4), sRGB transfer function, perceptual.
+  - ORM data maps: ETC1S, linear.
+- **Geometry stays put.** Writing a document re-encodes its Draco primitives, so files that are already Draco-compressed have the Pass 017 settings (edgebreaker, 16/10/14/8/12 bits) pinned explicitly. Without this, gltf-transform falls back to 14-bit positions and collision tests fail. Decoded positions re-quantize onto the same 16-bit grid.
+- **Idempotent.** Files whose images are all KTX2 and whose geometry is Draco are skipped.
+- **Order matters.** Blender's glTF importer cannot read KTX2 images, so scripts that re-import a shipped GLB (`fish_lod.py`, `pass016/fish.py`, `pass015/creatures.py`) must run on uncompressed output, in the full regeneration order above, never on the shipped files.
+- **Runtime.** `AssetLoader` takes the renderer and lazily creates one `KTX2Loader` (two workers) using the local `public/assets/basis/` transcoder (Apache-2.0, from three r187). `detectSupport` lets three.js choose a GPU format per Basis mode from what the device supports (ASTC, BC7, ETC2 or BC1/BC3, for example). Where no compressed format is available it falls back to uncompressed RGBA. The loader is disposed with the cache.
+- **Tooling.** `inspect_assets.py` validates each KTX2 header (identifier, size, single face, full mip chain) and records the Basis mode and mip count in the manifest.
