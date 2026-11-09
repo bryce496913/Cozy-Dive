@@ -25,8 +25,9 @@ from scipy.spatial import cKDTree
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
-SOURCE = ROOT / 'public/assets/models/fish/chromis.glb'
-TEX = ROOT / 'public/assets/textures/pass016'
+# Pinned uncompressed accepted chromis (public/ copies are Draco/WebP compressed since Pass 017).
+SOURCE = ROOT / 'tools/art/pass017/accepted/chromis.glb'
+TEX = ROOT / 'tools/art/textures/pass016'
 OUT = ROOT / 'public/assets/models/fish'
 CHROMIS = {'length': 0.46, 'height': 0.19, 'width': 0.09, 'tail_root': -0.17, 'snout': 0.205, 'half': 0.089}
 
@@ -47,7 +48,7 @@ def srgb_to_linear(c):
 def neutral_maps():
     """Luminance-only versions of the accepted chromis base and fin maps (alpha kept)."""
     TEX.mkdir(parents=True, exist_ok=True)
-    src = ROOT / 'public/assets/textures/fish'
+    src = ROOT / 'tools/art/textures/fish'
     base = np.asarray(Image.open(src / 'chromis-base.png').convert('RGB'), float) / 255
     lum = base @ np.array([0.2126, 0.7152, 0.0722])
     lum = 0.82 + (lum - lum.mean()) / (lum.std() + 1e-6) * 0.06  # keep scale-edge detail, drop hue

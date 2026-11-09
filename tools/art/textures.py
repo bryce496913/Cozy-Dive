@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 from scipy.ndimage import gaussian_filter
-ROOT=Path(__file__).resolve().parents[2]/'public/assets/textures'
+ROOT=Path(__file__).resolve().parents[2]/'tools/art/textures'
 N=512
 v,u=np.mgrid[0:N,0:N].astype(float)/(N-1)
 rng=np.random.default_rng(12026)

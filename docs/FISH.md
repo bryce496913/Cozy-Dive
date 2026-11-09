@@ -57,3 +57,12 @@ Every free-swimming species now renders as an authored morph rig driven by the u
 | Ocellaris clownfish | `fish/clownfish.glb`    | Unchanged (Pass 013)                                                                                                             |
 
 The four new species reshape the accepted chromis rig (`tools/art/pass016/fish.py`). Each keeps its exact topology, both stroke morphs and pectoral pivots, and is scaled per axis to the species' length, height and width, plus species anatomy; eyes scale uniformly about their own centres. Colour comes from object-space vertex patterns over luminance-only versions of the accepted chromis scale and fin-ray maps. Procedural fish batches stay resident as the fallback, and pause, reduced motion and fish behaviour are unchanged.
+
+## Pass 017 — fish distance level
+
+Each fish library carries `Body_LOD1`, `Median_Fins_LOD1` and `Eyes_Gills_Mouth_LOD1`: decimated copies (about 1.76k triangles, versus 12.7k) whose stroke morphs are transferred from the nearest full-rig vertex, so distant fish still beat their tails. Pectorals are omitted at distance. `AuthoredSchool.update(camera)` writes each fish into the full or distance instanced set by distance:
+
+- **Threshold**: full detail within 14 body lengths (about 6.4 units for a chromis, 11.9 for a firefish).
+- **Hysteresis**: 10% beyond the threshold before a near fish switches down, so fish don't flicker between levels.
+
+Tints, poses and morph weights follow each fish into whichever set it occupies. Without a camera (benchmarks and matched captures), every fish stays at full detail. The simulation is untouched.

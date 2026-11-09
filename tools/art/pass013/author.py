@@ -18,7 +18,7 @@ def mat(name,color,rough=.75,metal=0,texture=None):
  if texture:
   p=m.node_tree.nodes.get('Principled BSDF');nodes=m.node_tree.nodes;links=m.node_tree.links
   for channel in ['base','normal','orm']:
-   n=nodes.new('ShaderNodeTexImage');n.image=bpy.data.images.load(str(R/f'public/assets/textures/pass013/{texture}-{channel}.png'),check_existing=True)
+   n=nodes.new('ShaderNodeTexImage');n.image=bpy.data.images.load(str(R/f'tools/art/textures/pass013/{texture}-{channel}.png'),check_existing=True)
    if channel=='base':links.new(n.outputs['Color'],p.inputs['Base Color'])
    else:
     n.image.colorspace_settings.name='Non-Color'

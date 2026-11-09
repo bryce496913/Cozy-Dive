@@ -1,0 +1,155 @@
+{
+  "base": "http://127.0.0.1:5174",
+  "views": [
+    {
+      "view": "spawn",
+      "species": "blue-green-chromis",
+      "calls": 158,
+      "triangles": 1366914,
+      "cpuSubmitMs": [7.600000000093132, 3.1000000000931323, 2.599999999627471],
+      "fullDetail": {
+        "calls": 158,
+        "triangles": 1366914
+      },
+      "nearFish": 0,
+      "memory": {
+        "geometries": 226,
+        "textures": 74
+      }
+    },
+    {
+      "view": "chromis",
+      "species": "blue-green-chromis",
+      "calls": 123,
+      "triangles": 1154484,
+      "cpuSubmitMs": [9.399999999906868, 1.5, 1.400000000372529],
+      "fullDetail": {
+        "calls": 123,
+        "triangles": 1154484
+      },
+      "nearFish": 0,
+      "memory": {
+        "geometries": 260,
+        "textures": 74
+      }
+    },
+    {
+      "view": "chromis-school",
+      "species": "blue-green-chromis",
+      "calls": 125,
+      "triangles": 1138091,
+      "cpuSubmitMs": [2.6000000000931323, 1.5, 1.3999999999068677],
+      "fullDetail": {
+        "calls": 125,
+        "triangles": 1138091
+      },
+      "nearFish": 0,
+      "memory": {
+        "geometries": 260,
+        "textures": 74
+      }
+    },
+    {
+      "view": "cardinalfish",
+      "species": "pajama-cardinalfish",
+      "calls": 114,
+      "triangles": 957996,
+      "cpuSubmitMs": [2, 1.3999999999068677, 1.3999999999068677],
+      "fullDetail": {
+        "calls": 114,
+        "triangles": 957996
+      },
+      "nearFish": 0,
+      "memory": {
+        "geometries": 261,
+        "textures": 74
+      }
+    },
+    {
+      "view": "firefish",
+      "species": "firefish-goby",
+      "calls": 112,
+      "triangles": 999833,
+      "cpuSubmitMs": [4.5, 2.2999999998137355, 2.2999999998137355],
+      "fullDetail": {
+        "calls": 112,
+        "triangles": 999833
+      },
+      "nearFish": 0,
+      "memory": {
+        "geometries": 262,
+        "textures": 74
+      }
+    },
+    {
+      "view": "assessor",
+      "species": "yellow-assessor",
+      "calls": 68,
+      "triangles": 639005,
+      "cpuSubmitMs": [5.899999999906868, 1.5, 4.399999999906868],
+      "fullDetail": {
+        "calls": 68,
+        "triangles": 639005
+      },
+      "nearFish": 0,
+      "memory": {
+        "geometries": 262,
+        "textures": 74
+      }
+    },
+    {
+      "view": "gramma",
+      "species": "royal-gramma",
+      "calls": 109,
+      "triangles": 958173,
+      "cpuSubmitMs": [
+        4.399999999906868, 2.6999999997206032, 3.6000000000931323
+      ],
+      "fullDetail": {
+        "calls": 109,
+        "triangles": 958173
+      },
+      "nearFish": 0,
+      "memory": {
+        "geometries": 273,
+        "textures": 74
+      }
+    },
+    {
+      "view": "clownfish",
+      "species": "ocellaris-clownfish",
+      "calls": 157,
+      "triangles": 1406191,
+      "cpuSubmitMs": [
+        3.1000000000931323, 2.1000000000931323, 2.1999999997206032
+      ],
+      "fullDetail": {
+        "calls": 157,
+        "triangles": 1406191
+      },
+      "nearFish": 0,
+      "memory": {
+        "geometries": 275,
+        "textures": 74
+      }
+    }
+  ],
+  "requests": [
+    "http://127.0.0.1:5174/assets/models/ornaments/reef-props.glb",
+    "http://127.0.0.1:5174/assets/models/creatures/anchored-life.glb",
+    "http://127.0.0.1:5174/assets/models/creatures/nudibranchs.glb",
+    "http://127.0.0.1:5174/assets/models/fish/chromis.glb",
+    "http://127.0.0.1:5174/assets/models/fish/cardinalfish.glb",
+    "http://127.0.0.1:5174/assets/models/fish/firefish.glb",
+    "http://127.0.0.1:5174/assets/models/fish/assessor.glb",
+    "http://127.0.0.1:5174/assets/models/fish/gramma.glb",
+    "http://127.0.0.1:5174/assets/models/fish/clownfish.glb",
+    "http://127.0.0.1:5174/assets/models/reef/reef-environment.glb"
+  ],
+  "errors": [],
+  "pause": {
+    "schools": 6,
+    "frozen": true
+  },
+  "webglErrors": 0
+}

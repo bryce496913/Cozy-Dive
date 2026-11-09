@@ -1,0 +1,161 @@
+{
+  "base": "http://127.0.0.1:5173",
+  "views": [
+    {
+      "view": "spawn",
+      "species": "blue-green-chromis",
+      "calls": 164,
+      "triangles": 980785,
+      "cpuSubmitMs": [
+        22.700000000186265, 14.199999999720603, 14.100000000093132
+      ],
+      "fullDetail": {
+        "calls": 158,
+        "triangles": 1364858
+      },
+      "nearFish": 5,
+      "memory": {
+        "geometries": 262,
+        "textures": 98
+      }
+    },
+    {
+      "view": "chromis",
+      "species": "blue-green-chromis",
+      "calls": 126,
+      "triangles": 1040628,
+      "cpuSubmitMs": [5.2999999998137355, 5.899999999906868, 5.300000000279397],
+      "fullDetail": {
+        "calls": 124,
+        "triangles": 1129780
+      },
+      "nearFish": 33,
+      "memory": {
+        "geometries": 309,
+        "textures": 98
+      }
+    },
+    {
+      "view": "chromis-school",
+      "species": "blue-green-chromis",
+      "calls": 127,
+      "triangles": 1045144,
+      "cpuSubmitMs": [
+        5.600000000093132, 2.2999999998137355, 1.7000000001862645
+      ],
+      "fullDetail": {
+        "calls": 125,
+        "triangles": 1136059
+      },
+      "nearFish": 33,
+      "memory": {
+        "geometries": 311,
+        "textures": 98
+      }
+    },
+    {
+      "view": "cardinalfish",
+      "species": "pajama-cardinalfish",
+      "calls": 110,
+      "triangles": 875356,
+      "cpuSubmitMs": [3, 1.599999999627471, 1.3000000002793968],
+      "fullDetail": {
+        "calls": 114,
+        "triangles": 957108
+      },
+      "nearFish": 33,
+      "memory": {
+        "geometries": 312,
+        "textures": 98
+      }
+    },
+    {
+      "view": "firefish",
+      "species": "firefish-goby",
+      "calls": 116,
+      "triangles": 894175,
+      "cpuSubmitMs": [2.3999999999068677, 1.6000000000931323, 1.5],
+      "fullDetail": {
+        "calls": 112,
+        "triangles": 997777
+      },
+      "nearFish": 13,
+      "memory": {
+        "geometries": 313,
+        "textures": 98
+      }
+    },
+    {
+      "view": "assessor",
+      "species": "yellow-assessor",
+      "calls": 58,
+      "triangles": 502099,
+      "cpuSubmitMs": [
+        0.8999999999068677, 0.8999999999068677, 0.900000000372529
+      ],
+      "fullDetail": {
+        "calls": 68,
+        "triangles": 638117
+      },
+      "nearFish": 3,
+      "memory": {
+        "geometries": 313,
+        "textures": 98
+      }
+    },
+    {
+      "view": "gramma",
+      "species": "royal-gramma",
+      "calls": 109,
+      "triangles": 966569,
+      "cpuSubmitMs": [
+        3.8999999999068677, 1.7999999998137355, 1.7000000001862645
+      ],
+      "fullDetail": {
+        "calls": 111,
+        "triangles": 1035637
+      },
+      "nearFish": 29,
+      "memory": {
+        "geometries": 324,
+        "textures": 98
+      }
+    },
+    {
+      "view": "clownfish",
+      "species": "ocellaris-clownfish",
+      "calls": 164,
+      "triangles": 1044208,
+      "cpuSubmitMs": [
+        2.6999999997206032, 2.1000000000931323, 2.6000000000931323
+      ],
+      "fullDetail": {
+        "calls": 158,
+        "triangles": 1406435
+      },
+      "nearFish": 8,
+      "memory": {
+        "geometries": 326,
+        "textures": 98
+      }
+    }
+  ],
+  "requests": [
+    "http://127.0.0.1:5173/assets/models/ornaments/reef-props.glb",
+    "http://127.0.0.1:5173/assets/models/creatures/anchored-life.glb",
+    "http://127.0.0.1:5173/assets/models/creatures/nudibranchs.glb",
+    "http://127.0.0.1:5173/assets/models/fish/chromis.glb",
+    "http://127.0.0.1:5173/assets/models/fish/cardinalfish.glb",
+    "http://127.0.0.1:5173/assets/models/fish/firefish.glb",
+    "http://127.0.0.1:5173/assets/models/fish/assessor.glb",
+    "http://127.0.0.1:5173/assets/models/fish/gramma.glb",
+    "http://127.0.0.1:5173/assets/models/fish/clownfish.glb",
+    "http://127.0.0.1:5173/assets/models/reef/reef-environment.glb"
+  ],
+  "errors": [],
+  "pause": {
+    "schools": 6,
+    "frozen": true
+  },
+  "webglErrors": 0
+}

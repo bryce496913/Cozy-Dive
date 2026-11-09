@@ -21,7 +21,7 @@ ROOT = HERE.parents[2]
 sys.path.insert(0, str(HERE))
 import reef_geometry as rg  # noqa: E402
 
-TEX = ROOT / 'public/assets/textures/pass014'
+TEX = ROOT / 'tools/art/textures/pass014'
 
 
 def tex(name):

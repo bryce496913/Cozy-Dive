@@ -1,0 +1,32 @@
+{
+  "url": "http://127.0.0.1:5175",
+  "runs": [
+    {
+      "preparedMs": 4509,
+      "bytes": {
+        "total": 16871883,
+        "models": 16442428,
+        "decoder": 204186,
+        "scripts": 227094
+      }
+    },
+    {
+      "preparedMs": 3782,
+      "bytes": {
+        "total": 16871883,
+        "models": 16442428,
+        "decoder": 204186,
+        "scripts": 227094
+      }
+    },
+    {
+      "preparedMs": 3938,
+      "bytes": {
+        "total": 16871883,
+        "models": 16442428,
+        "decoder": 204186,
+        "scripts": 227094
+      }
+    }
+  ]
+}

@@ -1,0 +1,1232 @@
+{
+  "views": [
+    {
+      "view": "wide",
+      "file": "wide-before.png",
+      "enabled": false,
+      "families": {
+        "other": 72754,
+        "Rock": 8672,
+        "Reef corals and aquarium ornaments": 14526,
+        "Home aquarium ornaments": 63508,
+        "Marine seagrass, macroalgae and soft corals": 112672,
+        "Tropical seagrass meadows": 18432,
+        "Anchored marine life": 158982,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449
+      },
+      "calls": 219,
+      "triangles": 540814,
+      "memory": {
+        "geometries": 286,
+        "textures": 98
+      },
+      "softwareSynchronizedFrameMs": [
+        664.7999999998137, 9.600000000558794, 6.7999999998137355,
+        2.7000000001862645
+      ],
+      "cpuSubmitMs": [
+        664.7999999998137, 9.600000000558794, 6.599999999627471,
+        2.7000000001862645
+      ]
+    },
+    {
+      "view": "wide",
+      "file": "wide-after.png",
+      "enabled": true,
+      "families": {
+        "other": 72754,
+        "Home aquarium ornaments": 63508,
+        "Marine seagrass, macroalgae and soft corals": 251270,
+        "Tropical seagrass meadows": 46080,
+        "Anchored marine life": 158982,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449,
+        "Authored rock": 122565,
+        "Reef debris pebbles": 17600,
+        "Authored coral Coral_Branching_0": 3051,
+        "Authored coral Coral_Branching_1": 2652,
+        "Authored coral Coral_Branching_2": 2886,
+        "Authored coral Coral_Plate_0": 17460,
+        "Authored coral Coral_Plate_1": 17460,
+        "Meadow understory": 32960,
+        "Reef debris Shell_0": 16416,
+        "Reef debris Shell_1": 19520,
+        "Reef debris Shell_2": 11094,
+        "Reef debris Rubble_0": 5100,
+        "Reef debris Rubble_1": 7470,
+        "Backdrop reef": 87040
+      },
+      "calls": 198,
+      "triangles": 1042937,
+      "memory": {
+        "geometries": 290,
+        "textures": 98
+      },
+      "softwareSynchronizedFrameMs": [
+        10.299999999813735, 4.599999999627471, 6.2999999998137355,
+        5.2000000001862645
+      ],
+      "cpuSubmitMs": [
+        10.199999999254942, 4.599999999627471, 6.2999999998137355,
+        5.1000000005587935
+      ]
+    },
+    {
+      "view": "channel",
+      "file": "channel-before.png",
+      "enabled": false,
+      "families": {
+        "other": 72754,
+        "Rock": 6286,
+        "Reef corals and aquarium ornaments": 13174,
+        "Home aquarium ornaments": 62618,
+        "Marine seagrass, macroalgae and soft corals": 112672,
+        "Tropical seagrass meadows": 18432,
+        "Anchored marine life": 146020,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449
+      },
+      "calls": 179,
+      "triangles": 522055,
+      "memory": {
+        "geometries": 290,
+        "textures": 98
+      },
+      "softwareSynchronizedFrameMs": [
+        8.599999999627471, 2.7000000001862645, 5.400000000372529, 3
+      ],
+      "cpuSubmitMs": [
+        8.599999999627471, 2.6000000005587935, 5.2999999998137355, 3
+      ]
+    },
+    {
+      "view": "channel",
+      "file": "channel-after.png",
+      "enabled": true,
+      "families": {
+        "other": 72754,
+        "Home aquarium ornaments": 62618,
+        "Marine seagrass, macroalgae and soft corals": 251270,
+        "Tropical seagrass meadows": 46080,
+        "Anchored marine life": 146020,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449,
+        "Authored rock": 81371,
+        "Reef debris pebbles": 17600,
+        "Authored coral Coral_Branching_1": 2652,
+        "Authored coral Coral_Plate_0": 17460,
+        "Authored coral Coral_Plate_1": 17460,
+        "Meadow understory": 32960,
+        "Reef debris Shell_0": 16416,
+        "Reef debris Shell_1": 19520,
+        "Reef debris Shell_2": 11094,
+        "Reef debris Rubble_0": 5100,
+        "Reef debris Rubble_1": 7470,
+        "Backdrop reef": 87040
+      },
+      "calls": 164,
+      "triangles": 980785,
+      "memory": {
+        "geometries": 290,
+        "textures": 98
+      },
+      "softwareSynchronizedFrameMs": [
+        3.400000000372529, 2.599999999627471, 7.2999999998137355,
+        2.2000000001862645
+      ],
+      "cpuSubmitMs": [
+        3.400000000372529, 2.5, 7.2999999998137355, 2.1000000005587935
+      ]
+    },
+    {
+      "view": "rock-close",
+      "file": "rock-close-before.png",
+      "enabled": false,
+      "families": {
+        "other": 72680,
+        "Rock": 3038,
+        "Reef corals and aquarium ornaments": 11780,
+        "Home aquarium ornaments": 7540,
+        "Marine seagrass, macroalgae and soft corals": 112672,
+        "Tropical seagrass meadows": 18432,
+        "Anchored marine life": 10592,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449
+      },
+      "calls": 90,
+      "triangles": 230163,
+      "memory": {
+        "geometries": 290,
+        "textures": 98
+      },
+      "softwareSynchronizedFrameMs": [
+        6.1000000005587935, 1.5, 1, 0.8999999994412065
+      ],
+      "cpuSubmitMs": [6.1000000005587935, 1.5, 1, 0.8999999994412065]
+    },
+    {
+      "view": "rock-close",
+      "file": "rock-close-after.png",
+      "enabled": true,
+      "families": {
+        "other": 72680,
+        "Home aquarium ornaments": 7540,
+        "Marine seagrass, macroalgae and soft corals": 251270,
+        "Tropical seagrass meadows": 46080,
+        "Anchored marine life": 10592,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449,
+        "Authored rock": 149541,
+        "Reef debris pebbles": 17600,
+        "Authored coral Coral_Branching_0": 3051,
+        "Authored coral Coral_Plate_0": 17460,
+        "Authored coral Coral_Plate_1": 17460,
+        "Meadow understory": 32960,
+        "Reef debris Shell_0": 16416,
+        "Reef debris Shell_1": 19520,
+        "Reef debris Shell_2": 11094,
+        "Reef debris Rubble_0": 5100,
+        "Reef debris Rubble_1": 7470,
+        "Backdrop reef": 87040
+      },
+      "calls": 98,
+      "triangles": 758536,
+      "memory": {
+        "geometries": 293,
+        "textures": 98
+      },
+      "softwareSynchronizedFrameMs": [
+        11.199999999254942, 5.800000000745058, 2.199999999254942,
+        2.400000000372529
+      ],
+      "cpuSubmitMs": [
+        11.199999999254942, 5.7000000001862645, 2.199999999254942,
+        2.400000000372529
+      ]
+    },
+    {
+      "view": "crevice",
+      "file": "crevice-before.png",
+      "enabled": false,
+      "families": {
+        "other": 72656,
+        "Rock": 3064,
+        "Reef corals and aquarium ornaments": 11432,
+        "Home aquarium ornaments": 47992,
+        "Marine seagrass, macroalgae and soft corals": 112672,
+        "Tropical seagrass meadows": 18432,
+        "Anchored marine life": 106730,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449
+      },
+      "calls": 100,
+      "triangles": 394310,
+      "memory": {
+        "geometries": 313,
+        "textures": 98
+      },
+      "softwareSynchronizedFrameMs": [
+        6.5, 1.7000000001862645, 1.2999999998137355, 5
+      ],
+      "cpuSubmitMs": [6.5, 1.7000000001862645, 1.2999999998137355, 5]
+    },
+    {
+      "view": "crevice",
+      "file": "crevice-after.png",
+      "enabled": true,
+      "families": {
+        "other": 72656,
+        "Home aquarium ornaments": 47992,
+        "Marine seagrass, macroalgae and soft corals": 251270,
+        "Tropical seagrass meadows": 46080,
+        "Anchored marine life": 106730,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449,
+        "Authored rock": 140800,
+        "Reef debris pebbles": 17600,
+        "Authored coral Coral_Plate_2": 17460,
+        "Meadow understory": 32960,
+        "Reef debris Shell_0": 16416,
+        "Reef debris Shell_1": 19520,
+        "Reef debris Shell_2": 11094,
+        "Reef debris Rubble_0": 5100,
+        "Reef debris Rubble_1": 7470,
+        "Backdrop reef": 87040
+      },
+      "calls": 106,
+      "triangles": 903032,
+      "memory": {
+        "geometries": 318,
+        "textures": 98
+      },
+      "softwareSynchronizedFrameMs": [
+        4.099999999627471, 5.800000000745058, 2.8999999994412065,
+        2.2000000001862645
+      ],
+      "cpuSubmitMs": [
+        4.099999999627471, 5.6000000005587935, 2.7999999998137355, 2
+      ]
+    },
+    {
+      "view": "branching-coral",
+      "file": "branching-coral-before.png",
+      "enabled": false,
+      "families": {
+        "other": 72632,
+        "Rock": 1044,
+        "Reef corals and aquarium ornaments": 11038,
+        "Home aquarium ornaments": 0,
+        "Marine seagrass, macroalgae and soft corals": 112672,
+        "Tropical seagrass meadows": 18432,
+        "Anchored marine life": 10592,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449
+      },
+      "calls": 54,
+      "triangles": 164520,
+      "memory": {
+        "geometries": 318,
+        "textures": 98
+      },
+      "softwareSynchronizedFrameMs": [
+        2.1000000005587935, 1.699999999254942, 1.2000000001862645,
+        1.1000000005587935
+      ],
+      "cpuSubmitMs": [
+        2.1000000005587935, 1.699999999254942, 1.2000000001862645,
+        1.1000000005587935
+      ]
+    },
+    {
+      "view": "branching-coral",
+      "file": "branching-coral-after.png",
+      "enabled": true,
+      "families": {
+        "other": 72632,
+        "Home aquarium ornaments": 0,
+        "Marine seagrass, macroalgae and soft corals": 251270,
+        "Tropical seagrass meadows": 46080,
+        "Anchored marine life": 10592,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449,
+        "Authored rock": 131991,
+        "Reef debris pebbles": 17600,
+        "Authored coral Coral_Branching_0": 3051,
+        "Meadow understory": 32960,
+        "Reef debris Shell_0": 16416,
+        "Reef debris Shell_1": 19520,
+        "Reef debris Shell_2": 11094,
+        "Reef debris Rubble_0": 5100,
+        "Reef debris Rubble_1": 7470,
+        "Backdrop reef": 87040
+      },
+      "calls": 69,
+      "triangles": 604704,
+      "memory": {
+        "geometries": 320,
+        "textures": 98
+      },
+      "softwareSynchronizedFrameMs": [
+        11.199999999254942, 1.400000000372529, 1.2000000001862645, 2
+      ],
+      "cpuSubmitMs": [
+        11.199999999254942, 1.400000000372529, 1.2000000001862645, 2
+      ]
+    },
+    {
+      "view": "rounded-coral",
+      "file": "rounded-coral-before.png",
+      "enabled": false,
+      "families": {
+        "other": 72704,
+        "Rock": 2446,
+        "Reef corals and aquarium ornaments": 11770,
+        "Home aquarium ornaments": 36572,
+        "Marine seagrass, macroalgae and soft corals": 112672,
+        "Tropical seagrass meadows": 18432,
+        "Anchored marine life": 60932,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449
+      },
+      "calls": 99,
+      "triangles": 339204,
+      "memory": {
+        "geometries": 320,
+        "textures": 98
+      },
+      "softwareSynchronizedFrameMs": [
+        1.900000000372529, 1.2999999998137355, 1.2000000001862645,
+        6.599999999627471
+      ],
+      "cpuSubmitMs": [
+        1.900000000372529, 1.2999999998137355, 1.2000000001862645, 6.5
+      ]
+    },
+    {
+      "view": "rounded-coral",
+      "file": "rounded-coral-after.png",
+      "enabled": true,
+      "families": {
+        "other": 72704,
+        "Home aquarium ornaments": 36572,
+        "Marine seagrass, macroalgae and soft corals": 251270,
+        "Tropical seagrass meadows": 46080,
+        "Anchored marine life": 60932,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449,
+        "Authored rock": 148480,
+        "Reef debris pebbles": 17600,
+        "Meadow understory": 32960,
+        "Reef debris Shell_0": 16416,
+        "Reef debris Shell_1": 19520,
+        "Reef debris Shell_2": 11094,
+        "Reef debris Rubble_0": 5100,
+        "Reef debris Rubble_1": 7470,
+        "Backdrop reef": 87040
+      },
+      "calls": 103,
+      "triangles": 830531,
+      "memory": {
+        "geometries": 321,
+        "textures": 98
+      },
+      "softwareSynchronizedFrameMs": [
+        9.900000000372529, 4.5, 2.2000000001862645, 2.2000000001862645
+      ],
+      "cpuSubmitMs": [
+        9.900000000372529, 4.5, 2.2000000001862645, 2.099999999627471
+      ]
+    },
+    {
+      "view": "plate-coral",
+      "file": "plate-coral-before.png",
+      "enabled": false,
+      "families": {
+        "other": 72680,
+        "Rock": 2878,
+        "Reef corals and aquarium ornaments": 11110,
+        "Home aquarium ornaments": 7592,
+        "Marine seagrass, macroalgae and soft corals": 112672,
+        "Tropical seagrass meadows": 18432,
+        "Anchored marine life": 10592,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449
+      },
+      "calls": 86,
+      "triangles": 227605,
+      "memory": {
+        "geometries": 321,
+        "textures": 98
+      },
+      "softwareSynchronizedFrameMs": [
+        6.8999999994412065, 1.7000000001862645, 1.5, 1.5
+      ],
+      "cpuSubmitMs": [6.7999999998137355, 1.7000000001862645, 1.5, 1.5]
+    },
+    {
+      "view": "plate-coral",
+      "file": "plate-coral-after.png",
+      "enabled": true,
+      "families": {
+        "other": 72680,
+        "Home aquarium ornaments": 7592,
+        "Marine seagrass, macroalgae and soft corals": 251270,
+        "Tropical seagrass meadows": 46080,
+        "Anchored marine life": 10592,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449,
+        "Authored rock": 179200,
+        "Reef debris pebbles": 17600,
+        "Authored coral Coral_Plate_0": 17460,
+        "Authored coral Coral_Plate_1": 17460,
+        "Meadow understory": 32960,
+        "Reef debris Shell_0": 16416,
+        "Reef debris Shell_1": 19520,
+        "Reef debris Shell_2": 11094,
+        "Reef debris Rubble_0": 5100,
+        "Reef debris Rubble_1": 7470,
+        "Backdrop reef": 87040
+      },
+      "calls": 96,
+      "triangles": 785144,
+      "memory": {
+        "geometries": 321,
+        "textures": 98
+      },
+      "softwareSynchronizedFrameMs": [
+        2.7999999998137355, 3.900000000372529, 1.900000000372529,
+        1.8999999994412065
+      ],
+      "cpuSubmitMs": [
+        2.7999999998137355, 3.900000000372529, 1.900000000372529,
+        1.7999999998137355
+      ]
+    },
+    {
+      "view": "soft-coral",
+      "file": "soft-coral-before.png",
+      "enabled": false,
+      "families": {
+        "other": 72680,
+        "Rock": 3724,
+        "Reef corals and aquarium ornaments": 11780,
+        "Home aquarium ornaments": 26490,
+        "Marine seagrass, macroalgae and soft corals": 112672,
+        "Tropical seagrass meadows": 18432,
+        "Anchored marine life": 10592,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449
+      },
+      "calls": 105,
+      "triangles": 287573,
+      "memory": {
+        "geometries": 328,
+        "textures": 98
+      },
+      "softwareSynchronizedFrameMs": [
+        6.2999999998137355, 2.6000000005587935, 1.5, 1.3999999994412065
+      ],
+      "cpuSubmitMs": [
+        6.2999999998137355, 2.6000000005587935, 1.5, 1.3999999994412065
+      ]
+    },
+    {
+      "view": "soft-coral",
+      "file": "soft-coral-after.png",
+      "enabled": true,
+      "families": {
+        "other": 72680,
+        "Home aquarium ornaments": 26490,
+        "Marine seagrass, macroalgae and soft corals": 251270,
+        "Tropical seagrass meadows": 46080,
+        "Anchored marine life": 10592,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449,
+        "Authored rock": 164901,
+        "Reef debris pebbles": 17600,
+        "Authored coral Coral_Branching_0": 3051,
+        "Authored coral Coral_Plate_0": 17460,
+        "Authored coral Coral_Plate_1": 17460,
+        "Meadow understory": 32960,
+        "Reef debris Shell_0": 16416,
+        "Reef debris Shell_1": 19520,
+        "Reef debris Shell_2": 11094,
+        "Reef debris Rubble_0": 5100,
+        "Reef debris Rubble_1": 7470,
+        "Backdrop reef": 87040
+      },
+      "calls": 111,
+      "triangles": 830620,
+      "memory": {
+        "geometries": 328,
+        "textures": 98
+      },
+      "softwareSynchronizedFrameMs": [
+        2.2999999998137355, 1.900000000372529, 1.400000000372529,
+        1.599999999627471
+      ],
+      "cpuSubmitMs": [
+        2.2999999998137355, 1.900000000372529, 1.400000000372529, 1.5
+      ]
+    },
+    {
+      "view": "sea-fan",
+      "file": "sea-fan-before.png",
+      "enabled": false,
+      "families": {
+        "other": 72680,
+        "Rock": 2446,
+        "Reef corals and aquarium ornaments": 11770,
+        "Home aquarium ornaments": 36572,
+        "Marine seagrass, macroalgae and soft corals": 112672,
+        "Tropical seagrass meadows": 18432,
+        "Anchored marine life": 60932,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449
+      },
+      "calls": 97,
+      "triangles": 339156,
+      "memory": {
+        "geometries": 328,
+        "textures": 98
+      },
+      "softwareSynchronizedFrameMs": [
+        3.699999999254942, 3.400000000372529, 1.7000000001862645,
+        3.099999999627471
+      ],
+      "cpuSubmitMs": [3.5, 3.400000000372529, 1.7000000001862645, 3]
+    },
+    {
+      "view": "sea-fan",
+      "file": "sea-fan-after.png",
+      "enabled": true,
+      "families": {
+        "other": 72680,
+        "Home aquarium ornaments": 36572,
+        "Marine seagrass, macroalgae and soft corals": 251270,
+        "Tropical seagrass meadows": 46080,
+        "Anchored marine life": 60932,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449,
+        "Authored rock": 148480,
+        "Reef debris pebbles": 17600,
+        "Meadow understory": 32960,
+        "Reef debris Shell_0": 16416,
+        "Reef debris Shell_1": 19520,
+        "Reef debris Shell_2": 11094,
+        "Reef debris Rubble_0": 5100,
+        "Reef debris Rubble_1": 7470,
+        "Backdrop reef": 87040
+      },
+      "calls": 101,
+      "triangles": 830483,
+      "memory": {
+        "geometries": 328,
+        "textures": 98
+      },
+      "softwareSynchronizedFrameMs": [
+        2.599999999627471, 2.1000000005587935, 1.2999999998137355,
+        1.2000000001862645
+      ],
+      "cpuSubmitMs": [
+        2.599999999627471, 2, 1.2999999998137355, 1.2000000001862645
+      ]
+    },
+    {
+      "view": "seagrass",
+      "file": "seagrass-before.png",
+      "enabled": false,
+      "families": {
+        "other": 72680,
+        "Rock": 4560,
+        "Reef corals and aquarium ornaments": 12798,
+        "Home aquarium ornaments": 36584,
+        "Marine seagrass, macroalgae and soft corals": 112672,
+        "Tropical seagrass meadows": 18432,
+        "Anchored marine life": 131404,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449
+      },
+      "calls": 125,
+      "triangles": 407405,
+      "memory": {
+        "geometries": 328,
+        "textures": 98
+      },
+      "softwareSynchronizedFrameMs": [
+        5.7999999998137355, 3, 2.2000000001862645, 1.400000000372529
+      ],
+      "cpuSubmitMs": [
+        5.7999999998137355, 2.7999999998137355, 2, 1.400000000372529
+      ]
+    },
+    {
+      "view": "seagrass",
+      "file": "seagrass-after.png",
+      "enabled": true,
+      "families": {
+        "other": 72680,
+        "Home aquarium ornaments": 36584,
+        "Marine seagrass, macroalgae and soft corals": 251270,
+        "Tropical seagrass meadows": 46080,
+        "Anchored marine life": 131404,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449,
+        "Authored rock": 201551,
+        "Reef debris pebbles": 17600,
+        "Authored coral Coral_Branching_1": 2652,
+        "Authored coral Coral_Plate_2": 17460,
+        "Meadow understory": 32960,
+        "Reef debris Shell_0": 16416,
+        "Reef debris Shell_1": 19520,
+        "Reef debris Shell_2": 11094,
+        "Reef debris Rubble_0": 5100,
+        "Reef debris Rubble_1": 7470,
+        "Backdrop reef": 87040
+      },
+      "calls": 120,
+      "triangles": 972972,
+      "memory": {
+        "geometries": 329,
+        "textures": 98
+      },
+      "softwareSynchronizedFrameMs": [
+        8.599999999627471, 2.7999999998137355, 2.7999999998137355,
+        2.300000000745058
+      ],
+      "cpuSubmitMs": [
+        8.599999999627471, 2.7999999998137355, 2.7000000001862645,
+        2.2000000001862645
+      ]
+    },
+    {
+      "view": "macroalgae",
+      "file": "macroalgae-before.png",
+      "enabled": false,
+      "families": {
+        "other": 72656,
+        "Rock": 3624,
+        "Reef corals and aquarium ornaments": 11780,
+        "Home aquarium ornaments": 37448,
+        "Marine seagrass, macroalgae and soft corals": 112672,
+        "Tropical seagrass meadows": 18432,
+        "Anchored marine life": 34182,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449
+      },
+      "calls": 101,
+      "triangles": 311160,
+      "memory": {
+        "geometries": 334,
+        "textures": 98
+      },
+      "softwareSynchronizedFrameMs": [
+        5.8999999994412065, 4.7999999998137355, 1.400000000372529,
+        1.2000000001862645
+      ],
+      "cpuSubmitMs": [
+        5.8999999994412065, 4.7999999998137355, 1.300000000745058,
+        1.2000000001862645
+      ]
+    },
+    {
+      "view": "macroalgae",
+      "file": "macroalgae-after.png",
+      "enabled": true,
+      "families": {
+        "other": 72656,
+        "Home aquarium ornaments": 37448,
+        "Marine seagrass, macroalgae and soft corals": 251270,
+        "Tropical seagrass meadows": 46080,
+        "Anchored marine life": 34182,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449,
+        "Authored rock": 140581,
+        "Reef debris pebbles": 17600,
+        "Authored coral Coral_Branching_0": 3051,
+        "Authored coral Coral_Plate_0": 17460,
+        "Authored coral Coral_Plate_1": 17460,
+        "Meadow understory": 32960,
+        "Reef debris Shell_0": 16416,
+        "Reef debris Shell_1": 19520,
+        "Reef debris Shell_2": 11094,
+        "Reef debris Rubble_0": 5100,
+        "Reef debris Rubble_1": 7470,
+        "Backdrop reef": 87040
+      },
+      "calls": 106,
+      "triangles": 829987,
+      "memory": {
+        "geometries": 334,
+        "textures": 98
+      },
+      "softwareSynchronizedFrameMs": [
+        2.1000000005587935, 1.3999999994412065, 4.2000000001862645,
+        1.2999999998137355
+      ],
+      "cpuSubmitMs": [
+        2.1000000005587935, 1.3999999994412065, 4.2000000001862645,
+        1.2999999998137355
+      ]
+    },
+    {
+      "view": "sand-rubble",
+      "file": "sand-rubble-before.png",
+      "enabled": false,
+      "families": {
+        "other": 72680,
+        "Rock": 3468,
+        "Reef corals and aquarium ornaments": 11780,
+        "Home aquarium ornaments": 0,
+        "Marine seagrass, macroalgae and soft corals": 112672,
+        "Tropical seagrass meadows": 18432,
+        "Anchored marine life": 10592,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449
+      },
+      "calls": 91,
+      "triangles": 250688,
+      "memory": {
+        "geometries": 334,
+        "textures": 98
+      },
+      "softwareSynchronizedFrameMs": [
+        7.5, 1.2999999998137355, 1.1000000005587935, 0.8999999994412065
+      ],
+      "cpuSubmitMs": [7.5, 1.2999999998137355, 1, 0.8999999994412065]
+    },
+    {
+      "view": "sand-rubble",
+      "file": "sand-rubble-after.png",
+      "enabled": true,
+      "families": {
+        "other": 72680,
+        "Home aquarium ornaments": 0,
+        "Marine seagrass, macroalgae and soft corals": 251270,
+        "Tropical seagrass meadows": 46080,
+        "Anchored marine life": 10592,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449,
+        "Authored rock": 159781,
+        "Reef debris pebbles": 17600,
+        "Authored coral Coral_Branching_0": 3051,
+        "Authored coral Coral_Plate_0": 17460,
+        "Authored coral Coral_Plate_1": 17460,
+        "Meadow understory": 32960,
+        "Reef debris Shell_0": 16416,
+        "Reef debris Shell_1": 19520,
+        "Reef debris Shell_2": 11094,
+        "Reef debris Rubble_0": 5100,
+        "Reef debris Rubble_1": 7470,
+        "Backdrop reef": 87040
+      },
+      "calls": 99,
+      "triangles": 790599,
+      "memory": {
+        "geometries": 334,
+        "textures": 98
+      },
+      "softwareSynchronizedFrameMs": [
+        1.900000000372529, 3.7000000001862645, 1.5, 1.7999999998137355
+      ],
+      "cpuSubmitMs": [
+        1.7999999998137355, 3.7000000001862645, 1.5, 1.699999999254942
+      ]
+    },
+    {
+      "view": "shipwreck-reef",
+      "file": "shipwreck-reef-before.png",
+      "enabled": false,
+      "families": {
+        "other": 72680,
+        "Rock": 4640,
+        "Reef corals and aquarium ornaments": 12136,
+        "Home aquarium ornaments": 48120,
+        "Marine seagrass, macroalgae and soft corals": 112672,
+        "Tropical seagrass meadows": 18432,
+        "Anchored marine life": 168059,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449
+      },
+      "calls": 138,
+      "triangles": 445674,
+      "memory": {
+        "geometries": 354,
+        "textures": 104
+      },
+      "softwareSynchronizedFrameMs": [
+        20.59999999962747, 5.1000000005587935, 2.5, 1.7999999998137355
+      ],
+      "cpuSubmitMs": [
+        19.90000000037253, 5.1000000005587935, 2.5, 1.7000000001862645
+      ]
+    },
+    {
+      "view": "shipwreck-reef",
+      "file": "shipwreck-reef-after.png",
+      "enabled": true,
+      "families": {
+        "other": 72680,
+        "Home aquarium ornaments": 48120,
+        "Marine seagrass, macroalgae and soft corals": 251270,
+        "Tropical seagrass meadows": 46080,
+        "Anchored marine life": 168059,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449,
+        "Authored rock": 58880,
+        "Reef debris pebbles": 17600,
+        "Authored coral Coral_Plate_2": 17460,
+        "Meadow understory": 32960,
+        "Reef debris Shell_0": 16416,
+        "Reef debris Shell_1": 19520,
+        "Reef debris Shell_2": 11094,
+        "Reef debris Rubble_0": 5100,
+        "Reef debris Rubble_1": 7470,
+        "Backdrop reef": 87040
+      },
+      "calls": 132,
+      "triangles": 868228,
+      "memory": {
+        "geometries": 354,
+        "textures": 104
+      },
+      "softwareSynchronizedFrameMs": [
+        5.2999999998137355, 2.2000000001862645, 4.7999999998137355, 5.5
+      ],
+      "cpuSubmitMs": [
+        2.7000000001862645, 2.2000000001862645, 4.7999999998137355, 5.5
+      ]
+    },
+    {
+      "view": "arch-growth",
+      "file": "arch-growth-before.png",
+      "enabled": false,
+      "families": {
+        "other": 72630,
+        "Rock": 778,
+        "Reef corals and aquarium ornaments": 11066,
+        "Home aquarium ornaments": 36572,
+        "Marine seagrass, macroalgae and soft corals": 112672,
+        "Tropical seagrass meadows": 18432,
+        "Anchored marine life": 58534,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449
+      },
+      "calls": 46,
+      "triangles": 255530,
+      "memory": {
+        "geometries": 354,
+        "textures": 104
+      },
+      "softwareSynchronizedFrameMs": [
+        1.5, 0.8999999994412065, 5, 0.8000000007450581
+      ],
+      "cpuSubmitMs": [1.5, 0.8999999994412065, 5, 0.8000000007450581]
+    },
+    {
+      "view": "arch-growth",
+      "file": "arch-growth-after.png",
+      "enabled": true,
+      "families": {
+        "other": 72630,
+        "Home aquarium ornaments": 36572,
+        "Marine seagrass, macroalgae and soft corals": 251270,
+        "Tropical seagrass meadows": 46080,
+        "Anchored marine life": 58534,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449,
+        "Authored rock": 163840,
+        "Reef debris pebbles": 17600,
+        "Meadow understory": 32960,
+        "Reef debris Shell_0": 16416,
+        "Reef debris Shell_1": 19520,
+        "Reef debris Shell_2": 11094,
+        "Reef debris Rubble_0": 5100,
+        "Reef debris Rubble_1": 7470,
+        "Backdrop reef": 87040
+      },
+      "calls": 61,
+      "triangles": 719109,
+      "memory": {
+        "geometries": 356,
+        "textures": 104
+      },
+      "softwareSynchronizedFrameMs": [
+        6.599999999627471, 1.6000000005587935, 0.8999999994412065, 1
+      ],
+      "cpuSubmitMs": [
+        6.599999999627471, 1.6000000005587935, 0.8999999994412065, 1
+      ]
+    },
+    {
+      "view": "seahorse-habitat",
+      "file": "seahorse-habitat-before.png",
+      "enabled": false,
+      "families": {
+        "other": 72630,
+        "Rock": 524,
+        "Reef corals and aquarium ornaments": 11066,
+        "Home aquarium ornaments": 36572,
+        "Marine seagrass, macroalgae and soft corals": 112672,
+        "Tropical seagrass meadows": 18432,
+        "Anchored marine life": 60932,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449
+      },
+      "calls": 49,
+      "triangles": 232012,
+      "memory": {
+        "geometries": 356,
+        "textures": 104
+      },
+      "softwareSynchronizedFrameMs": [
+        1.699999999254942, 1.2000000001862645, 0.900000000372529,
+        0.8999999994412065
+      ],
+      "cpuSubmitMs": [
+        1.599999999627471, 1.2000000001862645, 0.7999999998137355,
+        0.8999999994412065
+      ]
+    },
+    {
+      "view": "seahorse-habitat",
+      "file": "seahorse-habitat-after.png",
+      "enabled": true,
+      "families": {
+        "other": 72630,
+        "Home aquarium ornaments": 36572,
+        "Marine seagrass, macroalgae and soft corals": 251270,
+        "Tropical seagrass meadows": 46080,
+        "Anchored marine life": 60932,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449,
+        "Authored rock": 143360,
+        "Reef debris pebbles": 17600,
+        "Meadow understory": 32960,
+        "Reef debris Shell_0": 16416,
+        "Reef debris Shell_1": 19520,
+        "Reef debris Shell_2": 11094,
+        "Reef debris Rubble_0": 5100,
+        "Reef debris Rubble_1": 7470,
+        "Backdrop reef": 87040
+      },
+      "calls": 65,
+      "triangles": 630647,
+      "memory": {
+        "geometries": 356,
+        "textures": 104
+      },
+      "softwareSynchronizedFrameMs": [
+        1.7000000001862645, 1.2000000001862645, 2.7000000001862645,
+        4.2999999998137355
+      ],
+      "cpuSubmitMs": [
+        1.7000000001862645, 1.1000000005587935, 1.900000000372529,
+        4.2999999998137355
+      ]
+    },
+    {
+      "view": "anemone-habitat",
+      "file": "anemone-habitat-before.png",
+      "enabled": false,
+      "families": {
+        "other": 72680,
+        "Rock": 3896,
+        "Reef corals and aquarium ornaments": 12798,
+        "Home aquarium ornaments": 36572,
+        "Marine seagrass, macroalgae and soft corals": 112672,
+        "Tropical seagrass meadows": 18432,
+        "Anchored marine life": 131404,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449
+      },
+      "calls": 126,
+      "triangles": 416259,
+      "memory": {
+        "geometries": 356,
+        "textures": 104
+      },
+      "softwareSynchronizedFrameMs": [
+        6, 2, 1.400000000372529, 1.7999999998137355
+      ],
+      "cpuSubmitMs": [
+        5.900000000372529, 1.900000000372529, 1.400000000372529,
+        1.7999999998137355
+      ]
+    },
+    {
+      "view": "anemone-habitat",
+      "file": "anemone-habitat-after.png",
+      "enabled": true,
+      "families": {
+        "other": 72680,
+        "Home aquarium ornaments": 36572,
+        "Marine seagrass, macroalgae and soft corals": 251270,
+        "Tropical seagrass meadows": 46080,
+        "Anchored marine life": 131404,
+        "Authored blue-green-chromis school": 35260,
+        "Authored pajama-cardinalfish school": 21501,
+        "Authored firefish-goby school": 43344,
+        "Authored yellow-assessor school": 7048,
+        "Authored royal-gramma school": 3528,
+        "Authored ocellaris-clownfish school": 14449,
+        "Authored rock": 202831,
+        "Reef debris pebbles": 17600,
+        "Authored coral Coral_Branching_1": 2652,
+        "Authored coral Coral_Plate_2": 17460,
+        "Meadow understory": 32960,
+        "Reef debris Shell_0": 16416,
+        "Reef debris Shell_1": 19520,
+        "Reef debris Shell_2": 11094,
+        "Reef debris Rubble_0": 5100,
+        "Reef debris Rubble_1": 7470,
+        "Backdrop reef": 87040
+      },
+      "calls": 125,
+      "triangles": 977843,
+      "memory": {
+        "geometries": 356,
+        "textures": 104
+      },
+      "softwareSynchronizedFrameMs": [
+        7.2000000001862645, 4.900000000372529, 2.5, 2.3999999994412065
+      ],
+      "cpuSubmitMs": [
+        7.2000000001862645, 4.7999999998137355, 2.3999999994412065,
+        2.2999999998137355
+      ]
+    }
+  ],
+  "requests": [
+    "http://127.0.0.1:5173/assets/models/ornaments/reef-props.glb",
+    "http://127.0.0.1:5173/assets/models/creatures/anchored-life.glb",
+    "http://127.0.0.1:5173/assets/models/creatures/nudibranchs.glb",
+    "http://127.0.0.1:5173/assets/models/fish/chromis.glb",
+    "http://127.0.0.1:5173/assets/models/fish/cardinalfish.glb",
+    "http://127.0.0.1:5173/assets/models/fish/firefish.glb",
+    "http://127.0.0.1:5173/assets/models/fish/assessor.glb",
+    "http://127.0.0.1:5173/assets/models/fish/gramma.glb",
+    "http://127.0.0.1:5173/assets/models/fish/clownfish.glb",
+    "http://127.0.0.1:5173/assets/models/reef/reef-environment.glb",
+    "http://127.0.0.1:5173/assets/models/ornaments/reef-props.glb",
+    "http://127.0.0.1:5173/assets/models/creatures/anchored-life.glb",
+    "http://127.0.0.1:5173/assets/models/creatures/nudibranchs.glb",
+    "http://127.0.0.1:5173/assets/models/fish/chromis.glb",
+    "http://127.0.0.1:5173/assets/models/fish/cardinalfish.glb",
+    "http://127.0.0.1:5173/assets/models/fish/firefish.glb",
+    "http://127.0.0.1:5173/assets/models/fish/assessor.glb",
+    "http://127.0.0.1:5173/assets/models/fish/gramma.glb",
+    "http://127.0.0.1:5173/assets/models/fish/clownfish.glb",
+    "http://127.0.0.1:5173/assets/models/reef/reef-environment.glb"
+  ],
+  "errors": [
+    "Failed to load resource: net::ERR_FAILED",
+    "Cozy Diver: failed to load reef; keeping procedural fallback. TypeError: Failed to fetch\n    at FileLoader.load (http://127.0.0.1:5173/node_modules/.vite/deps/three.module-Dl--ppud.js?v=6c9bb516:32148:3)\n    at GLTFLoader.load (http://127.0.0.1:5173/node_modules/.vite/deps/three_addons_loaders_GLTFLoader__js.js?v=9a627213:165:10)\n    at http://127.0.0.1:5173/node_modules/.vite/deps/three.module-Dl--ppud.js?v=6c9bb516:31929:10\n    at new Promise (<anonymous>)\n    at GLTFLoader.loadAsync (http://127.0.0.1:5173/node_modules/.vite/deps/three.module-Dl--ppud.js?v=6c9bb516:31928:10)\n    at AssetLoader.readLocal (http://127.0.0.1:5173/src/assets/AssetLoader.ts:32:61)\n    at AssetLoader.read (http://127.0.0.1:5173/src/assets/AssetLoader.ts:17:38)\n    at http://127.0.0.1:5173/src/assets/AssetLoader.ts:39:54\n    at async AssetLoader.acquire (http://127.0.0.1:5173/src/assets/AssetLoader.ts:73:18)\n    at async AuthoredReef.load (http://127.0.0.1:5173/src/environment/AuthoredReef.ts:138:17)"
+  ],
+  "loadMs": 2702,
+  "inventory": {
+    "rocks": 34,
+    "corals": 9,
+    "debris": 381
+  },
+  "webglErrors": 0,
+  "colliders": {
+    "procedural": 216,
+    "authored": 435,
+    "restored": true
+  },
+  "disposal": {
+    "geometries": 294,
+    "textures": 83
+  },
+  "fallback": {
+    "hulls": 216,
+    "status": "Some aquarium details could not load. You can still explore.",
+    "rocksVisible": true
+  }
+}

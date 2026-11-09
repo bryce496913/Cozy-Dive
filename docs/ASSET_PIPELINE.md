@@ -111,3 +111,22 @@ All three use Blender 5.1.2's Python module, as in Pass 014.
 - **Runtime.** `AuthoredAquarium` strips the procedural moray shader's colour override (keeping its deformation) so the authored skin shows. It attaches one authored nudibranch per animal under the existing nudibranch root, copying each animal's crawl-pose matrix every frame. It reproduces the mantle ripple from the shared nudibranch clock (pause and reduced motion unchanged) and hides the procedural instances.
 - **Reef.** `AuthoredReef` builds a `THREE.LOD` (switching at 10 units) for any coral that has an `_LOD1` level.
 - **Evidence.** `validation/creature-overhaul.mjs` captures matched coral and creature close-ups for one build. Run it against the previous candidate and this branch.
+
+## Pass 017 fish distance levels and compression
+
+Full regeneration order (each step reads the previous step's uncompressed output):
+
+```bash
+python3 tools/art/pass016/fish.py            # four species from the pinned accepted chromis
+python3 tools/art/pass017/fish_lod.py        # adds *_LOD1 levels to all six fish libraries
+# (other authoring scripts as in Passes 012-015, writing uncompressed GLBs)
+node tools/art/pass017/compress.mjs          # last step: Draco geometry + WebP textures, in place
+python3 tools/art/inspect_assets.py
+```
+
+- **Pinned inputs.** The accepted chromis and clownfish are pinned uncompressed in `tools/art/pass017/accepted/`; the Pass 013 creatures stay pinned in `tools/art/pass015/`.
+- **Idempotent steps.** `compress.mjs` skips files that already use `KHR_draco_mesh_compression`, so it never re-quantizes. `fish_lod.py` replaces any existing `_LOD1` level instead of stacking a second one.
+- **Source maps.** Source PNG maps moved from `public/assets/textures/` to `tools/art/textures/`. They are authoring inputs embedded into GLBs, and no longer ship in `dist/`.
+- **Compression settings.** Positions use 16-bit quantization, normals 10-bit, UVs 14-bit and colours 8-bit (edgebreaker). Colour maps are WebP at quality 88; normal and ORM maps are near-lossless WebP. Primitives with morph targets stay uncompressed (Draco does not cover morphs). Node transforms are untouched, so controller-local frames and collision point sets keep their meaning.
+- **Runtime.** `AssetLoader` lazily owns a `DRACOLoader` (two workers) that decodes with the local `public/assets/draco/` wasm decoder (Apache-2.0), and disposes it with its cache. No runtime network requests are added.
+- **Tooling.** Tests decode Draco through `draco3dgltf` (`validation/ReefAsset.ts`); the Python inspector uses DracoPy.

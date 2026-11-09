@@ -116,7 +116,7 @@ export class UnderwaterScene {
     player?: PlayerPresence,
   ): void {
     this.aquarium.update(time, reducedMotion, dt, active, player);
-    this.authored.update();
+    this.authored.update(this.camera);
     this.presentation?.update();
     this.renderer.render(this.scene, this.camera);
   }
