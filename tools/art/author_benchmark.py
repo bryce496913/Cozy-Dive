@@ -189,4 +189,5 @@ def coral():
    if not o.data.uv_layers:o.data.uv_layers.new(name='UVMap')
    o['collision']=True
  export('acropora')
-fish();coral();print('COZY_AUTHORING_COMPLETE')
+if __name__ == '__main__':
+ fish();coral();print('COZY_AUTHORING_COMPLETE')

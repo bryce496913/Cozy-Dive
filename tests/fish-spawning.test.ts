@@ -96,3 +96,43 @@ describe('species and seeded spawning', () => {
     ).toThrow(/safe spawn/);
   });
 });
+
+import * as THREE from 'three';
+import { rockCollider } from '../src/environment/rockCollider';
+import { FishSimulation } from '../src/fish/FishMovement';
+it('chooses a clear initial heading without changing seeded positions or random choices', () => {
+  const species = [
+    {
+      ...FISH_SPECIES[0],
+      count: 1,
+      region: { x: 0, y: 4, z: 0 },
+      spread: { x: 1, y: 0.5, z: 1 },
+    },
+  ];
+  const open = spawnFish(openHabitat, species)[0];
+  const geometry = new THREE.BoxGeometry(0.1, 3, 3);
+  const matrix = new THREE.Matrix4().makeRotationY(open.yaw);
+  matrix.setPosition(
+    open.position.x + Math.cos(open.yaw) * (open.radius + 0.12),
+    open.position.y,
+    open.position.z - Math.sin(open.yaw) * (open.radius + 0.12),
+  );
+  const habitat = { ...openHabitat, rocks: [rockCollider(geometry, matrix)] };
+  geometry.dispose();
+  const blocked = spawnFish(habitat, species)[0];
+  expect(blocked.position).toEqual(open.position);
+  expect(blocked.yaw).not.toBe(open.yaw);
+  expect(blocked.phase).toBe(open.phase);
+  expect(blocked.randomState).toBe(open.randomState);
+  expect(open.speed).toBeGreaterThan(0);
+  expect(blocked.speed).toBe(open.speed);
+  expect(
+    Math.hypot(blocked.velocity.x, blocked.velocity.y, blocked.velocity.z),
+  ).toBeCloseTo(blocked.speed, 12);
+  const sim = new FishSimulation([blocked], habitat);
+  for (let i = 0; i < 60; i++) sim.advance(1 / 30, true);
+  expect(blocked.corrections).toBe(0);
+  expect(safeFishPosition(blocked.position, blocked.radius, habitat)).toBe(
+    true,
+  );
+});

@@ -37,6 +37,10 @@ try {
   await page.waitForFunction(
     () => window.__cozy?.world?.renderer.info.render.calls > 0,
   );
+  const authored = await page.evaluate(
+    () => window.__cozy.world.authored.ready,
+  );
+  assert.equal(authored, true);
   await page
     .getByRole('button', { name: 'Enter the Water', exact: true })
     .click();
@@ -87,7 +91,7 @@ try {
   });
   assert.equal(inventory.hiddenCount, 7);
   assert.equal(inventory.fish, 40);
-  assert.equal(inventory.hulls, 139);
+  assert.equal(inventory.hulls, 216);
   const views = [];
   for (const name of [
     'overview',
@@ -109,6 +113,7 @@ try {
         w.camera.lookAt(p.x, p.y, p.z);
       }
       w.camera.updateMatrixWorld(true);
+      w.authored.update();
       w.renderer.render(w.scene, w.camera);
       return {
         name,
@@ -130,6 +135,7 @@ try {
     w.camera.position.set(home.view.x, home.view.y, home.view.z);
     w.camera.lookAt(home.focus.x, home.focus.y, home.focus.z);
     w.camera.updateMatrixWorld(true);
+    w.authored.update();
     w.renderer.render(w.scene, w.camera);
     return {
       seconds: 120,
@@ -159,6 +165,7 @@ try {
     w.camera.position.set(home.view.x, home.view.y, home.view.z);
     w.camera.lookAt(home.focus.x, home.focus.y, home.focus.z);
     w.camera.updateMatrixWorld(true);
+    w.authored.update();
     w.renderer.render(w.scene, w.camera);
     return {
       walking: f.walking,
@@ -184,12 +191,14 @@ try {
     w.camera.position.set(0, 13, 25);
     w.camera.lookAt(0, 2, -3);
     w.camera.updateMatrixWorld(true);
+    w.authored.update();
     w.renderer.render(w.scene, w.camera);
     const withHidden = {
       draws: w.renderer.info.render.calls,
       triangles: w.renderer.info.render.triangles,
     };
     d.root.visible = false;
+    w.authored.update();
     w.renderer.render(w.scene, w.camera);
     const withoutHidden = {
       draws: w.renderer.info.render.calls,

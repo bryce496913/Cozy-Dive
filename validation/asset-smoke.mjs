@@ -35,7 +35,11 @@ try {
     {},
     { timeout: 60000 },
   );
-  assert.equal(models.length, 2);
+  assert.equal(
+    await p.evaluate(() => window.__visualBenchmark.world.authored.ready),
+    true,
+  );
+  assert.equal(models.length, 5);
   assert.equal(await p.locator('#compare').isEnabled(), true);
   await p.getByRole('button', { name: 'Enter the Water' }).click();
   await p.waitForFunction(
@@ -62,15 +66,24 @@ try {
   await p.locator('#compare').click();
   assert.match(await p.locator('#compare').textContent(), /View benchmark/);
   await p.locator('#compare').click();
-  assert.match(await p.locator('#compare').textContent(), /View Pass 011/);
+  assert.match(await p.locator('#compare').textContent(), /View original/);
   const resources = await p.evaluate(() => {
     const { world, app, dispose } = window.__visualBenchmark,
       ctx = app.audio.context,
-      fish = world.aquarium.fish.simulation.fish.length;
+      fish = world.aquarium.fish.simulation.fish.length,
+      originalClownVisible = world.aquarium.fish.batches
+        .filter((b) => b.visuals[0].root.name.startsWith('Ocellaris'))
+        .map((b) => b.root.visible);
     dispose();
-    return { fish, after: { ...world.renderer.info.memory }, audio: ctx.state };
+    return {
+      fish,
+      originalClownVisible,
+      after: { ...world.renderer.info.memory },
+      audio: ctx.state,
+    };
   });
   assert.equal(resources.fish, 40);
+  assert.deepEqual(resources.originalClownVisible, [false]);
   assert.equal(resources.after.geometries, 0);
   assert.equal(resources.after.textures, 0);
   assert.equal(resources.audio, 'closed');

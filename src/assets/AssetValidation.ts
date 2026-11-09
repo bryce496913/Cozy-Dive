@@ -18,7 +18,7 @@ export function validateAsset(id: AssetId, asset: LoadedAsset): void {
   asset.scene.updateMatrixWorld(true);
   asset.scene.traverse((o) => {
     if (!(o instanceof THREE.Mesh)) return;
-    if (isCollisionNode(o)) {
+    if (isCollisionNode(o) || o.name.startsWith('DYNAMIC_')) {
       collisionMeshes++;
       o.visible = false;
       for (const value of o.geometry.attributes.position.array)

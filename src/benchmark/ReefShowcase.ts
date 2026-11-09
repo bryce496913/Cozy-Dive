@@ -82,9 +82,8 @@ export class ReefShowcase implements Presentation {
     this.coral.visible = value;
     this.formation.mesh.visible = !value;
     q.fish.batches.forEach((b, i) => {
-      b.root.visible = b.visuals[0].root.name.startsWith('Blue-green chromis')
-        ? !value
-        : this.original[i];
+      if (b.visuals[0].root.name.startsWith('Blue-green chromis'))
+        b.root.visible = value ? false : this.original[i];
     });
     q.replacePresentationColliders(
       value ? this.formation.colliders : this.colliders,

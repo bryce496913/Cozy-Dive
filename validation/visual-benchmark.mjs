@@ -48,6 +48,10 @@ try {
     {},
     { timeout: 60000 },
   );
+  assert.equal(
+    await page.evaluate(() => window.__visualBenchmark.world.authored.ready),
+    true,
+  );
   const loadMs = Date.now() - loadStart;
   await page.evaluate(() =>
     cancelAnimationFrame(window.__visualBenchmark.app.frame),
@@ -172,7 +176,7 @@ try {
   });
   assert.equal(inventory.fish, 40);
   assert.equal(inventory.chromis, 20);
-  assert.equal(requests.length, 2);
+  assert.equal(requests.length, 5);
   const views = await page.evaluate(() => {
     const { world, showcase } = window.__visualBenchmark,
       q = world.aquarium,
@@ -477,7 +481,7 @@ try {
     nativeSwim,
     backend: 'Chromium / SwiftShader software renderer',
     loadMs,
-    initialModelRequests: requests.slice(0, 2),
+    initialModelRequests: requests.slice(0, 5),
     inventory,
     renders,
     isolated,

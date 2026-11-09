@@ -3,7 +3,7 @@
     "id": "chromis",
     "file": "assets/models/fish/chromis.glb",
     "sha256": "d9a1f350a3c063d7fcddb207fb0dd4d4c7e9e07a8d478891b5bdff611402f0e1",
-    "creator": "Cozy Diver original Blender authoring, Pass 012",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
     "bytes": 1121864,
@@ -43,14 +43,14 @@
     ],
     "geometryAccessorBytes": 448144,
     "animations": ["SwimPreview"],
-    "units": "aquarium world units; chromis matches the existing 0.46-unit species length",
-    "usage": "Development benchmark only; normal aquarium remains procedural"
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Development benchmark"
   },
   {
     "id": "acropora",
     "file": "assets/models/coral/acropora.glb",
     "sha256": "cde95c12fe985cff2d4b4dc8c4f0a797ee455fabfad5dc6919c31d1b9d24ca15",
-    "creator": "Cozy Diver original Blender authoring, Pass 012",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
     "bytes": 3454388,
@@ -83,7 +83,218 @@
     ],
     "geometryAccessorBytes": 2680236,
     "animations": [],
-    "units": "aquarium world units; chromis matches the existing 0.46-unit species length",
-    "usage": "Development benchmark only; normal aquarium remains procedural"
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Development benchmark"
+  },
+  {
+    "id": "reef-props",
+    "file": "assets/models/ornaments/reef-props.glb",
+    "sha256": "537300c2ed90a263c2e32db648ea517b0ec0a6b312f94dc7cfb1b228ce6e288f",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 4386728,
+    "visualPrimitives": 22,
+    "visualTriangles": 99264,
+    "collisionTriangles": 8828,
+    "materials": 8,
+    "images": [
+      {
+        "name": "wood-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 309477
+      },
+      {
+        "name": "wood-base",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 134930
+      },
+      {
+        "name": "wood-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 123994
+      },
+      {
+        "name": "stone-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 366977
+      },
+      {
+        "name": "stone-base",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 89328
+      },
+      {
+        "name": "stone-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 124037
+      }
+    ],
+    "geometryAccessorBytes": 3093912,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium hero asset"
+  },
+  {
+    "id": "anchored-life",
+    "file": "assets/models/creatures/anchored-life.glb",
+    "sha256": "aff615addf887d17435414584ccc902ed6700e5d051bbbb310033116631aa596",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 4088784,
+    "visualPrimitives": 22,
+    "visualTriangles": 111954,
+    "collisionTriangles": 0,
+    "materials": 8,
+    "images": [
+      {
+        "name": "horse-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 144643
+      },
+      {
+        "name": "horse-base",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 123779
+      },
+      {
+        "name": "horse-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 115982
+      },
+      {
+        "name": "frog-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 144643
+      },
+      {
+        "name": "frog-base",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 127807
+      },
+      {
+        "name": "frog-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 115982
+      },
+      {
+        "name": "moray-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 144643
+      },
+      {
+        "name": "moray-base",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 100751
+      },
+      {
+        "name": "moray-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 115982
+      },
+      {
+        "name": "anemone-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 144643
+      },
+      {
+        "name": "anemone-base",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 66170
+      },
+      {
+        "name": "anemone-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 115982
+      }
+    ],
+    "geometryAccessorBytes": 2606828,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium hero asset"
+  },
+  {
+    "id": "clownfish",
+    "file": "assets/models/fish/clownfish.glb",
+    "sha256": "fd4cae8920c93f0d08b9f27d314f2be145c77cd7dea2eb61f1a276eff2ba9b9c",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 762912,
+    "visualPrimitives": 8,
+    "visualTriangles": 12686,
+    "collisionTriangles": 0,
+    "materials": 5,
+    "images": [
+      {
+        "name": "clown-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 129313
+      },
+      {
+        "name": "clown-base",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 68777
+      },
+      {
+        "name": "clown-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 62993
+      },
+      {
+        "name": "clown-fins",
+        "width": 512,
+        "height": 512,
+        "mode": "RGBA",
+        "encodedBytes": 2280
+      }
+    ],
+    "geometryAccessorBytes": 448144,
+    "animations": ["SwimPreview"],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium hero asset"
   }
 ]

@@ -52,6 +52,10 @@ const stats = (values) => {
     await page.waitForFunction(
       () => window.__cozy?.world?.renderer.info.render.calls > 0,
     );
+    assert.equal(
+      await page.evaluate(() => window.__cozy.world.authored.ready),
+      true,
+    );
     await page.screenshot({ path: path.join(output, 'preview.png') });
     await page.evaluate(() => cancelAnimationFrame(window.__cozy.frame));
     await page.getByRole('button', { name: 'Enter the Water' }).click();

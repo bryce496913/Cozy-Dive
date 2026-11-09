@@ -1,6 +1,7 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { afterAll, expect, it } from 'vitest';
+import { installAuthoredHulls } from './AuthoredCollision';
 import { Aquarium } from '../src/environment/Aquarium';
 import { FishSimulation } from '../src/fish/FishMovement';
 import { spawnFish } from '../src/fish/FishSpawner';
@@ -33,11 +34,16 @@ it.each([
   { minutes: 5, count: 60 },
   { minutes: 15, count: 40 },
   { minutes: 30, count: 40 },
+  { minutes: 5, count: 60, authored: true },
+  { minutes: 15, count: 40, authored: true },
+  { minutes: 30, count: 40, authored: true },
 ] as const)(
-  'keeps the actual ecosystem stable for $minutes minutes with $count fish',
-  ({ minutes, count }) => {
+  'keeps the actual ecosystem stable for $minutes minutes with $count fish (authored: $authored)',
+  (options) => {
+    const { minutes, count } = options;
     const aquarium = new Aquarium();
     try {
+      if ('authored' in options) installAuthoredHulls(aquarium);
       const habitat = aquarium.fish.simulation.habitat;
       const sim = new FishSimulation(
         spawnFish(habitat, fishPopulation(count)),
@@ -188,7 +194,7 @@ it.each([
           expect(snapshot.materials).toBe(initial.materials);
           expect(snapshot.finite).toBe(true);
           expect(snapshot.hiddenAnimals).toBe(7);
-          expect(snapshot.hulls).toBe(139);
+          expect(snapshot.hulls).toBe('authored' in options ? 216 : 139);
           expect(snapshot.seahorseDistance).toBeLessThan(0.13);
           expect(snapshot.frogfishDistance).toBeLessThan(0.11);
           expect(snapshot.bubblesInside).toBe(true);
@@ -220,7 +226,11 @@ it.each([
         }
       }
       expect(sim.steps).toBe(minutes * 60 * 30);
-      expect(sim.fish.every((f) => f.corrections === 0)).toBe(true);
+      expect(
+        sim.fish
+          .filter((f) => f.corrections !== 0)
+          .map((f) => ({ id: f.id, corrections: f.corrections })),
+      ).toEqual([]);
       expect(morayStates.size).toBeGreaterThan(2);
       expect(aquarium.ornaments.chest.cycle).toBeGreaterThan(2);
       expect(aquarium.ornaments.bubbles.bursts).toBeGreaterThan(2);
@@ -229,6 +239,7 @@ it.each([
       expect(maximumScatter).toBeGreaterThan(0.2);
       expect(states.every((s) => s.size > 1)).toBe(true);
       reports.push({
+        authored: 'authored' in options,
         minutes,
         count,
         anchoredCheckpoints: snapshots,

@@ -1,4 +1,4 @@
-# Authored asset pipeline — Pass 012
+# Authored asset pipeline — Passes 012–013
 
 ## Authoring and reproduction
 
@@ -28,9 +28,9 @@ The loader rejects cross-origin external requests; embedded blob/data images and
 
 ## Showcase integration
 
-`benchmark.html` and `src/benchmark/` are a separate entry. Normal `npm run build` includes only the regular aquarium entry; the showcase HTML is emitted only by `npm run build:benchmark`. The ordinary application imports no GLTFLoader or benchmark code and makes no GLB request. Asset files remain locally bundled under `public/assets`.
+`benchmark.html` and `src/benchmark/` are a separate entry. Normal `npm run build` includes only the regular aquarium entry; the showcase HTML is emitted only by `npm run build:benchmark`. Pass 013 promotes the new ornament/anchored/clownfish libraries into the ordinary aquarium. Asset files remain locally bundled under `public/assets`; chromis and Acropora remain available in the separate benchmark.
 
-The application has a one-time optional world/state configuration callback; `UnderwaterScene` owns an optional presentation lifecycle updated after the ordinary aquarium and disposed before it. Without a presentation the normal path is unchanged. A scoped collision replacement method preserves the shared collider-array identity/order for fish and player. The benchmark replaces only the selected branching formation's components, restores them on comparison/disposal, and leaves fish tuning, spawn roster, interests/homes, controls, physics, settings and audio intact.
+The application has a one-time optional world/state configuration callback; `UnderwaterScene` owns an optional presentation lifecycle updated after the ordinary aquarium and disposed before it. The optional benchmark presentation composes with the normal Pass 013 hero layer. A scoped collision replacement method preserves the shared collider-array identity/order for fish and player. The benchmark replaces only the selected branching formation's components, restores them on comparison/disposal, and leaves fish tuning, spawn roster, interests/homes, controls, physics, settings and audio intact.
 
 ```bash
 npm run dev -- --host 127.0.0.1 --port 5176
@@ -46,3 +46,21 @@ The clearly marked development panel reports load state, compares with Pass 011 
 Run all routine/stress checks, `python3 tools/art/inspect_assets.py`, and `validation/visual-benchmark.mjs` using the documented Playwright/Chromium overrides. The latter loads real GLBs/maps, records matched views and isolated/full-scene budgets, checks native swimming, pause/reduced motion, fallback, containment and repeated disposal, and captures deterministic animation frames. Encode the retained sequence with ffmpeg at 30 FPS; this is simulated time, not measured hardware performance. Repeat against the benchmark production build and check the normal production entry separately.
 
 See [manifest](ASSET_MANIFEST.md), [art direction](ART_DIRECTION.md) and [current evidence/limitations](VALIDATION_V02_PASS_012.md). Wider conversion and final quality acceptance remain separate decisions.
+
+## Pass 013 authoring and integration
+
+```bash
+python3 tools/art/pass013/textures.py
+blender -b --factory-startup --python tools/art/pass013/author.py
+blender -b --factory-startup --python tools/art/pass013/creatures.py
+python3 tools/art/pass013/collision_inventory.py
+python3 tools/art/inspect_assets.py
+```
+
+Use Blender 4.3.2 and the existing pinned Python art dependencies. `baseline.json` is a retained local-coordinate reference extracted from the accepted ornament collision surfaces and discovery homes before replacement; regeneration must not silently re-sample a changed world. `author_benchmark.py` is import-safe and still regenerates the original benchmark when executed directly. Blender files pack their images and retain editable separate construction elements. The prop/anchored libraries stage named roots seven units apart for source inspection; the runtime resets each selected root's gallery translation. Their export bakes Blender Z-up to game Y-up and uses `export_yup=False`; controller-local vertices require no extra conversion wrapper. Clownfish use the accepted fish exporter and `export_yup=True`, including its root conversion and morph keys.
+
+`AuthoredAquarium`, owned by `UnderwaterScene`, acquires all libraries before swapping presentation. It hides original materials rather than controller nodes, keeping inherited controller transforms available to authored children. Body deformation uses existing moray and anemone uniforms; foot/tail/fin/lure/head/jaw parts attach to existing pivots. The clownfish school shares decoded geometry/maps and updates two instance poses. No behavior controller, population, home-selection algorithm, physics/audio tuning or lighting is replaced. Initialization checks the existing steering look-ahead before accepting a seeded heading; blocked headings try nearby clear directions without consuming more random values or moving the spawn center. Original geometry remains resident for atomic comparison and fallback; this increases CPU-side resident inventory and is disclosed in validation.
+
+Each asset is local and self-contained. Loading status is visible until ready; any missing/invalid library leaves the original aquarium usable and reports the fallback. Pending disposal releases fulfilled leases after the remaining loads settle. Disposal restores colliders and original visibility, detaches authored parts, disposes instance/deformation material resources, and finally releases the cache. `setEnabled` exists for automated matched-pose comparisons; no debug panel is added to the normal UI.
+
+`collisions.json` records exact exported structural point sets and transforms for CPU-only collision/stress tests. Run the inspection scripts after any re-export. `validation/geometry-overhaul.mjs` captures all ten paired views, checks three deduplicated GLB requests, shader/page errors, disposal and missing-library fallback. The existing ornament/anchored/discovery harnesses now await the default authored scene. See [Pass 013 validation](VALIDATION_V02_PASS_013.md) for the measured limits and macOS checklist.

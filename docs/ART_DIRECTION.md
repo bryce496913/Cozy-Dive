@@ -24,8 +24,16 @@ Compose foreground sand/reef/vegetation, a readable animal or coral in the midgr
 
 ## Budgets and acceptance
 
-The Pass 012 candidate is an original Blender-authored chromis and Acropora-inspired colony. It is a review candidate, **not an accepted final style standard**. See the [matched renders and animation](VALIDATION_V02_PASS_012.md). No example becomes an approved production target until the user accepts its appearance.
+The Pass 012 candidate is an original Blender-authored chromis and Acropora-inspired colony. The user accepted its chromis direction as the reference for Pass 013. See the [matched renders and animation](VALIDATION_V02_PASS_012.md). Pass 013 candidate geometry still requires its own review.
 
 Measure shared draw submissions, triangles, texture/geometry allocations, animation cost, load time and disposal. The first candidate retains 20 instances of one fish asset and one coral; it does not replace the whole reef. Near-camera detail may justify a future measured LOD reduction; do not assume a software-rendered cloud interval predicts MacBook Air FPS. The target reference remains 16.7 ms per hardware frame, with meaningful p95/p99 and long-session checks on the actual device.
 
 For Pass 013, first obtain acceptance of anatomy, scale relief, fin softness, coral density/branch transitions, lighting and material polish. Then use the accepted Blender scene, actual asset budgets and artist review as a contract for the remaining roster. Further sculpting/texture paint and target-device profiling may be needed; test success does not waive that work.
+
+## Pass 013 — authored hero geometry
+
+The accepted Pass 012 chromis direction is the reference: anatomical cross sections, resolved edges, dimensional fins and restrained PBR detail. The default aquarium now applies that workflow to its six ornaments and location-bound hero creatures. Inspection should show construction and silhouette changes: bowed layered wreck planks and frames; broken log knots and an uneven continuous bore; weathered individual arch stones; recessed filter grille, brackets and nozzle; barrel-planked articulated chest lid and hardware; carved asymmetric statue facial planes. Small attached growth belongs to the ornament and follows its scale.
+
+Seahorse torso/head profiles, crown and tapering gripping coil replace uniform primitive reads. Frogfish get fleshy lips, eye hoods, dermal tassels, webbed weight-bearing feet and a branching lure. Moray anatomy has a continuous deforming body/median fin and separate modeled head/jaw/eyes. The anemone has a dimensional pedal/oral disc and 96 varied sinuous tentacles. Clownfish retain the accepted morph workflow with fuller species proportions, white bands/dark margins and a rounded tail. These changes should earn their geometry through visible form, not only smoother subdivisions. Existing unconverted reef/background fish remain outside this pass.
+
+The aquarium keeps its current quiet palette, original lighting, swimming, audio and creature routines. Target-machine visual/performance approval remains the user's review of the unmerged PR; software-rendered Linux captures document candidate appearance and technical compatibility, not macOS acceptance.

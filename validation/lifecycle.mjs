@@ -57,6 +57,10 @@ import fs from 'node:fs';
     await page.waitForFunction(
       () => window.__cozy?.world?.renderer.info.render.calls > 0,
     );
+    assert.equal(
+      await page.evaluate(() => window.__cozy.world.authored.ready),
+      true,
+    );
     assert.equal(await page.evaluate(() => window.__contexts.length), 0);
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
     assert.equal(await page.locator('#master-volume').inputValue(), '30');
@@ -230,6 +234,10 @@ import fs from 'node:fs';
     await page.getByRole('button', { name: 'Close settings' }).click();
     await page.reload();
     await page.waitForFunction(() => window.__cozy?.world);
+    assert.equal(
+      await page.evaluate(() => window.__cozy.world.authored.ready),
+      true,
+    );
     assert.equal(await page.evaluate(() => window.__contexts.length), 0);
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
     assert.equal(await page.locator('#master-volume').inputValue(), '47');
@@ -375,9 +383,9 @@ import fs from 'node:fs';
         assert.equal(snapshot.tropical.hiddenAnimals, 7);
         assert.equal(snapshot.tropical.finite, true);
         assert.equal(snapshot.tropical.bubblesInside, true);
-        assert.equal(snapshot.tropical.geometries, 178);
-        assert.equal(snapshot.tropical.materials, 42);
-        assert.equal(snapshot.tropical.hulls, 139);
+        assert.equal(snapshot.tropical.geometries, 373);
+        assert.equal(snapshot.tropical.materials, 65);
+        assert.equal(snapshot.tropical.hulls, 216);
         assert.equal(snapshot.corrections, 0);
         if (longSession.length) {
           assert.deepEqual(
