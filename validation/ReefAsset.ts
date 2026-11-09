@@ -29,6 +29,7 @@ interface GltfDocument {
       attributes: Record<string, number>;
       indices: number;
       material?: number;
+      targets?: Record<string, number>[];
     }[];
   }[];
   accessors: Accessor[];

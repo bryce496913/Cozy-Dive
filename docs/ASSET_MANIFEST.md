@@ -67,3 +67,7 @@ All Pass 015 content is original Cozy Diver work under CC0-1.0, with no attribut
 | `assets/models/creatures/nudibranchs.glb`   | New: `Nudibranch_1..5`, about 6–7k triangles each, inside the validated surface-home envelope                                                                                                                                                                 |  2.1 MB |
 
 The accepted Pass 013 creature export is pinned as `tools/art/pass015/anchored-life.pass013.glb`, and regeneration always starts from it. Editable sources are `tools/art/pass015/anchored-life.blend` and `nudibranchs.blend`. Clownfish are unchanged in this pass. Exact hashes, sizes, images and triangle totals are in [manifest.json](../public/assets/manifest.json).
+
+## Pass 016 reef fish
+
+`fish/cardinalfish.glb`, `fish/firefish.glb`, `fish/assessor.glb` and `fish/gramma.glb` (about 1.08 MB each, 12,686 visible triangles, two stroke morphs each) are original CC0-1.0 Cozy Diver work, derived from the accepted Pass 012 chromis. Their editable sources are `tools/art/pass016/*.blend`, and the script is `tools/art/pass016/fish.py` (Blender 5.1.2 module). `public/assets/textures/pass016/` holds luminance-only versions of the accepted chromis base and fin maps. `fish/chromis.glb` now also ships in the normal aquarium. Hashes and inventory are in [manifest.json](../public/assets/manifest.json).

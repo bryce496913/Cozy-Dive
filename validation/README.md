@@ -124,3 +124,12 @@ COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy015-after node validation/cr
 ```
 
 The harness fixes moray extension, discovery pose time and clocks, then captures 16 coral, anemone, clownfish, moray, frogfish, seahorse and nudibranch close-ups for one build. It records draws, triangles, GPU resources and CPU submission time. Serve the previous candidate from a separate clean clone so both runs use identical cameras.
+
+## Pass 016 reef fish
+
+```bash
+COZY_URL=http://127.0.0.1:5174 COZY_OUTPUT=/tmp/cozy016-before node validation/fish-overhaul.mjs  # previous candidate
+COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy016-after node validation/fish-overhaul.mjs   # this branch
+```
+
+The harness freezes the simulation, frames the first fish of each species from its right side at a length-proportional distance, adds a whole-chromis-school view, records draws, triangles, GPU resources and submission time, and asserts that every authored school freezes exactly on pause.

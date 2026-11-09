@@ -1,0 +1,32 @@
+{
+  "result": "PASS",
+  "assets": [
+    "http://127.0.0.1:5175/assets/index-CHzjRb2l.js",
+    "http://127.0.0.1:5175/assets/index-BunRuY5r.css",
+    "http://127.0.0.1:5175/assets/models/ornaments/reef-props.glb",
+    "http://127.0.0.1:5175/assets/models/creatures/anchored-life.glb",
+    "http://127.0.0.1:5175/assets/models/creatures/nudibranchs.glb",
+    "http://127.0.0.1:5175/assets/models/fish/chromis.glb",
+    "http://127.0.0.1:5175/assets/models/fish/cardinalfish.glb",
+    "http://127.0.0.1:5175/assets/models/fish/firefish.glb",
+    "http://127.0.0.1:5175/assets/models/fish/assessor.glb",
+    "http://127.0.0.1:5175/assets/models/fish/gramma.glb",
+    "http://127.0.0.1:5175/assets/models/fish/clownfish.glb",
+    "http://127.0.0.1:5175/assets/models/reef/reef-environment.glb"
+  ],
+  "depth": "↓ 9.4 m BELOW THE SURFACE",
+  "swimmingDepth": "↓ 9.2 m BELOW THE SURFACE",
+  "errors": [],
+  "warnings": [],
+  "checks": [
+    "built assets load",
+    "preview does not capture mouse",
+    "Enter and pointer lock",
+    "camera-directed W ascent changes public depth readout",
+    "Escape pauses",
+    "volume persists after reload"
+  ],
+  "limitations": [
+    "Software-rendered Chromium; functional smoke check, not hardware performance or subjective audio acceptance."
+  ]
+}

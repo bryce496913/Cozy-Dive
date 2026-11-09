@@ -97,6 +97,58 @@ export const ASSET_REGISTRY = {
     maxDimension: 90,
     requireMorphs: false,
   },
+  cardinalfish: {
+    path: 'assets/models/fish/cardinalfish.glb',
+    requiredNodes: [
+      'Cardinalfish_Root',
+      'Body',
+      'Median_Fins',
+      'Pectoral_Left',
+      'Pectoral_Right',
+    ],
+    minDimension: 0.527,
+    maxDimension: 0.713,
+    requireMorphs: true,
+  },
+  firefish: {
+    path: 'assets/models/fish/firefish.glb',
+    requiredNodes: [
+      'Firefish_Root',
+      'Body',
+      'Median_Fins',
+      'Pectoral_Left',
+      'Pectoral_Right',
+    ],
+    minDimension: 0.722,
+    maxDimension: 0.977,
+    requireMorphs: true,
+  },
+  assessor: {
+    path: 'assets/models/fish/assessor.glb',
+    requiredNodes: [
+      'Assessor_Root',
+      'Body',
+      'Median_Fins',
+      'Pectoral_Left',
+      'Pectoral_Right',
+    ],
+    minDimension: 0.544,
+    maxDimension: 0.736,
+    requireMorphs: true,
+  },
+  gramma: {
+    path: 'assets/models/fish/gramma.glb',
+    requiredNodes: [
+      'Gramma_Root',
+      'Body',
+      'Median_Fins',
+      'Pectoral_Left',
+      'Pectoral_Right',
+    ],
+    minDimension: 0.612,
+    maxDimension: 0.828,
+    requireMorphs: true,
+  },
   acropora: {
     path: 'assets/models/coral/acropora.glb',
     requiredNodes: [

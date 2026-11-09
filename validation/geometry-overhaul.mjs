@@ -154,7 +154,7 @@ try {
   report.animation = await page.evaluate(() => {
     const w = window.__cozy.world,
       q = w.aquarium,
-      school = w.authored.school;
+      school = w.authored.school('ocellaris-clownfish');
     const morph = school.meshes.find((m) => m.morphTexture);
     const sample = () => ({
       matrix: Array.from(school.meshes[0].instanceMatrix.array),
@@ -258,7 +258,7 @@ try {
   });
   // Pass 014: the reef library is the fourth local request; reef parts replace rock hulls.
   assert.deepEqual(report.inventory, { fish: 40, hidden: 7, hulls: 435 });
-  assert.equal(report.requests.length, 5); // + Pass 015 nudibranch library
+  assert.equal(report.requests.length, 10); // + Pass 015 nudibranchs + Pass 016 five fish libraries
   assert.deepEqual(report.errors, []);
   report.cleanup = await page.evaluate(() => {
     const w = window.__cozy.world;

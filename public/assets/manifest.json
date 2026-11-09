@@ -541,5 +541,193 @@
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium nudibranchs (Pass 015)"
+  },
+  {
+    "id": "cardinalfish",
+    "file": "assets/models/fish/cardinalfish.glb",
+    "sha256": "4873cab0245149f1b3f07f957e5ac01c2862fb8cf5f65c3b86c3b5b361644d4e",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 1078024,
+    "visualPrimitives": 8,
+    "visualTriangles": 12686,
+    "collisionTriangles": 0,
+    "materials": 5,
+    "images": [
+      {
+        "name": "chromis-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 233713
+      },
+      {
+        "name": "fish-scales-base",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 65289
+      },
+      {
+        "name": "chromis-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 118454
+      },
+      {
+        "name": "fin-rays",
+        "width": 512,
+        "height": 512,
+        "mode": "RGBA",
+        "encodedBytes": 76650
+      }
+    ],
+    "geometryAccessorBytes": 532348,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium reef fish (Pass 016)"
+  },
+  {
+    "id": "firefish",
+    "file": "assets/models/fish/firefish.glb",
+    "sha256": "df577be27f89bb566e824d5ca279d7b4fadf40d35696eafd6d254bb38d1adb19",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 1077996,
+    "visualPrimitives": 8,
+    "visualTriangles": 12686,
+    "collisionTriangles": 0,
+    "materials": 5,
+    "images": [
+      {
+        "name": "chromis-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 233713
+      },
+      {
+        "name": "fish-scales-base",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 65289
+      },
+      {
+        "name": "chromis-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 118454
+      },
+      {
+        "name": "fin-rays",
+        "width": 512,
+        "height": 512,
+        "mode": "RGBA",
+        "encodedBytes": 76650
+      }
+    ],
+    "geometryAccessorBytes": 532348,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium reef fish (Pass 016)"
+  },
+  {
+    "id": "assessor",
+    "file": "assets/models/fish/assessor.glb",
+    "sha256": "9834c8b4ede2ed27041d347fdf3e34e7844e01fa455497f714ff399763741750",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 1078008,
+    "visualPrimitives": 8,
+    "visualTriangles": 12686,
+    "collisionTriangles": 0,
+    "materials": 5,
+    "images": [
+      {
+        "name": "chromis-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 233713
+      },
+      {
+        "name": "fish-scales-base",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 65289
+      },
+      {
+        "name": "chromis-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 118454
+      },
+      {
+        "name": "fin-rays",
+        "width": 512,
+        "height": 512,
+        "mode": "RGBA",
+        "encodedBytes": 76650
+      }
+    ],
+    "geometryAccessorBytes": 532348,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium reef fish (Pass 016)"
+  },
+  {
+    "id": "gramma",
+    "file": "assets/models/fish/gramma.glb",
+    "sha256": "286cf7e89fd6d6d54e2eb91770038fcf50f6235c51ef83a4d7f72e04e38bcac2",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 1077992,
+    "visualPrimitives": 8,
+    "visualTriangles": 12686,
+    "collisionTriangles": 0,
+    "materials": 5,
+    "images": [
+      {
+        "name": "chromis-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 233713
+      },
+      {
+        "name": "fish-scales-base",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 65289
+      },
+      {
+        "name": "chromis-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "RGB",
+        "encodedBytes": 118454
+      },
+      {
+        "name": "fin-rays",
+        "width": 512,
+        "height": 512,
+        "mode": "RGBA",
+        "encodedBytes": 76650
+      }
+    ],
+    "geometryAccessorBytes": 532348,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium reef fish (Pass 016)"
   }
 ]

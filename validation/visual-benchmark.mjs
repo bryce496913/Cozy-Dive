@@ -185,7 +185,8 @@ try {
   });
   assert.equal(inventory.fish, 40);
   assert.equal(inventory.chromis, 20);
-  assert.equal(requests.length, 7); // includes the Pass 014 reef and Pass 015 nudibranchs
+  // 10 normal-scene libraries (Pass 013-016) + the showcase's own chromis and Acropora leases.
+  assert.equal(requests.length, 12);
   const views = await page.evaluate(() => {
     const { world, showcase } = window.__visualBenchmark,
       q = world.aquarium,
@@ -490,7 +491,7 @@ try {
     nativeSwim,
     backend: 'Chromium / SwiftShader software renderer',
     loadMs,
-    initialModelRequests: requests.slice(0, 7),
+    initialModelRequests: requests.slice(0, 12),
     inventory,
     renders,
     isolated,

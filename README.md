@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.2 / Pass 015 — Coral & Creature Detail Overhaul (`0.2.0-rc.9`)** is a first-person, browser-based aquarium prototype: swim at your own pace through rippled sand, carved reef rock, corals, seagrass and soft blue-green water. No scores, timers, combat, accounts, or external asset services.
+A quiet little world beneath the surface. **v0.2 / Pass 016 — Reef Fish Overhaul (`0.2.0-rc.10`)** is a first-person, browser-based aquarium prototype: swim at your own pace through rippled sand, carved reef rock, corals, seagrass and soft blue-green water. No scores, timers, combat, accounts, or external asset services.
 
 ## Stack and requirements
 
@@ -42,7 +42,7 @@ Vite binds to all interfaces for cloud development; use `npm run dev -- --host 1
 
 Click **Return to the Water** to resume. Look up or down and use W/S to change depth; A/D always strafe horizontally. Space and Shift have no swimming action. Pausing or losing browser focus clears held input and propulsion momentum while retaining a resting breath’s phase and small vertical velocity. Diagonal input is normalized. Subtle stroke-related pitch feedback stays below 0.07 degrees, with no roll or visual position offsets. Looking straight up/down is limited.
 
-This is a technical release candidate; final v0.2 approval awaits manual MacBook Air acceptance. See [Pass 015 validation](docs/VALIDATION_V02_PASS_015.md), [Pass 014 validation](docs/VALIDATION_V02_PASS_014.md), [Pass 013 validation](docs/VALIDATION_V02_PASS_013.md) and [repeatable benchmarks](validation/README.md).
+This is a technical release candidate; final v0.2 approval awaits manual MacBook Air acceptance. See [Pass 016 validation](docs/VALIDATION_V02_PASS_016.md), [Pass 015 validation](docs/VALIDATION_V02_PASS_015.md), [Pass 014 validation](docs/VALIDATION_V02_PASS_014.md), [Pass 013 validation](docs/VALIDATION_V02_PASS_013.md) and [repeatable benchmarks](validation/README.md).
 
 ## Current features
 
@@ -211,3 +211,7 @@ Corals and creatures now match the Pass 014 rock and sand standard:
 - **Nudibranchs**: five authored species replace the procedural forms.
 
 Behaviour, homes, collision and animation contracts are unchanged; clownfish and the free-swimming reef fish are next. See [validation and matched captures](docs/VALIDATION_V02_PASS_015.md). This pass awaits user review and MacBook Air acceptance.
+
+### v0.2 Pass 016 candidate
+
+All 40 fish now swim as authored morph rigs: the accepted chromis, plus new pajama cardinalfish, firefish, yellow assessors and royal grammas built on the same rig and morph contract, alongside the Pass 013 clownfish. Simulation, behaviour, pause and reduced motion are unchanged, and the procedural fish remain as the fallback. See [validation and matched captures](docs/VALIDATION_V02_PASS_016.md). This pass awaits user review and MacBook Air acceptance.
