@@ -54,6 +54,10 @@ export const DIVE = {
   /** Prompts: how near and how directly the player must face the tank / surface. */
   promptDistance: 1.6,
   promptFacing: 0.75,
+  /** The prompt region: in front of the glass by at least this much (m)... */
+  promptFront: 0.15,
+  /** ...and at most this far past either end of the glass, sideways (m). */
+  promptSideMargin: 0.2,
   surfaceBand: 1.3,
 } as const;
 
@@ -130,11 +134,17 @@ interface Segment {
 export class DivePath {
   readonly kind: 'dive' | 'surface';
   readonly duration: number;
+  /** Where the player started (restored if the transition is cancelled). */
+  readonly start: { space: Space; pose: Pose };
   /** Where the player ends: the space, and the pose to hand to walking/swimming. */
   readonly end: { space: Space; pose: Pose };
   private readonly segments: Segment[];
   constructor(kind: 'dive' | 'surface', from: Pose, reducedMotion: boolean) {
     this.kind = kind;
+    this.start = {
+      space: kind === 'dive' ? 'office' : 'aquarium',
+      pose: { ...from },
+    };
     const front = tankFront(),
       // Camera forward is (-sin yaw, -cos yaw): looking into the tank means forward = -out.
       facing = Math.atan2(front.out.x, front.out.z),
@@ -327,13 +337,54 @@ export class DivePath {
   }
 }
 
-/** Whether to offer the dive: close to the tank front and looking at it. */
+/**
+ * How clear the office tank's glass looks from `p` (0 = tinted glass, 1 = no glass): it clears
+ * over the last half metre before the dive's switch, so the full aquarium (which has no glass in
+ * front of the eye) continues the identical image.
+ */
+export function glassClarity(p: { x: number; z: number }): number {
+  const f = tankFront(),
+    distance = (p.x - f.x) * f.out.x + (p.z - f.z) * f.out.z,
+    t = Math.min(1, Math.max(0, (distance - DIVE.switchGap) / 0.5));
+  return 1 - ease(t);
+}
+/** Office distance from `p` to the tank's filter, for its bubbling sound. */
+export function tankDistance(p: { x: number; y: number; z: number }): number {
+  return Math.hypot(
+    p.x - TANK.position.x,
+    p.y - TANK.position.y - 0.2,
+    p.z - TANK.position.z,
+  );
+}
+
+/**
+ * What choosing `chosen` on the pause screen does to a paused transition: choosing where it was
+ * going resumes it from where it stopped; choosing where it came from cancels it, restoring the
+ * player exactly where they pressed E.
+ */
+export function interruptedChoice(
+  path: Pick<DivePath, 'end'>,
+  chosen: Space,
+): 'resume' | 'cancel' {
+  return chosen === path.end.space ? 'resume' : 'cancel';
+}
+
+/**
+ * Whether to offer the dive: standing in front of the glass (not beside or behind the tank),
+ * within reach, and looking at it. The region in front of the tank is open floor, so nothing
+ * stands between the player and the glass there.
+ */
 export function canDive(p: Pose): boolean {
   const f = tankFront(),
     dx = f.x - p.x,
     dz = f.z - p.z,
-    d = Math.hypot(dx, dz);
+    d = Math.hypot(dx, dz),
+    // Offsets from the glass centre: out of the glass, and along it.
+    ahead = -dx * f.out.x - dz * f.out.z,
+    along = Math.abs(-dx * f.out.z + dz * f.out.x);
   if (d > DIVE.promptDistance || d < 1e-6) return false;
+  if (ahead < DIVE.promptFront) return false;
+  if (along > TANK.size.x / 2 + DIVE.promptSideMargin) return false;
   const lookX = -Math.sin(p.yaw) * Math.cos(p.pitch),
     lookZ = -Math.cos(p.yaw) * Math.cos(p.pitch);
   return (lookX * dx + lookZ * dz) / d >= DIVE.promptFacing;

@@ -7,7 +7,10 @@ import {
   aquariumToOffice,
   canDive,
   canSurface,
+  glassClarity,
+  interruptedChoice,
   officeToAquarium,
+  tankDistance,
   tankFront,
   type DiveFrame,
   type Pose,
@@ -185,5 +188,108 @@ describe('Pass 021 prompts', () => {
     );
     expect(canSurface(AQUARIUM.max.y - AQUARIUM.clearance)).toBe(true);
     expect(canSurface(SPAWN.y)).toBe(false);
+  });
+});
+
+describe('Pass 021 refinements', () => {
+  it('clears the tank glass only over the last half metre before the switch', () => {
+    const f = tankFront(),
+      at = (d: number) => ({ x: f.x + f.out.x * d, z: f.z + f.out.z * d });
+    expect(glassClarity(at(1.2))).toBe(0);
+    expect(glassClarity(at(DIVE.switchGap + 0.5))).toBe(0);
+    expect(glassClarity(at(DIVE.switchGap))).toBe(1);
+    expect(glassClarity(at(DIVE.switchGap + 0.25))).toBeCloseTo(0.5, 9);
+    // Monotonic as the dive approaches.
+    let previous = -1;
+    for (let d = 1; d >= DIVE.switchGap; d -= 0.01) {
+      const c = glassClarity(at(d));
+      expect(c).toBeGreaterThanOrEqual(previous);
+      previous = c;
+    }
+  });
+  it('measures the bubbling distance from the tank, which shrinks as the dive approaches', () => {
+    const path = new DivePath('dive', inFront, false),
+      f = frame();
+    const start = tankDistance(path.sample(0, f)),
+      touch = tankDistance(path.sample(DIVE.approach + DIVE.lean - 1e-9, f));
+    expect(touch).toBeLessThan(start);
+    expect(touch).toBeLessThan(0.6);
+  });
+});
+
+describe('Pass 021 interruptions', () => {
+  it('resumes when the destination is chosen and cancels back to the start otherwise', () => {
+    const dive = new DivePath('dive', inFront, false),
+      surface = new DivePath(
+        'surface',
+        { x: -3, y: AQUARIUM.max.y - 1.5, z: 4, yaw: 0.3, pitch: 0.1 },
+        false,
+      );
+    expect(interruptedChoice(dive, 'aquarium')).toBe('resume');
+    expect(interruptedChoice(dive, 'office')).toBe('cancel');
+    expect(interruptedChoice(surface, 'office')).toBe('resume');
+    expect(interruptedChoice(surface, 'aquarium')).toBe('cancel');
+    // Cancelling restores exactly where E was pressed, in the space it was pressed in.
+    expect(dive.start.space).toBe('office');
+    close(dive.start.pose, inFront);
+    expect(surface.start.space).toBe('aquarium');
+    close(surface.start.pose, {
+      x: -3,
+      y: AQUARIUM.max.y - 1.5,
+      z: 4,
+      yaw: 0.3,
+      pitch: 0.1,
+    });
+    // The start is a copy: later changes to the caller's pose do not move it.
+    const from = { ...inFront },
+      path = new DivePath('dive', from, true);
+    from.x += 5;
+    expect(path.start.pose.x).toBeCloseTo(inFront.x, 9);
+  });
+});
+
+describe('Pass 021 prompt region', () => {
+  const f = tankFront(),
+    facing = Math.atan2(f.out.x, f.out.z),
+    // Offsets out of the glass and along it, looking straight at the glass centre.
+    at = (ahead: number, along: number): Pose => {
+      const x = f.x + f.out.x * ahead + f.out.z * along,
+        z = f.z + f.out.z * ahead - f.out.x * along;
+      return {
+        x,
+        y: OFFICE.eyeHeight,
+        z,
+        yaw: Math.atan2(x - f.x, z - f.z),
+        pitch: -0.1,
+      };
+    };
+  it('offers the dive only in front of the glass, not beside or behind the tank', () => {
+    expect(canDive(at(0.8, 0))).toBe(true);
+    expect(canDive(at(0.8, TANK.size.x / 2))).toBe(true);
+    // Beside the tank, still looking at the glass centre.
+    expect(canDive(at(0.3, TANK.size.x / 2 + 0.4))).toBe(false);
+    // Level with or behind the glass.
+    expect(canDive(at(0.05, 0.2))).toBe(false);
+    expect(canDive(at(-0.3, 0.2))).toBe(false);
+    expect(facing).toBeCloseTo(-Math.PI / 2, 9);
+  });
+  it('from anywhere it is offered, the dive path stays clear of the furniture', () => {
+    let offered = 0;
+    for (let ahead = 0; ahead <= 1.6; ahead += 0.1)
+      for (let along = -1.2; along <= 1.2; along += 0.1) {
+        const from = at(ahead, along);
+        if (!canDive(from)) continue;
+        offered++;
+        const frames = sampleAll(new DivePath('dive', from, false));
+        for (const fr of frames.filter((fr) => fr.space === 'office'))
+          for (const box of OFFICE_FOOTPRINTS.filter(
+            (b) => b !== OFFICE_FOOTPRINTS[3],
+          )) {
+            const cx = Math.max(box.min.x, Math.min(fr.x, box.max.x)),
+              cz = Math.max(box.min.z, Math.min(fr.z, box.max.z));
+            expect(Math.hypot(fr.x - cx, fr.z - cz)).toBeGreaterThan(0.05);
+          }
+      }
+    expect(offered).toBeGreaterThan(50);
   });
 });

@@ -15,12 +15,14 @@ import {
   DivePath,
   canDive,
   canSurface,
+  interruptedChoice,
+  tankDistance,
   type DiveFrame,
   type Pose,
 } from '../player/dive';
 import { OfficeScene } from '../rendering/OfficeScene';
 import { OfficeAmbience } from '../audio/OfficeAmbience';
-import { OFFICE, OFFICE_FOOTPRINTS, TANK } from '../config/office';
+import { OFFICE, OFFICE_FOOTPRINTS } from '../config/office';
 import {
   createWalkState,
   stepWalking,
@@ -233,9 +235,12 @@ export class Application {
   private enter = (mode: ExperienceMode): void => {
     const canvas = this.world?.renderer.domElement;
     if (!canvas || !this.controls) return;
-    // Choosing a space from the pause screen cancels an unfinished dive.
-    if (this.dive) this.endDive(false);
-    if (mode !== this.mode) {
+    // A transition paused by Escape: choosing its destination resumes it; choosing where it came
+    // from cancels it and puts the player back where they pressed E.
+    const resuming =
+      !!this.dive && interruptedChoice(this.dive.path, mode) === 'resume';
+    if (this.dive && !resuming) this.cancelDive();
+    if (!resuming && mode !== this.mode) {
       // The pause-screen buttons switch spaces by a cut; in the world, E dives (Pass 021).
       this.looks[this.mode] = {
         yaw: this.controls.yaw,
@@ -350,8 +355,13 @@ export class Application {
   /** Advance and draw the dive; hand control back at its end. */
   private tickDive(dt: number): void {
     const dive = this.dive!,
-      controls = this.controls!;
-    if (controls.locked && !document.hidden) dive.elapsed += dt;
+      controls = this.controls!,
+      running = controls.locked && !document.hidden;
+    // The transition and the aquarium's own clock advance together; both pause with the game.
+    if (running) {
+      dive.elapsed += dt;
+      this.elapsed += dt;
+    }
     const f = dive.path.sample(dive.elapsed, this.diveFrame);
     if (f.space !== this.mode) {
       this.mode = f.space;
@@ -366,10 +376,11 @@ export class Application {
     if (f.space === 'office') {
       this.office!.camera.position.set(f.x, f.y, f.z);
       this.office!.camera.rotation.set(f.pitch, f.yaw, 0, 'YXZ');
-      this.officeAudio?.update(1);
+      this.officeAudio?.update(tankDistance(f));
       if (!document.hidden)
         this.office!.render(
           this.clockBase + this.officeTime,
+          this.elapsed,
           this.settings.reducedMotion,
           dt,
         );
@@ -379,12 +390,21 @@ export class Application {
       w.camera.rotation.set(f.pitch, f.yaw, 0, 'YXZ');
       w.setHaze(f.fog);
       // Surfacing: the front glass shows the office from the swimmer's mapped viewpoint.
-      if (dive.path.kind === 'surface' && !this.settings.reducedMotion)
+      if (
+        dive.path.kind === 'surface' &&
+        !this.settings.reducedMotion &&
+        !document.hidden
+      )
         w.setOutsideView(
           this.office!.renderOutside(w.camera),
           this.office!.resolution,
         );
       this.ui.setDepth(AQUARIUM.max.y - f.y);
+      // The underwater soundscape follows the drifting camera (swimming is reset, so it is still).
+      this.state.position.x = f.x;
+      this.state.position.y = f.y;
+      this.state.position.z = f.z;
+      this.audio?.update(dt, this.state, this.tuning, f.yaw);
       this.playerPresence.active = false;
       if (!document.hidden)
         w.render(
@@ -396,18 +416,26 @@ export class Application {
         );
     }
     if (!document.hidden) this.officeTime += dt;
-    if (dive.elapsed >= dive.path.duration) this.endDive(true);
+    if (dive.elapsed >= dive.path.duration) this.endDive();
   }
-  /** Finish (or cancel) a dive: settle into the destination with controls released. */
-  private endDive(arrived: boolean): void {
+  /** Cancel a paused transition: back where it started, in the space it started from. */
+  private cancelDive(): void {
+    const dive = this.dive;
+    if (dive) this.endDive(dive.path.start);
+  }
+  /**
+   * Finish a transition, settling into `to` (by default its destination) with controls released
+   * and the walking or swimming state matching the camera, so nothing jumps afterwards.
+   */
+  private endDive(to?: { space: ExperienceMode; pose: Pose }): void {
     const dive = this.dive;
     this.dive = undefined;
     this.world?.setHaze(UNDERWATER_HAZE);
     this.world?.setOutsideView(null);
     this.office?.releaseOutside();
     this.ui.setVeil(0);
-    if (!dive || !arrived || !this.controls) return;
-    const { space, pose } = dive.path.end;
+    if (!dive || !this.controls) return;
+    const { space, pose } = to ?? dive.path.end;
     if (space === 'aquarium') {
       Object.assign(this.state.position, { x: pose.x, y: pose.y, z: pose.z });
       this.state.neutralDepth = pose.y;
@@ -526,17 +554,12 @@ export class Application {
     const p = this.walk.position;
     office.camera.position.set(p.x, p.y, p.z);
     office.camera.rotation.set(controls.pitch, controls.yaw, 0, 'YXZ');
-    this.officeAudio?.update(
-      Math.hypot(
-        p.x - TANK.position.x,
-        p.y - TANK.position.y - 0.2,
-        p.z - TANK.position.z,
-      ),
-    );
+    this.officeAudio?.update(tankDistance(p));
     this.playerPresence.active = false;
     if (!document.hidden)
       office.render(
         this.clockBase + this.officeTime,
+        this.elapsed,
         this.settings.reducedMotion,
         dt,
       );
