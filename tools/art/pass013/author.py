@@ -112,32 +112,94 @@ def props():
  for a,z,length in [(0,-.4,.65),(.3,.8,.38),(2.65,-.8,.36)]:
   start=Vector(logpoint(a,z,False));end=start+Vector((math.cos(a)*length,.3,math.sin(a)*length));o=tube('Broken_Knot',[tuple(start),tuple(start.lerp(end,.6)),tuple(end)],[.14,.11,.085],M['Cut_Wood'],20,log);proxy_object(o,log)
  growth(log,(.1,2.56,.65),.8,1)
- # WRECK: bowed plank courses, exposed frames, a deliberate broken cabin and preserved perch surfaces.
+ # WRECK (Pass 019 playtest redesign): a small sunken wooden boat rather than bench-like plank
+ # courses. Lofted round-bilge hull (pointed raised bow, transom stern) of seven plank strakes;
+ # a run of starboard planks is missing so ribs show; sand has drifted inside; the mast has
+ # snapped and lies across the port gunwale. The whole wreck lists 14 degrees to port and noses
+ # down. Strakes are split into short convex collision segments that hug the hull wall, so the
+ # open interior (and the swim route at local (0, 1.02, 1.08)) stays clear.
  wreck=root('Shipwreck',1)
- def width(z):return .62+.42*math.sin((z+1.88)/3.76*math.pi)**.7
+ roll,pitch=math.radians(14),math.radians(-3.5)
+ def lean(p):
+  x,y,z=p;x,y=x*math.cos(roll)-y*math.sin(roll),x*math.sin(roll)+y*math.cos(roll)
+  y,z=y*math.cos(pitch)-z*math.sin(pitch),y*math.sin(pitch)+z*math.cos(pitch);return (x,y-.14,z)
+ Z0,Z1=-1.82,1.92
+ def station(u):
+  beam=.95*max(0,1-((u-.42)/.58)**2)**.6 if u>=.42 else .95*(1-.35*((.42-u)/.42)**2)
+  return max(beam,.012),.92+.36*u*u
+ def section(u,t,inset=0):
+  # Girth parameter t: 0 keel, 1 gunwale; inset moves toward the hull's inside.
+  beam,height=station(u);a=t*math.pi/2;x=(beam-inset)*math.sin(a)**.85;y=.12+inset*.6+(height-inset*.3)*(1-math.cos(a))
+  return x,y
+ def hull_point(u,t,side,inset=0):
+  x,y=section(u,t,inset);return lean((side*x,y,Z0+(Z1-Z0)*u))
+ strakes=7;missing={(1,3):(.36,.6),(1,4):(.33,.64),(1,5):(.41,.55)}
  for side in [-1,1]:
-  for course in range(4):
-   for seg in range(4):
-    z0=-1.86+seg*.93;z1=z0+.92;points=[];faces=[];uvs=[]
-    for j in range(9):
-     z=z0+(z1-z0)*j/8;w=width(z)+course*.035;y=.25+course*.215+.035*math.sin(z*1.1)
-     for dx,dy in [(-.065,0),(.065,0),(.065,.19),(-.065,.19)]:points.append((side*(w+dx),y+dy,z));uvs.append((j/8,dy*4))
-    for j in range(8):
-     for k in range(4):a=j*4+k;b=j*4+(k+1)%4;faces.append((a,b,b+4,a+4))
-    faces.extend([(3,2,1,0),(32,33,34,35)]);o=mesh('Curved_Plank',points,faces,uvs,M['Wood'],wreck);proxy_object(o,wreck)
-  for z in [-1.4,-.55,.35,1.2]:
-   pts=[(side*(width(z)-.08)*t,.21+.73*t**1.8,z) for t in [.65+j*.35/12 for j in range(13)]];o=tube('Hull_Frame',pts,[.055]*13,M['Cut_Wood'],10,wreck);proxy_object(o,wreck)
- # Flat upper deck patches retain real frogfish contact; the outer footprint follows the hull.
- for seg in range(4):
-  z0=-1.86+seg*.93;z1=z0+.93;points=[(s*(width(z)-.05),y,z) for z in [z0,z1] for y in [.07,.23] for s in [-1,1]];o=convex('Deck_Point',points,wreck);o.name='Deck_Planes';o.data.materials.clear();o.data.materials.append(M['Cut_Wood']);proxy_object(o,wreck)
-  for j in range(5):x=(j-2)*.28;box('Deck_Seam',(.007,.003,z1-z0),(x,.231,(z0+z1)/2),M['Dark'],wreck,0)
+  for k in range(strakes):
+   t0,t1=k/strakes+.006,(k+1)/strakes-.006
+   gap=missing.get((side,k))
+   spans=[(0,1)] if not gap else [(0,gap[0]),(gap[1],1)]
+   for lo,hi in spans:
+    # Shorter segments where the hull curves into the bow keep each convex proxy hugging the wall.
+    cuts=[0,.25,.5,.66,.78,.87,.94,1] if hi>.9 else [0,.25,.5,.75,1]
+    last=len(cuts)-2
+    for seg in range(len(cuts)-1):
+     u0,u1=lo+(hi-lo)*cuts[seg],lo+(hi-lo)*cuts[seg+1]
+     # Broken plank ends are ragged rather than square.
+     if gap and hi==gap[0] and seg==last:u1-=.02*(k%2)
+     if gap and lo==gap[1] and seg==0:u0+=.025*((k+1)%2)
+     points=[];faces=[];uvs=[];n=7
+     for j in range(n):
+      u=u0+(u1-u0)*j/(n-1)
+      for t,inset in [(t0,0),(t1,0),(t1,.04),(t0,.04)]:points.append(hull_point(u,t,side,inset));uvs.append((u*3.2,t*2.4+inset*4))
+     for j in range(n-1):
+      for q in range(4):a=j*4+q;b=j*4+(q+1)%4;faces.append((a,b,b+4,a+4))
+     faces.extend([(3,2,1,0),((n-1)*4,(n-1)*4+1,(n-1)*4+2,(n-1)*4+3)])
+     o=mesh('Hull_Strake',points,faces,uvs,M['Wood'],wreck);proxy_object(o,wreck)
+ # Ribs inside the planking: half frames per side, visible through the broken starboard run.
  for side in [-1,1]:
-  for i in range(5):
-   y=.84+i*.16;length=1.15 if side<0 else .93-i*.055;o=box('Cabin_Plank',(.13,.145,length),(side*.68,y,-.88),M['Wood'],wreck,.016);proxy_object(o,wreck)
- # Roof support plane is copied from the accepted wreck face, then detailed on its underside/edges.
- baseline=next(x for x in BASE if x['kind']=='shipwreck');roof=baseline['nodes'][19]['vertices'];o=authored_stone(roof,wreck,'Cabin_Roof',[h['position'] for h in baseline['homes']]);o.data.materials.clear();o.data.materials.append(M['Wood']);convex('COLLIDER_CabinRoof',roof,wreck)
- mast=tube('Leaning_Mast',[(.52,.25,.25),(.28,1.25,.30),(.02,2.35,.36)],[.075,.06,.035],M['Wood'],20,wreck);proxy_object(mast,wreck);tube('Weathered_Crossbar',[(-.5,1.82,.35),(.12,1.9,.35),(.67,2.02,.35)],[.04,.035,.025],M['Wood'],12,wreck)
- growth(wreck,(-.9,.91,.65),.9,2);growth(wreck,(.7,1.48,-1.25),.6,3)
+  for u in [.12,.24,.36,.48,.6,.72,.84]:
+   pts=[hull_point(u,.08+.92*j/10,side,.075) for j in range(11)];tube('Hull_Frame',pts,[.038]*11,M['Cut_Wood'],8,wreck)
+ # Keel, rising stem at the bow and a sternpost; gunwale rails (starboard rail broken at the gap).
+ keel=[lean((0,.08,Z0+(Z1-Z0)*u)) for u in [j/16 for j in range(15)]]+[lean((0,.08+(.95+.36)*((u-.875)/.125)**1.6,Z0+(Z1-Z0)*u)) for u in [.9,.94,.98,1.0]]
+ for i in range(0,len(keel)-1,4):
+  o=tube('Keel',keel[i:i+5],[.07]*len(keel[i:i+5]),M['Cut_Wood'],10,wreck);proxy_object(o,wreck)
+ for side in [-1,1]:
+  for lo,hi in ([(0,1)] if side<0 else [(0,.35),(.62,1)]):
+   pts=[hull_point(lo+(hi-lo)*j/12,1,side,-.01) for j in range(13)];tube('Gunwale',pts,[.05]*13,M['Cut_Wood'],10,wreck)
+ # Transom: horizontal planks closing the stern.
+ beam,height=station(0)
+ for i in range(5):
+  y0=.18+i*(height-.1)/5;y1=y0+(height-.1)/5-.02;w0=section(0,(y0-.12)/height*0.98)[0];w1=section(0,min(1,(y1-.12)/height))[0]
+  pts=[lean((sx*w,y,Z0+dz)) for y,w in [(y0,w0),(y1,w1)] for sx in [-1,1] for dz in [-.02,.04]]
+  o=convex('Transom_Plank',pts,wreck);o.name='Transom';o.data.materials.clear();o.data.materials.append(M['Wood']);proxy_object(o,wreck)
+ # Short aft deck, its forward edge broken off.
+ pts=[]
+ for u in [.03,.17]:
+  w=section(u,.82,.06)[0]
+  for sx in [-1,1]:
+   for y in [.78,.84]:pts.append(lean((sx*w,y,Z0+(Z1-Z0)*u)))
+ o=convex('Aft_Deck',pts,wreck);o.name='Aft_Deck';o.data.materials.clear();o.data.materials.append(M['Cut_Wood']);proxy_object(o,wreck)
+ for j in range(4):box('Deck_Seam',(.007,.003,.5),lean(((j-1.5)*.3,.845,Z0+.38)),M['Dark'],wreck,0)
+ # Sand drifted into the hull: an uneven floor a third of the way up the sides. Its UVs use the
+ # seabed's world scale so the runtime can drape the authored seabed sand material over it.
+ mat('Sand',(.3,.25,.16),1)
+ vs=[];uv=[];fs=[];nu,nt=24,8
+ for i in range(nu+1):
+  u=.02+.9*i/nu;x,_=section(u,.5,.05);w=x*.98
+  for j in range(nt+1):
+   sx=-1+2*j/nt;vs.append(lean((sx*w,.42+.05*math.sin(u*9+sx*2)+.04*(1-sx*sx),Z0+(Z1-Z0)*u)));uv.append((sx*w/36,(Z0+(Z1-Z0)*u)/28))  # tank-sand UV scale
+ for i in range(nu):
+  for j in range(nt):a=i*(nt+1)+j;fs.append((a,a+1,a+nt+2,a+nt+1))
+ sand=mesh('Drifted_Sand',vs,fs,uv,M['Sand'],wreck)
+ below=[lean((sx*section(u,.5,.05)[0]*.95,.15,Z0+(Z1-Z0)*u)) for u in [.05,.5,.9] for sx in [-1,1]]
+ convex('COLLIDER_Drifted_Sand',vs[::3]+below,wreck)
+ # Mast: a snapped stump stepped mid-ships, and the fallen spar across the port gunwale.
+ stump=tube('Mast_Stump',[lean((0,.3,.25)),lean((0,.9,.25)),lean((.02,1.42,.26))],[.08,.072,.066],M['Wood'],14,wreck);proxy_object(stump,wreck)
+ for i,a in enumerate([0,1.9,3.7,5.1]):
+  tip=lean((.06*math.cos(a),1.42+.09+.05*(i%2),.26+.06*math.sin(a)));tube('Splinter',[lean((.04*math.cos(a),1.4,.26+.04*math.sin(a))),tip],[.022,.004],M['Wood'],5,wreck)
+ spar=tube('Fallen_Mast',[lean((.1,1.05,.05)),lean((-.55,1.0,-.75)),lean((-1.02,.92,-1.55))],[.06,.055,.045],M['Wood'],14,wreck);proxy_object(spar,wreck)
+ growth(wreck,hull_point(.7,1,-1,.02),.8,2);growth(wreck,hull_point(.18,1,1,.02),.6,3);growth(wreck,lean((-.6,.5,.9)),.7,4)
  # ARCH: individually resolved weathered stone pieces, with protected crawler ledges.
  arch=root('Arch',2);baseline=next(x for x in BASE if x['kind']=='arch');protected=[h['position'] for h in baseline['homes']]
  for row in baseline['nodes']:

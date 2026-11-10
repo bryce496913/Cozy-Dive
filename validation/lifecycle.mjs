@@ -395,11 +395,11 @@ import fs from 'node:fs';
         assert.equal(snapshot.tropical.bubblesInside, true);
         // Pass 014 adds the authored reef layer and Pass 015 the nudibranch library / creature
         // skins: 422 resident geometries, 81 materials and
-        // 435 hulls (each reef rock's accepted hull replaced by its authored convex parts).
+        // 503 hulls (Pass 019 wreck; each reef rock's accepted hull replaced by its authored convex parts).
         // Pass 016 authored fish schools (462) + Pass 017 fish distance levels (36 parts).
         assert.equal(snapshot.tropical.geometries, 498);
         assert.equal(snapshot.tropical.materials, 106);
-        assert.equal(snapshot.tropical.hulls, 435);
+        assert.equal(snapshot.tropical.hulls, 503);
         assert.equal(snapshot.corrections, 0);
         if (longSession.length) {
           assert.deepEqual(

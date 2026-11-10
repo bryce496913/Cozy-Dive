@@ -78,6 +78,16 @@ export class UnderwaterScene {
         if (this.disposed) return false;
         this.settleFrogfish();
         this.gripSeahorse();
+        // Sand drifted into the authored wreck wears the seabed's own sand (Pass 019).
+        this.aquarium.ornaments.models
+          .find((m) => m.kind === 'shipwreck')
+          ?.root.traverse((o) => {
+            if (
+              o instanceof THREE.Mesh &&
+              /^(Drifted_Sand|Shipwreck_Sand)/.test(o.name)
+            )
+              this.reef.drapeSand(o);
+          });
         try {
           // Compile every program (hidden LOD levels too) and upload every texture behind the
           // status, so nothing pops in when first seen while swimming (Pass 019).
