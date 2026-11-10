@@ -10,7 +10,14 @@ import {
   type SwimTuning,
   type SwimState,
 } from '../player/swimming';
-import { UnderwaterScene } from '../rendering/UnderwaterScene';
+import { UNDERWATER_HAZE, UnderwaterScene } from '../rendering/UnderwaterScene';
+import {
+  DivePath,
+  canDive,
+  canSurface,
+  type DiveFrame,
+  type Pose,
+} from '../player/dive';
 import { OfficeScene } from '../rendering/OfficeScene';
 import { OfficeAmbience } from '../audio/OfficeAmbience';
 import { OFFICE, OFFICE_FOOTPRINTS, TANK } from '../config/office';
@@ -53,6 +60,21 @@ export class Application {
   private mode: ExperienceMode;
   private readonly walk = createWalkState(OFFICE.spawn);
   private officeTime = 0;
+  /** v0.3 Pass 021: the dive or surfacing in progress, if any. */
+  private dive?: { path: DivePath; elapsed: number; splashed: boolean };
+  /** Reused every frame for the prompt check (no per-frame allocation). */
+  private readonly currentPose: Pose = { x: 0, y: 0, z: 0, yaw: 0, pitch: 0 };
+  private readonly diveFrame: DiveFrame = {
+    space: 'office',
+    x: 0,
+    y: 0,
+    z: 0,
+    yaw: 0,
+    pitch: 0,
+    veil: 0,
+    fog: 0,
+    bubbles: 0,
+  };
   /** Each space keeps its own look direction across switches. */
   private readonly looks: Record<
     ExperienceMode,
@@ -156,6 +178,9 @@ export class Application {
       document.addEventListener('pointerlockerror', this.lockError, {
         signal: this.abort.signal,
       });
+      document.addEventListener('keydown', this.action, {
+        signal: this.abort.signal,
+      });
       document.addEventListener(
         'visibilitychange',
         () => {
@@ -208,8 +233,10 @@ export class Application {
   private enter = (mode: ExperienceMode): void => {
     const canvas = this.world?.renderer.domElement;
     if (!canvas || !this.controls) return;
+    // Choosing a space from the pause screen cancels an unfinished dive.
+    if (this.dive) this.endDive(false);
     if (mode !== this.mode) {
-      // Pass 020 switches by a cut from the pause screen; Pass 021 adds the dive transition.
+      // The pause-screen buttons switch spaces by a cut; in the world, E dives (Pass 021).
       this.looks[this.mode] = {
         yaw: this.controls.yaw,
         pitch: this.controls.pitch,
@@ -276,6 +303,127 @@ export class Application {
       this.controls.reducedMotion = this.settings.reducedMotion;
     }
   }
+  /** The current camera pose in the current space. */
+  private pose(): Pose {
+    const c = this.controls!,
+      p = this.mode === 'office' ? this.walk.position : this.state.position,
+      out = this.currentPose;
+    out.x = p.x;
+    out.y = p.y;
+    out.z = p.z;
+    out.yaw = c.yaw;
+    out.pitch = c.pitch;
+    return out;
+  }
+  /** E: dive in at the tank, or return to the office near the surface. */
+  private action = (event: KeyboardEvent): void => {
+    if (
+      event.code !== 'KeyE' ||
+      event.repeat ||
+      this.dive ||
+      !this.controls?.locked ||
+      document.hidden
+    )
+      return;
+    const pose = this.pose();
+    const kind =
+      this.mode === 'office' && canDive(pose)
+        ? 'dive'
+        : this.mode === 'aquarium' && canSurface(pose.y)
+          ? 'surface'
+          : undefined;
+    if (!kind) return;
+    event.preventDefault();
+    // The key press is a user gesture: unlock the destination's audio now.
+    if (kind === 'dive') this.audio?.unlockFromGesture();
+    else this.officeAudio?.unlockFromGesture();
+    this.controls.clear();
+    stopWalking(this.walk);
+    resetSwimming(this.state);
+    this.ui.setPrompt(null);
+    this.dive = {
+      path: new DivePath(kind, { ...pose }, this.settings.reducedMotion),
+      elapsed: 0,
+      splashed: false,
+    };
+  };
+  /** Advance and draw the dive; hand control back at its end. */
+  private tickDive(dt: number): void {
+    const dive = this.dive!,
+      controls = this.controls!;
+    if (controls.locked && !document.hidden) dive.elapsed += dt;
+    const f = dive.path.sample(dive.elapsed, this.diveFrame);
+    if (f.space !== this.mode) {
+      this.mode = f.space;
+      this.ui.setMode(f.space);
+      this.updateAudio(controls.locked);
+    }
+    this.ui.setVeil(f.veil);
+    if (f.bubbles > 0.95 && !dive.splashed) {
+      dive.splashed = true;
+      if (!this.settings.reducedMotion) this.ui.burst();
+    }
+    if (f.space === 'office') {
+      this.office!.camera.position.set(f.x, f.y, f.z);
+      this.office!.camera.rotation.set(f.pitch, f.yaw, 0, 'YXZ');
+      this.officeAudio?.update(1);
+      if (!document.hidden)
+        this.office!.render(
+          this.clockBase + this.officeTime,
+          this.settings.reducedMotion,
+          dt,
+        );
+    } else {
+      const w = this.world!;
+      w.camera.position.set(f.x, f.y, f.z);
+      w.camera.rotation.set(f.pitch, f.yaw, 0, 'YXZ');
+      w.setHaze(f.fog);
+      // Surfacing: the front glass shows the office from the swimmer's mapped viewpoint.
+      if (dive.path.kind === 'surface' && !this.settings.reducedMotion)
+        w.setOutsideView(
+          this.office!.renderOutside(w.camera),
+          this.office!.resolution,
+        );
+      this.ui.setDepth(AQUARIUM.max.y - f.y);
+      this.playerPresence.active = false;
+      if (!document.hidden)
+        w.render(
+          this.elapsed,
+          this.settings.reducedMotion,
+          dt,
+          true,
+          this.playerPresence,
+        );
+    }
+    if (!document.hidden) this.officeTime += dt;
+    if (dive.elapsed >= dive.path.duration) this.endDive(true);
+  }
+  /** Finish (or cancel) a dive: settle into the destination with controls released. */
+  private endDive(arrived: boolean): void {
+    const dive = this.dive;
+    this.dive = undefined;
+    this.world?.setHaze(UNDERWATER_HAZE);
+    this.world?.setOutsideView(null);
+    this.office?.releaseOutside();
+    this.ui.setVeil(0);
+    if (!dive || !arrived || !this.controls) return;
+    const { space, pose } = dive.path.end;
+    if (space === 'aquarium') {
+      Object.assign(this.state.position, { x: pose.x, y: pose.y, z: pose.z });
+      this.state.neutralDepth = pose.y;
+      resetSwimming(this.state);
+    } else {
+      Object.assign(this.walk.position, { x: pose.x, y: pose.y, z: pose.z });
+      stopWalking(this.walk);
+    }
+    this.mode = space;
+    this.ui.setMode(space);
+    this.controls.yaw = pose.yaw;
+    this.controls.pitch = pose.pitch;
+    this.controls.clear();
+    this.looks[space] = { yaw: pose.yaw, pitch: pose.pitch };
+    this.updateAudio(this.controls.locked);
+  }
   private tick = (now: number): void => {
     if (this.disposed || !this.world || !this.controls) return;
     const dt = this.previous
@@ -285,6 +433,23 @@ export class Application {
         )
       : 0;
     this.previous = now;
+    if (this.dive) {
+      this.tickDive(dt);
+      this.frame = requestAnimationFrame(this.tick);
+      return;
+    }
+    const pose = this.pose();
+    this.ui.setPrompt(
+      !this.controls.locked
+        ? null
+        : this.mode === 'office'
+          ? canDive(pose)
+            ? 'dive'
+            : null
+          : canSurface(pose.y)
+            ? 'surface'
+            : null,
+    );
     if (this.mode === 'office' && this.office) {
       this.tickOffice(dt);
       this.frame = requestAnimationFrame(this.tick);

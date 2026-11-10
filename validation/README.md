@@ -179,3 +179,18 @@ COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy020-office node validation/o
 - **Walking:** real Enter, pointer lock, held W and mouse look walk the player at a fixed eye height inside the room, with the depth readout hidden.
 - **Switching:** pause → Enter the Water → swim → back to the office works, and repeated switches leave GPU geometry and texture counts unchanged.
 - **Views:** fixed-camera captures of the room, the live miniature tank, the desk and window, and the shelf, with draw calls, triangles and CPU submit time.
+
+## Pass 021 dive
+
+```bash
+COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy021-dive node validation/dive.mjs
+COZY_DIVE_ONLY=1 COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy021-seam node validation/dive.mjs  # quick seam check
+```
+
+`dive.mjs` enters the office with real input, stands in front of the tank, waits for the "Dive in" prompt and presses E. It then steps the animation loop by hand at 60 Hz, so the frames just before and just after the switch into the aquarium are captured: compare them for the seam. It also checks:
+
+- swimming works after the dive;
+- surfacing near the top returns to the office, standing;
+- reduced motion uses a short fade;
+- GPU memory returns to its earlier counts;
+- there are no console errors.

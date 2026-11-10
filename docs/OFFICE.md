@@ -25,6 +25,29 @@ The aquarium keeps simulating at full scale in its own scene and renderer. Each 
 
 ## Limits
 
-- **No dive transition yet.** Switching spaces is a cut from the pause screen; Pass 021 adds the seamless dive.
 - **Tank interior.** Beyond its walls the aquarium shows its teal background, which reads like the background board of a real tank. The water surface is not visible from above, because the tank has a hood.
 - **Lighting.** No shadows. The spotlight stands in for an area light.
+
+## The dive (Pass 021)
+
+`player/dive.ts` plans the dive and the surfacing as eased segments. It is pure and tested in `tests/dive.test.ts`. `Application` samples the plan each frame and renders whichever space the frame reports.
+
+- **Dive.** Three segments:
+  1. **Approach** (1.8 s, office): from where you stand to 0.45 m in front of the glass at its mid-height, looking straight in. This is a crouch to tank height.
+  2. **Lean** (0.55 s, office): to 0.1 m from the glass.
+  3. **Settle** (1.9 s, aquarium): from that same viewpoint, mapped into aquarium space (`officeToAquarium`), to the usual swim start.
+- **Why the switch is seamless.** At 0.1 m the whole view is glass, and the glass shows the aquarium rendered from exactly that mapped pose. To make the colours match a direct render too:
+  - **Glass:** its tint and sheen fade out over the last half metre (`clarity`).
+  - **Background and translucency:** the miniature target keeps the background identifiable (alpha 0). The glass shader un-premultiplies, tone-maps what was drawn and lays it over the untouched background colour, as the screen does.
+  - **Contact wash:** a teal wash peaks at the crossing (`DIVE.contactVeil`), with a CSS bubble burst.
+  - **Haze:** the underwater haze eases from the outside-view 0.009 to 0.026.
+- **Surfacing.** The reverse:
+  1. **Rise** in the aquarium to just inside the front glass, near the surface.
+  2. **Pass out** through the glass, switching back to the office at the identical viewpoint.
+  3. **Stand up** a step back from the tank, facing the room.
+- **Prompts.**
+  - **Dive in:** within 1.6 m of the tank front and looking at it.
+  - **Return to the office:** within 1.3 m of the surface.
+- **Control.** Input is ignored during the glide, and pausing freezes it. The pause screen's buttons still cut instantly, and cancel an unfinished dive.
+- **Audio.** The destination's audio is unlocked by the E key press. Each soundscape is active only in its own space.
+- **Reduced motion.** A 0.45 s fade out, a cut, and a 0.45 s fade in. No glide, no bubbles.

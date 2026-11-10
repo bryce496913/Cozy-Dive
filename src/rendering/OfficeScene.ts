@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { OFFICE, TANK_SCALE } from '../config/office';
+import { OFFICE, TANK, TANK_SCALE } from '../config/office';
 import { OfficeEnvironment } from '../environment/office/OfficeEnvironment';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
 import type { UnderwaterScene } from './UnderwaterScene';
@@ -27,15 +27,26 @@ void main(){
 const PORTAL_FRAGMENT = `
 uniform sampler2D map;
 uniform vec2 resolution;
+uniform float clarity;
+uniform vec3 background;
 varying vec3 vNormalW;
 varying vec3 vViewW;
 void main(){
-  vec3 c=texture2D(map,gl_FragCoord.xy/resolution).rgb;
+  vec4 s=texture2D(map,gl_FragCoord.xy/resolution);
+  // The target holds what was drawn, premultiplied, over a cleared (alpha 0) background. As in a
+  // direct render, drawn colour is tone mapped and the background colour is not.
+  // Un-premultiply so translucent layers (glass walls, surface) blend after tone mapping, as on
+  // screen: tone-map the drawn colour, then lay it over the background by its coverage.
+  vec3 c=s.a>0.0001?s.rgb/s.a:vec3(0.);
+  #ifdef TONE_MAPPING
+  c=toneMapping(c);
+  #endif
+  c=c*s.a+(1.-s.a)*background;
   // Glass: a faint cool tint and a soft reflection towards grazing angles.
   float fresnel=pow(1.-clamp(abs(dot(normalize(vViewW),normalize(vNormalW))),0.,1.),4.);
-  c=mix(c*vec3(0.94,0.98,0.98),vec3(0.86,0.9,0.9),0.06+0.3*fresnel);
+  // Pressed up to the glass (the dive) it no longer reads as glass: tint and sheen fade out.
+  c=mix(mix(c*vec3(0.94,0.98,0.98),vec3(0.86,0.9,0.9),0.06+0.3*fresnel),c,clarity);
   gl_FragColor=vec4(c,1.);
-  #include <tonemapping_fragment>
   #include <colorspace_fragment>
 }`;
 /** Miniature render resolution relative to the screen. */
@@ -87,6 +98,14 @@ export class OfficeScene {
     velocity: { x: 0, y: 0, z: 0 },
     active: false,
   };
+  /** v0.3 Pass 021: the office seen from inside the tank (surfacing), rendered on demand. */
+  private outsideTarget?: THREE.WebGLRenderTarget;
+  private readonly outsideCamera = new THREE.PerspectiveCamera(
+    64,
+    1,
+    0.005,
+    30,
+  );
   private disposed = false;
 
   constructor(private readonly world: UnderwaterScene) {
@@ -126,12 +145,16 @@ export class OfficeScene {
       uniforms: {
         map: { value: this.target.texture },
         resolution: { value: new THREE.Vector2(1, 1) },
+        clarity: { value: 0 },
+        background: { value: new THREE.Color() },
       },
       vertexShader: PORTAL_VERTEX,
       fragmentShader: PORTAL_FRAGMENT,
     });
     this.portal.name = 'Miniature aquarium glass';
     for (const glass of this.office.tankGlass) glass.material = this.portal;
+    if (world.scene.background instanceof THREE.Color)
+      this.portal.uniforms.background.value.copy(world.scene.background);
     this.office.root.updateMatrixWorld(true);
     this.office.tankRoot.matrixWorld.decompose(
       new THREE.Vector3(),
@@ -180,12 +203,67 @@ export class OfficeScene {
     this.portal.uniforms.resolution.value.copy(this.size);
   }
 
+  /**
+   * v0.3 Pass 021: render the office as seen from `aquariumCamera`'s pose mapped into the office
+   * (inside the tank, looking out), for the aquarium's front glass while surfacing.
+   */
+  renderOutside(aquariumCamera: THREE.PerspectiveCamera): THREE.Texture {
+    this.fit();
+    const target = (this.outsideTarget ??= new THREE.WebGLRenderTarget(1, 1, {
+        type: THREE.HalfFloatType,
+        samples: 4,
+      })),
+      c = this.outsideCamera;
+    if (
+      target.width !== this.target.width ||
+      target.height !== this.target.height
+    )
+      target.setSize(this.target.width, this.target.height);
+    aquariumCamera.updateMatrixWorld();
+    c.position
+      .copy(aquariumCamera.position)
+      .multiplyScalar(TANK_SCALE)
+      .applyMatrix4(this.office.tankRoot.matrixWorld);
+    c.quaternion.copy(this.tankRotation).multiply(aquariumCamera.quaternion);
+    if (c.fov !== aquariumCamera.fov || c.aspect !== aquariumCamera.aspect) {
+      c.fov = aquariumCamera.fov;
+      c.aspect = aquariumCamera.aspect;
+      c.updateProjectionMatrix();
+    }
+    c.updateMatrixWorld();
+    const renderer = this.world.renderer,
+      previous = renderer.getRenderTarget();
+    try {
+      renderer.setRenderTarget(target);
+      renderer.clear();
+      renderer.render(this.scene, c);
+    } finally {
+      renderer.setRenderTarget(previous);
+    }
+    return target.texture;
+  }
+  /** Free the outside view's render target once surfacing is over. */
+  releaseOutside(): void {
+    this.outsideTarget?.dispose();
+    this.outsideTarget = undefined;
+  }
+  /** Screen size the outside view is sampled at. */
+  get resolution(): THREE.Vector2 {
+    return this.size;
+  }
   /** Advance the office and the aquarium inside the tank, then draw both. */
   render(time: number, reducedMotion: boolean, dt: number): void {
     if (this.disposed) return;
     this.fit();
     this.office.update(time, reducedMotion, dt);
     this.syncMiniature();
+    // v0.3 Pass 021: the glass clears over the last half metre, so the dive's switch into the
+    // aquarium (which has no glass in front of the eye) shows the identical image.
+    const gap =
+      this.camera.position.x -
+      (this.office.tankRoot.position.x - TANK.size.z / 2);
+    const t = Math.min(1, Math.max(0, (-gap - 0.1) / 0.5));
+    this.portal.uniforms.clarity.value = 1 - t * t * (3 - 2 * t);
     // Fish keep schooling in the miniature; there is no diver inside the tank.
     this.world.simulate(
       time,
@@ -206,6 +284,7 @@ export class OfficeScene {
     this.lights.forEach((l) => l.dispose());
     this.portal.dispose();
     this.target.dispose();
+    this.outsideTarget?.dispose();
     this.scene.clear();
   }
 }
