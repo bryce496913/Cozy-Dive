@@ -43,3 +43,7 @@ Pass 011 keeps this production architecture unchanged and adds whole-aquarium va
 ## Pass 015 authored nudibranchs and skins
 
 The five nudibranchs keep their homes, crawl paths, phases, variants and ripple, but now render as authored species (see [art direction](ART_DIRECTION.md)). Each authored mesh copies its animal's crawl-pose matrix every frame and stays inside the envelope `surfaceHome` validated: under a 0.285 crawling radius and under the 0.26 height, with 3 mm left for the ripple. The procedural instanced forms remain resident as the fallback. The seahorse and frogfish keep their pivots and homes; their skins are re-authored with rings, tubercles, warts and pattern of at most a few millimetres, and the frogfish sole is untouched. See [Pass 015 validation](VALIDATION_V02_PASS_015.md).
+
+## Pass 019 playtest changes
+
+The seahorse is 20% of its former modelled size (`SEAHORSE_SCALE`; about 0.22 m tall). Geometry stays in its local units and the root carries the scale. Its grip offset, safety radius, viewing target height, awareness offset and drift amplitudes are scaled with it, so it still clings to the same sea fan.

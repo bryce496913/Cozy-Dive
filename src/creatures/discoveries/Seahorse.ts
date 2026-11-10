@@ -15,6 +15,12 @@ import {
   tube,
 } from './DiscoveryGeometry';
 
+/**
+ * Pass 019 playtest: the seahorse is 20% of its original modelled size (about 20 cm tall, in
+ * proportion with the reef fish). Geometry stays in its authored local units; the root carries
+ * the scale, so grip offsets, safety radii and drift are scaled with it.
+ */
+export const SEAHORSE_SCALE = 0.2;
 /** Upright segmented horse/neck anatomy, not a conventional swimming-fish template. */
 export class Seahorse {
   readonly root = new THREE.Group();
@@ -46,6 +52,8 @@ export class Seahorse {
   private disposed = false;
   constructor(h: FishHabitat, plants: readonly PlantPlacement[]) {
     this.root.name = 'Hidden seahorse';
+    this.root.scale.setScalar(SEAHORSE_SCALE);
+    const k = SEAHORSE_SCALE;
     const body: THREE.BufferGeometry[] = [],
       green = 0x89956a,
       ridge = 0x697954;
@@ -215,9 +223,9 @@ export class Seahorse {
         new THREE.Vector3(plant.normal.x, plant.normal.y, plant.normal.z),
         plant.height * 0.22,
       );
-      position.copy(grip).addScaledVector(forward, -0.14);
-      position.y -= 0.15;
-      world.compose(position, q, new THREE.Vector3(1, 1, 1));
+      position.copy(grip).addScaledVector(forward, -0.14 * k);
+      position.y -= 0.15 * k;
+      world.compose(position, q, new THREE.Vector3(k, k, k));
       let safe = true;
       const nearby = h.rocks.filter(
         (r) =>
@@ -235,13 +243,16 @@ export class Seahorse {
           if (g === tailGeometry) probe.y += 0.33;
           probe.applyMatrix4(world);
           if (
-            !safeFishPosition(probe, 0.075, { bounds: h.bounds, rocks: nearby })
+            !safeFishPosition(probe, 0.075 * k, {
+              bounds: h.bounds,
+              rocks: nearby,
+            })
           )
             safe = false;
         }
       }
       if (!safe) continue;
-      const target = position.clone().add(new THREE.Vector3(0, 0.65, 0)),
+      const target = position.clone().add(new THREE.Vector3(0, 0.65 * k, 0)),
         view = discoveryView(target, forward, h, 1.25);
       if (!view) continue;
       found = {
@@ -279,7 +290,7 @@ export class Seahorse {
         player?.active &&
         Math.hypot(
           player.position.x - p.x,
-          player.position.y - p.y - 0.55,
+          player.position.y - p.y - 0.55 * SEAHORSE_SCALE,
           player.position.z - p.z,
         ) < 1.5
           ? 1
@@ -299,12 +310,13 @@ export class Seahorse {
           : phase < 36
             ? 0
             : smooth((phase - 36) / 6);
-    const float = 0.008 + 0.02 * (1 - grip);
+    const k = SEAHORSE_SCALE,
+      float = (0.008 + 0.02 * (1 - grip)) * k;
     this.hover
       .set(
-        Math.sin(time * 0.16) * 0.025,
+        Math.sin(time * 0.16) * 0.025 * k,
         Math.sin(time * 0.3) * float,
-        Math.sin(time * 0.11) * 0.025 - this.awareness * 0.025,
+        (Math.sin(time * 0.11) * 0.025 - this.awareness * 0.025) * k,
       )
       .applyQuaternion(this.basis);
     this.root.position.set(

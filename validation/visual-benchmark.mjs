@@ -183,7 +183,7 @@ try {
         'Typed-array bytes exclude driver copies; RGBA8 texture estimate excludes compression, morph textures and shadow maps. Shared image maps counted once per resource set.',
     };
   });
-  assert.equal(inventory.fish, 40);
+  assert.equal(inventory.fish, 41);
   assert.equal(inventory.chromis, 20);
   // 10 normal-scene libraries (Pass 013-016) + the showcase's own chromis and Acropora leases.
   assert.equal(requests.length, 12);
@@ -430,7 +430,7 @@ try {
       ),
     };
   });
-  assert.equal(safety.fish, 40);
+  assert.equal(safety.fish, 41);
   assert(safety.finite);
   assert.equal(safety.corrections, 0);
   const cleanup = await page.evaluate(() => {
@@ -465,7 +465,7 @@ try {
       window.__visualBenchmark.world.aquarium.fish.simulation.fish.length,
   }));
   assert(fallbackResult.visibleOriginalChromis);
-  assert.equal(fallbackResult.population, 40);
+  assert.equal(fallbackResult.population, 41);
   await fallback.close();
   const recreation = [];
   for (let i = 0; i < 2; i++) {

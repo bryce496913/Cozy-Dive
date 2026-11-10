@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.2 / Pass 018 — KTX2 Texture Compression (`0.2.0-rc.12`)** is a first-person, browser-based aquarium prototype: swim at your own pace through rippled sand, carved reef rock, corals, seagrass and soft blue-green water. No scores, timers, combat, accounts, or external asset services.
+A quiet little world beneath the surface. **v0.2 / Pass 019 — Playtest Fixes (`0.2.0-rc.13`)** is a first-person, browser-based aquarium prototype: swim at your own pace through rippled sand, carved reef rock, corals, seagrass and soft blue-green water. No scores, timers, combat, accounts, or external asset services.
 
 ## Stack and requirements
 
@@ -42,11 +42,11 @@ Vite binds to all interfaces for cloud development; use `npm run dev -- --host 1
 
 Click **Return to the Water** to resume. Look up or down and use W/S to change depth; A/D always strafe horizontally. Space and Shift have no swimming action. Pausing or losing browser focus clears held input and propulsion momentum while retaining a resting breath’s phase and small vertical velocity. Diagonal input is normalized. Subtle stroke-related pitch feedback stays below 0.07 degrees, with no roll or visual position offsets. Looking straight up/down is limited.
 
-This is a technical release candidate; final v0.2 approval awaits manual MacBook Air acceptance. See [Pass 018 validation](docs/VALIDATION_V02_PASS_018.md), [Pass 017 validation](docs/VALIDATION_V02_PASS_017.md), [Pass 016 validation](docs/VALIDATION_V02_PASS_016.md), [Pass 015 validation](docs/VALIDATION_V02_PASS_015.md), [Pass 014 validation](docs/VALIDATION_V02_PASS_014.md), [Pass 013 validation](docs/VALIDATION_V02_PASS_013.md) and [repeatable benchmarks](validation/README.md).
+This is a technical release candidate; final v0.2 approval awaits manual MacBook Air acceptance. See [Pass 019 validation](docs/VALIDATION_V02_PASS_019.md), [Pass 018 validation](docs/VALIDATION_V02_PASS_018.md), [Pass 017 validation](docs/VALIDATION_V02_PASS_017.md), [Pass 016 validation](docs/VALIDATION_V02_PASS_016.md), [Pass 015 validation](docs/VALIDATION_V02_PASS_015.md), [Pass 014 validation](docs/VALIDATION_V02_PASS_014.md), [Pass 013 validation](docs/VALIDATION_V02_PASS_013.md) and [repeatable benchmarks](validation/README.md).
 
 ## Current features
 
-- Seeded procedural aquarium with rippled sand, embedded rocks, planted banks, visible glass seams, and 40 tropical marine fish across six species with distinct social behavior.
+- Seeded procedural aquarium with rippled sand, embedded rocks, planted banks, visible glass seams, and 41 tropical marine fish across six species with distinct social behavior.
 - Six marine habitat forms (seagrass, macroalgae and soft corals) in seeded habitat patches, with shared-current vertex bending, stable bases and smooth reduced-motion settling. Suspended particles, translucent light shafts, hemisphere and surface lighting, and distance fog.
 - First-person swimming with smooth kick-and-glide propulsion, weighted direction changes, progressive water drag, and damped breathing buoyancy. Bounded 1/240-second steps sample forces and integrate linear drag analytically; long frame gaps are capped at 100 ms.
 - A safe starting position, clearance from all six aquarium boundaries, and sliding collisions against 139 structural hulls: 34 reef rocks, 39 coral/older decorative components, and 66 components across six aquarium ornaments. Thin foliage and decorative pebbles remain passable.
@@ -86,9 +86,9 @@ See [audio architecture and settings](docs/AUDIO.md) and [Pass 005B validation a
 
 ## A tropical marine aquarium
 
-Six home-aquarium decorations now share the reef: a slowly opening treasure chest with occasional bubbles, corner filter, swimmable stone arch, miniature wreck, hollow driftwood log, and island-head statue. Openings have matching component collision; the chest lid holds safely when a player or fish is nearby. See [ornament architecture](docs/ORNAMENTS.md).
+Six home-aquarium decorations now share the reef: a slowly opening treasure chest with occasional bubbles, an internal filter hung in the top corner, swimmable stone arch, miniature wreck, hollow driftwood log, and island-head statue. Openings have matching component collision; the chest lid holds safely when a player or fish is nearby. See [ornament architecture](docs/ORNAMENTS.md).
 
-The active roster is **20 blue-green chromis, 6 pajama cardinalfish, 6 firefish gobies, 4 yellow assessors, 2 royal grammas and 2 ocellaris clownfish** (40 total). Chromis form the larger lively school; cardinals hover in loose groups; firefish retreat toward safe shelter; assessors and grammas explore local reef cover. The five freshwater species have been replaced. The clownfish pair stays near one gently animated host anemone. A separate sheltered moray peeks and retreats inside the hollow log. See [anchored marine life](docs/ANCHORED_LIFE.md).
+The active roster is **20 blue-green chromis, 6 pajama cardinalfish, 6 firefish gobies, 4 yellow assessors, 2 royal grammas and 3 ocellaris clownfish** (41 total). Chromis form the larger lively school; cardinals hover in loose groups; firefish retreat toward safe shelter; assessors and grammas explore local reef cover. The five freshwater species have been replaced. The clownfish pair and a small juvenile stay near one gently animated host anemone. A separate sheltered moray rests on the floor of the hollow log and lifts its head out of the entrance. See [anchored marine life](docs/ANCHORED_LIFE.md).
 
 Models have species-specific lofted bodies, distinctive marine patterns, eyes and articulated fins. Chromis vary in blue-green tint, cardinals carry yellow faces/bands/spots, firefish have extended dorsal pennants, and grammas have purple/gold bodies. All species use shared articulated instance batches with conservative moving bounds.
 
@@ -96,13 +96,13 @@ The reef includes turtle grass, Caulerpa, Halimeda, red macroalgae, soft leather
 
 Patient exploration can also reveal one seahorse tucked beside vegetation, a camouflaged frogfish in the wreck, and five tiny surface-crawling nudibranchs. They have stable, safely viewable homes and no markers, notifications or collection mechanics. See [hidden marine discoveries](docs/HIDDEN_LIFE.md).
 
-See [fish](docs/FISH.md), [marine forms](docs/PLANTS.md), [habitat anchors](docs/HABITAT.md), and [Pass 013 validation](docs/VALIDATION_V02_PASS_013.md). Production uses 40 fish; the explicit temporary stress configuration uses 60. No new audio layers, feeding, aggression or damage mechanics are implemented.
+See [fish](docs/FISH.md), [marine forms](docs/PLANTS.md), [habitat anchors](docs/HABITAT.md), and [Pass 013 validation](docs/VALIDATION_V02_PASS_013.md). Production uses 41 fish; the explicit temporary stress configuration uses 61. No new audio layers, feeding, aggression or damage mechanics are implemented.
 
 ## Swimming physics and tuning
 
 Holding a movement key repeats an active stroke followed by a glide. A squared-sine envelope builds and fades the propulsion **force**, which is filtered before integration; velocity and position are never multiplied by a wave. A small baseline thrust softens the rhythm. Releasing input cuts thrust while velocity decays under water drag, settling tiny horizontal residuals to zero. Direction changes redirect the filtered force without resetting velocity. Diagonal normalization and pitch-relative forward movement are preserved; all three propulsion axes use the same force pulse, filtering, drag, and coasting, including nearly vertical swimming.
 
-Choose **Relaxed**, **Natural** (default), or **Responsive** in Settings. Existing v1 storage remains valid; missing/invalid feel values become Natural without losing other preferences. Speed is a nominal average horizontal speed: instantaneous speed varies across the stroke.
+Choose **Relaxed**, **Natural** (default), or **Responsive** in Settings. Existing v1 storage migrates to v2 on first load, keeping every preference; the swim speed moves to the 20% slower scale (Pass 019). Missing/invalid feel values become Natural without losing other preferences. Speed is a nominal average horizontal speed: instantaneous speed varies across the stroke.
 
 | Preset     | Cycle (s) | Active fraction | Drag (1/s) | Force response (1/s) | Rhythmic fraction | Breathing force (m/s²) |
 | ---------- | --------- | --------------- | ---------- | -------------------- | ----------------- | ---------------------- |
@@ -215,6 +215,19 @@ Behaviour, homes, collision and animation contracts are unchanged; clownfish and
 ### v0.2 Pass 016 candidate
 
 All 40 fish now swim as authored morph rigs: the accepted chromis, plus new pajama cardinalfish, firefish, yellow assessors and royal grammas built on the same rig and morph contract, alongside the Pass 013 clownfish. Simulation, behaviour, pause and reduced motion are unchanged, and the procedural fish remain as the fallback. See [validation and matched captures](docs/VALIDATION_V02_PASS_016.md). This pass awaits user review and MacBook Air acceptance.
+
+### v0.2 Pass 019 candidate
+
+Fixes from the Pass 018 MacBook playtest:
+
+- The seahorse is 20% of its former size (about 22 cm), clinging to its sea fan.
+- The clownfish pair is half its former size, joined by a juvenile at 10% of the former size.
+- The internal filter hangs in the top back corner with its body just under the waterline.
+- The moray rests on the floor of its log and lifts its head out of the entrance, instead of floating in the middle of the bore.
+- Swimming is 20% slower: the default is 2.24 m/s and the maximum 4 m/s. Saved speeds move to the new scale.
+- Texture pop-in is gone. Every texture and per-object GPU resource is uploaded behind "Preparing aquarium details" before you enter, where 93 used to upload during the first swim.
+
+The roadmap now follows the agreed sequence: v0.3 Office & Dive Transition, v0.4 Personalization, v0.5 Beyond the Glass, v0.6 Expanding Oceans. See [validation](docs/VALIDATION_V02_PASS_019.md).
 
 ### v0.2 Pass 018 candidate
 

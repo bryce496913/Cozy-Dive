@@ -91,9 +91,10 @@ try {
   });
   assert.equal(
     Object.values(inventory.fish).reduce((a, b) => a + b, 0),
-    40,
+    41,
   );
-  assert.equal(inventory.fish['ocellaris-clownfish'], 2);
+  // Pass 019: clownfish pair plus juvenile.
+  assert.equal(inventory.fish['ocellaris-clownfish'], 3);
   const views = [];
   for (const name of [
     'overview',

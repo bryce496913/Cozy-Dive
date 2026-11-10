@@ -25,20 +25,26 @@ describe('six-species population and shared models', () => {
       'royal-gramma',
       'ocellaris-clownfish',
     ]);
-    expect(FISH_SPECIES.map((s) => s.count)).toEqual([20, 6, 6, 4, 2, 2]);
-    for (const count of [40, 60] as const)
-      expect(fishPopulation(count).reduce((n, s) => n + s.count, 0)).toBe(
-        count,
+    expect(FISH_SPECIES.map((s) => s.count)).toEqual([20, 6, 6, 4, 2, 3]);
+    for (const [scenario, total] of [
+      ['home', 41],
+      ['dense', 61],
+    ] as const)
+      expect(fishPopulation(scenario).reduce((n, s) => n + s.count, 0)).toBe(
+        total,
       );
   });
-  it.each([40, 60] as const)(
-    'spawns %i fish deterministically with safe bodies, personal space and a loose chili region',
-    (count) => {
+  it.each([
+    ['home', 41],
+    ['dense', 61],
+  ] as const)(
+    'spawns the %s population (%i fish) deterministically with safe bodies, personal space and a loose chili region',
+    (count, total) => {
       const a = new Aquarium();
       try {
         const h = a.fish.simulation.habitat,
           fish = spawnFish(h, fishPopulation(count));
-        expect(fish).toHaveLength(count);
+        expect(fish).toHaveLength(total);
         expect(spawnFish(h, fishPopulation(count))).toEqual(fish);
         for (let i = 0; i < fish.length; i++) {
           const f = fish[i];
@@ -76,7 +82,7 @@ describe('six-species population and shared models', () => {
   it('batches all marine articulated parts and varies chromis tint without duplicating models', () => {
     const system = new FishSystem(open);
     try {
-      expect(system.visuals).toHaveLength(40);
+      expect(system.visuals).toHaveLength(41);
       expect(system.batches.length).toBe(6);
       expect(system.templates).toHaveLength(6);
       const chromis = system.batches[0].meshes[0];
@@ -285,8 +291,8 @@ describe('darting and school identity', () => {
     expect(results[1]).toEqual(results[0]);
     expect(results[2]).toEqual(results[0]);
   });
-  it.each([40, 60] as const)(
-    'keeps %i fish safe and moving for three minutes around actual rocks and ornaments',
+  it.each(['home', 'dense'] as const)(
+    'keeps the %s population safe and moving for three minutes around actual rocks and ornaments',
     (count) => {
       const a = new Aquarium();
       try {

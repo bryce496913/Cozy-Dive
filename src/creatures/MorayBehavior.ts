@@ -65,6 +65,16 @@ export class MorayBehavior {
       -Math.expm1(-(target < this.extension ? 1.1 : 0.65) * dt);
   }
 }
+/**
+ * Pass 019 playtest: the moray lies along the floor of the log's bore (radius 1.02 about the
+ * anchor axis) instead of floating on the axis. Only the head lifts as it emerges, the way a
+ * moray props its head at a den entrance; the body keeps a small resting sway.
+ */
+export const MORAY_DEN = { floor: -0.74, sway: 0.03, headLift: 0.22 } as const;
+const smooth = (a: number, b: number, x: number): number => {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+};
 /** Matches the GPU deformation; body unfolds gently from a tucked S inside its shelter. */
 export function morayCenter(
   t: number,
@@ -76,12 +86,17 @@ export function morayCenter(
     (0.3 - 0.09 * extension) *
     Math.sin(t * Math.PI * 2 + Math.sin(phase * 0.45) * 0.15) *
     Math.sin(Math.PI * t);
-  out.y = 0.055 * Math.sin(Math.PI * t) * Math.sin(t * 5 + phase * 0.35);
+  out.y =
+    MORAY_DEN.floor +
+    MORAY_DEN.sway *
+      Math.sin(Math.PI * t) *
+      (0.5 + 0.5 * Math.sin(t * 5 + phase * 0.35)) +
+    MORAY_DEN.headLift * extension * smooth(0.78, 1, t);
   out.z = -1.25 + (1.6 + 1.5 * extension) * t;
 }
 export const MORAY_GLSL = `
 uniform float morayExtension;
 uniform float morayPhase;
 attribute float morayT;
-vec3 morayCenter(float t){return vec3((.30-.09*morayExtension)*sin(t*6.2831853+sin(morayPhase*.45)*.15)*sin(3.14159265*t),.055*sin(3.14159265*t)*sin(t*5.+morayPhase*.35),-1.25+(1.6+1.5*morayExtension)*t);}
+vec3 morayCenter(float t){return vec3((.30-.09*morayExtension)*sin(t*6.2831853+sin(morayPhase*.45)*.15)*sin(3.14159265*t),${MORAY_DEN.floor.toFixed(4)}+${MORAY_DEN.sway.toFixed(4)}*sin(3.14159265*t)*(.5+.5*sin(t*5.+morayPhase*.35))+${MORAY_DEN.headLift.toFixed(4)}*morayExtension*smoothstep(.78,1.,t),-1.25+(1.6+1.5*morayExtension)*t);}
 `;

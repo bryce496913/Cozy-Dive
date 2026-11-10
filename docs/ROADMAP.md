@@ -2,16 +2,16 @@
 
 These milestones describe direction, not commitments or a fixed release schedule. Each pass should remain small, playable, and easy to review. Revisit priorities after testing swimming feel and browser performance.
 
-| Milestone                        | Proposed focus                                                                                                           |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| **v0.1 — First Dive**            | Project foundation, procedural aquarium, calm first-person swimming, boundaries, settings, tests, and desktop prototype. |
-| **v0.2 — Living Aquarium**       | Tropical marine reef life and lightweight fish behavior; improve scenery and measure performance.                        |
-| **v0.3 — Cozy Interactions**     | A few gentle, optional interactions without pressure or progression demands.                                             |
-| **v0.4 — Make It Yours**         | Aquarium customization and a considered local persistence model.                                                         |
-| **v0.5 — Beyond the Glass**      | Office-to-tank framing and hidden connections to larger environments, introduced gradually.                              |
-| **v0.6 — Ocean Life**            | Broader ocean spaces, varied habitats, and richer marine behavior within browser budgets.                                |
-| **v0.7 — Polish and Relaxation** | Accessibility, performance, audio, visual refinement, and swimming-feel iteration.                                       |
-| **v0.8 — Public Beta**           | Broader device/browser testing, onboarding polish, feedback, and stability.                                              |
+| Milestone                           | Focus                                                                                                                    |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| **v0.1 — First Dive**               | Project foundation, procedural aquarium, calm first-person swimming, boundaries, settings, tests, and desktop prototype. |
+| **v0.2 — Living Aquarium**          | Tropical marine reef life and lightweight fish behavior; improve scenery and measure performance.                        |
+| **v0.3 — Office & Dive Transition** | Office environment and a seamless entry into the aquarium.                                                               |
+| **v0.4 — Personalization**          | Adding fish, decorations and plants, with persistent saves.                                                              |
+| **v0.5 — Beyond the Glass**         | The first passage into a larger tropical reef.                                                                           |
+| **v0.6 — Expanding Oceans**         | New environments, species and discoveries.                                                                               |
+
+**Vision (agreed after the Pass 018 playtest).** An office fish-tank escape is the entry point: a memorable start, a strong visual identity and a natural home. It is also a metaphor for escaping the everyday into something peaceful. A tiny aquarium in the real world becomes an enormous underwater playground, with hidden passages into expansive oceans; the aquarium is a portal into an ocean world. Later milestones (polish, accessibility, broader device testing and a public beta) follow once these are in place.
 
 The first pass intentionally excludes office scenes, fish AI, customization, hidden passages, large oceans, multiplayer, authentication, inventory, quests, complex physics, backend services, and mobile touch controls. Do not interpret roadmap entries as authorization to build them now.
 
@@ -28,3 +28,5 @@ Pass 010 adds seven small hidden marine animals with stable habitat homes and sa
 Pass 011 is the final technical integration review for the tropical v0.2 candidate. It strengthens whole-scene invariants, physically checks discovery/ornament routes and exercises explicit browser failure handling. Historical validation remains intact. Await final user acceptance before closing v0.2 or starting v0.3; target hardware performance and subjective comfort are not established by cloud software rendering.
 
 Pass 012 responds to rejection of the placeholder-like visuals with an opt-in GLB/Blender benchmark and a reusable asset pipeline. It does not turn the whole aquarium into a new art release or supersede pending user acceptance. Pass 013 — Marine Creature Model Overhaul must wait for acceptance of this benchmark, its remaining art limitations and target-device budgets. No v0.3 work or release/tag is authorized by successful technical checks.
+
+Pass 019 applies the fixes from the user's Pass 018 MacBook playtest (seahorse and clownfish scale, a clownfish juvenile, the filter mounted at the top corner, the moray resting in its log, 20% slower swimming, and texture pop-in) and records the agreed v0.3–v0.6 sequence above. No v0.3 office work is included.

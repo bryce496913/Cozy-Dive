@@ -91,7 +91,7 @@ try {
       audio: ctx.state,
     };
   });
-  assert.equal(resources.fish, 40);
+  assert.equal(resources.fish, 41);
   assert.deepEqual(resources.originalClownVisible, [false]);
   assert.equal(resources.after.geometries, 0);
   assert.equal(resources.after.textures, 0);
@@ -109,7 +109,7 @@ try {
       'one request per model',
       'real Enter/W swimming/Escape',
       'comparison toggles without reloading',
-      '40 fish preserved',
+      '41 fish preserved',
       'graphics/audio/cache cleanup',
     ],
     limitations: [
