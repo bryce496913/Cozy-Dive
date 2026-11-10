@@ -24,6 +24,7 @@ export interface FeelTuning {
   rhythm: number;
   breathing: number;
 }
+/** Pass 019 playtest: breathing buoyancy forces are 60% of their earlier values (calmer idle bob). */
 export const SWIM_FEELS: Record<SwimmingFeel, FeelTuning> = {
   relaxed: {
     cycle: 1.4,
@@ -31,7 +32,7 @@ export const SWIM_FEELS: Record<SwimmingFeel, FeelTuning> = {
     drag: 0.8,
     response: 5,
     rhythm: 0.85,
-    breathing: 0.14,
+    breathing: 0.084,
   },
   natural: {
     cycle: 1.1,
@@ -39,7 +40,7 @@ export const SWIM_FEELS: Record<SwimmingFeel, FeelTuning> = {
     drag: 1.1,
     response: 8,
     rhythm: 0.75,
-    breathing: 0.2,
+    breathing: 0.12,
   },
   responsive: {
     cycle: 0.8,
@@ -47,7 +48,7 @@ export const SWIM_FEELS: Record<SwimmingFeel, FeelTuning> = {
     drag: 1.8,
     response: 12,
     rhythm: 0.3,
-    breathing: 0.12,
+    breathing: 0.072,
   },
 };
 export const SWIMMING = {

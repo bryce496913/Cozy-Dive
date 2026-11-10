@@ -28,9 +28,8 @@ export interface SurfaceHome extends DiscoveryHome {
 /** Default eye height of a discovery view above its focus. */
 export const DISCOVERY_VIEW_LIFT = 0.55;
 /**
- * The frogfish perches low on the wreck deck. Pass 013's authored wreck hulls overhang the
- * default-height views there (none of them keeps 0.65 clearance), so its eye sits higher; the
- * chosen view and approach legs are then clear with procedural, authored and reef hulls alike.
+ * Frogfish view: a higher eye than other discoveries (first needed beside the Pass 013 wreck
+ * hulls; since Pass 019 it looks down onto the frogfish's rock-top perch).
  */
 export const FROGFISH_VIEW_LIFT = 0.9;
 export const FROGFISH_VIEW_DISTANCE = 1.3;
@@ -86,6 +85,8 @@ export function surfaceHome(
   halfLength: number,
   height: number,
   used: readonly DiscoveryClearance[] = [],
+  /** Smallest upward component of an accepted support face (1 = level ground). */
+  minUp = 0.45,
 ): SurfaceHome {
   const circular = id.startsWith('nudibranch'),
     count = circular ? 16 : 4,
@@ -127,7 +128,7 @@ export function surfaceHome(
         planeIndex++
       ) {
         const plane = support.planes[planeIndex];
-        if (plane.y < 0.45) continue;
+        if (plane.y < minUp) continue;
         n.set(plane.x, plane.y, plane.z);
         u.set(1, 0, 0).addScaledVector(n, -n.x).normalize();
         v.crossVectors(u, n).normalize();
@@ -226,4 +227,147 @@ export function surfaceHome(
       }
     }
   throw new Error(`No safely viewable surface patch for ${id}`);
+}
+
+/**
+ * Height of a convex hull's upper surface above (x, z) and the index of the face supplying it,
+ * or undefined when the vertical line misses the hull.
+ */
+export function hullTop(
+  hull: ConvexCollider,
+  x: number,
+  z: number,
+): { y: number; planeIndex: number } | undefined {
+  let top = Infinity,
+    bottom = -Infinity,
+    planeIndex = -1;
+  for (let i = 0; i < hull.planes.length; i++) {
+    const p = hull.planes[i],
+      rest = p.offset - p.x * x - p.z * z;
+    if (Math.abs(p.y) < 1e-6) {
+      if (rest < 0) return undefined;
+    } else if (p.y > 0) {
+      if (rest / p.y < top) {
+        top = rest / p.y;
+        planeIndex = i;
+      }
+    } else bottom = Math.max(bottom, rest / p.y);
+  }
+  return top > bottom && planeIndex >= 0 ? { y: top, planeIndex } : undefined;
+}
+
+/**
+ * Pass 019: a level perch on the top of a reef rock for a still, rock-coloured animal. Rock tops
+ * are rounded hulls made of small faces, so the footprint is tested against the sampled top height
+ * (within `tolerance`) rather than a single face. The animal faces the open channel.
+ */
+export function rockTopHome(
+  id: string,
+  rocks: readonly ConvexCollider[],
+  h: FishHabitat,
+  halfWidth: number,
+  halfLength: number,
+  height: number,
+  minUp: number,
+  view: { distance: number; lift: number },
+  tolerance = 0.035,
+): SurfaceHome {
+  const ordered = rocks
+    .map((rock, index) => ({ rock, index }))
+    .filter(({ rock }) => rock.max.y > 1 && rock.max.y < 6)
+    .sort(
+      (a, b) =>
+        Math.abs((a.rock.min.x + a.rock.max.x) / 2) -
+          Math.abs((b.rock.min.x + b.rock.max.x) / 2) || a.index - b.index,
+    );
+  const n = new THREE.Vector3(),
+    u = new THREE.Vector3(),
+    v = new THREE.Vector3(),
+    probe = new THREE.Vector3();
+  for (const { rock: support, index } of ordered) {
+    const cx = (support.min.x + support.max.x) / 2,
+      cz = (support.min.z + support.max.z) / 2;
+    for (const dx of [0, -0.3, 0.3, -0.6, 0.6, -0.9, 0.9])
+      for (const dz of [0, -0.3, 0.3, -0.6, 0.6, -0.9, 0.9]) {
+        const x = cx + dx,
+          z = cz + dz;
+        if (Math.abs(x) < 4) continue;
+        const top = hullTop(support, x, z);
+        if (!top || top.y < 0.15 || top.y > 8) continue;
+        const plane = support.planes[top.planeIndex];
+        if (plane.y < minUp) continue;
+        n.set(plane.x, plane.y, plane.z);
+        // Face the open channel (x = 0), within the support face.
+        v.set(-Math.sign(x), 0, 0).addScaledVector(n, n.x * Math.sign(x));
+        v.normalize();
+        u.crossVectors(n, v).normalize();
+        let level = true;
+        for (const [sx, sz] of [
+          [-1, -1],
+          [1, -1],
+          [-1, 1],
+          [1, 1],
+        ] as const) {
+          probe
+            .set(x, top.y, z)
+            .addScaledVector(u, sx * halfWidth)
+            .addScaledVector(v, sz * halfLength);
+          const corner = hullTop(support, probe.x, probe.z);
+          if (!corner || Math.abs(corner.y - probe.y) > tolerance) {
+            level = false;
+            break;
+          }
+        }
+        if (!level) continue;
+        const p = new THREE.Vector3(x, top.y, z);
+        const nearby = h.rocks.filter(
+          (r) =>
+            r !== support &&
+            r.max.x > x - 1 &&
+            r.min.x < x + 1 &&
+            r.max.y > top.y - 0.1 &&
+            r.min.y < top.y + height + 1 &&
+            r.max.z > z - 1 &&
+            r.min.z < z + 1,
+        );
+        let clear = true;
+        for (const sx of [-halfWidth, 0, halfWidth])
+          for (const sz of [-halfLength, 0, halfLength])
+            for (const y of [tolerance + 0.007, height * 0.5, height]) {
+              probe
+                .copy(p)
+                .addScaledVector(u, sx)
+                .addScaledVector(v, sz)
+                .addScaledVector(n, y);
+              if (
+                !safeFishPosition(probe, 0.002, {
+                  bounds: h.bounds,
+                  rocks: nearby,
+                })
+              )
+                clear = false;
+            }
+        if (!clear) continue;
+        const target = p.clone().addScaledVector(n, height * 0.5 + 0.03),
+          seen = discoveryView(target, n, h, view.distance, view.lift);
+        if (!seen) continue;
+        const position = p.clone().addScaledVector(n, 0.006);
+        return {
+          id,
+          sourceId: `reef/${index}/${top.planeIndex}`,
+          position: { x: position.x, y: position.y, z: position.z },
+          orientation: { x: n.x, y: n.y, z: n.z },
+          homeRadius: Math.max(halfWidth, halfLength),
+          habitatKind: 'reef-face',
+          support,
+          planeIndex: top.planeIndex,
+          rotation: new THREE.Quaternion().setFromRotationMatrix(
+            new THREE.Matrix4().makeBasis(u, n, v),
+          ),
+          ...seen,
+          channelOccluded: occludedFromChannel(target, h),
+        };
+      }
+  }
+  throw new Error(`No level, viewable rock top for ${id}`);
 }

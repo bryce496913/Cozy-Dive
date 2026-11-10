@@ -1,6 +1,8 @@
 import { AuthoredAquarium } from '../environment/AuthoredAquarium';
 import { AuthoredReef } from '../environment/AuthoredReef';
 import { warmUpScene } from './warmUp';
+import { findSeahorseGrip } from '../creatures/discoveries/SeahorseGrip';
+import { SEAHORSE_SCALE } from '../creatures/discoveries/Seahorse';
 import { AssetLoader } from '../assets/AssetLoader';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
 import * as THREE from 'three';
@@ -74,6 +76,8 @@ export class UnderwaterScene {
     this.prepared = Promise.all([this.authored.ready, this.reef.ready]).then(
       async (ready) => {
         if (this.disposed) return false;
+        this.settleFrogfish();
+        this.gripSeahorse();
         try {
           // Compile every program (hidden LOD levels too) and upload every texture behind the
           // status, so nothing pops in when first seen while swimming (Pass 019).
@@ -104,6 +108,52 @@ export class UnderwaterScene {
       { signal: this.abort.signal },
     );
     this.resize();
+  }
+  /** Move the seahorse onto a small authored sea-fan branch, facing its discovery view. */
+  private gripSeahorse(): void {
+    const s = this.aquarium.anchoredLife.hidden.seahorse,
+      plant = s.vegetation;
+    if (plant.species.id !== 'sea-fan') return;
+    const positions = this.reef.plantTemplatePositions(
+      'sea-fan',
+      plant.template,
+    );
+    if (!positions) return;
+    const up = new THREE.Vector3(0, 1, 0),
+      toWorld = new THREE.Matrix4().compose(
+        new THREE.Vector3(plant.position.x, plant.position.y, plant.position.z),
+        new THREE.Quaternion()
+          .setFromUnitVectors(
+            up,
+            new THREE.Vector3(plant.normal.x, plant.normal.y, plant.normal.z),
+          )
+          .multiply(new THREE.Quaternion().setFromAxisAngle(up, plant.yaw)),
+        new THREE.Vector3().setScalar(plant.height),
+      );
+    const prefer = new THREE.Vector3(
+      s.home.view.x - plant.position.x,
+      0,
+      s.home.view.z - plant.position.z,
+    );
+    const found = findSeahorseGrip(positions, toWorld, {
+      scale: SEAHORSE_SCALE,
+      plantHeight: plant.height,
+      prefer,
+    });
+    if (found) s.rehome(found.grip, found.forward);
+  }
+  /** Seat the rock-top frogfish on the authored stone surface beneath its hull-top perch. */
+  private settleFrogfish(): void {
+    const f = this.aquarium.anchoredLife.hidden.frogfish,
+      n = f.home.orientation,
+      down = new THREE.Vector3(-n.x, -n.y, -n.z),
+      origin = new THREE.Vector3(
+        f.home.position.x,
+        f.home.position.y,
+        f.home.position.z,
+      ).addScaledVector(down, -0.3);
+    const hit = this.reef.rockSurfaceDistance(origin, down, 0.6);
+    f.settle(hit === undefined ? 0 : hit - 0.3 - 0.006);
   }
   private resize = (): void => {
     const width = this.host.clientWidth,

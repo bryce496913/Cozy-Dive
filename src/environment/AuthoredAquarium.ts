@@ -16,6 +16,8 @@ const AUTHORED_FISH: readonly (readonly [AssetId, SpeciesId])[] = [
   ['gramma', 'royal-gramma'],
   ['clownfish', 'ocellaris-clownfish'],
 ];
+/** Multiplied over the authored frogfish skin so it matches its reef-rock perch (Pass 019). */
+const FROGFISH_CAMOUFLAGE = new THREE.Color(0.78, 0.82, 0.62);
 /** The procedural moray skin replaces diffuse colour; authored skins carry their own pattern. */
 const AUTHORED_COLOUR_OVERRIDE =
   'diffuseColor.rgb=mix(diffuseColor.rgb,skin,vMorayMask);';
@@ -195,6 +197,27 @@ export class AuthoredAquarium {
         other = foot.clone();
       f.rightFoot.add(other);
       this.attachments.push(other);
+      // Pass 019: on its reef-rock perch the frogfish takes on the limestone's muted
+      // olive-beige, so it blends in instead of standing out orange.
+      const camouflage = new Map<THREE.Material, THREE.Material>();
+      for (const part of [f.body, f.lure, f.leftFoot, f.rightFoot])
+        part.traverse((o) => {
+          if (
+            !(o instanceof THREE.Mesh) ||
+            !(o.material instanceof THREE.MeshStandardMaterial)
+          )
+            return;
+          if (o.material === f.material) return;
+          let tinted = camouflage.get(o.material);
+          if (!tinted) {
+            const m = o.material.clone();
+            m.color.multiply(FROGFISH_CAMOUFLAGE);
+            this.ownedMaterials.add(m);
+            camouflage.set(o.material, m);
+            tinted = m;
+          }
+          o.material = tinted;
+        });
       for (const name of ['MorayBody', 'MorayDorsal']) {
         const part = this.attach(animals, name, m.root);
         this.deform(

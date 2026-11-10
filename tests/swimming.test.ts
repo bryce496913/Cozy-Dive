@@ -243,8 +243,9 @@ describe('natural swimming', () => {
         min = Math.min(min, s.position.y);
         max = Math.max(max, s.position.y);
       }
-      expect(max - min).toBeGreaterThan(0.12);
-      expect(max - min).toBeLessThan(0.15);
+      // Pass 019: calmer breathing (60% force), measured ~0.08 m peak to peak.
+      expect(max - min).toBeGreaterThan(0.075);
+      expect(max - min).toBeLessThan(0.09);
       const y = s.position.y;
       simulate(s, 5, direction(), tuning, fps, AQUARIUM);
       expect(s.position.y).toBeCloseTo(y, 5);
@@ -366,8 +367,9 @@ describe('initial and resting breathing', () => {
         max = Math.max(max, s.position.y);
         fastest = Math.max(fastest, Math.abs(s.velocity.y));
       }
-      expect(max - min).toBeGreaterThan(0.12);
-      expect(max - min).toBeLessThan(0.15);
+      // Pass 019: calmer breathing (60% force), measured ~0.08 m peak to peak.
+      expect(max - min).toBeGreaterThan(0.075);
+      expect(max - min).toBeLessThan(0.09);
       expect((min + max) / 2).toBeCloseTo(s.neutralDepth, 5);
       expect(fastest).toBeLessThan(0.1);
     },
@@ -483,7 +485,7 @@ describe('coherent camera-directed three-dimensional propulsion', () => {
     const s = state();
     for (let i = 0; i < 30; i++)
       advanceHoverPreview(s, 1 / 60, tuning, AQUARIUM);
-    expect(s.position.y - 7).toBeGreaterThan(0.01);
+    expect(s.position.y - 7).toBeGreaterThan(0.006);
     expect(s.position.x).toBe(0);
     expect(s.position.z).toBe(0);
     expect(s.moving).toBe(false);

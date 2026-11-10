@@ -66,37 +66,39 @@ export class MorayBehavior {
   }
 }
 /**
- * Pass 019 playtest: the moray lies along the floor of the log's bore (radius 1.02 about the
- * anchor axis) instead of floating on the axis. Only the head lifts as it emerges, the way a
- * moray props its head at a den entrance; the body keeps a small resting sway.
+ * Pass 019 playtest: the moray lives in a hole in a large reef rock. Its local frame sits on the
+ * hole's mouth with +z pointing out of the rock. The body lies straight along the hole, hidden
+ * inside the stone; only the head (and at most a short neck) comes out. `extension` 0 has the
+ * head pulled back inside the hole, 1 has it resting out in the open.
  */
-export const MORAY_DEN = { floor: -0.74, sway: 0.03, headLift: 0.22 } as const;
-const smooth = (a: number, b: number, x: number): number => {
-  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
-  return t * t * (3 - 2 * t);
-};
-/** Matches the GPU deformation; body unfolds gently from a tucked S inside its shelter. */
+export const MORAY_DEN = {
+  /** Hole radius and depth carved into the rock's visible surface. */
+  radius: 0.3,
+  depth: 0.8,
+  /** Body length along the hole. */
+  length: 1.3,
+  /** Head-centre z when fully retreated and when fully out. */
+  headIn: -0.4,
+  headOut: 0.3,
+  /** Small sideways sway of the exposed head and neck. */
+  sway: 0.025,
+} as const;
+/** Matches the GPU deformation: a straight body along the hole with a gently swaying head. */
 export function morayCenter(
   t: number,
   extension: number,
   phase: number,
   out: { x: number; y: number; z: number },
 ): void {
-  out.x =
-    (0.3 - 0.09 * extension) *
-    Math.sin(t * Math.PI * 2 + Math.sin(phase * 0.45) * 0.15) *
-    Math.sin(Math.PI * t);
-  out.y =
-    MORAY_DEN.floor +
-    MORAY_DEN.sway *
-      Math.sin(Math.PI * t) *
-      (0.5 + 0.5 * Math.sin(t * 5 + phase * 0.35)) +
-    MORAY_DEN.headLift * extension * smooth(0.78, 1, t);
-  out.z = -1.25 + (1.6 + 1.5 * extension) * t;
+  const head =
+    MORAY_DEN.headIn + (MORAY_DEN.headOut - MORAY_DEN.headIn) * extension;
+  out.x = MORAY_DEN.sway * Math.sin(phase * 0.5 + t * 3) * t * t * t;
+  out.y = 0.012 * Math.sin(phase * 0.35 + t * 5) * t * t;
+  out.z = head - MORAY_DEN.length * (1 - t);
 }
 export const MORAY_GLSL = `
 uniform float morayExtension;
 uniform float morayPhase;
 attribute float morayT;
-vec3 morayCenter(float t){return vec3((.30-.09*morayExtension)*sin(t*6.2831853+sin(morayPhase*.45)*.15)*sin(3.14159265*t),${MORAY_DEN.floor.toFixed(4)}+${MORAY_DEN.sway.toFixed(4)}*sin(3.14159265*t)*(.5+.5*sin(t*5.+morayPhase*.35))+${MORAY_DEN.headLift.toFixed(4)}*morayExtension*smoothstep(.78,1.,t),-1.25+(1.6+1.5*morayExtension)*t);}
+vec3 morayCenter(float t){float head=${MORAY_DEN.headIn.toFixed(4)}+${(MORAY_DEN.headOut - MORAY_DEN.headIn).toFixed(4)}*morayExtension;return vec3(${MORAY_DEN.sway.toFixed(4)}*sin(morayPhase*.5+t*3.)*t*t*t,.012*sin(morayPhase*.35+t*5.)*t*t,head-${MORAY_DEN.length.toFixed(4)}*(1.-t));}
 `;

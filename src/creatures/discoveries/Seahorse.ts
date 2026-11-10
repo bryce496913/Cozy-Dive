@@ -7,6 +7,7 @@ import {
   occludedFromChannel,
   type DiscoveryHome,
 } from './DiscoveryHabitat';
+import { SEAHORSE_COIL } from './SeahorseGrip';
 import {
   ellipsoid,
   finGeometry,
@@ -49,6 +50,8 @@ export class Seahorse {
   awareness = 0;
   private readonly basis = new THREE.Quaternion();
   private readonly hover = new THREE.Vector3();
+  /** Root anchor used for posing; starts at the home and moves when re-gripped on a branch. */
+  private readonly origin = new THREE.Vector3();
   private disposed = false;
   constructor(h: FishHabitat, plants: readonly PlantPlacement[]) {
     this.root.name = 'Hidden seahorse';
@@ -282,6 +285,11 @@ export class Seahorse {
     this.home = found.home;
     this.vegetation = found.plant;
     this.gripPoint = found.grip;
+    this.origin.set(
+      this.home.position.x,
+      this.home.position.y,
+      this.home.position.z,
+    );
     this.pose(0);
   }
   respond(dt: number, player?: PlayerPresence): void {
@@ -319,17 +327,29 @@ export class Seahorse {
         (Math.sin(time * 0.11) * 0.025 - this.awareness * 0.025) * k,
       )
       .applyQuaternion(this.basis);
-    this.root.position.set(
-      this.home.position.x + this.hover.x,
-      this.home.position.y + this.hover.y,
-      this.home.position.z + this.hover.z,
-    );
+    this.root.position.copy(this.origin).add(this.hover);
     this.root.quaternion.copy(this.basis);
     this.root.rotateY(Math.sin(time * 0.09) * 0.045 + this.awareness * 0.14);
     this.tail.scale.set(1, 1 - 0.04 * grip, 1 - 0.06 * grip);
     this.dorsal.rotation.y = Math.sin(time * Math.PI * 16) * 0.18;
     this.leftPectoral.rotation.y = Math.sin(time * Math.PI * 9) * 0.14;
     this.rightPectoral.rotation.y = -Math.sin(time * Math.PI * 9 + 0.8) * 0.14;
+  }
+  /**
+   * Pass 019: cling to a specific branch (`grip` is where the tail coil sits) facing `forward`
+   * (horizontal). Used once the authored sea fan is known; the home and its view are unchanged.
+   */
+  rehome(grip: THREE.Vector3, forward: THREE.Vector3): void {
+    const f = forward.clone().setY(0);
+    if (this.disposed || f.lengthSq() < 1e-8) return;
+    f.normalize();
+    this.basis.setFromUnitVectors(new THREE.Vector3(0, 0, 1), f);
+    this.gripPoint.copy(grip);
+    this.origin
+      .copy(grip)
+      .addScaledVector(f, -SEAHORSE_COIL.z * SEAHORSE_SCALE)
+      .add(new THREE.Vector3(0, -SEAHORSE_COIL.y * SEAHORSE_SCALE, 0));
+    this.pose(0);
   }
   dispose(): void {
     if (this.disposed) return;

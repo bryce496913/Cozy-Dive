@@ -23,9 +23,10 @@ export class HiddenLife {
     this.root.name = 'Hidden marine discoveries';
     this.seahorse = new Seahorse(h, plants);
     try {
+      // Pass 019: reef rock tops first, so the frogfish blends into the limestone.
       this.frogfish = new Frogfish(h, [
-        ...groups.filter((g) => g.id === 'shipwreck'),
-        ...groups.filter((g) => g.id !== 'shipwreck'),
+        ...groups.filter((g) => g.id === 'reef'),
+        ...groups.filter((g) => g.id !== 'reef'),
       ]);
     } catch (error) {
       this.seahorse.dispose();
