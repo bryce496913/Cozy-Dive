@@ -184,7 +184,7 @@ try {
     };
   });
   assert.deepEqual(report.animation, {
-    rigs: 2,
+    rigs: 3, // Pass 019: clownfish pair plus juvenile
     finite: true,
     moved: true,
     morphed: true,
