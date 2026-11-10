@@ -38,7 +38,8 @@ try {
           const url = request.url();
           bytes.total += responseBodySize;
           if (url.endsWith('.glb')) bytes.models += responseBodySize;
-          else if (url.includes('/draco/')) bytes.decoder += responseBodySize;
+          else if (url.includes('/draco/') || url.includes('/basis/'))
+            bytes.decoder += responseBodySize;
           else if (url.endsWith('.js')) bytes.scripts += responseBodySize;
         }),
       );

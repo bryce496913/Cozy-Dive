@@ -23,7 +23,8 @@ const glbJson = (path: string) => {
   const b = readFileSync(path);
   return JSON.parse(b.toString('utf8', 20, 20 + b.readUInt32LE(12))) as {
     extensionsUsed?: string[];
-    images?: { mimeType?: string }[];
+    images?: { mimeType?: string; bufferView?: number }[];
+    bufferViews?: { byteOffset?: number; byteLength: number }[];
   };
 };
 
@@ -121,17 +122,36 @@ describe('Pass 017 fish distance level', () => {
   });
 });
 
-describe('Pass 017 asset compression', () => {
-  it('ships every registered GLB Draco- and WebP-compressed', () => {
+describe('Pass 017/018 asset compression', () => {
+  it('ships every registered GLB with Draco geometry and KTX2 (Basis) textures', () => {
+    const KTX2_ID = [0xab, 0x4b, 0x54, 0x58, 0x20, 0x32, 0x30, 0xbb];
     for (const id of Object.keys(ASSET_REGISTRY) as AssetId[]) {
-      const json = glbJson(`public/${ASSET_REGISTRY[id].path}`);
+      const path = `public/${ASSET_REGISTRY[id].path}`;
+      const json = glbJson(path);
       expect(json.extensionsUsed, id).toContain('KHR_draco_mesh_compression');
-      expect(json.extensionsUsed, id).toContain('EXT_texture_webp');
-      expect(
-        (json.images ?? []).every((i) => i.mimeType === 'image/webp'),
-        id,
-      ).toBe(true);
+      expect(json.extensionsUsed, id).toContain('KHR_texture_basisu');
+      expect(json.extensionsUsed, id).not.toContain('EXT_texture_webp');
+      const images = json.images ?? [];
+      expect(images.length, id).toBeGreaterThan(0);
+      const b = readFileSync(path);
+      const bin = 20 + b.readUInt32LE(12) + 8;
+      for (const image of images) {
+        expect(image.mimeType, id).toBe('image/ktx2');
+        const view = json.bufferViews?.[image.bufferView ?? -1];
+        expect(view, id).toBeDefined();
+        const start = bin + (view?.byteOffset ?? 0);
+        expect([...b.subarray(start, start + 8)], id).toEqual(KTX2_ID);
+        // Full mip chain, so minified surfaces sample prefiltered compressed levels.
+        const w = b.readUInt32LE(start + 20);
+        const h = b.readUInt32LE(start + 24);
+        const levels = b.readUInt32LE(start + 40);
+        expect(levels, id).toBe(Math.floor(Math.log2(Math.max(w, h))) + 1);
+      }
     }
+  });
+  it('bundles the Basis transcoder locally', () => {
+    for (const file of ['basis_transcoder.wasm', 'basis_transcoder.js'])
+      expect(existsSync(`public/assets/basis/${file}`), file).toBe(true);
   });
   it('bundles the Draco decoder locally and stays within the download budget', () => {
     for (const file of [

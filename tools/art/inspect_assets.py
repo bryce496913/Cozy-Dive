@@ -11,7 +11,13 @@ for relative in ['fish/chromis.glb','coral/acropora.glb','ornaments/reef-props.g
  assert all('uri' not in x for x in j.get('images',[]));assert all('uri' not in x for x in j['buffers'])
  images=[]
  for image in j.get('images',[]):
-  v=j['bufferViews'][image['bufferView']];raw=blob[v.get('byteOffset',0):v.get('byteOffset',0)+v['byteLength']];im=Image.open(io.BytesIO(raw));im.load();images.append({'name':image.get('name'),'width':im.width,'height':im.height,'mode':im.mode,'encodedBytes':len(raw)})
+  v=j['bufferViews'][image['bufferView']];raw=blob[v.get('byteOffset',0):v.get('byteOffset',0)+v['byteLength']]
+  if image.get('mimeType')=='image/ktx2':
+   # Pass 018: KTX2/Basis. Validate the container header (identifier, size, full mip chain).
+   assert raw[:12]==bytes([0xAB,0x4B,0x54,0x58,0x20,0x32,0x30,0xBB,0x0D,0x0A,0x1A,0x0A]),image.get('name')
+   vk,ts,w,h,d,layers,faces,levels,scheme=struct.unpack_from('<9I',raw,12);assert w>0 and h>0 and faces==1 and levels==int(np.log2(max(w,h)))+1,(image.get('name'),levels)
+   images.append({'name':image.get('name'),'width':w,'height':h,'mode':'KTX2-'+('UASTC+zstd' if scheme==2 else 'ETC1S' if scheme==1 else 'scheme%d'%scheme),'mipLevels':levels,'encodedBytes':len(raw)})
+  else:im=Image.open(io.BytesIO(raw));im.load();images.append({'name':image.get('name'),'width':im.width,'height':im.height,'mode':im.mode,'encodedBytes':len(raw)})
  geometryBytes=0;arrays=[]
  for a in j['accessors']:
   if 'bufferView' not in a:arrays.append(None);continue

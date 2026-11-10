@@ -23,7 +23,7 @@ const AUTHORED_COLOUR_OVERRIDE =
 export class AuthoredAquarium {
   readonly ready: Promise<boolean>;
   state: 'loading' | 'ready' | 'fallback' = 'loading';
-  private readonly loader = new AssetLoader();
+  private readonly loader: AssetLoader;
   private leases: AssetLease[] = [];
   private readonly attachments: THREE.Object3D[] = [];
   private readonly originals = new Map<THREE.Material, boolean>();
@@ -41,7 +41,11 @@ export class AuthoredAquarium {
   }[] = [];
   private disposed = false;
   private enabled = false;
-  constructor(private readonly q: Aquarium) {
+  constructor(
+    private readonly q: Aquarium,
+    renderer?: THREE.WebGLRenderer,
+  ) {
+    this.loader = new AssetLoader(undefined, undefined, renderer);
     this.ready = this.load();
   }
   /** The authored school for a species, when ready (benchmarks compose their own). */

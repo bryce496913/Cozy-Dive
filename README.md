@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.2 / Pass 017 — Fish LOD & Asset Compression (`0.2.0-rc.11`)** is a first-person, browser-based aquarium prototype: swim at your own pace through rippled sand, carved reef rock, corals, seagrass and soft blue-green water. No scores, timers, combat, accounts, or external asset services.
+A quiet little world beneath the surface. **v0.2 / Pass 018 — KTX2 Texture Compression (`0.2.0-rc.12`)** is a first-person, browser-based aquarium prototype: swim at your own pace through rippled sand, carved reef rock, corals, seagrass and soft blue-green water. No scores, timers, combat, accounts, or external asset services.
 
 ## Stack and requirements
 
@@ -42,7 +42,7 @@ Vite binds to all interfaces for cloud development; use `npm run dev -- --host 1
 
 Click **Return to the Water** to resume. Look up or down and use W/S to change depth; A/D always strafe horizontally. Space and Shift have no swimming action. Pausing or losing browser focus clears held input and propulsion momentum while retaining a resting breath’s phase and small vertical velocity. Diagonal input is normalized. Subtle stroke-related pitch feedback stays below 0.07 degrees, with no roll or visual position offsets. Looking straight up/down is limited.
 
-This is a technical release candidate; final v0.2 approval awaits manual MacBook Air acceptance. See [Pass 017 validation](docs/VALIDATION_V02_PASS_017.md), [Pass 016 validation](docs/VALIDATION_V02_PASS_016.md), [Pass 015 validation](docs/VALIDATION_V02_PASS_015.md), [Pass 014 validation](docs/VALIDATION_V02_PASS_014.md), [Pass 013 validation](docs/VALIDATION_V02_PASS_013.md) and [repeatable benchmarks](validation/README.md).
+This is a technical release candidate; final v0.2 approval awaits manual MacBook Air acceptance. See [Pass 018 validation](docs/VALIDATION_V02_PASS_018.md), [Pass 017 validation](docs/VALIDATION_V02_PASS_017.md), [Pass 016 validation](docs/VALIDATION_V02_PASS_016.md), [Pass 015 validation](docs/VALIDATION_V02_PASS_015.md), [Pass 014 validation](docs/VALIDATION_V02_PASS_014.md), [Pass 013 validation](docs/VALIDATION_V02_PASS_013.md) and [repeatable benchmarks](validation/README.md).
 
 ## Current features
 
@@ -161,7 +161,7 @@ To test manually:
 - Collision covers major static rocks, solid ornament components and aquarium limits. Delicate foliage and decorative pebbles remain passable; there is no contact-driven plant deformation, per-triangle sand collision, or dynamic rigid-body physics.
 - Schooling is local steering rather than global pathfinding or hard fish collision. Occasional close passes or temporary fragmentation are possible. Diver reactions are soft avoidance rather than hard player-fish collision. Foraging is visual activity only; there is no food system or identification UI. No office, passages, customization, ocean or progression.
 - Sand is a rippled procedural surface with authored PBR detail (visual relief sits up to 7 cm above the habitat reference); light shafts remain simple and the full lighting overhaul is reserved for a later pass. The water surface is a visual plane, not a fluid simulation.
-- Shipped GLBs are Draco/WebP-compressed (about 16 MB at startup); GPU texture memory is uncompressed (no KTX2 yet). Reef rocks are carved inside their accepted footprints, so the overall layout and rock placement are unchanged from Pass 013.
+- Shipped GLBs use Draco geometry and KTX2/Basis textures (about 14.5 MB of models). Textures stay block-compressed on the GPU where the browser supports a compressed format; otherwise three.js falls back to uncompressed RGBA. Reef rocks are carved inside their accepted footprints, so the overall layout and rock placement are unchanged from Pass 013.
 - Player position is not persisted. Only settings are saved, per origin in browser local storage.
 - Pointer lock may be restricted by embedded frames or browser policies; use a top-level page. Graphics-context loss requires reloading.
 - The build reports a bundle-size advisory for Three.js (see the current validation record for measured size). No runtime asset downloads are needed.
@@ -215,6 +215,10 @@ Behaviour, homes, collision and animation contracts are unchanged; clownfish and
 ### v0.2 Pass 016 candidate
 
 All 40 fish now swim as authored morph rigs: the accepted chromis, plus new pajama cardinalfish, firefish, yellow assessors and royal grammas built on the same rig and morph contract, alongside the Pass 013 clownfish. Simulation, behaviour, pause and reduced motion are unchanged, and the procedural fish remain as the fallback. See [validation and matched captures](docs/VALIDATION_V02_PASS_016.md). This pass awaits user review and MacBook Air acceptance.
+
+### v0.2 Pass 018 candidate
+
+Every embedded texture is now KTX2/Basis with a full mip chain, re-encoded from the original authoring maps, so textures stay block-compressed in GPU memory. Measured in software-rendered Chromium, resident texture memory for the loaded aquarium falls from about 83 MiB to about 21 MiB, and shipped models shrink from 17.3 MB to 14.5 MB. The Basis transcoder is served locally. See [validation](docs/VALIDATION_V02_PASS_018.md).
 
 ### v0.2 Pass 017 candidate
 

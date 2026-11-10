@@ -4,12 +4,13 @@ import globals from 'globals';
 
 export default tseslint.config(
   {
-    // Vendored, unmodified three.js Draco decoder (Apache-2.0).
+    // Vendored, unmodified three.js Draco decoder and Basis transcoder (Apache-2.0).
     ignores: [
       'dist/**',
       'dist-benchmark/**',
       'node_modules/**',
       'public/assets/draco/**',
+      'public/assets/basis/**',
     ],
   },
   js.configs.recommended,

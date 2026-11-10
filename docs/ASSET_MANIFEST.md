@@ -88,3 +88,20 @@ Every shipped GLB is now Draco-compressed with WebP textures (see the [pipeline]
 | coral/acropora.glb (benchmark only)                         |      3.45 MB |    0.83 MB |
 
 The normal-scene download is about 16 MB, against about 53 MB before. Source maps live in `tools/art/textures/`. The local Draco decoder in `public/assets/draco/` (Apache-2.0, from three r187) is 0.76 MB on disk, of which browsers fetch about 0.25 MB (wasm and wrapper); the 0.5 MB asm.js fallback loads only without WebAssembly. Hashes are in [manifest.json](../public/assets/manifest.json).
+
+## Pass 018 KTX2 textures
+
+Every embedded image is now KTX2/Basis (50 ETC1S colour and data maps, 22 UASTC+Zstandard normal maps, all with full mip chains), re-encoded from the authoring PNGs. Geometry is unchanged. Shipped models went from 17.3 MB to 14.5 MB:
+
+| File                                                 | Pass 017 (WebP) | Pass 018 (KTX2) |
+| ---------------------------------------------------- | --------------: | --------------: |
+| reef/reef-environment.glb                            |         7.75 MB |         6.11 MB |
+| creatures/anchored-life.glb                          |         3.19 MB |         2.39 MB |
+| ornaments/reef-props.glb                             |         1.10 MB |         1.08 MB |
+| creatures/nudibranchs.glb                            |         0.71 MB |         0.55 MB |
+| fish/chromis.glb                                     |         0.61 MB |         0.61 MB |
+| fish/clownfish.glb                                   |         0.52 MB |         0.46 MB |
+| fish/cardinalfish, firefish, assessor, gramma (each) |        ~0.63 MB |        ~0.61 MB |
+| coral/acropora.glb (benchmark only)                  |         0.82 MB |         0.83 MB |
+
+The local Basis transcoder in `public/assets/basis/` (Apache-2.0, from three r187) is 0.58 MB (wasm and JS wrapper). Hashes are in [manifest.json](../public/assets/manifest.json).
