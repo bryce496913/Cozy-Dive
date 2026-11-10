@@ -129,14 +129,28 @@ export class Moray {
       new THREE.Vector3(source.normal.x, source.normal.y, source.normal.z),
     );
     this.root.updateMatrixWorld(true);
-    // Validate the complete deformation envelope, including the exposed broad head, before accepting its home.
+    // Validate the complete deformation envelope against the bore: each sampled body ring (its
+    // real half-width and flattened height) and the exposed broad head must stay clear of solids.
+    const ring = new THREE.Vector3();
     for (let extension = 0; extension <= 1.0001; extension += 0.1)
       for (let phase = 0; phase < Math.PI * 2; phase += Math.PI / 4)
         for (let i = 0; i <= 24; i++) {
-          morayCenter(i / 24, extension, phase, this.probe);
-          this.probe.applyMatrix4(this.root.matrixWorld);
-          if (!safeFishPosition(this.probe, i === 24 ? 0.42 : 0.3, h))
-            throw new Error('Unsafe moray shelter deformation envelope.');
+          const u = i / 24,
+            r = 0.009 + 0.16 * Math.sin(u * Math.PI * 0.5) ** 0.75;
+          morayCenter(u, extension, phase, this.probe);
+          for (let k = 0; k < 8; k++) {
+            const a = (k / 8) * Math.PI * 2;
+            ring
+              .set(
+                Math.cos(a) * (i === 24 ? 0.2 : r),
+                Math.sin(a) * (i === 24 ? 0.1 : r * 0.85),
+                0,
+              )
+              .add(this.probe)
+              .applyMatrix4(this.root.matrixWorld);
+            if (!safeFishPosition(ring, 0.01, h))
+              throw new Error('Unsafe moray shelter deformation envelope.');
+          }
         }
     this.anchor = {
       id: 'moray-shelter',
@@ -198,7 +212,7 @@ export class Moray {
     mottled(fin);
     this.geometry = mergeOwned([body, fin]);
     this.geometry.boundingBox = new THREE.Box3(
-      new THREE.Vector3(-0.7, -0.5, -1.6),
+      new THREE.Vector3(-0.7, -1.1, -1.6),
       new THREE.Vector3(0.7, 0.5, 2.4),
     );
     this.geometry.boundingSphere = new THREE.Sphere(

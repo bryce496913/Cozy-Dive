@@ -1,5 +1,6 @@
 import { AuthoredAquarium } from '../environment/AuthoredAquarium';
 import { AuthoredReef } from '../environment/AuthoredReef';
+import { warmUpScene } from './warmUp';
 import { AssetLoader } from '../assets/AssetLoader';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
 import * as THREE from 'three';
@@ -74,10 +75,9 @@ export class UnderwaterScene {
       async (ready) => {
         if (this.disposed) return false;
         try {
-          // Parallel compilation where available; otherwise compile once behind the status.
-          if (this.renderer.extensions.has('KHR_parallel_shader_compile'))
-            await this.renderer.compileAsync(this.scene, this.camera);
-          else this.renderer.compile(this.scene, this.camera);
+          // Compile every program (hidden LOD levels too) and upload every texture behind the
+          // status, so nothing pops in when first seen while swimming (Pass 019).
+          await warmUpScene(this.renderer, this.scene, this.camera);
         } catch (error) {
           console.warn('Cozy Diver: shader warm-up skipped.', error);
         }

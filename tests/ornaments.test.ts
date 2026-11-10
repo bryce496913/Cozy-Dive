@@ -237,7 +237,7 @@ describe('home aquarium ornaments', () => {
           velocity: { x: 0, y: 0, z: 0 },
           active: true,
         });
-      expect(q.fish.simulation.fish).toHaveLength(40);
+      expect(q.fish.simulation.fish).toHaveLength(41);
       for (const f of q.fish.simulation.fish) {
         expect(
           safeFishPosition(f.position, f.radius, q.fish.simulation.habitat),

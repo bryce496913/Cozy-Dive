@@ -6,7 +6,7 @@ import { installReefHulls } from './ReefAsset';
 import { REEF_LAYOUT } from '../src/environment/ReefLayout';
 import { Aquarium } from '../src/environment/Aquarium';
 import { FishSimulation } from '../src/fish/FishMovement';
-import { spawnFish } from '../src/fish/FishSpawner';
+import { populationCount, spawnFish } from '../src/fish/FishSpawner';
 import { fishPopulation } from '../src/fish/FishSpecies';
 import { safeFishPosition } from '../src/fish/FishHabitat';
 import { AQUARIUM, SPAWN } from '../src/config/world';
@@ -33,18 +33,18 @@ afterAll(() => {
 });
 
 it.each([
-  { minutes: 5, count: 60 },
-  { minutes: 15, count: 40 },
-  { minutes: 30, count: 40 },
-  { minutes: 5, count: 60, authored: true },
-  { minutes: 15, count: 40, authored: true },
-  { minutes: 30, count: 40, authored: true },
+  { minutes: 5, count: 'dense' },
+  { minutes: 15, count: 'home' },
+  { minutes: 30, count: 'home' },
+  { minutes: 5, count: 'dense', authored: true },
+  { minutes: 15, count: 'home', authored: true },
+  { minutes: 30, count: 'home', authored: true },
   // Pass 014 production composition: authored ornaments plus authored reef-rock structure.
-  { minutes: 5, count: 60, authored: true, reef: true },
-  { minutes: 15, count: 40, authored: true, reef: true },
-  { minutes: 30, count: 40, authored: true, reef: true },
+  { minutes: 5, count: 'dense', authored: true, reef: true },
+  { minutes: 15, count: 'home', authored: true, reef: true },
+  { minutes: 30, count: 'home', authored: true, reef: true },
 ] as const)(
-  'keeps the actual ecosystem stable for $minutes minutes with $count fish (authored: $authored, reef: $reef)',
+  'keeps the actual ecosystem stable for $minutes minutes with the $count population (authored: $authored, reef: $reef)',
   (options) => {
     const { minutes, count } = options;
     const aquarium = new Aquarium();
@@ -156,7 +156,7 @@ it.each([
           Object.assign(last[i], f.position);
         });
         if (frame % 30 === 0) {
-          expect(sim.fish).toHaveLength(count);
+          expect(sim.fish).toHaveLength(populationCount(fishPopulation(count)));
           expect(swimmingGain(state, tuning)).toBeGreaterThanOrEqual(0);
           expect(swimmingGain(state, tuning)).toBeLessThanOrEqual(
             AUDIO.swimmingCeiling,

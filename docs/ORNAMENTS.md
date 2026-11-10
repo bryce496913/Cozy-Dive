@@ -36,3 +36,7 @@ Pass 009 uses the named `log-interior` anchor for a sheltered moray with a valid
 Pass 010 exposes immutable `surfaceGroups` referencing the already generated structural components for habitat consumers. The frogfish and nudibranchs can use those real surfaces without changing ornament geometry, animated lid strategy, colliders or player passage. See [hidden discoveries](HIDDEN_LIFE.md).
 
 Pass 011 keeps this production architecture unchanged and adds whole-aquarium validation of clocks, transforms, resource counts, particles and lifecycle across extended sessions. Physical route and explicit browser failure checks complement the earlier per-system safety tests. See [current integration validation](VALIDATION_V02_PASS_011.md); final macOS acceptance remains pending.
+
+## Pass 019 playtest changes
+
+The internal filter hangs in the top back corner like a real aquarium filter, suction-cupped to the glass (`FILTER_MOUNT_Y = AQUARIUM.max.y - 1.55`). Its body sits just under the waterline, the outflow nozzle stirs the surface, and the return pipe rises out over the rim. Its fish-interest point moves up with it.

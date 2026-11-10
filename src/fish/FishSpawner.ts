@@ -31,7 +31,7 @@ export function spawnFish(
     if (!Number.isInteger(config.count) || config.count < 0)
       throw new Error('Fish population must be a nonnegative integer.');
     for (let i = 0; i < config.count; i++) {
-      const size = 0.9 + random() * 0.2;
+      const size = (0.9 + random() * 0.2) * (config.individualScale?.[i] ?? 1);
       // Half the full nose-to-tail length conservatively encloses fins and body.
       const radius = config.length * size * (config.radiusFactor ?? 0.56);
       const position = { x: 0, y: 0, z: 0 };

@@ -23,6 +23,13 @@ export const LOCAL_ANCHORS: Record<
   chest: [0, 1.1, 2.2],
   filter: [0, 0, 1.9],
 };
+/**
+ * Pass 019 playtest: the internal filter hangs in the top back corner like a real aquarium
+ * filter, suction-cupped to the glass. Its body (top cap at local y 1.31) sits just under the
+ * waterline, the outflow nozzle (local y 0.85) stirs the surface, and the return pipe (top at
+ * local y 2.25) rises out over the rim.
+ */
+export const FILTER_MOUNT_Y = AQUARIUM.max.y - 1.55;
 /** Bounded deterministic bank search; reserve complete object envelopes, not just a root point. */
 export function placeOrnament(
   model: OrnamentModel,
@@ -34,7 +41,7 @@ export function placeOrnament(
   for (let attempt = 0; attempt < 1500; attempt++) {
     const x = attempt === 0 ? px : Math.sign(px) * (4.9 + (attempt % 15) * 0.7),
       z = attempt === 0 ? pz : -11.7 + (Math.floor(attempt / 15) % 35) * 0.7;
-    model.root.position.set(x, model.kind === 'filter' ? 8 : 0, z);
+    model.root.position.set(x, model.kind === 'filter' ? FILTER_MOUNT_Y : 0, z);
     model.root.updateMatrixWorld(true);
     let box = new THREE.Box3().setFromObject(model.root);
     if (model.kind !== 'filter') {

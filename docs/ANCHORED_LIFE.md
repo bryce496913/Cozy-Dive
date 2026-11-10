@@ -39,3 +39,8 @@ Pass 011 keeps this production architecture unchanged and adds whole-aquarium va
 ## Pass 015 skins
 
 The moray and host anemone keep every controller, uniform and attachment. The moray's authored body keeps its centreline parameter and GPU unfolding but shows an authored honeycomb skin instead of the procedural mottling. The anemone becomes a bubble-tip form (swollen magenta tips, a white sub-terminal band, a striped oral disc) under the same current clock and envelope. See [Pass 015 validation](VALIDATION_V02_PASS_015.md).
+
+## Pass 019 playtest changes
+
+- **Clownfish:** the ocellaris pair is half its former size (body length 0.34 m), and a juvenile at 10% of the former size (about 0.07 m, an `individualScale` of 0.2) shelters with them. It uses the same host anemone and follows the female (`hostMate`). The authored clownfish rig was modelled at 0.68 m, so `authoredLength` scales it to the species length. Production has 41 fish; the dense stress scenario has 61. `fishPopulation` now takes the named scenario `'home'` or `'dense'` rather than a count.
+- **Moray:** the body lies along the floor of the log's bore (`MORAY_DEN.floor = -0.74` below the anchor axis, the lowest height that keeps 1 cm clearance from the bore hulls everywhere) instead of on the axis. Only the head lifts, by up to 0.22 m as it emerges, with a 3 cm resting sway. The CPU envelope check now tests each body ring's real half-width and height, plus the head, against the bore.

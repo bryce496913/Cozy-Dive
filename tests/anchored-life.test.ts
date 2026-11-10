@@ -26,24 +26,31 @@ describe('anchored marine inhabitants', () => {
   });
   afterAll(() => a.dispose());
   const zero = { x: 0, y: 0, z: 0 };
-  it('preserves the original 38 IDs and spawns exactly two host-associated swimmers, separate from the moray', () => {
+  it('preserves the original 38 IDs and spawns a host-associated pair plus a juvenile, separate from the moray', () => {
     const h = a.fish.simulation.habitat,
       fish = spawnFish(h),
       before = spawnFish(h, FISH_SPECIES.slice(0, 5));
-    expect(fish).toHaveLength(40);
+    expect(fish).toHaveLength(41);
     expect(fish.slice(0, 38)).toEqual(before);
-    const pair = fish.filter((f) => f.species.id === 'ocellaris-clownfish');
-    expect(pair).toHaveLength(2);
-    expect(pair.map((f) => f.id)).toEqual([38, 39]);
-    for (const f of pair) {
+    const family = fish.filter((f) => f.species.id === 'ocellaris-clownfish');
+    expect(family.map((f) => f.id)).toEqual([38, 39, 40]);
+    const pair = family.slice(0, 2),
+      juvenile = family[2];
+    for (const f of family) {
       expect(f.host).toBe(a.anchoredLife.anemone.host);
       expect(homeDistance(f.position, f.host!)).toBeLessThan(
         f.host!.homeRadius - f.radius,
       );
-      expect(f.hostMate).toBe(pair.find((other) => other !== f)!.position);
     }
+    for (const f of pair)
+      expect(f.hostMate).toBe(pair.find((other) => other !== f)!.position);
+    // Pass 019: the juvenile shelters with the pair at a fifth of their body length.
+    expect(juvenile.hostMate).toBe(pair[0].position);
     expect(pair[0].size).not.toBe(pair[1].size);
-    expect(fishPopulation(60).reduce((n, s) => n + s.count, 0)).toBe(60);
+    expect(Math.max(...pair.map((f) => f.size))).toBeLessThanOrEqual(1.1);
+    expect(juvenile.size).toBeGreaterThanOrEqual(0.9 * 0.2);
+    expect(juvenile.size).toBeLessThanOrEqual(1.1 * 0.2);
+    expect(fishPopulation('dense').reduce((n, s) => n + s.count, 0)).toBe(61);
     expect(a.anchoredLife.moray.anchor.sourceId).toBe('log-interior');
     expect(() => spawnFish({ ...h, creatureAnchors: [] })).toThrow(
       /host anchor/,

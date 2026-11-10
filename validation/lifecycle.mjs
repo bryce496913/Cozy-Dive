@@ -410,7 +410,7 @@ import fs from 'node:fs';
         assert.equal(snapshot.nodes, 19);
         assert.equal(snapshot.buffers, 3);
         assert(snapshot.voices <= 1);
-        assert.equal(snapshot.fish, 40);
+        assert.equal(snapshot.fish, 41);
         longSession.push({ minute, heapBytes: heap.usedSize, ...snapshot });
         console.log('COZY_BROWSER_MINUTE', minute, heap.usedSize);
       }
@@ -447,7 +447,7 @@ import fs from 'node:fs';
         fish: a.world.aquarium.fish.simulation.fish.length,
       };
     });
-    assert.equal(metrics.fish, 40);
+    assert.equal(metrics.fish, 41);
     assert.equal(metrics.contexts, 1);
     assert.equal(metrics.buffers, 3);
     // Rendering/audio initialization failure remains independent of entering the game.

@@ -13,7 +13,7 @@ describe('quiet hidden discoveries', () => {
     a = new Aquarium();
   });
   afterAll(() => a.dispose());
-  it('adds exactly seven stable unique identities outside the unchanged forty-fish registry', () => {
+  it('adds exactly seven stable unique identities outside the fish registry', () => {
     const d = a.anchoredLife.hidden;
     expect(d.homes).toHaveLength(7);
     expect(new Set(d.homes.map((h) => h.id)).size).toBe(7);
@@ -21,7 +21,7 @@ describe('quiet hidden discoveries', () => {
     expect(d.nudibranchs.animals.map((n) => n.variant)).toEqual(
       NUDIBRANCH_VARIANTS,
     );
-    expect(a.fish.simulation.fish).toHaveLength(40);
+    expect(a.fish.simulation.fish).toHaveLength(41);
     expect(a.fish.simulation.fish).toEqual(
       spawnFish(a.fish.simulation.habitat),
     );

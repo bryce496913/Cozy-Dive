@@ -44,6 +44,10 @@ export interface FishSpecies {
   readonly behavior: BehaviorTuning;
   readonly diver: DiverTuning;
   readonly length: number;
+  /** Body length the authored GLB rig was modelled at; the rig is scaled to `length`. Defaults to `length`. */
+  readonly authoredLength?: number;
+  /** Optional per-individual size multipliers in spawn order (e.g. a juvenile); defaults to 1. */
+  readonly individualScale?: readonly number[];
   readonly height: number;
   readonly width: number;
   readonly color: number;
@@ -340,10 +344,14 @@ export const FISH_SPECIES: readonly FishSpecies[] = [
   {
     id: 'ocellaris-clownfish',
     name: 'Ocellaris clownfish',
-    count: 2,
-    length: 0.68,
-    height: 0.32,
-    width: 0.16,
+    // Pass 019 playtest: the breeding pair at half their former size, plus a juvenile at 10% of
+    // the former size (0.2 of the new length) sheltering with them in the anemone.
+    count: 3,
+    length: 0.34,
+    authoredLength: 0.68,
+    individualScale: [1, 1, 0.2],
+    height: 0.16,
+    width: 0.08,
     radiusFactor: 0.64,
     color: 0xe16e30,
     backColor: 0xa14f24,
@@ -389,8 +397,15 @@ export const FISH_SPECIES: readonly FishSpecies[] = [
     homeRadius: 3,
   },
 ];
-export function fishPopulation(count: 40 | 60): readonly FishSpecies[] {
-  return count === 40
+/**
+ * The ordinary home aquarium, or the dense stress scenario with 20 extra chromis.
+ * Pass 019: the clownfish juvenile makes these 41 and 61 fish (formerly 40 and 60).
+ */
+export type PopulationScenario = 'home' | 'dense';
+export function fishPopulation(
+  scenario: PopulationScenario,
+): readonly FishSpecies[] {
+  return scenario === 'home'
     ? FISH_SPECIES
     : FISH_SPECIES.map((s) =>
         s.id === 'blue-green-chromis'

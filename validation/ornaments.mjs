@@ -83,7 +83,7 @@ try {
     };
   });
   assert.equal(inventory.models.length, 6);
-  assert.equal(inventory.fish, 40);
+  assert.equal(inventory.fish, 41);
   const views = [];
   for (const kind of [
     'overview',

@@ -155,3 +155,14 @@ COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy018-after node validation/te
 ```
 
 Set `COZY_GPU_ARGS` (space-separated Chromium flags) to replace the default SwiftShader flags on a machine with a real GPU. The byte totals are computed from texture data, not read from the driver.
+
+## Pass 019 playtest fixes
+
+`playtest-fixes.mjs` swims with real input (Enter, pointer lock, held W and mouse look) at the default speed and reports the peak swimming speed and distance. It counts GPU textures resident after preparation and again after the swim: any growth is data uploaded lazily on first sight, which showed as texture pop-in. It also captures the seahorse, clownfish family, filter corner and moray den from fixed cameras.
+
+```bash
+COZY_URL=http://127.0.0.1:5174 COZY_OUTPUT=/tmp/cozy019-before node validation/playtest-fixes.mjs  # previous candidate
+COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy019-after node validation/playtest-fixes.mjs   # this branch
+```
+
+The fish-count assertions in the browser harnesses are now 41 (formerly 40), and the stress scenarios use the named `'home'` / `'dense'` populations.

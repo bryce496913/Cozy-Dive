@@ -165,7 +165,13 @@ export class AuthoredSchool {
         rig = this.rigs[i];
       rig.position.copy(source.root.position);
       rig.quaternion.copy(source.root.quaternion);
-      rig.scale.copy(source.root.scale);
+      // Authored rigs are modelled at `authoredLength`; scale them to the species' body length.
+      rig.scale
+        .copy(source.root.scale)
+        .multiplyScalar(
+          sim.species.length /
+            (sim.species.authoredLength ?? sim.species.length),
+        );
       const effort = Math.max(
         -1,
         Math.min(1, source.tail.rotation.y / sim.species.tailAngle),

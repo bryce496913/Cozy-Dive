@@ -99,7 +99,7 @@ try {
     };
   });
   assert.equal(inventory.hiddenCount, 7);
-  assert.equal(inventory.fish, 40);
+  assert.equal(inventory.fish, 41);
   assert.equal(inventory.hulls, 435); // Pass 014 authored reef parts
   const views = [];
   for (const name of [

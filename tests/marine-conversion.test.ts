@@ -18,9 +18,9 @@ describe('tropical marine identity', () => {
       ['firefish-goby', 6],
       ['yellow-assessor', 4],
       ['royal-gramma', 2],
-      ['ocellaris-clownfish', 2],
+      ['ocellaris-clownfish', 3],
     ]);
-    expect(fishPopulation(60).reduce((n, s) => n + s.count, 0)).toBe(60);
+    expect(fishPopulation('dense').reduce((n, s) => n + s.count, 0)).toBe(61);
     expect(new Set(FISH_SPECIES.map((s) => s.marking)).size).toBe(6);
   });
   it.each(FISH_SPECIES)(

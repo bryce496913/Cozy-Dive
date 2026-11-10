@@ -1,5 +1,5 @@
 import type { AudioStatus } from '../audio/AudioSystem';
-import type { Settings } from './settings';
+import { SWIM_SPEED, type Settings } from './settings';
 
 const wave =
   '<svg viewBox="0 0 40 26" fill="none" aria-hidden="true"><path d="M2 8c6-8 12 8 18 0s12 8 18 0M2 18c6-8 12 8 18 0s12 8 18 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
@@ -50,7 +50,7 @@ export class Interface {
       <aside class="settings-panel" id="settings-panel" aria-label="Experience settings" hidden>
         <div class="panel-heading"><h2>Make yourself at home.</h2><button id="close-settings" aria-label="Close settings">×</button></div>
         <label for="sensitivity">Mouse sensitivity <output id="sensitivity-value"></output></label><input id="sensitivity" type="range" min="0.25" max="2.5" step="0.05" />
-        <label for="speed">Swimming speed <output id="speed-value"></output></label><input id="speed" type="range" min="1" max="5" step="0.1" />
+        <label for="speed">Swimming speed <output id="speed-value"></output></label><input id="speed" type="range" min="${SWIM_SPEED.min}" max="${SWIM_SPEED.max}" step="${SWIM_SPEED.step}" />
         <label for="swimming-feel">Swimming feel</label><select id="swimming-feel"><option value="relaxed">Relaxed</option><option value="natural">Natural</option><option value="responsive">Responsive</option></select>
         <label class="check"><input id="reduced-motion" type="checkbox" />Reduced camera motion</label><p>Direct mouse-look, with plant and particle motion still. Breathing buoyancy and subtle swimming sway are suppressed.</p>
         <label class="check"><input id="audio-enabled" type="checkbox" />Ambient audio</label>
@@ -108,7 +108,7 @@ export class Interface {
       this.get('sensitivity-value').textContent =
         `${Number(sensitivity.value).toFixed(2)}×`;
       this.get('speed-value').textContent =
-        `${Number(speed.value).toFixed(1)} m/s`;
+        `${Number(speed.value).toFixed(2)} m/s`;
       this.get('master-volume-value').textContent = `${volume.value}%`;
       mute.textContent = audio.checked ? 'Mute audio' : 'Enable audio';
       mute.setAttribute('aria-pressed', String(!audio.checked));
