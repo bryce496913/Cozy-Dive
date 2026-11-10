@@ -33,14 +33,20 @@ export class HiddenLife {
       throw error;
     }
     try {
-      this.nudibranchs = new Nudibranchs(h, groups, [
-        {
-          x: this.frogfish.home.position.x,
-          y: this.frogfish.home.position.y,
-          z: this.frogfish.home.position.z,
-          clearance: 1,
-        },
-      ]);
+      // Pass 019 hotfix: the procedural wreck stand-in no longer matches the authored boat's
+      // surfaces (a crawler sat on the old cabin roof, now empty water), so no wreck homes.
+      this.nudibranchs = new Nudibranchs(
+        h,
+        groups.filter((g) => g.id !== 'shipwreck'),
+        [
+          {
+            x: this.frogfish.home.position.x,
+            y: this.frogfish.home.position.y,
+            z: this.frogfish.home.position.z,
+            clearance: 1,
+          },
+        ],
+      );
     } catch (error) {
       this.seahorse.dispose();
       this.frogfish.dispose();
