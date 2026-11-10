@@ -7,7 +7,20 @@ import { AssetLoader } from '../assets/AssetLoader';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
 import * as THREE from 'three';
 import { Aquarium } from '../environment/Aquarium';
+import { AQUARIUM } from '../config/world';
 
+const OUTSIDE_VERTEX = `void main(){gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`;
+const OUTSIDE_FRAGMENT = `
+uniform sampler2D map;
+uniform vec2 resolution;
+void main(){
+  vec3 c=texture2D(map,gl_FragCoord.xy/resolution).rgb;
+  #ifdef TONE_MAPPING
+  c=toneMapping(c);
+  #endif
+  gl_FragColor=vec4(c,1.);
+  #include <colorspace_fragment>
+}`;
 /** Underwater haze density seen from inside the water. */
 export const UNDERWATER_HAZE = 0.026;
 export interface Presentation {
@@ -27,6 +40,8 @@ export class UnderwaterScene {
   private readonly assetStatus = document.createElement('p');
   private disposed = false;
   private presentation?: Presentation;
+  /** v0.3 Pass 021: the office seen through the front glass while surfacing (lazy). */
+  private outside?: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
   setPresentation(value: Presentation): void {
     this.presentation?.dispose();
     this.presentation = value;
@@ -185,6 +200,46 @@ export class UnderwaterScene {
     this.simulate(time, reducedMotion, dt, active, player, this.camera);
     this.renderer.render(this.scene, this.camera);
   }
+  /**
+   * v0.3 Pass 021: while surfacing, the front glass shows the office as seen from the swimmer's
+   * position (rendered by the office into `view`, in screen space). Null hides it again.
+   */
+  setOutsideView(view: THREE.Texture | null, resolution?: THREE.Vector2): void {
+    if (!view) {
+      if (this.outside) this.outside.visible = false;
+      return;
+    }
+    if (!this.outside) {
+      const geometry = new THREE.PlaneGeometry(
+        AQUARIUM.max.x - AQUARIUM.min.x,
+        AQUARIUM.max.y - AQUARIUM.min.y,
+      );
+      // On the inside of the front wall, facing into the water.
+      geometry.rotateY(Math.PI);
+      geometry.translate(
+        0,
+        (AQUARIUM.min.y + AQUARIUM.max.y) / 2,
+        AQUARIUM.max.z - 0.005,
+      );
+      const material = new THREE.ShaderMaterial({
+        uniforms: {
+          map: { value: view },
+          resolution: { value: new THREE.Vector2(1, 1) },
+        },
+        vertexShader: OUTSIDE_VERTEX,
+        fragmentShader: OUTSIDE_FRAGMENT,
+        fog: false,
+      });
+      this.outside = new THREE.Mesh(geometry, material);
+      this.outside.name = 'Office through the front glass';
+      this.outside.frustumCulled = false;
+      this.scene.add(this.outside);
+    }
+    this.outside.visible = true;
+    this.outside.material.uniforms.map.value = view;
+    if (resolution)
+      this.outside.material.uniforms.resolution.value.copy(resolution);
+  }
   /** v0.3 Pass 021: the dive thickens the haze from the outside view to the underwater one. */
   setHaze(density: number): void {
     if (this.scene.fog instanceof THREE.FogExp2)
@@ -247,6 +302,8 @@ export class UnderwaterScene {
     this.presentation = undefined;
     this.abort.abort();
     this.resizeObserver.disconnect();
+    this.outside?.geometry.dispose();
+    this.outside?.material.dispose();
     this.reef.dispose();
     this.authored.dispose();
     this.aquarium.dispose();

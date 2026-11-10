@@ -98,6 +98,14 @@ export class OfficeScene {
     velocity: { x: 0, y: 0, z: 0 },
     active: false,
   };
+  /** v0.3 Pass 021: the office seen from inside the tank (surfacing), rendered on demand. */
+  private outsideTarget?: THREE.WebGLRenderTarget;
+  private readonly outsideCamera = new THREE.PerspectiveCamera(
+    64,
+    1,
+    0.005,
+    30,
+  );
   private disposed = false;
 
   constructor(private readonly world: UnderwaterScene) {
@@ -195,6 +203,49 @@ export class OfficeScene {
     this.portal.uniforms.resolution.value.copy(this.size);
   }
 
+  /**
+   * v0.3 Pass 021: render the office as seen from `aquariumCamera`'s pose mapped into the office
+   * (inside the tank, looking out), for the aquarium's front glass while surfacing.
+   */
+  renderOutside(aquariumCamera: THREE.PerspectiveCamera): THREE.Texture {
+    this.fit();
+    const target = (this.outsideTarget ??= new THREE.WebGLRenderTarget(1, 1, {
+        type: THREE.HalfFloatType,
+        samples: 4,
+      })),
+      c = this.outsideCamera;
+    if (
+      target.width !== this.target.width ||
+      target.height !== this.target.height
+    )
+      target.setSize(this.target.width, this.target.height);
+    aquariumCamera.updateMatrixWorld();
+    c.position
+      .copy(aquariumCamera.position)
+      .multiplyScalar(TANK_SCALE)
+      .applyMatrix4(this.office.tankRoot.matrixWorld);
+    c.quaternion.copy(this.tankRotation).multiply(aquariumCamera.quaternion);
+    if (c.fov !== aquariumCamera.fov || c.aspect !== aquariumCamera.aspect) {
+      c.fov = aquariumCamera.fov;
+      c.aspect = aquariumCamera.aspect;
+      c.updateProjectionMatrix();
+    }
+    c.updateMatrixWorld();
+    const renderer = this.world.renderer,
+      previous = renderer.getRenderTarget();
+    try {
+      renderer.setRenderTarget(target);
+      renderer.clear();
+      renderer.render(this.scene, c);
+    } finally {
+      renderer.setRenderTarget(previous);
+    }
+    return target.texture;
+  }
+  /** Screen size the outside view is sampled at. */
+  get resolution(): THREE.Vector2 {
+    return this.size;
+  }
   /** Advance the office and the aquarium inside the tank, then draw both. */
   render(time: number, reducedMotion: boolean, dt: number): void {
     if (this.disposed) return;
@@ -228,6 +279,7 @@ export class OfficeScene {
     this.lights.forEach((l) => l.dispose());
     this.portal.dispose();
     this.target.dispose();
+    this.outsideTarget?.dispose();
     this.scene.clear();
   }
 }

@@ -378,6 +378,12 @@ export class Application {
       w.camera.position.set(f.x, f.y, f.z);
       w.camera.rotation.set(f.pitch, f.yaw, 0, 'YXZ');
       w.setHaze(f.fog);
+      // Surfacing: the front glass shows the office from the swimmer's mapped viewpoint.
+      if (dive.path.kind === 'surface' && !this.settings.reducedMotion)
+        w.setOutsideView(
+          this.office!.renderOutside(w.camera),
+          this.office!.resolution,
+        );
       this.ui.setDepth(AQUARIUM.max.y - f.y);
       this.playerPresence.active = false;
       if (!document.hidden)
@@ -397,6 +403,7 @@ export class Application {
     const dive = this.dive;
     this.dive = undefined;
     this.world?.setHaze(UNDERWATER_HAZE);
+    this.world?.setOutsideView(null);
     this.ui.setVeil(0);
     if (!dive || !arrived || !this.controls) return;
     const { space, pose } = dive.path.end;

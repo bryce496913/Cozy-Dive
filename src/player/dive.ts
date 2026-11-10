@@ -44,6 +44,8 @@ export const DIVE = {
   standOff: 0.45,
   /** Switch spaces this close to the glass: the view is then entirely glass (m). */
   switchGap: 0.1,
+  /** Surfacing switches this far inside the front glass (m). */
+  exitInset: 0.03,
   /** Peak of the water-contact wash, reached exactly at the crossing. */
   contactVeil: 0.32,
   /** Haze seen from the room (Pass 020 miniature) and from inside the water. */
@@ -213,9 +215,12 @@ export class DivePath {
           pitch: 0,
         },
         // Just outside the glass, in the office, at the mapped exit height.
+        // Switch back to the office just inside the glass: from there the office render (which the
+        // aquarium shows on its front wall while surfacing) is the same view, and the office camera
+        // then passes out through the glass, whose panels face outward.
         exitOffice = aquariumToOffice({
           ...exitInside,
-          z: AQUARIUM.max.z + DIVE.switchGap / TANK_SCALE,
+          z: AQUARIUM.max.z - DIVE.exitInset / TANK_SCALE,
         }),
         out = at(DIVE.standOff, outward, exitOffice.y);
       if (reducedMotion) {
