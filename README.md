@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.3 / Pass 021 — The Dive (`0.3.0-alpha.2`)** is a first-person, browser-based aquarium prototype. Start in a cosy, rainy home office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15`. No scores, timers, combat, accounts, or external asset services.
+A quiet little world beneath the surface. **v0.3 / Pass 021 — The Dive (`0.3.0-alpha.3`)** is a first-person, browser-based aquarium prototype. Start in a cosy, rainy home office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15`. No scores, timers, combat, accounts, or external asset services.
 
 ## Stack and requirements
 
