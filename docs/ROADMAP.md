@@ -30,3 +30,5 @@ Pass 011 is the final technical integration review for the tropical v0.2 candida
 Pass 012 responds to rejection of the placeholder-like visuals with an opt-in GLB/Blender benchmark and a reusable asset pipeline. It does not turn the whole aquarium into a new art release or supersede pending user acceptance. Pass 013 — Marine Creature Model Overhaul must wait for acceptance of this benchmark, its remaining art limitations and target-device budgets. No v0.3 work or release/tag is authorized by successful technical checks.
 
 Pass 019 applies the fixes from the user's Pass 018 MacBook playtest (seahorse and clownfish scale, a clownfish juvenile, the filter mounted at the top corner, the moray resting in its log, 20% slower swimming, and texture pop-in) and records the agreed v0.3–v0.6 sequence above. No v0.3 office work is included.
+
+v0.2 was accepted at `0.2.0-rc.15`. Pass 020 (`0.3.0-alpha.1`) starts v0.3 with the office: a walkable, procedurally built home office with a live miniature of the aquarium on its stand and its own ambience. Pass 021 adds the seamless dive from office to tank, and Pass 022 polishes and accepts v0.3.

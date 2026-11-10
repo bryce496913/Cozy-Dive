@@ -17,6 +17,7 @@ panel.querySelector<HTMLAnchorElement>('a')!.style.pointerEvents = 'auto';
 // Created once the world exists: KTX2 textures need the renderer to pick a GPU transcode format.
 let loader: AssetLoader | undefined;
 let world: UnderwaterScene | undefined;
+// The benchmark stays underwater (the office is the v0.3 default for the normal aquarium).
 const app = new Application(
   document.querySelector<HTMLDivElement>('#app')!,
   (value, state) => {
@@ -31,6 +32,7 @@ const app = new Application(
     });
     state.neutralDepth = state.position.y;
   },
+  { startMode: 'aquarium' },
 );
 let showcase: ReefShowcase | undefined,
   upgraded = true,
