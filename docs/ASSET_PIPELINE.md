@@ -145,3 +145,21 @@ python3 tools/art/inspect_assets.py
 - **Order matters.** Blender's glTF importer cannot read KTX2 images, so scripts that re-import a shipped GLB (`fish_lod.py`, `pass016/fish.py`, `pass015/creatures.py`) must run on uncompressed output, in the full regeneration order above, never on the shipped files.
 - **Runtime.** `AssetLoader` takes the renderer and lazily creates one `KTX2Loader` (two workers) using the local `public/assets/basis/` transcoder (Apache-2.0, from three r187). `detectSupport` lets three.js choose a GPU format per Basis mode from what the device supports (ASTC, BC7, ETC2 or BC1/BC3, for example). Where no compressed format is available it falls back to uncompressed RGBA. The loader is disposed with the cache.
 - **Tooling.** `inspect_assets.py` validates each KTX2 header (identifier, size, single face, full mip chain) and records the Basis mode and mip count in the manifest.
+
+## Pass 019 shipwreck redesign
+
+The other five props in the shipped `reef-props.glb` were refined after Pass 013, so re-running `author.py` no longer reproduces them. Only the Shipwreck is replaced:
+
+```bash
+python tools/art/pass013/author.py                                        # Blender 5.1 module: fresh uncompressed library
+python3 tools/art/pass013/collision_inventory.py                          # read its collision point sets
+# keep only the Shipwreck entry from the new collisions.json, restore the shipped GLB and .blend, then:
+node tools/art/pass019/splice_wreck.mjs <raw reef-props.glb>
+python3 tools/art/inspect_assets.py
+```
+
+- **Splice:** `splice_wreck.mjs` merges just the Shipwreck subtree into the shipped, compressed library.
+- **Materials:** Wood, Cut_Wood, Dark and Growth are matched by name to the shipped KTX2 textures; the untextured Sand is new.
+- **Pruning:** keeps every vertex attribute, since asset validation requires UVs.
+- **Compression:** writes with the pinned 16-bit Draco settings.
+- **Source:** the authoring source for the new wreck is the script; `reef-props.blend` remains the Pass 013 library.

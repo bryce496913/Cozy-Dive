@@ -3,7 +3,8 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { MorayBehavior, morayCenter, MORAY_GLSL } from './MorayBehavior';
 import { PlantClock } from '../environment/PlantAnimation';
 import type { CreatureAnchor } from './CreatureAnchor';
-import type { OrnamentAnchor } from '../environment/ornaments/OrnamentSystem';
+import type { ConvexCollider } from '../player/collision';
+import { findMorayDen, type MorayDen } from './MorayDen';
 import type { FishHabitat } from '../fish/FishHabitat';
 import { safeFishPosition } from '../fish/FishHabitat';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
@@ -114,30 +115,31 @@ export class Moray {
   private readonly forward = new THREE.Vector3(0, 0, 1);
   private disposed = false;
   private accumulator = 0;
-  constructor(h: FishHabitat, anchors: readonly OrnamentAnchor[]) {
-    this.root.name = 'Sheltered snowflake-inspired moray';
-    const source = anchors.find((a) => a.anchorId === 'log-interior');
-    if (!source)
-      throw new Error('Missing validated log-interior moray anchor.');
-    this.root.position.set(
-      source.position.x,
-      source.position.y - 0.02,
-      source.position.z,
-    );
+  /** Pass 019: the hole in a reef rock the moray lives in. */
+  readonly den: MorayDen;
+  constructor(h: FishHabitat, supports: readonly ConvexCollider[]) {
+    this.root.name = 'Reef-den snowflake-inspired moray';
+    this.den = findMorayDen(h, supports);
+    this.root.position.copy(this.den.mouth);
     this.root.quaternion.setFromUnitVectors(
       new THREE.Vector3(0, 0, 1),
-      new THREE.Vector3(source.normal.x, source.normal.y, source.normal.z),
+      this.den.axis,
     );
     this.root.updateMatrixWorld(true);
-    // Validate the complete deformation envelope against the bore: each sampled body ring (its
-    // real half-width and flattened height) and the exposed broad head must stay clear of solids.
-    const ring = new THREE.Vector3();
+    // The exposed head and neck (outside the mouth) stay clear of every solid at every pose; the
+    // rest of the body lies inside the rock by design.
+    const ring = new THREE.Vector3(),
+      others = {
+        bounds: h.bounds,
+        rocks: h.rocks.filter((r) => r !== this.den.support),
+      };
     for (let extension = 0; extension <= 1.0001; extension += 0.1)
       for (let phase = 0; phase < Math.PI * 2; phase += Math.PI / 4)
         for (let i = 0; i <= 24; i++) {
           const u = i / 24,
             r = 0.009 + 0.16 * Math.sin(u * Math.PI * 0.5) ** 0.75;
           morayCenter(u, extension, phase, this.probe);
+          if (this.probe.z < 0.05) continue;
           for (let k = 0; k < 8; k++) {
             const a = (k / 8) * Math.PI * 2;
             ring
@@ -148,15 +150,19 @@ export class Moray {
               )
               .add(this.probe)
               .applyMatrix4(this.root.matrixWorld);
-            if (!safeFishPosition(ring, 0.01, h))
-              throw new Error('Unsafe moray shelter deformation envelope.');
+            if (!safeFishPosition(ring, 0.01, others))
+              throw new Error('Unsafe moray den head envelope.');
           }
         }
     this.anchor = {
       id: 'moray-shelter',
-      sourceId: source.anchorId,
-      position: { ...source.position },
-      orientation: { ...source.normal },
+      sourceId: `reef-den/${this.den.supportIndex}`,
+      position: {
+        x: this.den.mouth.x,
+        y: this.den.mouth.y,
+        z: this.den.mouth.z,
+      },
+      orientation: { x: this.den.axis.x, y: 0, z: this.den.axis.z },
       homeRadius: 2.8,
       habitatKind: 'sheltered-crevice',
     };
@@ -212,12 +218,12 @@ export class Moray {
     mottled(fin);
     this.geometry = mergeOwned([body, fin]);
     this.geometry.boundingBox = new THREE.Box3(
-      new THREE.Vector3(-0.7, -1.1, -1.6),
-      new THREE.Vector3(0.7, 0.5, 2.4),
+      new THREE.Vector3(-0.4, -0.4, -1.9),
+      new THREE.Vector3(0.4, 0.4, 1),
     );
     this.geometry.boundingSphere = new THREE.Sphere(
-      new THREE.Vector3(0, 0, 0.4),
-      2.4,
+      new THREE.Vector3(0, 0, -0.45),
+      1.6,
     );
     this.material.onBeforeCompile = (shader) => {
       shader.uniforms.morayExtension = this.extensionUniform;

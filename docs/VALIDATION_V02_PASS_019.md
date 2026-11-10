@@ -67,3 +67,20 @@ New tests cover:
 - [ ] The moray lies in its log and lifts its head out naturally.
 - [ ] Swimming feels calmer, and your saved speed setting carried over.
 - [ ] No texture pop-in when you first swim around; startup still feels fine.
+
+## 6. Round 2 (second playtest, candidate `0.2.0-rc.14`)
+
+Round 1 was merged in PR #27. This round follows a second MacBook playtest:
+
+| Playtest note                                    | Change                                                                                                                                                                                                                         |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Max swim speed is too fast                       | Speeds are 60% of v1: default 1.68 m/s, maximum 3 m/s. Settings key v3; saved v1/v2 speeds keep their slider position. Measured peak with real input: 2.01 m/s (rc.12: 3.35).                                                  |
+| Idle bobbing slightly too much                   | Breathing force at 60%: Natural 13.3 → 8.0 cm peak to peak (measured).                                                                                                                                                         |
+| Seahorse stuck in the coral                      | `findSeahorseGrip` picks a thin, near-horizontal branch partway up the authored sea fan with open water for the body. The seahorse faces out towards its viewing spot. Unit-tested on all three authored fan templates.        |
+| Moray lifeless; put it in a rock hole, head out  | `findMorayDen` chooses a large reef rock; `carveDen` pits a 0.3 m × 0.8 m hole into its visible surface. The body is hidden in the stone, the head rests 0.3 m out, and it pulls in within 1.8 m of the diver.                 |
+| Shipwreck design is bad                          | Redesigned as a small sunken wooden boat: plank hull with a pointed bow, missing planks showing ribs, drifted sand, snapped mast, 14° list. Only the wreck is spliced into the shipped library. 503 collision hulls (was 435). |
+| Frogfish half size, on a rock where it blends in | Half scale, on a level reef-rock top (`rockTopHome`), seated on the visible stone and tinted toward the limestone.                                                                                                             |
+
+Checks: build, typecheck and lint pass; **361 / 361** unit tests pass. Exact-count assertions were updated to measured values (41 fish, 503 hulls, three clownfish rigs, migrated speed 1.08 m/s in the lifecycle harness). Browser checks run on this round before the user asked to stop: `playtest-fixes` (0 lazy texture uploads; peak speed above), `fish-overhaul` and `creature-overhaul` passed. The rest of the browser suite and the stress suite were **not run**, at the user's request; the user is playtesting directly.
+
+Known limitations: the carved den, seahorse branch grip and frogfish seating need the authored assets. With the procedural fallback the moray pokes out of solid rock, the seahorse keeps its old low grip, and the frogfish sits on the hull top. The den is a pushed-in pit rather than a cut tunnel, so its rim may look soft up close.

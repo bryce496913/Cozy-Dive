@@ -39,4 +39,13 @@ Pass 011 keeps this production architecture unchanged and adds whole-aquarium va
 
 ## Pass 019 playtest changes
 
-The internal filter hangs in the top back corner like a real aquarium filter, suction-cupped to the glass (`FILTER_MOUNT_Y = AQUARIUM.max.y - 1.55`). Its body sits just under the waterline, the outflow nozzle stirs the surface, and the return pipe rises out over the rim. Its fish-interest point moves up with it.
+- **Filter:** the internal filter hangs in the top back corner like a real aquarium filter, suction-cupped to the glass (`FILTER_MOUNT_Y = AQUARIUM.max.y - 1.55`). Its body sits just under the waterline, the outflow nozzle stirs the surface, and the return pipe rises out over the rim. Its fish-interest point moves up with it.
+- **Shipwreck (second playtest):** redesigned in `tools/art/pass013/author.py` as a small sunken wooden boat, replacing the bench-like plank courses:
+  - **Hull:** a lofted round-bilge hull of seven plank strakes, with a pointed, raised bow and a transom stern.
+  - **Damage:** a run of missing starboard planks with ragged ends, showing the ribs inside.
+  - **Details:** keel and stem, gunwale rails, and a short aft deck.
+  - **Sand:** drifted inside. At runtime it is draped with the seabed's authored sand material via `AuthoredReef.drapeSand`.
+  - **Mast:** a snapped stump with splinters, and the fallen mast lying across the port gunwale.
+  - **Pose:** the whole wreck lists 14° to port and noses down.
+  - **Collision:** each strake is split into short segments, finer towards the bow, so every convex collision proxy hugs the hull wall. The open interior, the `shipwreck-crevice` interest point and the swim circuit stay clear. That is 124 wreck hulls; the aquarium now has 503.
+  - **Fallback:** the procedural wreck is unchanged, and stays the fallback and the placement envelope.

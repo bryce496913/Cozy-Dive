@@ -6,7 +6,6 @@ import { Moray } from './Moray';
 import type { FishHabitat } from '../fish/FishHabitat';
 import type { ConvexCollider } from '../player/collision';
 import type { PlantPlacement } from '../environment/HabitatRegions';
-import type { OrnamentAnchor } from '../environment/ornaments/OrnamentSystem';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
 /** Environment lifecycle bridge; individual creatures keep their own behavior/rendering ownership. */
 export class AnchoredLife {
@@ -19,13 +18,12 @@ export class AnchoredLife {
     h: FishHabitat,
     supports: readonly ConvexCollider[],
     plants: readonly PlantPlacement[],
-    anchors: readonly OrnamentAnchor[],
     surfaces: readonly DiscoverySurfaceGroup[],
   ) {
     this.root.name = 'Anchored marine life';
     this.anemone = new Anemone(h, supports, plants);
     try {
-      this.moray = new Moray(h, anchors);
+      this.moray = new Moray(h, supports);
     } catch (error) {
       this.anemone.dispose();
       throw error;

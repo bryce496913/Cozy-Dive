@@ -131,7 +131,10 @@ describe('quiet hidden discoveries', () => {
     expect(moving).toBeGreaterThan(100);
     const f = a.anchoredLife.hidden.frogfish;
     expect(f.leftFoot.geometry).toBe(f.rightFoot.geometry);
-    expect(f.home.sourceId).toContain('shipwreck');
+    // Pass 019: perched on a level reef-rock top, at half its former size.
+    expect(f.home.sourceId).toMatch(/^reef\//);
+    expect(f.home.orientation.y).toBeGreaterThan(0.85);
+    expect(f.root.scale.x).toBe(0.5);
   });
   it('makes only bounded gentle personal-space responses and ignores distant activity', () => {
     const s = a.anchoredLife.hidden.seahorse,

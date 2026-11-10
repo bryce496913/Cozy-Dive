@@ -1,11 +1,15 @@
 import * as THREE from 'three';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AQUARIUM } from '../src/config/world';
-import { MORAY_DEN, morayCenter } from '../src/creatures/MorayBehavior';
+import {
+  MORAY_DEN,
+  MorayBehavior,
+  morayCenter,
+} from '../src/creatures/MorayBehavior';
+import { hullDepth } from '../src/creatures/MorayDen';
 import { SEAHORSE_SCALE } from '../src/creatures/discoveries/Seahorse';
 import { Aquarium } from '../src/environment/Aquarium';
 import { FILTER_MOUNT_Y } from '../src/environment/ornaments/OrnamentPlacement';
-import { safeFishPosition } from '../src/fish/FishHabitat';
 import { FISH_SPECIES } from '../src/fish/FishSpecies';
 import { revealLodLevels, sceneTextures } from '../src/rendering/warmUp';
 
@@ -60,36 +64,37 @@ describe('Pass 019 playtest fixes', () => {
     expect(box.min.z).toBeGreaterThan(AQUARIUM.min.z);
   });
 
-  it('rests the moray on the floor of its log instead of floating on the bore axis', () => {
+  it('lives in a hole in a large reef rock: head out when resting, pulled in when retreating', () => {
     const m = a.anchoredLife.moray,
-      h = a.fish.simulation.habitat,
-      c = new THREE.Vector3(),
-      below = new THREE.Vector3();
-    m.root.updateMatrixWorld(true);
-    for (const extension of [0, 0.6, 1])
-      for (const phase of [0, 2, 5])
-        for (let i = 0; i <= 20; i++) {
-          const t = i / 20;
-          morayCenter(t, extension, phase, c);
-          // The body sits in the lower part of the 1.02-radius bore; only the head lifts.
-          if (t < 0.78) expect(c.y).toBeLessThan(MORAY_DEN.floor + 0.031);
-          expect(c.y).toBeGreaterThanOrEqual(MORAY_DEN.floor);
-          // Directly beneath the body, solid log (or sand) is close: it lies, it does not hover.
-          if (t > 0.1 && t < 0.7) {
-            let contact = false;
-            for (let d = 0.14; d < 0.35 && !contact; d += 0.01) {
-              below.set(c.x, c.y - d, c.z).applyMatrix4(m.root.matrixWorld);
-              contact = !safeFishPosition(below, 0.005, h);
-            }
-            expect(contact).toBe(true);
-          }
-        }
-    // Fully emerged, the head is raised above the resting body.
-    const head = new THREE.Vector3(),
-      body = new THREE.Vector3();
+      d = m.den,
+      head = new THREE.Vector3();
+    // A large rock, a side-facing horizontal hole well above the sand.
+    expect(d.support.max.y - d.support.min.y).toBeGreaterThan(1.6);
+    expect(Math.abs(d.axis.y)).toBe(0);
+    expect(d.axis.length()).toBeCloseTo(1, 9);
+    expect(
+      d.mouth.y -
+        (a.fish.simulation.habitat.substrateHeight?.(d.mouth.x, d.mouth.z) ??
+          0),
+    ).toBeGreaterThan(0.7);
+    expect(m.root.position.distanceTo(d.mouth)).toBeLessThan(1e-9);
+    // Resting: the head is out of the hole; retreated: back inside it.
     morayCenter(1, 1, 0, head);
-    morayCenter(0.5, 1, 0, body);
-    expect(head.y - body.y).toBeGreaterThan(0.15);
+    expect(head.z).toBeCloseTo(MORAY_DEN.headOut, 9);
+    morayCenter(1, 0, 0, head);
+    expect(head.z).toBeLessThan(-0.3);
+    // The tail end of the body stays deep inside the rock in every pose.
+    for (const extension of [0, 1]) {
+      morayCenter(0, extension, 0, head);
+      head.applyMatrix4(m.root.matrixWorld);
+      expect(hullDepth(d.support, head)).toBeGreaterThan(0.3);
+    }
+    // The diver's approach pulls it in.
+    const b = new MorayBehavior();
+    b.state = 'resting';
+    b.extension = 1;
+    for (let i = 0; i < 90; i++) b.update(1 / 30, true, true);
+    expect(b.extension).toBeLessThan(0.1);
   });
 
   it('collects every material texture and reveals every LOD level for warm-up', () => {

@@ -43,4 +43,11 @@ The moray and host anemone keep every controller, uniform and attachment. The mo
 ## Pass 019 playtest changes
 
 - **Clownfish:** the ocellaris pair is half its former size (body length 0.34 m), and a juvenile at 10% of the former size (about 0.07 m, an `individualScale` of 0.2) shelters with them. It uses the same host anemone and follows the female (`hostMate`). The authored clownfish rig was modelled at 0.68 m, so `authoredLength` scales it to the species length. Production has 41 fish; the dense stress scenario has 61. `fishPopulation` now takes the named scenario `'home'` or `'dense'` rather than a count.
-- **Moray:** the body lies along the floor of the log's bore (`MORAY_DEN.floor = -0.74` below the anchor axis, the lowest height that keeps 1 cm clearance from the bore hulls everywhere) instead of on the axis. Only the head lifts, by up to 0.22 m as it emerges, with a 3 cm resting sway. The CPU envelope check now tests each body ring's real half-width and height, plus the head, against the bore.
+- **Moray den (second playtest):** the moray no longer lives in the hollow log. It lives in a hole in a large reef rock (`MorayDen.findMorayDen`, chosen deterministically):
+  - **Rock:** at least 2 m across and 1.6 m tall.
+  - **Mouth:** on a side facing the open channel, at least 0.75 m above the sand.
+  - **Hiding:** the hull hides the whole body with 0.3 m to spare.
+  - **Exposed head:** clear of every other solid.
+  - **Viewing:** visible from a reachable spot.
+
+  Its local frame sits on the mouth with +z out of the rock. The body lies straight along the hole, 1.3 m long; the head moves from 0.4 m inside the hole (retreated) to 0.3 m outside (resting), with a small head sway. The existing behaviour pulls it in when the diver comes within 1.8 m. Once the authored reef loads, `RockDen.carveDen` pits that rock's visible surface on every detail level: 0.3 m radius, 0.8 m deep, with darkened vertex colour. The collision hull is unchanged, because the pit lies inside it. With the procedural fallback reef there is no carved hole.

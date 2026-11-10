@@ -74,7 +74,8 @@ import fs from 'node:fs';
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
     assert.equal(await page.locator('#master-volume').inputValue(), '30');
     assert.equal(await page.locator('#audio-enabled').isChecked(), true);
-    assert.equal(await page.locator('#speed').inputValue(), '1.8');
+    // Pass 019: the seeded v1 save migrates onto the 60% scale (1.8 -> 1.08 m/s).
+    assert.equal(await page.locator('#speed').inputValue(), '1.08');
     assert.equal(await page.locator('#swimming-feel').inputValue(), 'relaxed');
     await page.screenshot({ path: '/tmp/cozy-audio-settings.png' });
     await page.getByRole('button', { name: 'Close settings' }).click();
@@ -394,11 +395,11 @@ import fs from 'node:fs';
         assert.equal(snapshot.tropical.bubblesInside, true);
         // Pass 014 adds the authored reef layer and Pass 015 the nudibranch library / creature
         // skins: 422 resident geometries, 81 materials and
-        // 435 hulls (each reef rock's accepted hull replaced by its authored convex parts).
+        // 503 hulls (Pass 019 wreck; each reef rock's accepted hull replaced by its authored convex parts).
         // Pass 016 authored fish schools (462) + Pass 017 fish distance levels (36 parts).
         assert.equal(snapshot.tropical.geometries, 498);
         assert.equal(snapshot.tropical.materials, 106);
-        assert.equal(snapshot.tropical.hulls, 435);
+        assert.equal(snapshot.tropical.hulls, 503);
         assert.equal(snapshot.corrections, 0);
         if (longSession.length) {
           assert.deepEqual(
