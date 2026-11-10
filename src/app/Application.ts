@@ -404,6 +404,7 @@ export class Application {
     this.dive = undefined;
     this.world?.setHaze(UNDERWATER_HAZE);
     this.world?.setOutsideView(null);
+    this.office?.releaseOutside();
     this.ui.setVeil(0);
     if (!dive || !arrived || !this.controls) return;
     const { space, pose } = dive.path.end;

@@ -242,6 +242,11 @@ export class OfficeScene {
     }
     return target.texture;
   }
+  /** Free the outside view's render target once surfacing is over. */
+  releaseOutside(): void {
+    this.outsideTarget?.dispose();
+    this.outsideTarget = undefined;
+  }
   /** Screen size the outside view is sampled at. */
   get resolution(): THREE.Vector2 {
     return this.size;

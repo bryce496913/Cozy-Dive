@@ -42,6 +42,7 @@ export class UnderwaterScene {
   private presentation?: Presentation;
   /** v0.3 Pass 021: the office seen through the front glass while surfacing (lazy). */
   private outside?: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
+  private outsideMaterial?: THREE.ShaderMaterial;
   setPresentation(value: Presentation): void {
     this.presentation?.dispose();
     this.presentation = value;
@@ -202,11 +203,18 @@ export class UnderwaterScene {
   }
   /**
    * v0.3 Pass 021: while surfacing, the front glass shows the office as seen from the swimmer's
-   * position (rendered by the office into `view`, in screen space). Null hides it again.
+   * position (rendered by the office into `view`, in screen space). Null removes it and frees its
+   * geometry (the material, which holds no GPU memory of its own, is kept so the shader stays warm).
    */
   setOutsideView(view: THREE.Texture | null, resolution?: THREE.Vector2): void {
     if (!view) {
-      if (this.outside) this.outside.visible = false;
+      if (this.outside) {
+        this.scene.remove(this.outside);
+        this.outside.geometry.dispose();
+        this.outsideMaterial = this.outside.material;
+        this.outsideMaterial.uniforms.map.value = null;
+        this.outside = undefined;
+      }
       return;
     }
     if (!this.outside) {
@@ -221,7 +229,7 @@ export class UnderwaterScene {
         (AQUARIUM.min.y + AQUARIUM.max.y) / 2,
         AQUARIUM.max.z - 0.005,
       );
-      const material = new THREE.ShaderMaterial({
+      const material = (this.outsideMaterial ??= new THREE.ShaderMaterial({
         uniforms: {
           map: { value: view },
           resolution: { value: new THREE.Vector2(1, 1) },
@@ -229,7 +237,7 @@ export class UnderwaterScene {
         vertexShader: OUTSIDE_VERTEX,
         fragmentShader: OUTSIDE_FRAGMENT,
         fog: false,
-      });
+      }));
       this.outside = new THREE.Mesh(geometry, material);
       this.outside.name = 'Office through the front glass';
       this.outside.frustumCulled = false;
@@ -303,7 +311,7 @@ export class UnderwaterScene {
     this.abort.abort();
     this.resizeObserver.disconnect();
     this.outside?.geometry.dispose();
-    this.outside?.material.dispose();
+    this.outsideMaterial?.dispose();
     this.reef.dispose();
     this.authored.dispose();
     this.aquarium.dispose();

@@ -234,7 +234,7 @@ The start screen now opens in a calm home office, generated entirely in code: a 
 
 - **Walking:** choose **Enter the Office** to walk with W A S D and look around with the mouse. You walk at a fixed eye height and slide along the walls and furniture.
 - **The aquarium:** it sits on its stand as a roughly 1 m tank, and the glass shows the real aquarium running live in miniature, fish and all. It is rendered cheaply: from the room, every fish, coral and rock uses its distance level.
-- **Diving in:** **Enter the Water** dives straight in, as before. From the pause screen you can switch between the office and the water. The seamless dive transition is the next pass (Pass 021).
+- **Diving in:** **Enter the Water** dives straight in, as before. From the pause screen you can switch between the office and the water. Pass 021 adds the seamless dive from the tank.
 
 See [the office architecture](docs/OFFICE.md) and [validation](docs/VALIDATION_V03_PASS_020.md).
 
