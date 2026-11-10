@@ -397,8 +397,10 @@ import fs from 'node:fs';
         // skins: 422 resident geometries, 81 materials and
         // 503 hulls (Pass 019 wreck; each reef rock's accepted hull replaced by its authored convex parts).
         // Pass 016 authored fish schools (462) + Pass 017 fish distance levels (36 parts).
-        assert.equal(snapshot.tropical.geometries, 498);
-        assert.equal(snapshot.tropical.materials, 106);
+        // Pass 019 warm-up uploads every distance level up front, Pass 019 round 2 adds the carved
+        // den rock and the new moray head, and v0.3 Pass 020 the office (26 geometries).
+        assert.equal(snapshot.tropical.geometries, 567);
+        assert.equal(snapshot.tropical.materials, 109); // Pass 019 round 2: moray head skin, frogfish camouflage, wreck sand
         assert.equal(snapshot.tropical.hulls, 503);
         assert.equal(snapshot.corrections, 0);
         if (longSession.length) {
