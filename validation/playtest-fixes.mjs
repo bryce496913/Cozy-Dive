@@ -93,7 +93,7 @@ try {
     report.texturesAfterSwim - report.texturesPrepared;
   await page.evaluate(() => cancelAnimationFrame(window.__cozy.frame));
   report.views = [];
-  for (const view of ['seahorse', 'clownfish', 'filter', 'moray']) {
+  for (const view of ['seahorse', 'clownfish', 'filter', 'moray', 'frogfish']) {
     report.views.push(
       await page.evaluate(async (view) => {
         const THREE = await import('/node_modules/.vite/deps/three.js'),
@@ -125,6 +125,18 @@ try {
           info.lengths = q.fish.simulation.fish
             .filter((f) => f.species.id === 'ocellaris-clownfish')
             .map((f) => +(f.species.length * f.size).toFixed(3));
+        } else if (view === 'frogfish') {
+          const f = life.hidden.frogfish;
+          f.pose(41);
+          f.root.getWorldPosition(target);
+          target.y += 0.12;
+          eye
+            .set(f.home.view.x, f.home.view.y, f.home.view.z)
+            .sub(target)
+            .setLength(1.1)
+            .add(target);
+          info.home = f.home.sourceId;
+          info.scale = f.root.scale.x;
         } else if (view === 'filter') {
           const f = q.ornaments.models.find((m) => m.kind === 'filter').root;
           const box = new THREE.Box3().setFromObject(f);
@@ -133,18 +145,19 @@ try {
           target.set(f.position.x, f.position.y + 0.4, f.position.z);
           eye.copy(target).add(new THREE.Vector3(-4.5, -1.6, 5));
         } else {
-          // Looking into the log mouth along its axis, as in the playtest screenshot.
+          // Pass 019: the moray's den in a reef rock (or, on the previous candidate, its log).
           const n = new THREE.Vector3(
             m.anchor.orientation.x,
             m.anchor.orientation.y,
             m.anchor.orientation.z,
-          );
-          target.copy(m.root.position).addScaledVector(n, 1.2);
-          target.y -= 0.45;
+          ).normalize();
+          const sideways = new THREE.Vector3(-n.z, 0, n.x);
+          m.head.getWorldPosition(target);
           eye
-            .copy(m.root.position)
-            .addScaledVector(n, 4.2)
-            .add(new THREE.Vector3(0.6, 0.15, 0));
+            .copy(target)
+            .addScaledVector(n, 2.1)
+            .addScaledVector(sideways, 0.9)
+            .add(new THREE.Vector3(0, 0.35, 0));
           info.headLocal = m.head.position.toArray().map((v) => +v.toFixed(3));
         }
         w.camera.position.copy(eye);

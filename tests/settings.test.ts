@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_SETTINGS,
-  LEGACY_SETTINGS_KEY,
+  LEGACY_SETTINGS,
   SETTINGS_KEY,
   SWIM_SPEED,
   loadSettings,
@@ -34,7 +34,7 @@ describe('settings', () => {
     expect(
       validateSettings({ speed: 100, sensitivity: -5, reducedMotion: true }),
     ).toEqual({
-      speed: 4,
+      speed: 3,
       sensitivity: 0.25,
       reducedMotion: true,
       swimmingFeel: 'natural',
@@ -56,7 +56,7 @@ describe('settings', () => {
     const store = memoryStore(),
       settings = {
         ...DEFAULT_SETTINGS,
-        speed: 3.6,
+        speed: 2.4,
         sensitivity: 1.25,
         reducedMotion: false,
       };
@@ -89,10 +89,10 @@ it('migrates old preferences and validates swimming feel', () => {
   const store = memoryStore();
   store.setItem(
     SETTINGS_KEY,
-    JSON.stringify({ speed: 3.2, sensitivity: 1.4, reducedMotion: true }),
+    JSON.stringify({ speed: 2.4, sensitivity: 1.4, reducedMotion: true }),
   );
   expect(loadSettings(store)).toEqual({
-    speed: 3.2,
+    speed: 2.4,
     sensitivity: 1.4,
     reducedMotion: true,
     swimmingFeel: 'natural',
@@ -108,27 +108,37 @@ it('migrates old preferences and validates swimming feel', () => {
   for (const swimmingFeel of [null, 3, 'fast', {}, true])
     expect(validateSettings({ swimmingFeel }).swimmingFeel).toBe('natural');
 });
-it('swims 20% slower than v1 and migrates a saved v1 speed onto the slower scale', () => {
-  expect(DEFAULT_SETTINGS.speed).toBeCloseTo(2.8 * 0.8, 10);
-  expect(SWIM_SPEED.max).toBeCloseTo(5 * 0.8, 10);
-  // The new slider grid is exactly the old 0.1 grid from 1 m/s, scaled by 0.8.
-  for (const old of [1, 1.7, 2.8, 5]) {
+it('swims at 60% of the v1 scale and migrates v1 and v2 saves onto it', () => {
+  expect(DEFAULT_SETTINGS.speed).toBeCloseTo(2.8 * 0.6, 10);
+  expect(SWIM_SPEED.max).toBeCloseTo(5 * 0.6, 10);
+  const [v2, v1] = LEGACY_SETTINGS;
+  // v1 (0.1 grid from 1 m/s) and v2 (0.08 grid from 0.8) land exactly on the 0.06 grid.
+  for (const [legacy, old, expected] of [
+    [v1, 1, 0.6],
+    [v1, 2.8, 1.68],
+    [v1, 5, 3],
+    [v2, 0.8, 0.6],
+    [v2, 2.24, 1.68],
+    [v2, 4, 3],
+  ] as const) {
     const store = memoryStore();
     store.setItem(
-      LEGACY_SETTINGS_KEY,
+      legacy.key,
       JSON.stringify({ speed: old, sensitivity: 1.5, audioEnabled: false }),
     );
     const migrated = loadSettings(store);
-    expect(migrated.speed).toBeCloseTo(old * 0.8, 10);
+    expect(migrated.speed).toBeCloseTo(expected, 10);
     const steps = (migrated.speed - SWIM_SPEED.min) / SWIM_SPEED.step;
     expect(Math.abs(steps - Math.round(steps))).toBeLessThan(1e-9);
     expect(migrated.sensitivity).toBe(1.5);
     expect(migrated.audioEnabled).toBe(false);
   }
-  // A v2 save wins over a stale v1 entry and is never scaled twice.
-  const store = memoryStore();
-  store.setItem(LEGACY_SETTINGS_KEY, JSON.stringify({ speed: 5 }));
-  saveSettings(store, { ...DEFAULT_SETTINGS, speed: 3.2 });
-  expect(loadSettings(store).speed).toBe(3.2);
-  expect(store.getItem(SETTINGS_KEY)).not.toBeNull();
+  // The newest legacy key wins, and a current save is never scaled again.
+  const both = memoryStore();
+  both.setItem(v1.key, JSON.stringify({ speed: 5 }));
+  both.setItem(v2.key, JSON.stringify({ speed: 2 }));
+  expect(loadSettings(both).speed).toBeCloseTo(1.5, 10);
+  saveSettings(both, { ...DEFAULT_SETTINGS, speed: 2.4 });
+  expect(loadSettings(both).speed).toBe(2.4);
+  expect(both.getItem(SETTINGS_KEY)).not.toBeNull();
 });

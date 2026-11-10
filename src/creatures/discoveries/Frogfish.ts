@@ -2,6 +2,9 @@ import * as THREE from 'three';
 import type { FishHabitat } from '../../fish/FishHabitat';
 import type { PlayerPresence } from '../../fish/FishDiverReaction';
 import {
+  FROGFISH_VIEW_DISTANCE,
+  FROGFISH_VIEW_LIFT,
+  rockTopHome,
   surfaceHome,
   type SurfaceHome,
   type DiscoverySurfaceGroup,
@@ -37,6 +40,14 @@ export function frogfishStep(time: number, out: FrogfishMotion): void {
   out.walking = phase >= 104;
   out.stride = t;
 }
+/**
+ * Pass 019 playtest: the frogfish is half its former modelled size and perches on the top of a
+ * reef rock, where its mottled skin blends in, rather than in the shipwreck. Geometry keeps its
+ * local units; the root carries the scale.
+ */
+export const FROGFISH_SCALE = 0.5;
+/** Rock tops only: the support face must be within about 32 degrees of level. */
+export const FROGFISH_MIN_UP = 0.85;
 /** Still, warty, limb-finned perch animal with rare small walking steps. */
 export class Frogfish {
   readonly root = new THREE.Group();
@@ -52,6 +63,8 @@ export class Frogfish {
   readonly home: SurfaceHome;
   walking = false;
   awareness = 0;
+  /** How far the visible rock surface lies below the hull-top perch (set once assets load). */
+  private drop = 0;
   private readonly offset = new THREE.Vector3();
   private readonly step: FrogfishMotion = {
     x: 0,
@@ -62,6 +75,7 @@ export class Frogfish {
   private disposed = false;
   constructor(h: FishHabitat, groups: readonly DiscoverySurfaceGroup[]) {
     this.root.name = 'Hidden frogfish';
+    this.root.scale.setScalar(FROGFISH_SCALE);
     const skin = 0xb38b64,
       shade = 0x826647,
       parts: THREE.BufferGeometry[] = [];
@@ -206,7 +220,40 @@ export class Frogfish {
     this.body.add(this.lure);
     this.geometries = [bodyGeometry, footGeometry, lureGeometry];
     try {
-      this.home = surfaceHome('frogfish', groups, h, 0.53, 0.56, 0.78);
+      const k = FROGFISH_SCALE,
+        reef = groups.find((g) => g.id === 'reef');
+      let home: SurfaceHome | undefined;
+      if (reef)
+        try {
+          home = rockTopHome(
+            'frogfish',
+            reef.colliders,
+            h,
+            0.53 * k,
+            0.56 * k,
+            0.78 * k,
+            FROGFISH_MIN_UP,
+            {
+              distance: FROGFISH_VIEW_DISTANCE,
+              lift: FROGFISH_VIEW_LIFT,
+            },
+          );
+        } catch {
+          home = undefined;
+        }
+      // Without a usable rock top, fall back to any level structural surface.
+      this.home =
+        home ??
+        surfaceHome(
+          'frogfish',
+          groups.filter((g) => g.id !== 'reef'),
+          h,
+          0.53 * k,
+          0.56 * k,
+          0.78 * k,
+          [],
+          FROGFISH_MIN_UP,
+        );
     } catch (error) {
       this.dispose();
       throw error;
@@ -219,7 +266,7 @@ export class Frogfish {
         player?.active &&
         Math.hypot(
           player.position.x - p.x,
-          player.position.y - p.y - 0.3,
+          player.position.y - p.y - 0.3 * FROGFISH_SCALE,
           player.position.z - p.z,
         ) < 1
           ? 1
@@ -231,7 +278,8 @@ export class Frogfish {
     const phase = this.step;
     frogfishStep(time, phase);
     this.walking = phase.walking;
-    this.offset.set(phase.x, 0, phase.z);
+    this.offset.set(phase.x, 0, phase.z).multiplyScalar(FROGFISH_SCALE);
+    this.offset.y = -this.drop;
     this.root.position
       .copy(this.offset)
       .applyQuaternion(this.home.rotation)
@@ -246,6 +294,13 @@ export class Frogfish {
     this.rightFoot.position.y = this.walking
       ? Math.max(0, -Math.sin(phase.stride * Math.PI * 4)) * 0.018
       : 0;
+  }
+  /**
+   * Seat the perch on the visible surface: authored rocks are carved slightly inside their
+   * collision hulls, so the hull-top home can sit a little above the stone. Bounded to 0-0.25.
+   */
+  settle(drop: number): void {
+    this.drop = Number.isFinite(drop) ? Math.min(0.25, Math.max(0, drop)) : 0;
   }
   dispose(): void {
     if (this.disposed) return;

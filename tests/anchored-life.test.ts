@@ -8,6 +8,7 @@ import {
   type MorayState,
 } from '../src/creatures/MorayBehavior';
 import { Moray } from '../src/creatures/Moray';
+import { hullDepth } from '../src/creatures/MorayDen';
 import { homeDistance } from '../src/creatures/CreatureAnchor';
 import { spawnFish } from '../src/fish/FishSpawner';
 import { FISH_SPECIES, fishPopulation } from '../src/fish/FishSpecies';
@@ -51,7 +52,7 @@ describe('anchored marine inhabitants', () => {
     expect(juvenile.size).toBeGreaterThanOrEqual(0.9 * 0.2);
     expect(juvenile.size).toBeLessThanOrEqual(1.1 * 0.2);
     expect(fishPopulation('dense').reduce((n, s) => n + s.count, 0)).toBe(61);
-    expect(a.anchoredLife.moray.anchor.sourceId).toBe('log-interior');
+    expect(a.anchoredLife.moray.anchor.sourceId).toMatch(/^reef-den\//);
     expect(() => spawnFish({ ...h, creatureAnchors: [] })).toThrow(
       /host anchor/,
     );
@@ -258,11 +259,16 @@ describe('anchored marine inhabitants', () => {
     expect(f.species.profile).not.toEqual(FISH_SPECIES[0].profile);
     expect(f.species.roundedFins).toBe(true);
   });
-  it('validates every sampled moray body and head pose against the real hollow log and whole scene', () => {
+  it('keeps the exposed moray head clear of every solid and the rest of the body inside its rock', () => {
     const m = a.anchoredLife.moray,
       g = m.geometry,
       p = g.attributes.position,
-      t = g.attributes.morayT;
+      t = g.attributes.morayT,
+      h = a.fish.simulation.habitat,
+      others = {
+        bounds: h.bounds,
+        rocks: h.rocks.filter((r) => r !== m.den.support),
+      };
     const center = new THREE.Vector3(),
       before = new THREE.Vector3(),
       after = new THREE.Vector3(),
@@ -270,7 +276,10 @@ describe('anchored marine inhabitants', () => {
       up = new THREE.Vector3(),
       tangent = new THREE.Vector3(),
       v = new THREE.Vector3();
-    for (const extension of [0, 0.6, 0.8, 1])
+    m.root.updateMatrixWorld(true);
+    let exposed = 0,
+      hidden = 0;
+    for (const extension of [0, 0.6, 0.85, 1])
       for (const phase of [0, 3, 7])
         for (let i = 0; i < p.count; i += 3) {
           const u = t.getX(i);
@@ -284,11 +293,19 @@ describe('anchored marine inhabitants', () => {
             .addScaledVector(side, p.getX(i))
             .addScaledVector(up, p.getY(i));
           expect(g.boundingBox!.containsPoint(v)).toBe(true);
+          const local = v.z;
           v.applyMatrix4(m.root.matrixWorld);
-          expect(safeFishPosition(v, 0.003, a.fish.simulation.habitat)).toBe(
-            true,
-          );
+          if (local > 0.05) {
+            exposed++;
+            expect(safeFishPosition(v, 0.003, others)).toBe(true);
+          } else if (local < -0.5) {
+            // Deep in the hole: inside its own rock's hull, so never seen.
+            hidden++;
+            expect(hullDepth(m.den.support, v)).toBeGreaterThan(0.08);
+          }
         }
+    expect(exposed).toBeGreaterThan(100);
+    expect(hidden).toBeGreaterThan(1000);
     expect(m.headGeometry.attributes.position.count).toBeGreaterThan(500);
     const colors = m.geometry.attributes.color;
     expect(
@@ -400,7 +417,7 @@ describe('anchored marine inhabitants', () => {
   });
   it('keeps the actual moray controller and rig equivalent across render frame rates', () => {
     const results = [30, 60, 120].map((fps) => {
-      const m = new Moray(a.fish.simulation.habitat, a.ornaments.anchors);
+      const m = new Moray(a.fish.simulation.habitat, a.rockColliders);
       try {
         for (let i = 0; i < fps * 60; i++) m.update(1 / fps, true, false);
         return {

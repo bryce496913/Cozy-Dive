@@ -275,7 +275,6 @@ export class Aquarium {
       { bounds: AQUARIUM, rocks: colliders },
       this.rockColliders,
       this.plants.placements,
-      this.ornaments.anchors,
       [
         ...this.ornaments.surfaceGroups,
         ...this.hardscape.formations.map((f, i) => ({

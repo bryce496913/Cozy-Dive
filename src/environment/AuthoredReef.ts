@@ -3,6 +3,8 @@ import { ConvexGeometry } from 'three/addons/geometries/ConvexGeometry.js';
 import { AssetLoader, type AssetLease } from '../assets/AssetLoader';
 import { isCollisionNode } from '../assets/AssetValidation';
 import { triplanarMaterial } from '../rendering/Triplanar';
+import { carveDen } from './RockDen';
+import { MORAY_DEN } from '../creatures/MorayBehavior';
 import type { ConvexCollider } from '../player/collision';
 import type { Aquarium } from './Aquarium';
 import type { PlantSpecies, PlantSpeciesId } from './PlantSpecies';
@@ -113,6 +115,9 @@ export class AuthoredReef {
   readonly ready: Promise<boolean>;
   state: 'loading' | 'ready' | 'fallback' = 'loading';
   readonly root = new THREE.Group();
+  /** Full-detail authored rock meshes, for settling perched animals onto the visible surface. */
+  private readonly rockSurfaces: THREE.Mesh[] = [];
+  private readonly ray = new THREE.Raycaster();
   private lease?: AssetLease;
   private readonly geometries = new Set<THREE.BufferGeometry>();
   private readonly materials = new Set<THREE.Material>();
@@ -211,7 +216,9 @@ export class AuthoredReef {
       m.vertexColors = true;
       return m;
     });
-    const majors = this.q.rocks.filter((r) => r.solid);
+    const majors = this.q.rocks.filter((r) => r.solid),
+      den = this.q.anchoredLife.moray.den;
+    this.rockSurfaces.length = 0;
     majors.forEach((rock, i) => {
       const lod = new THREE.LOD();
       lod.name = `Authored rock ${i} (${rock.mesh.name})`;
@@ -220,12 +227,24 @@ export class AuthoredReef {
         ['', '_LOD1', '_LOD2'] as const
       ).entries()) {
         const distance = REEF_LAYOUT.rockLodDistances[level];
+        const template = this.part(`Rock_${rock.template}${suffix}`).geometry;
+        // Pass 019: the moray's rock gets its den carved into every detail level.
         const mesh = new THREE.Mesh(
-          this.part(`Rock_${rock.template}${suffix}`).geometry,
+          rock.collider === den.support
+            ? this.own(
+                carveDen(template, rock.mesh.matrix, {
+                  mouth: den.mouth,
+                  axis: den.axis,
+                  radius: MORAY_DEN.radius,
+                  depth: MORAY_DEN.depth,
+                }),
+              )
+            : template,
           material,
         );
         mesh.name = `Rock_${rock.template}${suffix}`;
         lod.addLevel(mesh, distance);
+        if (level === 0) this.rockSurfaces.push(mesh);
       }
       lod.matrixAutoUpdate = false;
       lod.matrix.copy(rock.mesh.matrix);
@@ -467,6 +486,34 @@ export class AuthoredReef {
       this.instanced.push(mesh);
       this.root.add(mesh);
     }
+  }
+  /** Template-local vertex positions of an authored plant template, once loaded. */
+  plantTemplatePositions(
+    species: Exclude<PlantSpeciesId, 'turtle-grass-meadow'>,
+    template: number,
+  ): ArrayLike<number> | undefined {
+    if (this.state !== 'ready') return undefined;
+    const node = this.lease?.model.getObjectByName(
+      `${PLANT_TEMPLATE_NODES[species]}_${template}`,
+    );
+    return node instanceof THREE.Mesh
+      ? node.geometry.getAttribute('position').array
+      : undefined;
+  }
+  /**
+   * Distance from `origin` along `direction` to the first authored rock surface within
+   * `maxDistance`, or undefined (also while loading or after a fallback). One-off; not per frame.
+   */
+  rockSurfaceDistance(
+    origin: THREE.Vector3,
+    direction: THREE.Vector3,
+    maxDistance: number,
+  ): number | undefined {
+    if (this.state !== 'ready' || !this.rockSurfaces.length) return undefined;
+    this.root.updateMatrixWorld(true);
+    this.ray.set(origin, direction);
+    this.ray.far = maxDistance;
+    return this.ray.intersectObjects(this.rockSurfaces, false)[0]?.distance;
   }
   setEnabled(value: boolean): void {
     if (
