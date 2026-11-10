@@ -46,4 +46,11 @@ The five nudibranchs keep their homes, crawl paths, phases, variants and ripple,
 
 ## Pass 019 playtest changes
 
-The seahorse is 20% of its former modelled size (`SEAHORSE_SCALE`; about 0.22 m tall). Geometry stays in its local units and the root carries the scale. Its grip offset, safety radius, viewing target height, awareness offset and drift amplitudes are scaled with it, so it still clings to the same sea fan.
+- **Seahorse:** 20% of its former modelled size (`SEAHORSE_SCALE`; about 0.22 m tall). Geometry stays in its local units and the root carries the scale; the grip offset, safety radius, view target, awareness offset and drift are scaled with it.
+  - **Branch grip (second playtest):** once the authored reef loads, `findSeahorseGrip` scans the authored sea-fan template for a thin (under about 2 cm across), near-horizontal stretch of branch at 45–78% of the plant's height and away from the trunk.
+  - **Placement:** the tail coil sits on that branch, the body has open water around it, and the horse faces out of the fan towards its discovery view (`Seahorse.rehome`).
+  - **Fallback:** with the procedural fallback reef it keeps its original low grip.
+- **Frogfish (second playtest):** half its former size (`FROGFISH_SCALE`). It perches on a level reef-rock top instead of the shipwreck.
+  - **Home search:** rock tops are rounded hulls of many small faces, so `rockTopHome` tests its footprint against the sampled hull-top height (within 3.5 cm of level, face within about 32° of horizontal) instead of a single face. It faces the open channel.
+  - **Seating:** the hull top sits a little above the carved authored stone, so once assets load a short raycast seats it on the visible surface (`Frogfish.settle`, bounded to 25 cm).
+  - **Camouflage:** its authored skin is multiplied by a muted olive-beige so it blends into the limestone.

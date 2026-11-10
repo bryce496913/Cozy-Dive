@@ -86,15 +86,15 @@ See [audio architecture and settings](docs/AUDIO.md) and [Pass 005B validation a
 
 ## A tropical marine aquarium
 
-Six home-aquarium decorations now share the reef: a slowly opening treasure chest with occasional bubbles, an internal filter hung in the top corner, swimmable stone arch, miniature wreck, hollow driftwood log, and island-head statue. Openings have matching component collision; the chest lid holds safely when a player or fish is nearby. See [ornament architecture](docs/ORNAMENTS.md).
+Six home-aquarium decorations now share the reef: a slowly opening treasure chest with occasional bubbles, an internal filter hung in the top corner, swimmable stone arch, small sunken boat, hollow driftwood log, and island-head statue. Openings have matching component collision; the chest lid holds safely when a player or fish is nearby. See [ornament architecture](docs/ORNAMENTS.md).
 
-The active roster is **20 blue-green chromis, 6 pajama cardinalfish, 6 firefish gobies, 4 yellow assessors, 2 royal grammas and 3 ocellaris clownfish** (41 total). Chromis form the larger lively school; cardinals hover in loose groups; firefish retreat toward safe shelter; assessors and grammas explore local reef cover. The five freshwater species have been replaced. The clownfish pair and a small juvenile stay near one gently animated host anemone. A separate sheltered moray rests on the floor of the hollow log and lifts its head out of the entrance. See [anchored marine life](docs/ANCHORED_LIFE.md).
+The active roster is **20 blue-green chromis, 6 pajama cardinalfish, 6 firefish gobies, 4 yellow assessors, 2 royal grammas and 3 ocellaris clownfish** (41 total). Chromis form the larger lively school; cardinals hover in loose groups; firefish retreat toward safe shelter; assessors and grammas explore local reef cover. The five freshwater species have been replaced. The clownfish pair and a small juvenile stay near one gently animated host anemone. A separate moray lives in a hole in a large reef rock, its head resting out of the hole until you come close. See [anchored marine life](docs/ANCHORED_LIFE.md).
 
 Models have species-specific lofted bodies, distinctive marine patterns, eyes and articulated fins. Chromis vary in blue-green tint, cardinals carry yellow faces/bands/spots, firefish have extended dorsal pennants, and grammas have purple/gold bodies. All species use shared articulated instance batches with conservative moving bounds.
 
 The reef includes turtle grass, Caulerpa, Halimeda, red macroalgae, soft leather corals and sea fans, plus eight seagrass meadows. Six living stony colonies attach to reef rock alongside three separate aquarium ornaments. Coral is an animal, macroalgae is algae, and seagrass is a flowering marine plant. The sandy central channel remains open.
 
-Patient exploration can also reveal one seahorse tucked beside vegetation, a camouflaged frogfish in the wreck, and five tiny surface-crawling nudibranchs. They have stable, safely viewable homes and no markers, notifications or collection mechanics. See [hidden marine discoveries](docs/HIDDEN_LIFE.md).
+Patient exploration can also reveal one seahorse tucked beside vegetation, a camouflaged frogfish on a reef-rock top, and five tiny surface-crawling nudibranchs. They have stable, safely viewable homes and no markers, notifications or collection mechanics. See [hidden marine discoveries](docs/HIDDEN_LIFE.md).
 
 See [fish](docs/FISH.md), [marine forms](docs/PLANTS.md), [habitat anchors](docs/HABITAT.md), and [Pass 013 validation](docs/VALIDATION_V02_PASS_013.md). Production uses 41 fish; the explicit temporary stress configuration uses 61. No new audio layers, feeding, aggression or damage mechanics are implemented.
 
@@ -102,21 +102,21 @@ See [fish](docs/FISH.md), [marine forms](docs/PLANTS.md), [habitat anchors](docs
 
 Holding a movement key repeats an active stroke followed by a glide. A squared-sine envelope builds and fades the propulsion **force**, which is filtered before integration; velocity and position are never multiplied by a wave. A small baseline thrust softens the rhythm. Releasing input cuts thrust while velocity decays under water drag, settling tiny horizontal residuals to zero. Direction changes redirect the filtered force without resetting velocity. Diagonal normalization and pitch-relative forward movement are preserved; all three propulsion axes use the same force pulse, filtering, drag, and coasting, including nearly vertical swimming.
 
-Choose **Relaxed**, **Natural** (default), or **Responsive** in Settings. Existing v1 storage migrates to v2 on first load, keeping every preference; the swim speed moves to the 20% slower scale (Pass 019). Missing/invalid feel values become Natural without losing other preferences. Speed is a nominal average horizontal speed: instantaneous speed varies across the stroke.
+Choose **Relaxed**, **Natural** (default), or **Responsive** in Settings. Existing v1 or v2 storage migrates to v3 on first load, keeping every preference; the swim speed keeps its place on the slower Pass 019 scale (60% of v1). Missing/invalid feel values become Natural without losing other preferences. Speed is a nominal average horizontal speed: instantaneous speed varies across the stroke.
 
 | Preset     | Cycle (s) | Active fraction | Drag (1/s) | Force response (1/s) | Rhythmic fraction | Breathing force (m/s²) |
 | ---------- | --------- | --------------- | ---------- | -------------------- | ----------------- | ---------------------- |
-| Relaxed    | 1.4       | 0.35            | 0.8        | 5                    | 0.85              | 0.14                   |
-| Natural    | 1.1       | 0.45            | 1.1        | 8                    | 0.75              | 0.20                   |
-| Responsive | 0.8       | 0.50            | 1.8        | 12                   | 0.30              | 0.12                   |
+| Relaxed    | 1.4       | 0.35            | 0.8        | 5                    | 0.85              | 0.084                  |
+| Natural    | 1.1       | 0.45            | 1.1        | 8                    | 0.75              | 0.12                   |
+| Responsive | 0.8       | 0.50            | 1.8        | 12                   | 0.30              | 0.072                  |
 
-The independent five-second breathing force acts around a neutral depth with a 1.6/s² restoring spring and 2.4/s vertical damping. Natural hovering displacement is approximately **13.3 cm peak-to-peak** (about ±6.65 cm), up from 9.3 cm. Relaxed is about 9.3 cm and Responsive about 8.0 cm. Intentional depth changes suppress breathing and move the neutral depth toward the projected coasting endpoint; release settles naturally there. Buoyancy fades within 25 cm of floor/surface, preventing repeated contact and boundary-induced drift. All integrated motion respects the existing clearance and outward-velocity cancellation.
+The independent five-second breathing force acts around a neutral depth with a 1.6/s² restoring spring and 2.4/s vertical damping. Natural hovering displacement is approximately **8.0 cm peak-to-peak** (about ±4 cm; Pass 019 calmed it from 13.3 cm). Relaxed is about 5.6 cm and Responsive about 4.8 cm. Intentional depth changes suppress breathing and move the neutral depth toward the projected coasting endpoint; release settles naturally there. Buoyancy fades within 25 cm of floor/surface, preventing repeated contact and boundary-induced drift. All integrated motion respects the existing clearance and outward-velocity cancellation.
 
 `SwimState.position` and `velocity` are authoritative physical state. `thrust` is the filtered propulsion acceleration; stroke/breath timers are independent and bounded. `neutralDepth` anchors buoyancy. `bodyPitch` is optional visual feedback only: it never changes position, velocity, collision, or input direction. No camera position offset is added. Future animation/audio/body systems can read stroke time, thrust, and breath time without owning movement or advancing its clocks.
 
 Reduced motion suppresses breathing force and visual pitch feedback while keeping smooth propulsion/inertia, direct mouse-look, and frozen ambient sway. Enabling it during a breath lets spring/damping settle naturally. Before the first entry, only physical resting buoyancy advances: no input, fish simulation, or ambient clock starts. A quarter-cycle initial phase gives an immediate gentle acceleration rather than waiting for a zero crossing. Entry uses the same position, phase, anchor, and resting velocity.
 
-After entry, pause/lock loss and visibility changes freeze every simulation clock and physical position. Propulsion resets; a resting breath retains its anchor and small vertical velocity for continuous resume. Pausing during intentional depth change captures the current resting depth and clears ascent/descent momentum. Natural steady peak vertical speed is about 8.3 cm/s; boundaries and rock contact can reduce breathing travel.
+After entry, pause/lock loss and visibility changes freeze every simulation clock and physical position. Propulsion resets; a resting breath retains its anchor and small vertical velocity for continuous resume. Pausing during intentional depth change captures the current resting depth and clears ascent/descent momentum. Natural steady peak vertical speed is about 5 cm/s; boundaries and rock contact can reduce breathing travel.
 
 ## Living vegetation and decorative hardscape
 
@@ -218,14 +218,16 @@ All 40 fish now swim as authored morph rigs: the accepted chromis, plus new paja
 
 ### v0.2 Pass 019 candidate
 
-Fixes from the Pass 018 MacBook playtest:
+Fixes from two MacBook playtests:
 
-- The seahorse is 20% of its former size (about 22 cm), clinging to its sea fan.
-- The clownfish pair is half its former size, joined by a juvenile at 10% of the former size.
-- The internal filter hangs in the top back corner with its body just under the waterline.
-- The moray rests on the floor of its log and lifts its head out of the entrance, instead of floating in the middle of the bore.
-- Swimming is 20% slower: the default is 2.24 m/s and the maximum 4 m/s. Saved speeds move to the new scale.
-- Texture pop-in is gone. Every texture and per-object GPU resource is uploaded behind "Preparing aquarium details" before you enter, where 93 used to upload during the first swim.
+- **Seahorse:** 20% of its former size (about 22 cm). It clings with its tail to a thin branch up on its sea fan, facing out, rather than hugging the trunk.
+- **Clownfish:** the pair is half its former size, joined by a juvenile at 10% of the former size.
+- **Frogfish:** half its former size. It perches on top of a reef rock, seated on the visible stone and tinted to blend into the limestone.
+- **Moray:** lives in a hole in a large reef rock. Its body stays hidden in the stone; its head rests out of the hole and pulls back in as you approach.
+- **Shipwreck:** redesigned as a small sunken wooden boat. It has a plank hull with a pointed bow and transom, missing planks showing the ribs, sand drifted inside, and a snapped mast lying across the gunwale.
+- **Filter:** the internal filter hangs in the top back corner with its body just under the waterline.
+- **Swimming:** 40% slower than v0.2 rc.12 (default 1.68 m/s, maximum 3 m/s), with saved speeds moved onto the new scale. Idle bobbing is calmer: about 8 cm instead of 13 cm.
+- **Texture pop-in:** gone. Every texture and per-object GPU resource is uploaded behind "Preparing aquarium details" before you enter, where 93 used to upload during the first swim.
 
 The roadmap now follows the agreed sequence: v0.3 Office & Dive Transition, v0.4 Personalization, v0.5 Beyond the Glass, v0.6 Expanding Oceans. See [validation](docs/VALIDATION_V02_PASS_019.md).
 
