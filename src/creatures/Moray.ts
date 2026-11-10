@@ -5,6 +5,7 @@ import { PlantClock } from '../environment/PlantAnimation';
 import type { CreatureAnchor } from './CreatureAnchor';
 import type { ConvexCollider } from '../player/collision';
 import { findMorayDen, type MorayDen } from './MorayDen';
+import { MORAY_JAW_HINGE, morayHeadParts } from './MorayHead';
 import type { FishHabitat } from '../fish/FishHabitat';
 import { safeFishPosition } from '../fish/FishHabitat';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
@@ -27,17 +28,6 @@ function mottled(g: THREE.BufferGeometry): THREE.BufferGeometry {
   g.setAttribute(
     'moraySkinMask',
     new THREE.BufferAttribute(new Float32Array(p.count).fill(1), 1),
-  );
-  return g;
-}
-function colored(g: THREE.BufferGeometry, color: number): THREE.BufferGeometry {
-  const c = new THREE.Color(color),
-    a = new Float32Array(g.attributes.position.count * 3);
-  for (let i = 0; i < a.length; i += 3) c.toArray(a, i);
-  g.setAttribute('color', new THREE.BufferAttribute(a, 3));
-  g.setAttribute(
-    'moraySkinMask',
-    new THREE.BufferAttribute(new Float32Array(g.attributes.position.count), 1),
   );
   return g;
 }
@@ -97,6 +87,10 @@ export class Moray {
   readonly anchor: CreatureAnchor;
   readonly geometry: THREE.BufferGeometry;
   readonly headGeometry: THREE.BufferGeometry;
+  readonly headSkinGeometry: THREE.BufferGeometry;
+  readonly jawSkinGeometry: THREE.BufferGeometry;
+  /** Head and jaw skin surfaces (UV mapped); authored assets give them the body's skin. */
+  readonly skinMeshes: readonly THREE.Mesh[];
   readonly jawGeometry: THREE.BufferGeometry;
   readonly material = new THREE.MeshStandardMaterial({
     vertexColors: true,
@@ -249,40 +243,27 @@ export class Moray {
       skinShader(shader, true);
     };
     this.headMaterial.onBeforeCompile = (shader) => skinShader(shader, false);
-    this.headMaterial.customProgramCacheKey = () => 'moray-head-mottle-v1';
+    this.headMaterial.customProgramCacheKey = () => 'moray-head-mottle-v2';
     this.material.customProgramCacheKey = () => 'moray-unfold-v2';
     this.root.add(new THREE.Mesh(this.geometry, this.material));
-    const head = new THREE.SphereGeometry(0.2, 20, 12);
-    head.scale(1, 0.7, 1.85);
-    const v = head.attributes.position;
-    for (let i = 0; i < v.count; i++) v.setY(i, Math.max(-0.045, v.getY(i)));
-    head.computeVertexNormals();
-    mottled(head);
-    const parts: THREE.BufferGeometry[] = [head];
-    const mouth = new THREE.SphereGeometry(1, 16, 6);
-    mouth.scale(0.143, 0.012, 0.25);
-    mouth.translate(0, -0.049, 0.13);
-    parts.push(colored(mouth, 0x343731));
-    for (const side of [-1, 1]) {
-      const eye = new THREE.SphereGeometry(0.034, 10, 8);
-      eye.scale(0.55, 1, 1);
-      eye.translate(side * 0.176, 0.045, 0.13);
-      parts.push(colored(eye, 0xbdac68));
-      const pupil = new THREE.SphereGeometry(0.018, 8, 6);
-      pupil.translate(side * 0.19, 0.046, 0.139);
-      parts.push(colored(pupil, 0x172323));
-      const highlight = new THREE.SphereGeometry(0.005, 6, 4);
-      highlight.translate(side * 0.204, 0.055, 0.15);
-      parts.push(colored(highlight, 0xd8dac9));
-    }
-    this.headGeometry = mergeOwned(parts);
-    this.head.add(new THREE.Mesh(this.headGeometry, this.headMaterial));
-    const lower = new THREE.SphereGeometry(1, 18, 8);
-    lower.scale(0.15, 0.037, 0.28);
-    lower.translate(0, -0.005, 0.18);
-    this.jawGeometry = mottled(lower);
-    this.jaw.add(new THREE.Mesh(this.jawGeometry, this.headMaterial));
-    this.jaw.position.set(0, -0.055, -0.15);
+    // Pass 019 hotfix: a sculpted moray head (snout, brow, eyes, nostrils, teeth, hinged jaw).
+    // Skin surfaces are separate meshes so the authored body skin can be applied to them.
+    const parts = morayHeadParts();
+    this.headSkinGeometry = parts.headSkin;
+    this.jawSkinGeometry = parts.jawSkin;
+    this.headGeometry = mergeOwned(parts.head);
+    this.jawGeometry = mergeOwned(parts.jaw);
+    const headSkin = new THREE.Mesh(parts.headSkin, this.headMaterial),
+      jawSkin = new THREE.Mesh(parts.jawSkin, this.headMaterial);
+    headSkin.name = 'Moray head skin';
+    jawSkin.name = 'Moray jaw skin';
+    this.skinMeshes = [headSkin, jawSkin];
+    this.head.add(
+      headSkin,
+      new THREE.Mesh(this.headGeometry, this.headMaterial),
+    );
+    this.jaw.add(jawSkin, new THREE.Mesh(this.jawGeometry, this.headMaterial));
+    this.jaw.position.copy(MORAY_JAW_HINGE);
     this.head.add(this.jaw);
     this.root.add(this.head);
     this.pose();
@@ -304,7 +285,9 @@ export class Moray {
     );
     this.nextPoint.subVectors(this.head.position, this.nextPoint).normalize();
     this.head.quaternion.setFromUnitVectors(this.forward, this.nextPoint);
-    this.jaw.rotation.x = 0.1 + 0.07 * Math.sin(this.clock.time * 0.7);
+    // Slow rhythmic gape, as morays breathe by pumping water through the mouth.
+    this.jaw.rotation.x =
+      0.08 + 0.09 * (0.5 + 0.5 * Math.sin(this.clock.time * 0.7));
   }
   update(
     dt: number,
@@ -336,6 +319,8 @@ export class Moray {
     this.root.clear();
     this.geometry.dispose();
     this.headGeometry.dispose();
+    this.headSkinGeometry.dispose();
+    this.jawSkinGeometry.dispose();
     this.jawGeometry.dispose();
     this.material.dispose();
     this.headMaterial.dispose();

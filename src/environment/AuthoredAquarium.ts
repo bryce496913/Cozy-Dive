@@ -41,6 +41,11 @@ export class AuthoredAquarium {
     mesh: THREE.Mesh;
     animal: { readonly pose: THREE.Object3D };
   }[] = [];
+  private readonly headSkins: {
+    mesh: THREE.Mesh;
+    original: THREE.Material | THREE.Material[];
+    skin: THREE.Material;
+  }[] = [];
   private disposed = false;
   private enabled = false;
   constructor(
@@ -179,6 +184,9 @@ export class AuthoredAquarium {
         hidden: { seahorse: s, frogfish: f },
       } = this.q.anchoredLife;
       for (const root of [s.root, f.root, m.root, a.root]) this.hide(root);
+      // Pass 019 hotfix: the sculpted procedural moray head replaces the authored ellipsoid head,
+      // so it stays visible (mottled by the same skin shader as the authored body).
+      this.originals.delete(m.headMaterial);
       for (const [name, parent] of [
         ['HorseBody', s.root],
         ['HorseTail', s.tail],
@@ -187,8 +195,6 @@ export class AuthoredAquarium {
         ['HorseRightFin', s.rightPectoral],
         ['FrogBody', f.body],
         ['FrogLure', f.lure],
-        ['MorayHead', m.head],
-        ['MorayJaw', m.jaw],
       ] as const) {
         const part = this.attach(animals, name, parent);
         if (name === 'HorseRightFin') part.scale.x = -1;
@@ -220,6 +226,7 @@ export class AuthoredAquarium {
         });
       for (const name of ['MorayBody', 'MorayDorsal']) {
         const part = this.attach(animals, name, m.root);
+        if (name === 'MorayBody') this.skinMorayHead(part, m.skinMeshes);
         this.deform(
           part,
           m.material,
@@ -320,6 +327,40 @@ export class AuthoredAquarium {
       return false;
     }
   }
+  /**
+   * Pass 019 hotfix: the sculpted head and jaw wear the authored body's skin maps, so the pattern
+   * runs continuously from body to snout. Restored with the other originals when disabled.
+   */
+  private skinMorayHead(
+    body: THREE.Object3D,
+    skins: readonly THREE.Mesh[],
+  ): void {
+    let source: THREE.MeshStandardMaterial | undefined;
+    body.traverse((o) => {
+      if (
+        !source &&
+        o instanceof THREE.Mesh &&
+        o.material instanceof THREE.MeshStandardMaterial &&
+        o.material.map
+      )
+        source = o.material;
+    });
+    if (!source) return;
+    const skin = new THREE.MeshStandardMaterial({
+      map: source.map,
+      normalMap: source.normalMap,
+      roughnessMap: source.roughnessMap,
+      roughness: source.roughness,
+      metalness: 0,
+      color: source.color,
+      // The reticulated pattern lives in the head's vertex colours, as on the authored body.
+      vertexColors: true,
+    });
+    this.ownedMaterials.add(skin);
+    for (const mesh of skins) {
+      this.headSkins.push({ mesh, original: mesh.material, skin });
+    }
+  }
   setEnabled(value: boolean): void {
     if ((value && this.disposed) || value === this.enabled) return;
     this.enabled = value;
@@ -329,6 +370,8 @@ export class AuthoredAquarium {
     this.attachments.forEach(
       (o) => (o.visible = value && !o.name.startsWith('DYNAMIC_')),
     );
+    for (const s of this.headSkins)
+      s.mesh.material = value ? s.skin : s.original;
     this.schools.forEach((school) => (school.root.visible = value));
     this.batches.forEach((batch) => (batch.visible = !value));
     for (const h of this.hulls)
@@ -348,6 +391,8 @@ export class AuthoredAquarium {
     }
   }
   private cleanup(): void {
+    for (const { mesh, original } of this.headSkins) mesh.material = original;
+    this.headSkins.length = 0;
     this.attachments.forEach((o) => o.removeFromParent());
     this.attachments.length = 0;
     this.slugs.length = 0;
