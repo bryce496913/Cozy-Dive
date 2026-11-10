@@ -193,4 +193,18 @@ COZY_DIVE_ONLY=1 COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy021-seam no
 - surfacing near the top returns to the office, standing;
 - reduced motion uses a short fade;
 - GPU memory returns to its earlier counts;
+- surfacing compiles no new shader programs;
 - there are no console errors.
+
+```bash
+COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy021-interrupt node validation/dive-interrupt.mjs
+```
+
+`dive-interrupt.mjs` steps the loop by hand at 10 Hz and covers the paths a playthrough rarely hits:
+
+- **Interruptions:** Escape before and after the switch, for both the dive and surfacing. While paused nothing advances. Choosing the destination then resumes and finishes; choosing the origin cancels back to exactly where E was pressed, with the camera on that pose.
+- **A hidden tab mid-surfacing:** the transition, the aquarium clock and the reverse view all stop, and resume afterwards.
+- **Five consecutive dive/surface cycles**, then reduced-motion surfacing (a short fade with no reverse view).
+- **Resources:** GPU geometries, textures and compiled programs are unchanged at the end, with no console errors.
+
+Run it on its own: alongside the unit suite, the container can run out of memory and kill the browser.

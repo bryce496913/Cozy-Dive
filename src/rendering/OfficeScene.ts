@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { OFFICE, TANK, TANK_SCALE } from '../config/office';
+import { OFFICE, TANK_SCALE } from '../config/office';
+import { glassClarity } from '../player/dive';
 import { OfficeEnvironment } from '../environment/office/OfficeEnvironment';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
 import type { UnderwaterScene } from './UnderwaterScene';
@@ -251,22 +252,26 @@ export class OfficeScene {
   get resolution(): THREE.Vector2 {
     return this.size;
   }
-  /** Advance the office and the aquarium inside the tank, then draw both. */
-  render(time: number, reducedMotion: boolean, dt: number): void {
+  /**
+   * Advance the office (its clock and rain on `time`) and the aquarium inside the tank (on
+   * `aquariumTime`, the same clock it runs on when swimming, so nothing jumps at the dive), then
+   * draw both.
+   */
+  render(
+    time: number,
+    aquariumTime: number,
+    reducedMotion: boolean,
+    dt: number,
+  ): void {
     if (this.disposed) return;
     this.fit();
     this.office.update(time, reducedMotion, dt);
     this.syncMiniature();
-    // v0.3 Pass 021: the glass clears over the last half metre, so the dive's switch into the
-    // aquarium (which has no glass in front of the eye) shows the identical image.
-    const gap =
-      this.camera.position.x -
-      (this.office.tankRoot.position.x - TANK.size.z / 2);
-    const t = Math.min(1, Math.max(0, (-gap - 0.1) / 0.5));
-    this.portal.uniforms.clarity.value = 1 - t * t * (3 - 2 * t);
+    // v0.3 Pass 021: the glass clears as the dive presses up to it.
+    this.portal.uniforms.clarity.value = glassClarity(this.camera.position);
     // Fish keep schooling in the miniature; there is no diver inside the tank.
     this.world.simulate(
-      time,
+      aquariumTime,
       reducedMotion,
       dt,
       true,

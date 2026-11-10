@@ -6,6 +6,7 @@
  * place cameras); the "Dive in" prompt appears; press E. The animation loop is then stepped frame
  * by frame at 60 Hz so the frames just before and just after the switch into the aquarium are
  * captured: they should be nearly identical (the switch is seamless). After the dive, W swims.
+ * Surfacing compiles no new shader programs (its shader is warmed during loading).
  * Near the surface "Return to the office" appears; E surfaces, again across a seamless switch,
  * ending standing in the room. Reduced motion uses a short fade instead. No console errors; GPU
  * geometry/texture counts return to their earlier values.
@@ -79,10 +80,14 @@ try {
   await page.waitForFunction(() => !!window.__cozy.dive);
   // Step the loop by hand at 60 Hz across the switch.
   const step = (count) =>
-    page.evaluate((count) => {
+    page.evaluate(async (count) => {
       const a = window.__cozy;
       cancelAnimationFrame(a.frame);
       for (let i = 0; i < count; i++) {
+        // Yield a real frame first: frames rendered back to back in one task are never
+        // presented, and SwiftShader's buffers then grow without bound until the tab crashes.
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        cancelAnimationFrame(a.frame);
         a.__t = (a.__t ?? performance.now()) + 1000 / 60;
         a.tick(a.__t);
         cancelAnimationFrame(a.frame);
@@ -150,8 +155,19 @@ try {
   const before = await page.evaluate(() => ({
     ...window.__cozy.state.position,
   }));
+  // Hold W until the diver has moved (software rendering runs at a few frames a second, and
+  // swimming eases in), for at most 10 s.
   await page.keyboard.down('w');
-  await page.waitForTimeout(1500);
+  await page
+    .waitForFunction(
+      (b) => {
+        const p = window.__cozy.state.position;
+        return Math.hypot(p.x - b.x, p.y - b.y, p.z - b.z) > 0.3;
+      },
+      before,
+      { timeout: 10000 },
+    )
+    .catch(() => {});
   await page.keyboard.up('w');
   const after = await page.evaluate(() => ({
     ...window.__cozy.state.position,
@@ -173,11 +189,17 @@ try {
     () => !document.querySelector('#dive-prompt').hidden,
   );
   report.surface.prompt = await page.locator('#dive-prompt').innerText();
+  const programs = () =>
+    page.evaluate(() => window.__cozy.world.renderer.info.programs.length);
+  const programsBefore = await programs();
   await page.keyboard.press('KeyE');
   await page.waitForFunction(() => !!window.__cozy.dive);
   await step(20);
   const out = await captureSwitch('surface-switch', 'office');
   report.surface.switchedAt = out.elapsed;
+  // The surfacing view's shader was compiled during loading: nothing new compiles now.
+  report.surface.newPrograms = (await programs()) - programsBefore;
+  assert.equal(report.surface.newPrograms, 0);
   while ((await step(10)).elapsed !== null);
   report.surface.end = await page.evaluate(() => ({
     mode: window.__cozy.mode,

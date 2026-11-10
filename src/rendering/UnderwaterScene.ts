@@ -42,7 +42,17 @@ export class UnderwaterScene {
   private presentation?: Presentation;
   /** v0.3 Pass 021: the office seen through the front glass while surfacing (lazy). */
   private outside?: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
-  private outsideMaterial?: THREE.ShaderMaterial;
+  private readonly outsideMaterial = new THREE.ShaderMaterial({
+    uniforms: {
+      map: { value: null },
+      resolution: { value: new THREE.Vector2(1, 1) },
+    },
+    vertexShader: OUTSIDE_VERTEX,
+    fragmentShader: OUTSIDE_FRAGMENT,
+    fog: false,
+  });
+  /** Reused by `renderView` to restore the clear colour (no per-frame allocation). */
+  private readonly clearColor = new THREE.Color();
   setPresentation(value: Presentation): void {
     this.presentation?.dispose();
     this.presentation = value;
@@ -106,12 +116,18 @@ export class UnderwaterScene {
             )
               this.reef.drapeSand(o);
           });
+        // Pass 021: include the surfacing view's shader, so the first surfacing does not hitch.
+        const probe = this.outsideMesh();
+        this.scene.add(probe);
         try {
           // Compile every program (hidden LOD levels too) and upload every texture behind the
           // status, so nothing pops in when first seen while swimming (Pass 019).
           await warmUpScene(this.renderer, this.scene, this.camera);
         } catch (error) {
           console.warn('Cozy Diver: shader warm-up skipped.', error);
+        } finally {
+          this.scene.remove(probe);
+          probe.geometry.dispose();
         }
         if (this.disposed) return false;
         if (ready.every(Boolean)) this.assetStatus.remove();
@@ -211,42 +227,35 @@ export class UnderwaterScene {
       if (this.outside) {
         this.scene.remove(this.outside);
         this.outside.geometry.dispose();
-        this.outsideMaterial = this.outside.material;
-        this.outsideMaterial.uniforms.map.value = null;
         this.outside = undefined;
       }
+      this.outsideMaterial.uniforms.map.value = null;
       return;
     }
     if (!this.outside) {
-      const geometry = new THREE.PlaneGeometry(
-        AQUARIUM.max.x - AQUARIUM.min.x,
-        AQUARIUM.max.y - AQUARIUM.min.y,
-      );
-      // On the inside of the front wall, facing into the water.
-      geometry.rotateY(Math.PI);
-      geometry.translate(
-        0,
-        (AQUARIUM.min.y + AQUARIUM.max.y) / 2,
-        AQUARIUM.max.z - 0.005,
-      );
-      const material = (this.outsideMaterial ??= new THREE.ShaderMaterial({
-        uniforms: {
-          map: { value: view },
-          resolution: { value: new THREE.Vector2(1, 1) },
-        },
-        vertexShader: OUTSIDE_VERTEX,
-        fragmentShader: OUTSIDE_FRAGMENT,
-        fog: false,
-      }));
-      this.outside = new THREE.Mesh(geometry, material);
-      this.outside.name = 'Office through the front glass';
-      this.outside.frustumCulled = false;
+      this.outside = this.outsideMesh();
       this.scene.add(this.outside);
     }
-    this.outside.visible = true;
     this.outside.material.uniforms.map.value = view;
     if (resolution)
       this.outside.material.uniforms.resolution.value.copy(resolution);
+  }
+  /** A plane on the inside of the front wall, facing into the water, for the outside view. */
+  private outsideMesh(): THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial> {
+    const geometry = new THREE.PlaneGeometry(
+      AQUARIUM.max.x - AQUARIUM.min.x,
+      AQUARIUM.max.y - AQUARIUM.min.y,
+    );
+    geometry.rotateY(Math.PI);
+    geometry.translate(
+      0,
+      (AQUARIUM.min.y + AQUARIUM.max.y) / 2,
+      AQUARIUM.max.z - 0.005,
+    );
+    const mesh = new THREE.Mesh(geometry, this.outsideMaterial);
+    mesh.name = 'Office through the front glass';
+    mesh.frustumCulled = false;
+    return mesh;
   }
   /** v0.3 Pass 021: the dive thickens the haze from the outside view to the underwater one. */
   setHaze(density: number): void {
@@ -283,7 +292,7 @@ export class UnderwaterScene {
       density = fog instanceof THREE.FogExp2 ? fog.density : 0,
       previous = this.renderer.getRenderTarget(),
       background = this.scene.background,
-      clearColor = this.renderer.getClearColor(new THREE.Color()),
+      clearColor = this.renderer.getClearColor(this.clearColor),
       clearAlpha = this.renderer.getClearAlpha();
     if (fog instanceof THREE.FogExp2) fog.density = fogDensity;
     // Rendered directly, the background colour is not tone mapped. Keep it identifiable in the
@@ -311,7 +320,7 @@ export class UnderwaterScene {
     this.abort.abort();
     this.resizeObserver.disconnect();
     this.outside?.geometry.dispose();
-    this.outsideMaterial?.dispose();
+    this.outsideMaterial.dispose();
     this.reef.dispose();
     this.authored.dispose();
     this.aquarium.dispose();

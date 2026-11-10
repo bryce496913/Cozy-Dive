@@ -46,8 +46,11 @@ The aquarium keeps simulating at full scale in its own scene and renderer. Each 
   2. **Pass out** through the glass, switching back to the office at the identical viewpoint.
   3. **Stand up** a step back from the tank, facing the room.
 - **Prompts.**
-  - **Dive in:** within 1.6 m of the tank front and looking at it.
+  - **Dive in:** standing in front of the glass (at least 15 cm out from it, and no more than 20 cm past either end of it sideways), within 1.6 m, and looking at it. Beside or behind the tank there is no prompt, and from anywhere it is offered the glide stays clear of the furniture (tested).
   - **Return to the office:** within 1.3 m of the surface.
-- **Control.** Input is ignored during the glide, and pausing freezes it. The pause screen's buttons still cut instantly, and cancel an unfinished dive.
+- **Control.** Input is ignored during the glide, and pausing (Escape, or a hidden tab) freezes it in place: the transition, the aquarium's clock and the office's reverse view all stop.
+- **Interruptions.** On the pause screen, choosing where the transition was going resumes it from where it stopped. Choosing where it came from cancels it and puts you back exactly where you pressed E, in that space. The walking or swimming state always matches the camera afterwards, so nothing snaps.
+- **One aquarium clock.** The aquarium simulates on the same clock whether it is seen in miniature from the office, during the dive or while swimming. It keeps running through transitions, so fish and plants never jump in phase at the switch.
+- **Warm shaders.** The surfacing view's shader is compiled during loading; only its plane and render target are created per surfacing, and both are freed when it ends.
 - **Audio.** The destination's audio is unlocked by the E key press. Each soundscape is active only in its own space.
 - **Reduced motion.** A 0.45 s fade out, a cut, and a 0.45 s fade in. No glide, no bubbles.
