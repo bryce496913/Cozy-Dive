@@ -74,7 +74,8 @@ import fs from 'node:fs';
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
     assert.equal(await page.locator('#master-volume').inputValue(), '30');
     assert.equal(await page.locator('#audio-enabled').isChecked(), true);
-    assert.equal(await page.locator('#speed').inputValue(), '1.8');
+    // Pass 019: the seeded v1 save migrates onto the 20% slower scale (1.8 -> 1.44 m/s).
+    assert.equal(await page.locator('#speed').inputValue(), '1.44');
     assert.equal(await page.locator('#swimming-feel').inputValue(), 'relaxed');
     await page.screenshot({ path: '/tmp/cozy-audio-settings.png' });
     await page.getByRole('button', { name: 'Close settings' }).click();
