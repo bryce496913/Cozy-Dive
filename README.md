@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.2 / Pass 019 — Playtest Fixes (`0.2.0-rc.13`)** is a first-person, browser-based aquarium prototype: swim at your own pace through rippled sand, carved reef rock, corals, seagrass and soft blue-green water. No scores, timers, combat, accounts, or external asset services.
+A quiet little world beneath the surface. **v0.2 / Pass 019 — Playtest Fixes (`0.2.0-rc.14`)** is a first-person, browser-based aquarium prototype: swim at your own pace through rippled sand, carved reef rock, corals, seagrass and soft blue-green water. No scores, timers, combat, accounts, or external asset services.
 
 ## Stack and requirements
 
