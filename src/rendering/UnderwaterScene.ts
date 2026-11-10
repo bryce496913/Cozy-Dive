@@ -8,6 +8,8 @@ import type { PlayerPresence } from '../fish/FishDiverReaction';
 import * as THREE from 'three';
 import { Aquarium } from '../environment/Aquarium';
 
+/** Underwater haze density seen from inside the water. */
+export const UNDERWATER_HAZE = 0.026;
 export interface Presentation {
   update(): void;
   dispose(): void;
@@ -50,7 +52,7 @@ export class UnderwaterScene {
     );
     host.append(this.renderer.domElement);
     this.scene.background = new THREE.Color(0x225d73);
-    this.scene.fog = new THREE.FogExp2(0x225d73, 0.026);
+    this.scene.fog = new THREE.FogExp2(0x225d73, UNDERWATER_HAZE);
     this.scene.add(new THREE.HemisphereLight(0xc7f2e0, 0x546b56, 2.6));
     const sunlight = new THREE.DirectionalLight(0xfff1cf, 3.2);
     sunlight.position.set(-7, 18, 7);
@@ -183,6 +185,11 @@ export class UnderwaterScene {
     this.simulate(time, reducedMotion, dt, active, player, this.camera);
     this.renderer.render(this.scene, this.camera);
   }
+  /** v0.3 Pass 021: the dive thickens the haze from the outside view to the underwater one. */
+  setHaze(density: number): void {
+    if (this.scene.fog instanceof THREE.FogExp2)
+      this.scene.fog.density = density;
+  }
   /**
    * Advance the aquarium (fish, creatures, plants) and choose per-fish distance levels for
    * `camera`. v0.3 Pass 020: the office drives this with its miniature-tank camera.
@@ -211,14 +218,25 @@ export class UnderwaterScene {
   ): void {
     const fog = this.scene.fog,
       density = fog instanceof THREE.FogExp2 ? fog.density : 0,
-      previous = this.renderer.getRenderTarget();
+      previous = this.renderer.getRenderTarget(),
+      background = this.scene.background,
+      clearColor = this.renderer.getClearColor(new THREE.Color()),
+      clearAlpha = this.renderer.getClearAlpha();
     if (fog instanceof THREE.FogExp2) fog.density = fogDensity;
+    // Rendered directly, the background colour is not tone mapped. Keep it identifiable in the
+    // target (alpha 0, background colour) so the glass can treat it the same way (Pass 021).
+    if (background instanceof THREE.Color) {
+      this.scene.background = null;
+      this.renderer.setClearColor(background, 0);
+    }
     try {
       this.renderer.setRenderTarget(target);
       this.renderer.clear();
       this.renderer.render(this.scene, camera);
     } finally {
       this.renderer.setRenderTarget(previous);
+      this.scene.background = background;
+      this.renderer.setClearColor(clearColor, clearAlpha);
       if (fog instanceof THREE.FogExp2) fog.density = density;
     }
   }

@@ -508,3 +508,79 @@ kbd {
     gap: 10px;
   }
 }
+
+/* v0.3 Pass 021: dive prompt, water-entry wash and bubble burst. */
+.dive-prompt {
+  position: fixed;
+  left: 50%;
+  bottom: 96px;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: #0b2e2fb3;
+  border: 1px solid #d6e3bb55;
+  color: #e8f0dc;
+  font-size: 12px;
+  letter-spacing: 0.6px;
+  pointer-events: none;
+  z-index: 6;
+}
+.dive-prompt kbd {
+  font: inherit;
+  border: 1px solid #d6e3bb88;
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-right: 8px;
+}
+.dive-veil {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    ellipse at 50% 40%,
+    #6fb6b4 0%,
+    #1f5d66 70%,
+    #10393f 100%
+  );
+  z-index: 5;
+}
+.dive-bubbles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 5;
+}
+.dive-bubbles span {
+  position: absolute;
+  bottom: -30px;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  border: 1px solid #e9f7f3cc;
+  background: radial-gradient(circle at 35% 30%, #ffffffaa, #ffffff11 60%);
+  opacity: 0;
+}
+.dive-bubbles.is-bursting span {
+  animation: dive-bubble 1.6s ease-out var(--delay) forwards;
+}
+@keyframes dive-bubble {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.6);
+  }
+  15% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--drift), -85vh) scale(1.1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dive-bubbles.is-bursting span {
+    animation: none;
+  }
+}

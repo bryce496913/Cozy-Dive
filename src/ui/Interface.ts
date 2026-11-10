@@ -32,6 +32,11 @@ export class Interface {
   private readonly status: HTMLElement;
   private readonly depth: HTMLElement;
   private lastDepth = '';
+  private prompt: 'dive' | 'surface' | null = null;
+  private veil = 0;
+  private readonly veilElement: HTMLElement;
+  private readonly bubbles: HTMLElement;
+  private burstTimer?: ReturnType<typeof setTimeout>;
   private fatalMessage = '';
 
   constructor(
@@ -62,11 +67,24 @@ export class Interface {
         <p id="audio-status" role="status">Audio begins when you enter. Press M while swimming to mute.</p>
         <p class="save-status" id="save-status" role="status">Preferences saved on this device.</p>
       </aside>
+      <div class="dive-veil" aria-hidden="true"></div><div class="dive-bubbles" aria-hidden="true"></div>
+      <p class="dive-prompt" id="dive-prompt" role="status" aria-live="polite" hidden></p>
       <div class="swim-hud" hidden><span class="crosshair" aria-hidden="true">·</span><span class="hud-message">You have nowhere else to be.</span></div>
       <footer class="bottom-bar"><div class="controls" id="controls" aria-label="Controls"></div><span class="depth" id="depth">↓ 9.4 m <span>BELOW THE SURFACE</span></span></footer>`;
     this.overlay = this.get('overlay');
     this.enter = this.get('enter');
     this.office = this.get('office');
+    this.veilElement = root.querySelector<HTMLElement>('.dive-veil')!;
+    this.bubbles = root.querySelector<HTMLElement>('.dive-bubbles')!;
+    // A fixed set of bubbles, animated by CSS only when a dive splashes.
+    for (let i = 0; i < 22; i++) {
+      const b = document.createElement('span');
+      b.style.left = `${8 + ((i * 37) % 84)}%`;
+      b.style.setProperty('--size', `${6 + ((i * 13) % 14)}px`);
+      b.style.setProperty('--delay', `${((i * 7) % 10) * 0.04}s`);
+      b.style.setProperty('--drift', `${((i * 29) % 40) - 20}px`);
+      this.bubbles.append(b);
+    }
     this.settingsPanel = this.get('settings-panel');
     this.status = this.get('status');
     this.depth = this.get('depth');
@@ -197,6 +215,37 @@ export class Interface {
     if (!locked && entered)
       (this.mode === 'office' ? this.office : this.enter).focus();
   }
+  /** v0.3 Pass 021: the in-world action offered right now (E key), or none. */
+  setPrompt(prompt: 'dive' | 'surface' | null): void {
+    if (prompt === this.prompt) return;
+    this.prompt = prompt;
+    const element = this.get('dive-prompt');
+    element.hidden = prompt === null;
+    element.innerHTML =
+      prompt === 'dive'
+        ? '<kbd>E</kbd> Dive in'
+        : prompt === 'surface'
+          ? '<kbd>E</kbd> Return to the office'
+          : '';
+  }
+  /** Water-entry wash (0..1); only touches the DOM when it visibly changes. */
+  setVeil(value: number): void {
+    const v = Math.round(Math.max(0, Math.min(1, value)) * 100) / 100;
+    if (v === this.veil) return;
+    this.veil = v;
+    this.veilElement.style.opacity = String(v);
+  }
+  /** A burst of rising bubbles as the diver enters or leaves the water. */
+  burst(): void {
+    this.bubbles.classList.remove('is-bursting');
+    void this.bubbles.offsetWidth; // restart the CSS animation
+    this.bubbles.classList.add('is-bursting');
+    clearTimeout(this.burstTimer);
+    this.burstTimer = setTimeout(
+      () => this.bubbles.classList.remove('is-bursting'),
+      1800,
+    );
+  }
   setDepth(depth: number): void {
     const text = depth.toFixed(1);
     if (text === this.lastDepth) return;
@@ -226,6 +275,7 @@ export class Interface {
           : 'Audio begins when you enter. Press M while swimming to mute.';
   }
   dispose(): void {
+    clearTimeout(this.burstTimer);
     this.abort.abort();
     this.root.replaceChildren();
   }
