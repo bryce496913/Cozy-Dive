@@ -192,6 +192,27 @@ h1 em {
   font-size: 21px;
   line-height: 15px;
 }
+.entry-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.enter.secondary {
+  background: transparent;
+  color: #d6e3bb;
+  box-shadow: none;
+}
+.enter.secondary:hover {
+  background: #d6e3bb22;
+}
+.enter:focus-visible {
+  outline: 2px solid #f4f8ec;
+  outline-offset: 3px;
+}
+/* v0.3 Pass 020: no depth readout while walking in the office. */
+[data-mode='office'] .depth {
+  visibility: hidden;
+}
 .entry-note {
   font-size: 10px;
   letter-spacing: 0.7px;

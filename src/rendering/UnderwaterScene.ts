@@ -180,10 +180,47 @@ export class UnderwaterScene {
     active = false,
     player?: PlayerPresence,
   ): void {
-    this.aquarium.update(time, reducedMotion, dt, active, player);
-    this.authored.update(this.camera);
-    this.presentation?.update();
+    this.simulate(time, reducedMotion, dt, active, player, this.camera);
     this.renderer.render(this.scene, this.camera);
+  }
+  /**
+   * Advance the aquarium (fish, creatures, plants) and choose per-fish distance levels for
+   * `camera`. v0.3 Pass 020: the office drives this with its miniature-tank camera.
+   */
+  simulate(
+    time: number,
+    reducedMotion: boolean,
+    dt: number,
+    active: boolean,
+    player: PlayerPresence | undefined,
+    camera: THREE.Camera,
+  ): void {
+    this.aquarium.update(time, reducedMotion, dt, active, player);
+    this.authored.update(camera);
+    this.presentation?.update();
+  }
+  /**
+   * Render the aquarium from `camera` into `target` (v0.3 Pass 020 miniature tank). Seen from
+   * outside the glass the eye is far from the water, so the underwater haze is thinned to
+   * `fogDensity` for this view only.
+   */
+  renderView(
+    camera: THREE.Camera,
+    target: THREE.WebGLRenderTarget,
+    fogDensity: number,
+  ): void {
+    const fog = this.scene.fog,
+      density = fog instanceof THREE.FogExp2 ? fog.density : 0,
+      previous = this.renderer.getRenderTarget();
+    if (fog instanceof THREE.FogExp2) fog.density = fogDensity;
+    try {
+      this.renderer.setRenderTarget(target);
+      this.renderer.clear();
+      this.renderer.render(this.scene, camera);
+    } finally {
+      this.renderer.setRenderTarget(previous);
+      if (fog instanceof THREE.FogExp2) fog.density = density;
+    }
   }
   dispose(): void {
     this.disposed = true;

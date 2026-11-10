@@ -166,3 +166,16 @@ COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy019-after node validation/pl
 ```
 
 The fish-count assertions in the browser harnesses are now 41 (formerly 40), and the stress scenarios use the named `'home'` / `'dense'` populations.
+
+## Pass 020 office
+
+```bash
+COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy020-office node validation/office.mjs
+```
+
+`office.mjs` checks the following:
+
+- **Start:** the start screen opens in the office.
+- **Walking:** real Enter, pointer lock, held W and mouse look walk the player at a fixed eye height inside the room, with the depth readout hidden.
+- **Switching:** pause → Enter the Water → swim → back to the office works, and repeated switches leave GPU geometry and texture counts unchanged.
+- **Views:** fixed-camera captures of the room, the live miniature tank, the desk and window, and the shelf, with draw calls, triangles and CPU submit time.

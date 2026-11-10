@@ -20,10 +20,14 @@ export function isAudioMuteShortcut(
     !event.altKey
   );
 }
+/** Where the player is: the office (v0.3) or inside the aquarium. */
+export type ExperienceMode = 'office' | 'aquarium';
 export class Interface {
   private readonly abort = new AbortController();
   private readonly overlay: HTMLElement;
   private readonly enter: HTMLButtonElement;
+  private readonly office: HTMLButtonElement;
+  private mode: ExperienceMode = 'office';
   private readonly settingsPanel: HTMLElement;
   private readonly status: HTMLElement;
   private readonly depth: HTMLElement;
@@ -33,7 +37,7 @@ export class Interface {
   constructor(
     readonly root: HTMLElement,
     settings: Settings,
-    onEnter: () => void,
+    onEnter: (mode: ExperienceMode) => void,
     onSettings: (settings: Settings) => void,
   ) {
     root.innerHTML = `
@@ -42,9 +46,9 @@ export class Interface {
       <main class="overlay" id="overlay"><div class="welcome">
         <p class="eyebrow"><span></span> YOUR FIRST DIVE</p>
         <h1>Let the world<br>drift <em>away.</em></h1>
-        <p class="intro">A quiet place beneath the surface.<br>No rush. No destination. Just you and the water.</p>
-        <button class="enter" id="enter">Enter the Water ${arrow}</button>
-        <p class="entry-note">Look up or down and swim to change depth.</p>
+        <p class="intro">A quiet room, a little tank, and a whole reef inside it.<br>No rush. No destination. Just you and the water.</p>
+        <div class="entry-actions"><button class="enter" id="office">Enter the Office ${arrow}</button><button class="enter secondary" id="enter">Enter the Water ${arrow}</button></div>
+        <p class="entry-note" id="entry-note">Walk with W A S D and look around with the mouse.</p>
         <p class="status" id="status" role="status" aria-live="polite"></p>
       </div><div class="scene-label"><span class="label-line"></span><span>THE SUNLIT REEF AQUARIUM<small>01 / FIRST DIVE</small></span></div></main>
       <aside class="settings-panel" id="settings-panel" aria-label="Experience settings" hidden>
@@ -59,14 +63,16 @@ export class Interface {
         <p class="save-status" id="save-status" role="status">Preferences saved on this device.</p>
       </aside>
       <div class="swim-hud" hidden><span class="crosshair" aria-hidden="true">·</span><span class="hud-message">You have nowhere else to be.</span></div>
-      <footer class="bottom-bar"><div class="controls" aria-label="Swimming controls"><span><kbd>W A S D</kbd> swim</span><span><kbd>MOUSE</kbd> look</span><span>Look up/down + <kbd>W / S</kbd> change depth</span><span><kbd>ESC</kbd> pause</span></div><span class="depth" id="depth">↓ 9.4 m <span>BELOW THE SURFACE</span></span></footer>`;
+      <footer class="bottom-bar"><div class="controls" id="controls" aria-label="Controls"></div><span class="depth" id="depth">↓ 9.4 m <span>BELOW THE SURFACE</span></span></footer>`;
     this.overlay = this.get('overlay');
     this.enter = this.get('enter');
+    this.office = this.get('office');
     this.settingsPanel = this.get('settings-panel');
     this.status = this.get('status');
     this.depth = this.get('depth');
     const signal = this.abort.signal;
-    this.enter.addEventListener('click', onEnter, { signal });
+    this.enter.addEventListener('click', () => onEnter('aquarium'), { signal });
+    this.office.addEventListener('click', () => onEnter('office'), { signal });
     const toggle = root.querySelector<HTMLButtonElement>('.settings-toggle')!;
     const setOpen = (open: boolean): void => {
       this.settingsPanel.hidden = !open;
@@ -154,6 +160,19 @@ export class Interface {
   get sceneHost(): HTMLElement {
     return this.get('scene');
   }
+  /** Office and aquarium differ in controls, the depth readout and the entry note. */
+  setMode(mode: ExperienceMode): void {
+    this.mode = mode;
+    this.root.dataset.mode = mode;
+    this.get('controls').innerHTML =
+      mode === 'office'
+        ? '<span><kbd>W A S D</kbd> walk</span><span><kbd>MOUSE</kbd> look</span><span><kbd>ESC</kbd> pause</span>'
+        : '<span><kbd>W A S D</kbd> swim</span><span><kbd>MOUSE</kbd> look</span><span>Look up/down + <kbd>W / S</kbd> change depth</span><span><kbd>ESC</kbd> pause</span>';
+    this.get('entry-note').textContent =
+      mode === 'office'
+        ? 'Walk with W A S D and look around with the mouse.'
+        : 'Look up or down and swim to change depth.';
+  }
   setLocked(locked: boolean, entered: boolean): void {
     this.overlay.hidden = locked;
     this.root.querySelector<HTMLElement>('.swim-hud')!.hidden = !locked;
@@ -167,10 +186,16 @@ export class Interface {
         'Stay a little<br><em>longer.</em>';
       this.root.querySelector('.intro')!.innerHTML =
         'The world can wait.<br>Your quiet corner is right where you left it.';
-      this.enter.innerHTML = `Return to the Water ${arrow}`;
+      const inOffice = this.mode === 'office';
+      this.office.innerHTML = `${inOffice ? 'Return to the Office' : 'Enter the Office'} ${arrow}`;
+      this.enter.innerHTML = `${inOffice ? 'Enter the Water' : 'Return to the Water'} ${arrow}`;
+      // The way back to where you were is the primary action.
+      this.office.classList.toggle('secondary', !inOffice);
+      this.enter.classList.toggle('secondary', inOffice);
     }
     this.status.textContent = this.fatalMessage;
-    if (!locked && entered) this.enter.focus();
+    if (!locked && entered)
+      (this.mode === 'office' ? this.office : this.enter).focus();
   }
   setDepth(depth: number): void {
     const text = depth.toFixed(1);
@@ -188,6 +213,7 @@ export class Interface {
     if (fatal) {
       this.fatalMessage = message;
       this.enter.disabled = true;
+      this.office.disabled = true;
       this.enter.textContent = 'Water temporarily unavailable';
     }
   }
