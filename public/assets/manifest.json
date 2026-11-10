@@ -96,15 +96,15 @@
   {
     "id": "reef-props",
     "file": "assets/models/ornaments/reef-props.glb",
-    "sha256": "2c6877e858ec34010088bade799fc5380f21e37cb89b0e6b773820536268e5d5",
+    "sha256": "4f293e45d407ce54d7b14399bc4e2b1d11e41b97e032b95a6706729ec7e3e3bf",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 1085160,
-    "visualPrimitives": 22,
-    "visualTriangles": 99232,
-    "collisionTriangles": 8828,
-    "materials": 8,
+    "bytes": 1169480,
+    "visualPrimitives": 23,
+    "visualTriangles": 100282,
+    "collisionTriangles": 10284,
+    "materials": 9,
     "images": [
       {
         "name": "wood-normal",

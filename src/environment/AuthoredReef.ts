@@ -130,6 +130,12 @@ export class AuthoredReef {
     authored: readonly ConvexCollider[];
   }[] = [];
   private sandMaterial?: THREE.Material;
+  /** Pass 019: shaded seabed sand draped over sand drifted into the wreck, and what it replaced. */
+  private drifted?: THREE.MeshStandardMaterial;
+  private readonly draped: {
+    mesh: THREE.Mesh;
+    original: THREE.Material | THREE.Material[];
+  }[] = [];
   private originalSandMaterial?: THREE.Material | THREE.Material[];
   private enabled = false;
   private disposed = false;
@@ -487,6 +493,29 @@ export class AuthoredReef {
       this.root.add(mesh);
     }
   }
+  /**
+   * Give `mesh` (sand drifted into an ornament, with seabed-scale UVs) the authored seabed sand,
+   * slightly shaded. Restored when the reef is disabled or disposed.
+   */
+  drapeSand(mesh: THREE.Mesh): void {
+    if (
+      this.state !== 'ready' ||
+      !(this.sandMaterial instanceof THREE.MeshStandardMaterial) ||
+      this.draped.some((d) => d.mesh === mesh)
+    )
+      return;
+    if (!this.drifted) {
+      this.drifted = this.own(this.sandMaterial.clone());
+      this.drifted.vertexColors = false;
+      this.drifted.color.setHSL(0.11, 0.23, 0.52);
+    }
+    this.draped.push({ mesh, original: mesh.material });
+    mesh.material = this.drifted;
+  }
+  private undrape(): void {
+    for (const { mesh, original } of this.draped) mesh.material = original;
+    this.draped.length = 0;
+  }
   /** Template-local vertex positions of an authored plant template, once loaded. */
   plantTemplatePositions(
     species: Exclude<PlantSpeciesId, 'turtle-grass-meadow'>,
@@ -522,6 +551,7 @@ export class AuthoredReef {
     )
       return;
     this.enabled = value;
+    if (!value) this.undrape();
     this.root.visible = value;
     for (const object of this.hidden) object.visible = !value;
     for (const s of this.swaps) {
@@ -539,6 +569,8 @@ export class AuthoredReef {
       );
   }
   private cleanup(): void {
+    this.undrape();
+    this.drifted = undefined;
     this.root.removeFromParent();
     this.root.clear();
     this.instanced.forEach((m) => m.dispose());
