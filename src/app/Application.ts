@@ -435,7 +435,7 @@ export class Application {
     const kind =
       this.mode === 'office' && canDive(pose)
         ? 'dive'
-        : this.mode === 'aquarium' && canSurface(pose.y)
+        : this.mode === 'aquarium' && canSurface(pose.y, this.waterWorld)
           ? 'surface'
           : undefined;
     if (!kind) return;
@@ -498,6 +498,7 @@ export class Application {
           this.elapsed,
           this.settings.reducedMotion,
           dt,
+          running,
         );
     } else {
       const tank = this.world!,
@@ -528,11 +529,11 @@ export class Application {
           this.elapsed,
           this.settings.reducedMotion,
           dt,
-          true,
+          running,
           this.playerPresence,
         );
     }
-    if (!document.hidden) this.officeTime += dt;
+    if (running) this.officeTime += dt;
     if (dive.elapsed >= dive.path.duration) this.endDive();
   }
   /** Cancel a paused transition: back where it started, in the space it started from. */
@@ -717,7 +718,7 @@ export class Application {
             : !this.dived && this.officeVisit > HINT_DELAY
               ? 'hint'
               : null
-          : this.waterWorld === 'aquarium' && canSurface(pose.y)
+          : canSurface(pose.y, this.waterWorld)
             ? 'surface'
             : null,
     );
@@ -799,9 +800,10 @@ export class Application {
   /** Walk the office and draw it with the live miniature aquarium. */
   private tickOffice(dt: number): void {
     const controls = this.controls!,
-      office = this.office!;
-    if (!document.hidden) this.officeTime += dt;
-    if (controls.locked && !document.hidden) {
+      office = this.office!,
+      running = controls.locked && !document.hidden;
+    if (running) this.officeTime += dt;
+    if (running) {
       this.elapsed += dt;
       controls.update(dt);
       stepWalking(
@@ -824,6 +826,7 @@ export class Application {
         this.elapsed,
         this.settings.reducedMotion,
         dt,
+        running,
       );
   }
   dispose = (): void => {

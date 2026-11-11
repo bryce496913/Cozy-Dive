@@ -44,7 +44,7 @@ const near = (a, b, eps = 1e-6) =>
   Math.abs(a.y - b.y) < eps &&
   Math.abs(a.z - b.z) < eps;
 try {
-  const page = await browser.newPage({ viewport: { width: 900, height: 600 } });
+  const page = await browser.newPage({ viewport: { width: 480, height: 320 } });
   page.setDefaultTimeout(Number(process.env.COZY_ACTION_TIMEOUT || 240000));
   await page.route('**/src/main.ts*', async (route) => {
     const r = await route.fetch();
@@ -59,6 +59,7 @@ try {
   });
   await page.goto(base);
   await page.waitForFunction(() => window.__cozy?.office);
+  await page.evaluate(() => cancelAnimationFrame(window.__cozy.frame));
   await page.evaluate(() =>
     Promise.all([window.__cozy.world.prepared, window.__cozy.office.prepared]),
   );
@@ -133,6 +134,12 @@ try {
         camera: { x: c.position.x, y: c.position.y, z: c.position.z },
         yaw: a.controls.yaw,
         aquariumTime: a.elapsed,
+        ecosystem: {
+          fishSteps: a.world.aquarium.fish.simulation.steps,
+          plants: a.world.aquarium.plants.clock.time,
+          anemone: a.world.aquarium.anchoredLife.anemone.clock.time,
+          moray: a.world.aquarium.anchoredLife.moray.clock.time,
+        },
       };
     });
   /** Get into `space` (by the pause screen's fade, Pass 022) and start its transition with E. */
@@ -205,6 +212,7 @@ try {
         const stillPaused = await state();
         assert.equal(stillPaused.dive.elapsed, atPause.dive.elapsed);
         assert.equal(stillPaused.aquariumTime, atPause.aquariumTime);
+        assert.deepEqual(stillPaused.ecosystem, atPause.ecosystem);
         assert(near(stillPaused.camera, atPause.camera));
         const { start, end } = atPause.dive;
         const pick = choice === 'resume' ? end.space : start.space;
@@ -270,6 +278,7 @@ try {
     assert.equal(report.hidden.outsideRendersWhileHidden, 0);
     assert.equal(whileHidden.dive.elapsed, hiddenAt.dive.elapsed);
     assert.equal(whileHidden.aquariumTime, hiddenAt.aquariumTime);
+    assert.deepEqual(whileHidden.ecosystem, hiddenAt.ecosystem);
     await page.evaluate(() => {
       delete document.hidden;
       document.dispatchEvent(new Event('visibilitychange'));
