@@ -262,10 +262,11 @@ export class OfficeScene {
     aquariumTime: number,
     reducedMotion: boolean,
     dt: number,
+    active: boolean,
   ): void {
     if (this.disposed) return;
     this.fit();
-    this.office.update(time, reducedMotion, dt);
+    this.office.update(time, reducedMotion, active ? dt : 0);
     this.syncMiniature();
     // v0.3 Pass 021: the glass clears as the dive presses up to it.
     this.portal.uniforms.clarity.value = glassClarity(this.camera.position);
@@ -274,7 +275,7 @@ export class OfficeScene {
       aquariumTime,
       reducedMotion,
       dt,
-      true,
+      active,
       this.inactive,
       this.miniatureCamera,
     );

@@ -19,6 +19,10 @@ export class FakeParam {
     this.value = value;
     return this;
   });
+  exponentialRampToValueAtTime = vi.fn((value: number) => {
+    this.value = value;
+    return this;
+  });
   cancelScheduledValues = vi.fn(() => this);
   setValueCurveAtTime = vi.fn((values: Float32Array) => {
     if (![...values].every(Number.isFinite)) throw new Error('Invalid curve');
@@ -42,6 +46,7 @@ export class FakeNode {
   connect = vi.fn((destination: FakeNode) => destination);
 }
 export class FakeContext {
+  readonly sampleRate = 48000;
   state: AudioContextState = 'suspended';
   currentTime = 0;
   readonly destination = new FakeNode();
@@ -63,6 +68,7 @@ export class FakeContext {
   }
   createGain = vi.fn(() => this.node());
   createBufferSource = vi.fn(() => this.node());
+  createOscillator = vi.fn(() => this.node());
   createBiquadFilter = vi.fn(() => this.node());
   createStereoPanner = vi.fn(() => this.node());
   createBuffer = vi.fn(
@@ -72,6 +78,7 @@ export class FakeContext {
       return {
         length,
         sampleRate,
+        getChannelData: () => data,
         copyToChannel: (values: Float32Array) => data.set(values),
       };
     },

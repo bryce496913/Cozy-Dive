@@ -191,6 +191,12 @@ describe('Pass 021 surfacing', () => {
 });
 
 describe('Pass 021 prompts', () => {
+  it.each([-26, 0, 13, 14, 40])(
+    'never offers tank surfacing in outer waters at y=%s',
+    (y) => {
+      expect(canSurface(y, 'outer')).toBe(false);
+    },
+  );
   it('offers the dive only near the tank and looking at it, and surfacing only near the surface', () => {
     expect(canDive(inFront)).toBe(true);
     expect(canDive({ ...inFront, yaw: inFront.yaw + Math.PI })).toBe(false);
