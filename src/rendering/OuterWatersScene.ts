@@ -4,6 +4,10 @@ import { OUTER } from '../config/passage';
 import type { Bounds, Vec3 } from '../config/world';
 import type { SightCandidate } from '../discovery/journal';
 import { boxCollider } from '../environment/passage/Crevice';
+import {
+  OuterCreatures,
+  reefObstacles,
+} from '../environment/outer/OuterCreatures';
 import { OuterEnvironment } from '../environment/outer/OuterEnvironment';
 import { OuterReef } from '../environment/outer/OuterReef';
 import {
@@ -12,6 +16,7 @@ import {
   outerSpecies,
 } from '../environment/outer/OuterSchools';
 import { edgeCurrent, seabedHeight } from '../environment/outer/OuterTerrain';
+import { reefSightings } from '../environment/outer/outerSightings';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
 import type { FishHabitat } from '../fish/FishHabitat';
 import type { CollisionWorld, ConvexCollider } from '../player/collision';
@@ -23,10 +28,11 @@ import type { WaterWorld } from './WaterWorld';
 import { warmUpScene } from './warmUp';
 
 /**
- * v0.4 Pass 023/024: renders the outer waters with the tank's renderer. Built when the swimmer
+ * v0.4 Pass 023/024/025: renders the outer waters with the tank's renderer. Built when the swimmer
  * nears the hidden crevice and released once they are well away, so its resources only exist
  * while it might be needed. Pass 024 dresses it as a reef from the tank's own libraries (shared
- * caches, nothing decoded twice), with reef fish, a sand seabed and soft edges. Only one water
+ * caches, nothing decoded twice), with reef fish, a sand seabed and soft edges; Pass 025 adds its big creatures and the things
+ * that can be seen here. Only one water
  * world renders per frame.
  */
 const WATER = 0x1d5d76;
@@ -46,7 +52,10 @@ export class OuterWatersScene implements WaterWorld {
   readonly environment = new OuterEnvironment();
   readonly reef: OuterReef;
   schools?: OuterSchools;
-  readonly sightings: readonly SightCandidate[] = [];
+  /** v0.4 Pass 025: sharks, eagle rays and a turtle (absent if their models cannot load). */
+  creatures?: OuterCreatures;
+  /** What can be seen here: the reef's corals and seagrass, and its big creatures. */
+  readonly sightings: SightCandidate[] = [];
   /** Where the soundscape's small sounds come from here (at the coral heads). */
   readonly soundSpots: Vec3[] = [];
   /** Resolves once dressed, populated and its shaders compiled (false if disposed first). */
@@ -138,9 +147,16 @@ export class OuterWatersScene implements WaterWorld {
       outerSpecies(this.reef.heads),
       fishLoader,
     );
-    await this.schools.ready;
+    const drawn = this.reef.drawnPlacements;
+    this.creatures = new OuterCreatures(reefObstacles(drawn), fishLoader);
+    const [, creatures] = await Promise.all([
+      this.schools.ready,
+      this.creatures.ready,
+    ]);
     if (this.disposed) return false;
     this.scene.add(this.schools.root);
+    if (creatures) this.scene.add(this.creatures.root);
+    this.sightings.push(...reefSightings(drawn), ...this.creatures.sightings);
     this.reef.update(this.camera.position, 0, false);
     await warmUpScene(this.renderer, this.scene, this.camera);
     if (this.disposed) return false;
@@ -177,6 +193,7 @@ export class OuterWatersScene implements WaterWorld {
     }
     this.reef.update(this.camera.position, dt, reducedMotion);
     this.schools?.update(dt, active, reducedMotion, player, this.camera);
+    this.creatures?.update(dt, active, reducedMotion, player, this.camera);
     this.renderer.render(this.scene, this.camera);
   }
   dispose(): void {
@@ -185,6 +202,8 @@ export class OuterWatersScene implements WaterWorld {
     this.ready = false;
     this.environment.undress();
     this.schools?.dispose();
+    this.creatures?.dispose();
+    this.sightings.length = 0;
     this.reef.dispose();
     this.environment.dispose();
     this.lights.forEach((l) => l.dispose());

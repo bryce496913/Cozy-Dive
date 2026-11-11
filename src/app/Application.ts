@@ -42,6 +42,7 @@ import {
   saveJournal,
   type Sighting,
 } from '../discovery/journal';
+import { seenList } from '../discovery/sights';
 import { OfficeAmbience } from '../audio/OfficeAmbience';
 import { OFFICE, OFFICE_FOOTPRINTS } from '../config/office';
 import { FrameMeter, formatFrameSummary } from '../ui/frameMeter';
@@ -192,6 +193,7 @@ export class Application {
       this.sightings = [];
     }
     this.tracker = new SightingTracker(this.sightings);
+    this.ui.setSeen(seenList(this.sightings));
     try {
       this.world = new UnderwaterScene(this.ui.sceneHost, () => {
         if (document.pointerLockElement) document.exitPointerLock();
@@ -671,6 +673,8 @@ export class Application {
     );
     if (!seen) return;
     this.sightings = recordSighting(this.sightings, seen.id, new Date());
+    this.ui.noteSighting(seen.label);
+    this.ui.setSeen(seenList(this.sightings));
     try {
       saveJournal(localStorage, this.sightings);
     } catch {

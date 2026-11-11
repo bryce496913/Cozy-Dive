@@ -82,12 +82,18 @@ export const SIGHTING = {
 } as const;
 
 /**
- * Accumulates how long each candidate has been comfortably in view and reports a candidate the
- * moment it first counts as seen. Fixed per-candidate state, no per-frame allocation.
+ * Accumulates how long each sight has been comfortably in view and reports one the moment it
+ * first counts as seen. Several candidates may share an id (three rays, two dozen sea fans):
+ * progress is per id, and an id is in view when any of its candidates is, so it is neither
+ * counted twice in a frame nor decayed by its out-of-view twins. Its state is reused from frame
+ * to frame.
  */
 export class SightingTracker {
   private readonly progress = new Map<string, number>();
   private readonly known: Set<string>;
+  /** This frame's candidates by id (the first of each) and which ids are in view. */
+  private readonly present = new Map<string, SightCandidate>();
+  private readonly inView = new Set<string>();
   constructor(seen: readonly Sighting[]) {
     this.known = new Set(seen.map((s) => s.id));
   }
@@ -105,29 +111,38 @@ export class SightingTracker {
     dt: number,
   ): SightCandidate | null {
     if (!(dt > 0)) return null;
-    let found: SightCandidate | null = null;
-    const cosCone = Math.cos(SIGHTING.cone);
+    const cosCone = Math.cos(SIGHTING.cone),
+      present = this.present,
+      inView = this.inView;
+    present.clear();
+    inView.clear();
     for (const c of candidates) {
       if (this.known.has(c.id)) continue;
+      if (!present.has(c.id)) present.set(c.id, c);
+      if (inView.has(c.id)) continue;
       const dx = c.position.x - eye.x,
         dy = c.position.y - eye.y,
         dz = c.position.z - eye.z,
-        d = Math.hypot(dx, dy, dz),
-        near = d - c.radius <= SIGHTING.distance,
-        facing =
-          d < 1e-6 ||
-          (dx * forward.x + dy * forward.y + dz * forward.z) / d >= cosCone;
-      const before = this.progress.get(c.id) ?? 0,
-        now =
-          near && facing
-            ? before + dt
-            : Math.max(0, before - dt * SIGHTING.decay);
+        d = Math.hypot(dx, dy, dz);
+      if (
+        d - c.radius <= SIGHTING.distance &&
+        (d < 1e-6 ||
+          (dx * forward.x + dy * forward.y + dz * forward.z) / d >= cosCone)
+      )
+        inView.add(c.id);
+    }
+    let found: SightCandidate | null = null;
+    for (const [id, c] of present) {
+      const before = this.progress.get(id) ?? 0,
+        now = inView.has(id)
+          ? before + dt
+          : Math.max(0, before - dt * SIGHTING.decay);
       if (now >= SIGHTING.dwell && !found) {
         found = c;
-        this.known.add(c.id);
-        this.progress.delete(c.id);
-      } else if (now > 0) this.progress.set(c.id, now);
-      else this.progress.delete(c.id);
+        this.known.add(id);
+        this.progress.delete(id);
+      } else if (now > 0) this.progress.set(id, now);
+      else this.progress.delete(id);
     }
     return found;
   }

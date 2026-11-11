@@ -20,6 +20,8 @@ export function isAudioMuteShortcut(
     !event.altKey
   );
 }
+/** v0.4 Pass 025: how long the "New sighting" note stays, then fades (ms). */
+export const SIGHTING_NOTE = { shown: 4200, fade: 900 } as const;
 /** Where the player is: the office (v0.3) or inside the aquarium. */
 /** In-world prompts: the E actions, and the first-visit hint. */
 export type Prompt = 'dive' | 'surface' | 'hint';
@@ -41,6 +43,9 @@ export class Interface {
   private readonly veilElement: HTMLElement;
   private readonly bubbles: HTMLElement;
   private burstTimer?: ReturnType<typeof setTimeout>;
+  private noteTimer?: ReturnType<typeof setTimeout>;
+  private readonly seenPanel: HTMLElement;
+  private readonly seenToggle: HTMLButtonElement;
   private fatalMessage = '';
 
   constructor(
@@ -60,6 +65,7 @@ export class Interface {
         <p class="intro">A quiet room, a little tank, and a whole reef inside it.<br>No rush. No destination. Just you and the water.</p>
         <div class="entry-actions"><button class="enter" id="office">Enter the Office ${arrow}</button><button class="enter secondary" id="enter">Enter the Water ${arrow}</button><button class="enter secondary" id="return-tank" hidden>Return to the tank ${arrow}</button></div>
         <p class="entry-note" id="entry-note">Walk with W A S D and look around with the mouse.</p>
+        <button class="seen-toggle" id="seen-toggle" type="button" aria-expanded="false" aria-controls="seen-panel" hidden>Seen in the outer waters</button>
         <p class="status" id="status" role="status" aria-live="polite"></p>
       </div><div class="scene-label"><span class="label-line"></span><span>THE SUNLIT REEF AQUARIUM<small>01 / FIRST DIVE</small></span></div></main>
       <aside class="settings-panel" id="settings-panel" aria-label="Experience settings" hidden>
@@ -74,6 +80,11 @@ export class Interface {
         <p id="audio-status" role="status">Audio begins when you enter. Press M while swimming to mute.</p>
         <p class="save-status" id="save-status" role="status">Preferences saved on this device.</p>
       </aside>
+      <aside class="settings-panel seen-panel" id="seen-panel" aria-labelledby="seen-heading" hidden>
+        <div class="panel-heading"><h2 id="seen-heading">Seen out there.</h2><button id="close-seen" aria-label="Close the list of things seen">×</button></div>
+        <p>Things you have come across beyond the tank.</p><ul class="seen-list" id="seen-list"></ul>
+      </aside>
+      <p class="sighting-note" id="sighting-note" role="status" aria-live="polite" hidden></p>
       <div class="dive-veil" aria-hidden="true"></div><div class="passage-veil" aria-hidden="true"></div><div class="dive-bubbles" aria-hidden="true"></div>
       <p class="dive-prompt" id="dive-prompt" role="status" aria-live="polite" hidden></p>
       <p class="frame-time" id="frame-readout" aria-hidden="true" hidden></p>
@@ -123,6 +134,42 @@ export class Interface {
       'keydown',
       (event) => {
         if (event.key === 'Escape') setOpen(false);
+      },
+      { signal },
+    );
+    // v0.4 Pass 025: the list of things seen in the outer waters (one panel open at a time).
+    this.seenPanel = this.get('seen-panel');
+    this.seenToggle = this.get<HTMLButtonElement>('seen-toggle');
+    const setSeenOpen = (open: boolean): void => {
+      this.seenPanel.hidden = !open;
+      this.seenToggle.setAttribute('aria-expanded', String(open));
+      if (open) {
+        setOpen(false);
+        this.get('close-seen').focus();
+      } else this.seenToggle.focus();
+    };
+    this.seenToggle.addEventListener(
+      'click',
+      () => setSeenOpen(Boolean(this.seenPanel.hidden)),
+      { signal },
+    );
+    this.get('close-seen').addEventListener('click', () => setSeenOpen(false), {
+      signal,
+    });
+    this.seenPanel.addEventListener(
+      'keydown',
+      (event) => {
+        if (event.key === 'Escape') setSeenOpen(false);
+      },
+      { signal },
+    );
+    toggle.addEventListener(
+      'click',
+      () => {
+        if (!this.settingsPanel.hidden) {
+          this.seenPanel.hidden = true;
+          this.seenToggle.setAttribute('aria-expanded', 'false');
+        }
       },
       { signal },
     );
@@ -221,6 +268,8 @@ export class Interface {
     this.root
       .querySelector('.settings-toggle')!
       .setAttribute('aria-expanded', 'false');
+    this.seenPanel.hidden = true;
+    this.seenToggle.setAttribute('aria-expanded', 'false');
     if (!locked && entered) {
       this.root.querySelector('h1')!.innerHTML =
         'Stay a little<br><em>longer.</em>';
@@ -301,6 +350,50 @@ export class Interface {
     this.lastDepth = text;
     this.depth.innerHTML = `↓ ${text} m <span>BELOW THE SURFACE</span>`;
   }
+  /**
+   * v0.4 Pass 025: a quiet note when something is seen for the first time. It fades after a
+   * few seconds; a newer sighting replaces it.
+   */
+  noteSighting(label: string): void {
+    const note = this.get('sighting-note');
+    note.textContent = `New sighting \u00b7 ${label}`;
+    note.hidden = false;
+    note.classList.remove('is-fading');
+    clearTimeout(this.noteTimer);
+    this.noteTimer = setTimeout(() => {
+      note.classList.add('is-fading');
+      this.noteTimer = setTimeout(() => {
+        note.hidden = true;
+      }, SIGHTING_NOTE.fade);
+    }, SIGHTING_NOTE.shown);
+  }
+  /**
+   * v0.4 Pass 025: what has been seen, for the pause screen's "Seen" list, in the order first
+   * seen. Just names and when; no counts. The list stays hidden until there is something on it.
+   */
+  setSeen(entries: readonly { label: string; first: string }[]): void {
+    const list = this.get('seen-list'),
+      date = (iso: string) => {
+        const d = new Date(iso);
+        return d.getTime() > 0
+          ? d.toLocaleDateString(undefined, { day: 'numeric', month: 'long' })
+          : '';
+      };
+    list.replaceChildren(
+      ...entries.map((e) => {
+        const item = document.createElement('li'),
+          name = document.createElement('span'),
+          when = document.createElement('time');
+        name.textContent = e.label;
+        when.dateTime = e.first;
+        when.textContent = date(e.first);
+        item.append(name, when);
+        return item;
+      }),
+    );
+    this.seenToggle.hidden = entries.length === 0;
+    if (!entries.length) this.seenPanel.hidden = true;
+  }
   storageResult(saved: boolean): void {
     this.get('save-status').textContent = saved
       ? 'Preferences saved on this device.'
@@ -325,6 +418,7 @@ export class Interface {
   }
   dispose(): void {
     clearTimeout(this.burstTimer);
+    clearTimeout(this.noteTimer);
     this.abort.abort();
     this.root.replaceChildren();
   }

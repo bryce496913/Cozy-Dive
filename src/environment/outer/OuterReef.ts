@@ -447,6 +447,10 @@ export class OuterReef {
     }
   }
 
+  /** Placements as drawn: colonies seated on the rocks beneath them once ready (Pass 025). */
+  get drawnPlacements(): readonly ReefPlacement[] {
+    return this.seated;
+  }
   /** Re-sort pieces into detail levels as the eye moves, and advance the plants' sway. */
   update(eye: THREE.Vector3, dt: number, reducedMotion: boolean): void {
     if (this.disposed) return;

@@ -52,7 +52,7 @@ v0.3 closes on the user's macOS acceptance of this candidate. v0.4 (Personalizat
   - the local sightings journal;
   - a placeholder open-water area beyond the tunnel.
 - **Pass 024, The outer reef:** the larger tropical reef, with sand channels, coral heads, a drop-off, soft boundaries, new reef-fish schools, open-water sound and performance budgets.
-- **Pass 025, Big creatures:** reef sharks, rays and a sea turtle with calm behaviour, plus "seen" detection and a quiet "Seen" page.
+- **Pass 025, Big creatures (`0.4.0-alpha.3`):** reef sharks, eagle rays and a sea turtle with calm behaviour, plus "seen" detection, a quiet "New sighting" note and a "Seen" page. New reef-fish species were not added; the reef's fish are still the tank's species.
 - **Pass 026, Polish and acceptance:** the v0.4 release candidate.
 
 **v0.5 Personalization.** The catalog is built from what you have seen in the outer waters. Big animals are added to the tank as babies or mini versions, so they suit its size.
