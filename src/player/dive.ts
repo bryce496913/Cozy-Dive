@@ -1,5 +1,6 @@
 import { AQUARIUM, SPAWN } from '../config/world';
 import { TANK, TANK_SCALE, OFFICE } from '../config/office';
+import type { WaterWorldId } from './passage';
 
 /**
  * v0.3 Pass 021: the dive from the office into the tank, and back.
@@ -491,6 +492,12 @@ export function canDive(p: Pose): boolean {
   return (lookX * dx + lookZ * dz) / d >= DIVE.promptFacing;
 }
 /** Whether to offer surfacing: near the water's surface. */
-export function canSurface(y: number): boolean {
-  return y >= AQUARIUM.max.y - AQUARIUM.clearance - DIVE.surfaceBand;
+export function canSurface(
+  y: number,
+  world: WaterWorldId = 'aquarium',
+): boolean {
+  return (
+    world === 'aquarium' &&
+    y >= AQUARIUM.max.y - AQUARIUM.clearance - DIVE.surfaceBand
+  );
 }
