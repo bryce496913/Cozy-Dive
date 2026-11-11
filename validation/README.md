@@ -208,3 +208,13 @@ COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy021-interrupt node validatio
 - **Resources:** GPU geometries, textures and compiled programs are unchanged at the end, with no console errors.
 
 Run it on its own: alongside the unit suite, the container can run out of memory and kill the browser.
+
+## Pass 022 polish and v0.3 release candidate
+
+```bash
+COZY_CYCLES=20 COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy022-soak node validation/dive-interrupt.mjs  # long alternating soak
+```
+
+- **`dive-interrupt.mjs` cycles:** each cycle now also swims and makes a pause-screen fade there and back. GPU resources must be unchanged after every cycle. Each cycle prints a progress line, so a run stopped by a time limit still leaves evidence. In software rendering, allow about 2.5 minutes per cycle.
+- **Fades:** `office.mjs`, `dive.mjs` and `dive-interrupt.mjs` wait for the pause-screen fade to finish before checking the new space.
+- **One browser at a time:** run the harnesses one after another. Several SwiftShader browsers at once, or a browser next to the unit suite, can exhaust the container's memory.

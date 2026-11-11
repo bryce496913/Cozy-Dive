@@ -341,7 +341,9 @@ try {
         (r) => r.mesh.visible,
       ),
     }));
-    assert.equal(report.fallback.hulls, 216);
+    // 216 until Pass 019 round 2: the redesigned shipwreck's convex strake segments added 68
+    // hulls (503 in the aquarium, from 435).
+    assert.equal(report.fallback.hulls, 284);
     assert.match(report.fallback.status, /could not load/);
     assert.equal(report.fallback.rocksVisible, true);
     await fallback.evaluate(() => window.__cozy.dispose());

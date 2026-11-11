@@ -239,6 +239,10 @@ try {
     .getByRole('button', { name: 'Enter the Office', exact: true })
     .click();
   await settle();
+  // Pass 022: the pause-screen switch fades; wait until it has finished.
+  await page.waitForFunction(
+    () => !window.__cozy.dive && window.__cozy.mode === 'office',
+  );
   await page.waitForTimeout(800);
   report.memory = {
     before: memoryBefore,
