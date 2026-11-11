@@ -1,5 +1,5 @@
 import type * as THREE from 'three';
-import type { Bounds } from '../config/world';
+import type { Bounds, Vec3 } from '../config/world';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
 import type { CollisionWorld } from '../player/collision';
 import type { WaterWorldId } from '../player/passage';
@@ -17,6 +17,8 @@ export interface WaterWorld {
   readonly camera: THREE.PerspectiveCamera;
   /** Things that can be seen here for the first time (none in the tank itself). */
   readonly sightings: readonly SightCandidate[];
+  /** Pass 024: a gentle current (m/s) that turns the swimmer back near soft edges, if any. */
+  current?(p: Vec3, out: Vec3): Vec3;
   render(
     time: number,
     reducedMotion: boolean,

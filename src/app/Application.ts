@@ -1,5 +1,5 @@
 import { AudioSystem } from '../audio/AudioSystem';
-import { AQUARIUM, SPAWN, SWIMMING } from '../config/world';
+import { AQUARIUM, SPAWN, SWIMMING, type Vec3 } from '../config/world';
 import { SwimControls } from '../controls/SwimControls';
 import {
   integrateSwimming,
@@ -97,6 +97,9 @@ export class Application {
   private sightings: readonly Sighting[] = [];
   private tracker = new SightingTracker([]);
   private readonly lookForward = { x: 0, y: 0, z: -1 };
+  /** Pass 024: the tank's sound spots, and the outer reef's edge current (reused). */
+  private tankSoundSpots: readonly Vec3[] = [];
+  private readonly drift = { x: 0, y: 0, z: 0 };
   private officeAudio?: OfficeAmbience;
   private mode: ExperienceMode;
   private readonly walk = createWalkState(OFFICE.spawn);
@@ -200,19 +203,19 @@ export class Application {
         );
       });
       configureWorld?.(this.world, this.state);
-      this.audio = new AudioSystem(
-        [
-          ...this.world.aquarium.hardscape.formations.map((f) => ({
-            x: f.position.x,
-            y: f.position.y + 1.4,
-            z: f.position.z,
-          })),
-          ...this.world.aquarium.ornaments.anchors
-            .filter((a) => a.ornament === 'chest' || a.ornament === 'filter')
-            .map((a) => a.position),
-        ],
-        { onStatus: (status) => this.ui.audioStatus(status) },
-      );
+      this.tankSoundSpots = [
+        ...this.world.aquarium.hardscape.formations.map((f) => ({
+          x: f.position.x,
+          y: f.position.y + 1.4,
+          z: f.position.z,
+        })),
+        ...this.world.aquarium.ornaments.anchors
+          .filter((a) => a.ornament === 'chest' || a.ornament === 'filter')
+          .map((a) => a.position),
+      ];
+      this.audio = new AudioSystem(this.tankSoundSpots, {
+        onStatus: (status) => this.ui.audioStatus(status),
+      });
       this.audio.setVisible(!document.hidden);
       this.office = new OfficeScene(this.world);
       this.officeAudio = new OfficeAmbience({
@@ -573,6 +576,12 @@ export class Application {
   private setWaterWorld(id: WaterWorldId): void {
     this.waterWorld = id;
     this.ui.setOuter(id === 'outer');
+    // Pass 024: the soundscape's small sounds come from the current world's places.
+    this.audio?.setLocations(
+      id === 'outer' && this.outer
+        ? this.outer.soundSpots
+        : this.tankSoundSpots,
+    );
   }
   /**
    * Load the outer waters as the swimmer nears the crevice and release them once well away from
@@ -584,7 +593,12 @@ export class Application {
       inTank = this.waterWorld === 'aquarium';
     if (!this.outer) {
       if (swimming && inTank && distance < PASSAGE.preload)
-        this.outer = new OuterWatersScene(this.world!.renderer);
+        this.outer = new OuterWatersScene(this.world!.renderer, {
+          reef: this.world!.reefLoader,
+          fish: this.world!.authored.loader,
+          plants: this.world!.aquarium.plants.material,
+          soundSpots: this.tankSoundSpots.length,
+        });
       this.outerIdle = 0;
       return;
     }
@@ -731,6 +745,13 @@ export class Application {
         this.direction,
       );
       const swim = this.water();
+      // Pass 024: near soft edges a gentle current turns the swimmer back (through collision).
+      if (swim.current) {
+        swim.current(this.state.position, this.drift);
+        this.state.velocity.x += this.drift.x * dt * PASSAGE.currentResponse;
+        this.state.velocity.y += this.drift.y * dt * PASSAGE.currentResponse;
+        this.state.velocity.z += this.drift.z * dt * PASSAGE.currentResponse;
+      }
       integrateSwimming(
         this.state,
         this.direction,
@@ -764,8 +785,7 @@ export class Application {
       ),
     );
     if (this.controls.locked && !document.hidden) this.lookFor(water, dt);
-    this.playerPresence.active =
-      this.controls.locked && !document.hidden && water === this.world;
+    this.playerPresence.active = this.controls.locked && !document.hidden;
     if (!document.hidden)
       water.render(
         this.elapsed,

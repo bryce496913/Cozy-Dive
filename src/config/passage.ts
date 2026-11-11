@@ -38,7 +38,8 @@ export const CREVICE_FRAME: PassageFrame = {
 export const OUTER = {
   /** The outer waters' swimmable volume. */
   bounds: {
-    min: { x: -60, y: 0, z: -130 },
+    // Pass 024: deep enough below the drop-off to swim down its wall a little.
+    min: { x: -60, y: -26, z: -140 },
     max: { x: 60, y: 40, z: 3 },
     clearance: 0.65,
   } satisfies Bounds,
@@ -58,7 +59,17 @@ export const OUTER = {
   ] as readonly Vec3[],
   /** Sand level and the water surface far above. */
   floorY: 0,
-  fog: 0.018,
+  fog: 0.02,
+  /**
+   * Pass 024: the comfortable reef (m). Beyond it a gentle current turns the swimmer back
+   * (soft edges instead of walls); it strengthens over `edgeWidth`.
+   */
+  reef: { minX: -46, maxX: 46, minZ: -126, maxY: 30 },
+  edgeWidth: 8,
+  edgeCurrent: 1.4,
+  /** The seabed: a sand channel winding away from the cliff, and a drop-off into deep blue. */
+  channel: { amplitude: 7, wavelength: 70, halfWidth: 4.5, depth: 0.9 },
+  dropOff: { start: -100, end: -114, depth: 23 },
 } as const;
 
 /** The tunnel's start, matching the crevice threshold. */
@@ -74,11 +85,14 @@ export const PASSAGE = {
   darkReach: 3.2,
   darkPeak: 0.94,
   /** Load the outer waters within this distance of the mouth; release them beyond the second. */
-  preload: 11,
-  release: 17,
+  // Pass 024: the dressed reef takes longer to prepare, so start sooner.
+  preload: 15,
+  release: 22,
   /** Seconds out of range before releasing (so passing by does not thrash). */
   releaseDelay: 4,
   /** Return to the tank: arrive this far outside the mouth, facing the room. */
   returnGap: 1.4,
   arrivalFade: 0.6,
+  /** Pass 024: how strongly the edge current steers the swimmer's velocity (1/s). */
+  currentResponse: 2.2,
 } as const;

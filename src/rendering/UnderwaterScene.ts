@@ -47,6 +47,8 @@ export class UnderwaterScene implements WaterWorld {
   readonly aquarium: Aquarium;
   readonly authored: AuthoredAquarium;
   readonly reef: AuthoredReef;
+  /** v0.4 Pass 024: the reef library's loader (the outer reef leases from the same cache). */
+  readonly reefLoader: AssetLoader;
   /** Resolves once authored libraries settle and their programs are compiled. */
   readonly prepared: Promise<boolean>;
   private readonly assetStatus = document.createElement('p');
@@ -107,10 +109,8 @@ export class UnderwaterScene implements WaterWorld {
     host.append(this.assetStatus);
     // KTX2 textures need the renderer to choose a GPU-compressed transcode target.
     this.authored = new AuthoredAquarium(this.aquarium, this.renderer);
-    this.reef = new AuthoredReef(
-      this.aquarium,
-      new AssetLoader(undefined, undefined, this.renderer),
-    );
+    this.reefLoader = new AssetLoader(undefined, undefined, this.renderer);
+    this.reef = new AuthoredReef(this.aquarium, this.reefLoader);
     // Each library falls back independently; the status stays until both have settled and
     // their shader programs are compiled, so the first swimming frame does not hitch.
     this.prepared = Promise.all([this.authored.ready, this.reef.ready]).then(
