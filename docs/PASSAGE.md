@@ -23,8 +23,8 @@ Pass 023 connects the tank to a second water world, the outer waters, through a 
 
 ## Lifecycle
 
-- **Loading:** the outer waters are built when the swimmer comes within 11 m of the crevice mouth. That's about 80 ms of main-thread work in SwiftShader; shader warm-up is asynchronous.
-- **Keeping:** they stay while the swimmer is in them, during a transition, or within 17 m of the mouth.
+- **Loading:** the outer waters are built when the swimmer comes within 15 m of the crevice mouth (11 m in Pass 023; the dressed reef of Pass 024 takes longer to prepare). Shader warm-up is asynchronous.
+- **Keeping:** they stay while the swimmer is in them, during a transition, or within 22 m of the mouth.
 - **Releasing:** after 4 s out of range they are disposed: geometry, materials and lights. GPU memory returns to its earlier counts (browser harness).
 - **Rendering:** only the current water world is rendered and simulated. The tank pauses while you are outside it; the office miniature still shows it.
 - **Return to the tank:** this pause-screen option appears while in the outer waters. It puts you 1.4 m outside the mouth, facing out, and fades in from darkness.
