@@ -1,5 +1,8 @@
 import { AQUARIUM, type Vec3 } from './world';
 
+/** Standing eye height in the office (m). Playtest: 1.6 m felt too tall, so 20% lower. */
+const EYE_HEIGHT = 1.28;
+
 /**
  * v0.3 Pass 020: the cosy home office that holds the aquarium. Metres, y up. The room spans
  * x -3..3, z -2.5..2.5; the window is on the back wall (z = -2.5), the aquarium against the
@@ -8,13 +11,13 @@ import { AQUARIUM, type Vec3 } from './world';
 export const OFFICE = {
   room: { min: { x: -3, y: 0, z: -2.5 }, max: { x: 3, y: 2.8, z: 2.5 } },
   /** Walking: eye height, body radius, pace. */
-  eyeHeight: 1.6,
+  eyeHeight: EYE_HEIGHT,
   playerRadius: 0.3,
   walkSpeed: 1.25,
   /** Exponential response of walking velocity to input (1/s). */
   walkResponse: 7,
   maxFrameDelta: 0.1,
-  spawn: { x: -0.2, y: 1.6, z: 1.55 },
+  spawn: { x: -0.2, y: EYE_HEIGHT, z: 1.55 },
   /** Initial look: towards the window and the aquarium. */
   spawnYaw: -0.55,
   window: { centerX: -0.6, width: 1.7, sill: 0.92, top: 2.25 },

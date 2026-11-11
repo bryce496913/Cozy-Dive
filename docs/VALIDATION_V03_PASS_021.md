@@ -98,3 +98,7 @@ A self-review and a Codex review of the merged `0.3.0-alpha.2` found the followi
 - With the app's own loop, the page process held steady at about 1.25 GB over two minutes.
 
 The cause was the stepping technique: frames rendered back to back in one task are never presented, and SwiftShader's buffers accumulate. Both dive harnesses now yield a real animation frame before each stepped tick, and memory then stays flat (about 1.18 GB over 300 frames). The cost is slower runs.
+
+## 7. Playtest change (`0.3.0-alpha.4`)
+
+- **Eye height 1.6 m → 1.28 m.** The first real playtest found the office fine, but the person felt too tall, so the eye height is 20% lower. It is one constant (`OFFICE.eyeHeight`), and the spawn and the surfacing stand-up both follow it. The harnesses now expect 1.28 m.

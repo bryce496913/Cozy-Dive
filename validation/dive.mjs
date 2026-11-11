@@ -66,7 +66,7 @@ try {
   // Stand in front of the tank, looking at it.
   await page.evaluate(() => {
     const a = window.__cozy;
-    Object.assign(a.walk.position, { x: 1.25, y: 1.6, z: 0.1 });
+    Object.assign(a.walk.position, { x: 1.25, z: 0.1 });
     a.controls.yaw = -Math.PI / 2 + 0.15;
     a.controls.pitch = -0.15;
     a.controls.clear();
@@ -206,14 +206,14 @@ try {
     position: { ...window.__cozy.walk.position },
   }));
   assert.equal(report.surface.end.mode, 'office');
-  assert.equal(report.surface.end.position.y, 1.6);
+  assert.equal(report.surface.end.position.y, 1.28);
   await page.screenshot({ path: path.join(output, 'surface-3-standing.png') });
 
   // Reduced motion: a short fade instead of the glide.
   await page.evaluate(() => {
     const a = window.__cozy;
     a.settings = { ...a.settings, reducedMotion: true };
-    Object.assign(a.walk.position, { x: 1.25, y: 1.6, z: 0.1 });
+    Object.assign(a.walk.position, { x: 1.25, z: 0.1 });
     a.controls.yaw = -Math.PI / 2;
     a.controls.pitch = -0.1;
     a.controls.clear();

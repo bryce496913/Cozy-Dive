@@ -146,7 +146,7 @@ try {
     await page.evaluate((kind) => {
       const a = window.__cozy;
       if (kind === 'dive') {
-        Object.assign(a.walk.position, { x: 1.3, y: 1.6, z: -0.15 });
+        Object.assign(a.walk.position, { x: 1.3, z: -0.15 });
         a.controls.yaw = -Math.PI / 2 - 0.1;
         a.controls.pitch = -0.12;
       } else {

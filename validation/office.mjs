@@ -85,7 +85,7 @@ try {
   report.walked = +Math.hypot(end.x - start.x, end.z - start.z).toFixed(2);
   report.eyeHeight = end.y;
   assert(report.walked > 0.5, 'held W must walk the player');
-  assert.equal(end.y, 1.6);
+  assert.equal(end.y, 1.28);
   assert(end.x > -2.7 && end.x < 2.7 && end.z > -2.2 && end.z < 2.2);
   await page.screenshot({ path: path.join(output, 'walking.png') });
 
