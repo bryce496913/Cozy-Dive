@@ -100,7 +100,7 @@ try {
   });
   assert.equal(inventory.hiddenCount, 7);
   assert.equal(inventory.fish, 41);
-  assert.equal(inventory.hulls, 503); // Pass 014 reef parts; Pass 019 wreck
+  assert.equal(inventory.hulls, 515); // Pass 014 reef parts; Pass 019 wreck; Pass 023 crevice (+12)
   const views = [];
   for (const name of [
     'overview',

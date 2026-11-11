@@ -218,3 +218,11 @@ COZY_CYCLES=20 COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy022-soak node
 - **`dive-interrupt.mjs` cycles:** each cycle now also swims and makes a pause-screen fade there and back. GPU resources must be unchanged after every cycle. Each cycle prints a progress line, so a run stopped by a time limit still leaves evidence. In software rendering, allow about 2.5 minutes per cycle.
 - **Fades:** `office.mjs`, `dive.mjs` and `dive-interrupt.mjs` wait for the pause-screen fade to finish before checking the new space.
 - **One browser at a time:** run the harnesses one after another. Several SwiftShader browsers at once, or a browser next to the unit suite, can exhaust the container's memory.
+
+## Pass 023 hidden passage
+
+```bash
+COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy023-passage node validation/passage.mjs
+```
+
+`passage.mjs` enters the water with real pointer lock, places the swimmer outside the hidden crevice and waits for the outer waters to load. It then holds W through the crack, capturing the frames either side of the world swap. It steers along the tunnel to open water, makes a pause-screen round trip to the office, swims back into the tank and uses Return to the tank. Finally it checks the outer waters are released far away, with GPU geometry and texture counts back to their starting values. The loop is stepped at 30 Hz, yielding a real frame each step.
