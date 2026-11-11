@@ -33,7 +33,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 TEX = ROOT / 'tools/art/textures/pass025'
 OUT = ROOT / 'public/assets/models/creatures'
-SIZE = 1024
+SIZE = 512  # the project's texture size for every authored library
 LOD_RATIO = 0.16
 
 
@@ -242,13 +242,8 @@ def save_png(name, rgb):
 
 
 def save_roughness(name, rough):
-    """glTF metallic-roughness map (G roughness, B metalness 0), at a quarter of the colour size."""
-    img = np.dstack([np.ones_like(rough), rough, np.zeros_like(rough)])
-    small = Image.fromarray(np.uint8(np.clip(img, 0, 1) * 255 + 0.5)).resize((SIZE // 4, SIZE // 4), Image.BILINEAR)
-    TEX.mkdir(parents=True, exist_ok=True)
-    path = TEX / f'{name}.png'
-    small.save(path, optimize=True)
-    return path
+    """glTF metallic-roughness map (G roughness, B metalness 0)."""
+    return save_png(name, np.dstack([np.ones_like(rough), rough, np.zeros_like(rough)]))
 
 
 def normal_map(height, strength):
@@ -416,13 +411,13 @@ def shark_maps():
     edge = -0.14 + 0.36 * band + 0.08 * (nz - 0.5)
     back = lerp([0.5, 0.49, 0.44], [0.4, 0.39, 0.36], smooth(0.3, 1.0, e))
     col = lerp([0.93, 0.93, 0.9], back, smooth(edge - 0.05, edge + 0.05, e))
-    col *= (0.93 + 0.07 * fbm(u * 4, v, 24, 12))[..., None]
+    col *= (0.93 + 0.07 * fbm(u * 2, v, 12, 12))[..., None]
     gills = np.zeros_like(u)
-    for g in (0.15, 0.165, 0.18, 0.195, 0.21):
-        gills = np.maximum(gills, 1 - smooth(0.0015, 0.004, np.abs(s - g + 0.01 * (e + 0.3))))
+    for g in (0.15, 0.164, 0.178, 0.192, 0.206):
+        gills = np.maximum(gills, 1 - smooth(0.002, 0.0045, np.abs(s - g + 0.01 * (e + 0.3))))
     gills *= smooth(-0.5, -0.32, e) * (1 - smooth(0.05, 0.2, e))
-    mouth = (1 - smooth(0.002, 0.005, np.abs(s - (0.068 + 0.035 * (ang / 0.9) ** 2)))) * (1 - smooth(0.75, 0.9, ang))
-    col *= (1 - 0.5 * np.maximum(gills, mouth))[..., None]
+    mouth = (1 - smooth(0.003, 0.007, np.abs(s - (0.068 + 0.035 * (ang / 0.9) ** 2)))) * (1 - smooth(0.75, 0.9, ang))
+    col *= (1 - 0.38 * np.maximum(gills, mouth))[..., None]
     tip = np.clip((v - 0.1) / 0.85, 0, 1)
     black = [0.06, 0.06, 0.065]
     dark = lerp([0.44, 0.43, 0.39], black, smooth(0.45, 0.8, tip))
@@ -430,9 +425,9 @@ def shark_maps():
     col = np.where((u >= 0.94)[..., None], np.where((u < 0.97)[..., None], dark, pale), col)
     col = np.where(((u >= 0.94) & (v < 0.08))[..., None], [0.02, 0.02, 0.025], col)
     # Fins and eyes are smooth (their strips only carry colour).
-    height = (0.5 * fbm(u * 4, v, 48, 13, 3) - 2.5 * np.maximum(gills, mouth)) * (u < 0.94)
+    height = (0.5 * fbm(u * 2, v, 16, 13, 3) - 2.5 * np.maximum(gills, mouth)) * (u < 0.94)
     rough = np.where((u >= 0.94) & (v < 0.08), 0.12, 0.5)
-    return (save_png('creature_shark_base', col), save_png('creature_shark_normal', normal_map(height, 3.0)),
+    return (save_png('creature_shark_base', col), save_png('creature_shark_normal', normal_map(height, 1.5)),
             save_roughness('creature_shark_orm', rough))
 
 
@@ -536,9 +531,9 @@ def ray_maps():
     lower = lerp([0.9, 0.91, 0.9], [0.42, 0.45, 0.5], 0.7 * (1 - smooth(0.0, 0.07, margin)))
     col = np.where(top[..., None], upper, lower)
     col = np.where(inside[..., None], col, [0.035, 0.04, 0.05])
-    height = 0.4 * fbm(u, v, 64, 22, 3) + 0.6 * spot * top
+    height = 0.4 * fbm(u, v, 24, 22, 3) + 0.6 * spot * top
     rough = np.where(inside, np.where(top, 0.42, 0.5), 0.2)
-    return (save_png('creature_ray_base', col), save_png('creature_ray_normal', normal_map(height, 2.0)),
+    return (save_png('creature_ray_base', col), save_png('creature_ray_normal', normal_map(height, 1.0)),
             save_roughness('creature_ray_orm', rough))
 
 
@@ -642,14 +637,14 @@ def turtle_maps():
     pts = np.array([(cx, cq * 0.3) for cx, cq in centres])
     sel = np.stack([x[shell], np.clip(q[shell], -1.2, 1.2) * 0.3], 1)
     d1, gap, idx = voronoi_seams(pts, sel)
-    seam = 1 - smooth(0.004, 0.014, gap)
+    seam = 1 - smooth(0.006, 0.018, gap)
     ang = np.arctan2(sel[:, 1] - pts[idx, 1], sel[:, 0] - pts[idx, 0])
     streak = 0.6 * noise2((ang / (2 * np.pi)) % 1, (idx * 0.137) % 1, 14, 31) + 0.4 * noise2(
         (ang / (2 * np.pi)) % 1, (idx * 0.291) % 1, 36, 32)
     streak = smooth(0.42, 0.72, streak) * smooth(0.01, 0.06, d1)
     tint = np.random.default_rng(31).uniform(0.85, 1.12, len(pts))[idx]
     base = lerp([0.25, 0.21, 0.12], [0.58, 0.45, 0.24], streak) * tint[:, None]
-    base *= (0.9 + 0.1 * fbm(u[shell], v[shell], 32, 33))[:, None]
+    base *= (0.9 + 0.1 * fbm(u[shell], v[shell], 16, 33))[:, None]
     col[shell] = lerp(base, [0.11, 0.09, 0.06], 0.85 * seam)
     height[shell] = smooth(0.0, 0.05, gap) * 0.6 + 0.15 * streak
     col[shell & (np.abs(q) > 1.02)] = [0.2, 0.17, 0.1]
@@ -659,27 +654,27 @@ def turtle_maps():
     x = x0 + ((v - 0.5) / 0.5) * dx
     pp = np.array([(xi, s * 0.12) for xi in (0.3, 0.13, -0.05, -0.22, -0.38) for s in (1, -1)])
     _, gap, _ = voronoi_seams(pp, np.stack([x[plast], z[plast]], 1))
-    pseam = 1 - smooth(0.003, 0.01, gap)
+    pseam = 1 - smooth(0.005, 0.014, gap)
     col[plast] = lerp(lerp([0.84, 0.77, 0.55], [0.74, 0.67, 0.47], fbm(u[plast], v[plast], 16, 41)),
                       [0.45, 0.4, 0.28], 0.8 * pseam)
     height[plast] = -pseam
     # Skin: dark olive scales with pale seams.
     skin = (u >= 0.5) & (v < 0.5)
     rng = np.random.default_rng(51)
-    sp = rng.random((1400, 2)) * [0.5, 0.5] + [0.5, 0.0]
+    sp = rng.random((650, 2)) * [0.5, 0.5] + [0.5, 0.0]
     d1, gap, idx = voronoi_seams(sp, np.stack([u[skin], v[skin]], 1))
-    sseam = 1 - smooth(0.0015, 0.005, gap)
+    sseam = 1 - smooth(0.003, 0.008, gap)
     tint = rng.uniform(0.8, 1.15, len(sp))[idx]
-    scale = lerp([0.2, 0.17, 0.1], [0.32, 0.26, 0.15], smooth(0.0, 0.012, gap)) * tint[:, None]
+    scale = lerp([0.2, 0.17, 0.1], [0.32, 0.26, 0.15], smooth(0.0, 0.018, gap)) * tint[:, None]
     col[skin] = lerp(scale, [0.62, 0.57, 0.42], 0.7 * sseam)
-    height[skin] = smooth(0.0, 0.012, gap)
+    height[skin] = smooth(0.0, 0.018, gap)
     eyes = (u < 0.03) & (v < 0.03)
     col[eyes] = [0.02, 0.02, 0.02]
     rough = np.full(u.shape, 0.65)
     rough[shell] = 0.5 + 0.2 * seam
     rough[plast] = 0.6
     rough[eyes] = 0.12
-    return (save_png('creature_turtle_base', col), save_png('creature_turtle_normal', normal_map(height, 4.0)),
+    return (save_png('creature_turtle_base', col), save_png('creature_turtle_normal', normal_map(height, 2.0)),
             save_roughness('creature_turtle_orm', rough))
 
 
