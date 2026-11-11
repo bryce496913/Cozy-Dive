@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import { OUTER, TUNNEL_FRAME } from '../../config/passage';
 import type { ConvexCollider } from '../../player/collision';
 import { boxCollider } from '../passage/Crevice';
-import { createRockGeometry } from '../RockGeometry';
 import { rockCollider } from '../rockCollider';
+import { channelWeight, dropWeight, seabedHeight } from './OuterTerrain';
 
 /**
  * v0.4 Pass 023: the outer waters, first version. A dark winding tunnel through a cliff, starting
@@ -92,6 +92,9 @@ export function originParameter(curve: THREE.CatmullRomCurve3): number {
 export class OuterEnvironment {
   readonly root = new THREE.Group();
   readonly colliders: readonly ConvexCollider[];
+  /** Pass 024: the seabed (terrain) and the rock surfaces the reef dresses. */
+  readonly sand: THREE.Mesh;
+  private readonly rockMeshes: readonly THREE.Mesh[];
   /** Where the tunnel opens onto the open water (for tests and the camera's first views). */
   readonly exit: THREE.Vector3;
   private readonly geometries: THREE.BufferGeometry[] = [];
@@ -113,21 +116,34 @@ export class OuterEnvironment {
         side: THREE.DoubleSide,
       }),
     );
-    this.add(this.tunnelMesh(curve, end), rock, 'Passage tunnel');
+    this.rockMeshes = [
+      this.add(this.tunnelMesh(curve, end), rock, 'Passage tunnel'),
+      this.add(this.cliffMesh(), rock, 'Cliff face'),
+    ];
     colliders.push(...this.tunnelColliders(curve, end));
-    this.add(this.cliffMesh(), rock, 'Cliff face');
     colliders.push(...this.cliffColliders());
-    this.add(
+    this.sand = this.add(
       this.sandMesh(),
       this.own(
         new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 }),
       ),
-      'Outer sand',
+      'Outer seabed',
     );
-    colliders.push(...this.boulders(rock));
     this.root.add(this.motes());
     this.root.add(this.shafts());
     this.colliders = colliders;
+  }
+  /**
+   * Pass 024: once the reef library is ready, the seabed and the tunnel and cliff wear its sand and
+   * rock (the reef owns those materials; the originals are kept and restored).
+   */
+  dress(sand?: THREE.Material, rock?: THREE.Material): void {
+    if (sand) this.sand.material = sand;
+    if (rock) for (const m of this.rockMeshes) m.material = rock;
+  }
+  undress(): void {
+    this.sand.material = this.materials[1];
+    for (const m of this.rockMeshes) m.material = this.materials[0];
   }
 
   private own<T extends THREE.Material>(m: T): T {
@@ -343,12 +359,12 @@ export class OuterEnvironment {
     );
   }
 
-  /** Gently rolling sand, lighter in the open and darker near the cliff. */
+  /** The seabed: sand channel, gentle swell and the drop-off (Pass 024), with sand UVs. */
   private sandMesh(): THREE.BufferGeometry {
     const b = OUTER.bounds,
-      w = b.max.x - b.min.x + 40,
-      d = OUTER.cliffZ - b.min.z + 40,
-      g = new THREE.PlaneGeometry(w, d, 120, 120);
+      w = b.max.x - b.min.x + 60,
+      d = OUTER.cliffZ - b.min.z + 30,
+      g = new THREE.PlaneGeometry(w, d, 150, 160);
     g.rotateX(-Math.PI / 2);
     g.translate(0, 0, OUTER.cliffZ + 2 - d / 2);
     const pos = g.getAttribute('position'),
@@ -356,49 +372,18 @@ export class OuterEnvironment {
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i),
         z = pos.getZ(i),
-        dune =
-          0.22 * Math.sin(x * 0.21 + z * 0.08) +
-          0.12 * smoothNoise(x * 0.3, z * 0.3, 1.7),
         ripple = 0.03 * Math.sin(x * 2.2 + z * 0.9);
-      pos.setY(i, OUTER.floorY - 0.32 + dune + ripple);
-      const near = Math.max(0, Math.min(1, (z - (OUTER.cliffZ - 12)) / 12)),
-        tone =
-          (0.5 + 0.08 * smoothNoise(x * 0.8, z * 0.8, 4.2)) * (1 - near * 0.35);
-      colors.push(tone * 0.93, tone * 0.88, tone * 0.74);
+      pos.setY(i, seabedHeight(x, z) + ripple);
+      // Darker in the channel and down the drop-off, lighter on the reef flat.
+      const tone =
+        (0.78 + 0.1 * smoothNoise(x * 0.4, z * 0.4, 4.2)) *
+        (1 - 0.18 * channelWeight(x, z)) *
+        (1 - 0.55 * dropWeight(z));
+      colors.push(tone, tone * 0.97, tone * 0.9);
     }
     g.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
     g.computeVertexNormals();
     return g;
-  }
-
-  /** A few boulders at the foot of the cliff and out on the sand (solid). */
-  private boulders(material: THREE.Material): ConvexCollider[] {
-    const spots: [number, number, number, number][] = [
-      [-7, -34, 3.2, 2.2],
-      [6, -35, 2.6, 1.7],
-      [-16, -38, 4.2, 2.8],
-      [13, -42, 3.4, 2.0],
-      [-4, -52, 2.2, 1.4],
-      [18, -60, 5.0, 3.0],
-      [-22, -66, 4.6, 2.6],
-      [3, -75, 3.0, 1.8],
-    ];
-    const out: ConvexCollider[] = [];
-    spots.forEach(([x, z, size, height], i) => {
-      const geometry = createRockGeometry(9301 + i * 17, i % 4);
-      geometry.computeBoundingBox();
-      const box = geometry.boundingBox!,
-        sx = size / (box.max.x - box.min.x),
-        sy = height / (box.max.y - box.min.y),
-        sz = (size * 0.8) / (box.max.z - box.min.z);
-      const mesh = this.add(geometry, material, `Outer boulder ${i}`);
-      mesh.scale.set(sx, sy, sz);
-      mesh.position.set(x, -box.min.y * sy - 0.35, z);
-      mesh.rotation.y = i * 1.7;
-      mesh.updateMatrix();
-      out.push(rockCollider(geometry, mesh.matrix));
-    });
-    return out;
   }
 
   /** Slow motes in the open water. */

@@ -36,7 +36,7 @@ export class AudioSystem {
   private time = 0;
   private status: AudioStatus = 'ready';
   constructor(
-    private readonly locations: readonly Readonly<Vec3>[],
+    private locations: readonly Readonly<Vec3>[],
     private readonly options: AudioOptions = {},
   ) {
     this.events = new AudioEvents(locations.length);
@@ -88,6 +88,13 @@ export class AudioSystem {
     this.enabled = settings.audioEnabled;
     this.volume = unit(settings.masterVolume);
     this.reconcile();
+  }
+  /**
+   * v0.4 Pass 024: move the soundscape's small sounds to another world's spots (same count; the
+   * event schedule is kept). Ignored if the count differs.
+   */
+  setLocations(locations: readonly Readonly<Vec3>[]): void {
+    if (locations.length === this.locations.length) this.locations = locations;
   }
   /** Pass 022: share of the underwater soundscape during a dive's crossfade (1 otherwise). */
   private mix = 1;

@@ -25,7 +25,8 @@ const AUTHORED_COLOUR_OVERRIDE =
 export class AuthoredAquarium {
   readonly ready: Promise<boolean>;
   state: 'loading' | 'ready' | 'fallback' = 'loading';
-  private readonly loader: AssetLoader;
+  /** Pass 024: shared with the outer reef's schools, so each fish library decodes once. */
+  readonly loader: AssetLoader;
   private leases: AssetLease[] = [];
   private readonly attachments: THREE.Object3D[] = [];
   private readonly originals = new Map<THREE.Material, boolean>();

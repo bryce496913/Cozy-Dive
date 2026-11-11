@@ -34,8 +34,9 @@ export function fishLevel(
   distance: number,
   length: number,
   wasNear: boolean,
+  bodyLengths: number = FISH_LOD.bodyLengths,
 ): boolean {
-  const limit = FISH_LOD.bodyLengths * length;
+  const limit = bodyLengths * length;
   return wasNear
     ? distance < limit * (1 + FISH_LOD.hysteresis)
     : distance < limit;
@@ -76,6 +77,8 @@ export class AuthoredSchool {
     speciesId = 'blue-green-chromis',
     /** Optional cross-species texture pool keyed by authored image name (identical maps upload once). */
     sharedTextures?: Map<string, THREE.Texture>,
+    /** v0.4 Pass 024: body lengths at which a fish switches to its distance level. */
+    private readonly detailLengths: number = FISH_LOD.bodyLengths,
   ) {
     this.root.name = `Authored ${speciesId} school`;
     this.indices = fish.simulation.fish.flatMap((f, i) =>
@@ -181,6 +184,7 @@ export class AuthoredSchool {
             source.root.getWorldPosition(this.scratch).distanceTo(this.eye),
             sim.species.length * sim.size,
             this.level[i],
+            this.detailLengths,
           )
         : true;
       this.level[i] = near;
