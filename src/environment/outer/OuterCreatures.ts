@@ -229,14 +229,17 @@ export class OuterCreatures {
   private leases: AssetLease[] = [];
   private readonly eye = new THREE.Vector3();
   private disposed = false;
-  constructor(obstacles: Obstacles, loader: AssetLoader) {
+  constructor(
+    obstacles: Obstacles,
+    private readonly loader: AssetLoader,
+  ) {
     this.root.name = 'Outer reef big creatures';
     this.cruisers = outerCruisers(obstacles);
-    this.ready = this.load(loader);
+    this.ready = this.load();
   }
-  private async load(loader: AssetLoader): Promise<boolean> {
+  private async load(): Promise<boolean> {
     const results = await Promise.allSettled(
-      this.cruisers.map((c) => loader.acquire(c.species.asset)),
+      this.cruisers.map((c) => this.loader.acquire(c.species.asset)),
     );
     this.leases = results.flatMap((r) =>
       r.status === 'fulfilled' ? [r.value] : [],
@@ -325,6 +328,9 @@ export class OuterCreatures {
   private release(): void {
     this.leases.forEach((l) => l.release());
     this.leases = [];
+    // Only the outer reef uses these models: free them rather than keep them cached.
+    for (const id of new Set(this.cruisers.map((c) => c.species.asset)))
+      this.loader.evict(id);
   }
   dispose(): void {
     if (this.disposed) return;

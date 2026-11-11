@@ -165,6 +165,18 @@ export class AssetLoader {
       throw error;
     }
   }
+  /**
+   * v0.4 Pass 025: stop caching `id`. Its decoded resources are disposed once its last lease is
+   * released (now, if none is held); a later acquire decodes it afresh. For libraries used only
+   * by something transient, such as the outer reef's big creatures.
+   */
+  evict(id: AssetId): void {
+    const entry = this.entries.get(id);
+    if (!entry) return;
+    this.entries.delete(id);
+    entry.retired = true;
+    this.free(entry);
+  }
   private free(entry: Entry): void {
     if (!entry.retired || entry.refs || !entry.asset || entry.freed) return;
     entry.freed = true;

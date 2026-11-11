@@ -174,8 +174,9 @@ export const ASSET_REGISTRY = {
   seaTurtle: {
     path: 'assets/models/creatures/sea-turtle.glb',
     requiredNodes: ['Turtle_Root', 'Body', 'Body_LOD1'],
+    // Bounds include the stroke morphs: the flippers' forward sweep spans 2.37 m.
     minDimension: 1.4,
-    maxDimension: 1.8,
+    maxDimension: 2.6,
     requireMorphs: true,
   },
   acropora: {

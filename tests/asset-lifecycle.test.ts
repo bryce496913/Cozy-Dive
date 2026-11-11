@@ -85,3 +85,36 @@ it('clones optional skeletons without duplicating geometry or sharing bone poses
   b.release();
   loader.dispose();
 });
+it('evicts a library: frees it after its last lease, and decodes it afresh when acquired again', async () => {
+  let reads = 0;
+  const assets: ReturnType<typeof assetFixture>[] = [];
+  const loader = new AssetLoader(async () => {
+    reads++;
+    const asset = assetFixture();
+    assets.push(asset);
+    return asset;
+  });
+  const geometry = () => {
+    const mesh = assets[0].scene.getObjectByName('Body');
+    if (!(mesh instanceof THREE.Mesh)) throw Error('Fixture');
+    return mesh.geometry;
+  };
+  const a = await loader.acquire('chromis'),
+    spy = vi.spyOn(geometry(), 'dispose');
+  loader.evict('chromis');
+  expect(spy).not.toHaveBeenCalled();
+  a.release();
+  expect(spy).toHaveBeenCalledTimes(1);
+  // Released without eviction: still cached.
+  const b = await loader.acquire('chromis');
+  expect(reads).toBe(2);
+  b.release();
+  (await loader.acquire('chromis')).release();
+  expect(reads).toBe(2);
+  // Evicting with no lease held frees at once; unknown ids are ignored.
+  loader.evict('chromis');
+  loader.evict('reefShark');
+  (await loader.acquire('chromis')).release();
+  expect(reads).toBe(3);
+  loader.dispose();
+});

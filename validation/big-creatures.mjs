@@ -400,6 +400,11 @@ try {
     return memory();
   };
   report.memoryAfterFirst = await release();
+  assert.deepEqual(
+    report.memoryAfterFirst,
+    report.memoryTank,
+    'the creatures are freed with the outer reef',
+  );
   await visit();
   report.memoryAfterSecond = await release();
   assert.deepEqual(
