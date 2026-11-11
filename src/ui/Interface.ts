@@ -37,6 +37,7 @@ export class Interface {
   private prompt: Prompt | null = null;
   private frameText = '';
   private veil = 0;
+  private darkness = 0;
   private readonly veilElement: HTMLElement;
   private readonly bubbles: HTMLElement;
   private burstTimer?: ReturnType<typeof setTimeout>;
@@ -47,6 +48,8 @@ export class Interface {
     settings: Settings,
     onEnter: (mode: ExperienceMode) => void,
     onSettings: (settings: Settings) => void,
+    /** v0.4 Pass 023: "Return to the tank" from the outer waters. */
+    onReturnToTank: () => void = () => {},
   ) {
     root.innerHTML = `
       <div class="scene" id="scene"></div><div class="vignette" aria-hidden="true"></div>
@@ -55,7 +58,7 @@ export class Interface {
         <p class="eyebrow"><span></span> YOUR FIRST DIVE</p>
         <h1>Let the world<br>drift <em>away.</em></h1>
         <p class="intro">A quiet room, a little tank, and a whole reef inside it.<br>No rush. No destination. Just you and the water.</p>
-        <div class="entry-actions"><button class="enter" id="office">Enter the Office ${arrow}</button><button class="enter secondary" id="enter">Enter the Water ${arrow}</button></div>
+        <div class="entry-actions"><button class="enter" id="office">Enter the Office ${arrow}</button><button class="enter secondary" id="enter">Enter the Water ${arrow}</button><button class="enter secondary" id="return-tank" hidden>Return to the tank ${arrow}</button></div>
         <p class="entry-note" id="entry-note">Walk with W A S D and look around with the mouse.</p>
         <p class="status" id="status" role="status" aria-live="polite"></p>
       </div><div class="scene-label"><span class="label-line"></span><span>THE SUNLIT REEF AQUARIUM<small>01 / FIRST DIVE</small></span></div></main>
@@ -71,7 +74,7 @@ export class Interface {
         <p id="audio-status" role="status">Audio begins when you enter. Press M while swimming to mute.</p>
         <p class="save-status" id="save-status" role="status">Preferences saved on this device.</p>
       </aside>
-      <div class="dive-veil" aria-hidden="true"></div><div class="dive-bubbles" aria-hidden="true"></div>
+      <div class="dive-veil" aria-hidden="true"></div><div class="passage-veil" aria-hidden="true"></div><div class="dive-bubbles" aria-hidden="true"></div>
       <p class="dive-prompt" id="dive-prompt" role="status" aria-live="polite" hidden></p>
       <p class="frame-time" id="frame-readout" aria-hidden="true" hidden></p>
       <div class="swim-hud" hidden><span class="crosshair" aria-hidden="true">·</span><span class="hud-message">You have nowhere else to be.</span></div>
@@ -96,6 +99,9 @@ export class Interface {
     const signal = this.abort.signal;
     this.enter.addEventListener('click', () => onEnter('aquarium'), { signal });
     this.office.addEventListener('click', () => onEnter('office'), { signal });
+    this.get('return-tank').addEventListener('click', () => onReturnToTank(), {
+      signal,
+    });
     const toggle = root.querySelector<HTMLButtonElement>('.settings-toggle')!;
     const setOpen = (open: boolean): void => {
       this.settingsPanel.hidden = !open;
@@ -258,6 +264,18 @@ export class Interface {
     const element = this.get('frame-readout');
     element.hidden = text === null;
     element.textContent = value;
+  }
+  /** v0.4 Pass 023: whether the player is in the outer waters (offers "Return to the tank"). */
+  setOuter(outer: boolean): void {
+    this.get('return-tank').hidden = !outer;
+  }
+  /** v0.4 Pass 023: the passage's darkness (0..1); writes only when it visibly changes. */
+  setDarkness(value: number): void {
+    const v = Math.round(Math.max(0, Math.min(1, value)) * 100) / 100;
+    if (v === this.darkness) return;
+    this.darkness = v;
+    this.root.querySelector<HTMLElement>('.passage-veil')!.style.opacity =
+      String(v);
   }
   /** Water-entry wash (0..1); only touches the DOM when it visibly changes. */
   setVeil(value: number): void {

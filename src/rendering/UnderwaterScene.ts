@@ -7,7 +7,10 @@ import { AssetLoader } from '../assets/AssetLoader';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
 import * as THREE from 'three';
 import { Aquarium } from '../environment/Aquarium';
-import { AQUARIUM } from '../config/world';
+import { AQUARIUM, type Bounds } from '../config/world';
+import type { CollisionWorld } from '../player/collision';
+import type { SightCandidate } from '../discovery/journal';
+import type { WaterWorld } from './WaterWorld';
 
 const OUTSIDE_VERTEX = `void main(){gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`;
 const OUTSIDE_FRAGMENT = `
@@ -28,9 +31,18 @@ export interface Presentation {
   dispose(): void;
 }
 
-export class UnderwaterScene {
+export class UnderwaterScene implements WaterWorld {
   readonly scene = new THREE.Scene();
   readonly camera = new THREE.PerspectiveCamera(64, 1, 0.08, 80);
+  /** v0.4 Pass 023: the tank as a swimmable world (nothing in it counts as a new sighting). */
+  readonly id = 'aquarium' as const;
+  readonly sightings: readonly SightCandidate[] = [];
+  get bounds(): Bounds {
+    return AQUARIUM;
+  }
+  get collision(): CollisionWorld {
+    return this.aquarium.collision;
+  }
   readonly renderer: THREE.WebGLRenderer;
   readonly aquarium: Aquarium;
   readonly authored: AuthoredAquarium;

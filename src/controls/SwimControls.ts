@@ -71,6 +71,14 @@ export class SwimControls {
     this.targetYaw = this.yaw;
     this.targetPitch = this.pitch;
   }
+  /**
+   * v0.4 Pass 023: turn the view by `delta` without disturbing held keys or smoothing (the
+   * passage carries the look across worlds whose frames are rotated relative to each other).
+   */
+  turn(delta: number): void {
+    this.yaw += delta;
+    this.targetYaw += delta;
+  }
   update(dt: number): void {
     const blend = this.reducedMotion ? 1 : -Math.expm1(-22 * dt);
     this.yaw += (this.targetYaw - this.yaw) * blend;

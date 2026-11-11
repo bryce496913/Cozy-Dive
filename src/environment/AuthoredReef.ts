@@ -264,6 +264,17 @@ export class AuthoredReef {
       if (!authored.length) throw Error('Reef rock lost its structural parts');
       this.hulls.push({ original: [rock.collider!], authored });
     });
+    // Pass 023: the hidden crevice wears the same tinted reef rock (triplanar, so its procedural
+    // boulders need no UVs). Geometry stays the crevice's own; only the material swaps.
+    this.q.crevice.rocks.forEach((mesh, i) =>
+      this.swaps.push({
+        mesh,
+        original: mesh.geometry,
+        originalMaterial: mesh.material,
+        authored: mesh.geometry,
+        authoredMaterial: materials[(i * 3 + 1) % materials.length],
+      }),
+    );
     // Accepted pebble transforms keep their positions; authored rubble shares three templates.
     const pebbles = this.q.rocks.filter((r) => !r.solid);
     for (let template = 0; template < 3; template++) {
