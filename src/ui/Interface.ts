@@ -21,6 +21,8 @@ export function isAudioMuteShortcut(
   );
 }
 /** Where the player is: the office (v0.3) or inside the aquarium. */
+/** In-world prompts: the E actions, and the first-visit hint. */
+export type Prompt = 'dive' | 'surface' | 'hint';
 export type ExperienceMode = 'office' | 'aquarium';
 export class Interface {
   private readonly abort = new AbortController();
@@ -32,7 +34,8 @@ export class Interface {
   private readonly status: HTMLElement;
   private readonly depth: HTMLElement;
   private lastDepth = '';
-  private prompt: 'dive' | 'surface' | null = null;
+  private prompt: Prompt | null = null;
+  private frameText = '';
   private veil = 0;
   private readonly veilElement: HTMLElement;
   private readonly bubbles: HTMLElement;
@@ -63,12 +66,14 @@ export class Interface {
         <label for="swimming-feel">Swimming feel</label><select id="swimming-feel"><option value="relaxed">Relaxed</option><option value="natural">Natural</option><option value="responsive">Responsive</option></select>
         <label class="check"><input id="reduced-motion" type="checkbox" />Reduced camera motion</label><p>Direct mouse-look, with plant and particle motion still. Breathing buoyancy and subtle swimming sway are suppressed.</p>
         <label class="check"><input id="audio-enabled" type="checkbox" />Ambient audio</label>
+        <label class="check"><input id="frame-time" type="checkbox" />Show frame time</label><p>A small readout of frame time and frame rate, for checking performance on this device.</p>
         <label for="master-volume">Master volume <output id="master-volume-value"></output></label><input id="master-volume" type="range" min="0" max="100" step="1" />
         <p id="audio-status" role="status">Audio begins when you enter. Press M while swimming to mute.</p>
         <p class="save-status" id="save-status" role="status">Preferences saved on this device.</p>
       </aside>
       <div class="dive-veil" aria-hidden="true"></div><div class="dive-bubbles" aria-hidden="true"></div>
       <p class="dive-prompt" id="dive-prompt" role="status" aria-live="polite" hidden></p>
+      <p class="frame-time" id="frame-readout" aria-hidden="true" hidden></p>
       <div class="swim-hud" hidden><span class="crosshair" aria-hidden="true">·</span><span class="hud-message">You have nowhere else to be.</span></div>
       <footer class="bottom-bar"><div class="controls" id="controls" aria-label="Controls"></div><span class="depth" id="depth">↓ 9.4 m <span>BELOW THE SURFACE</span></span></footer>`;
     this.overlay = this.get('overlay');
@@ -118,6 +123,7 @@ export class Interface {
     const sensitivity = this.get<HTMLInputElement>('sensitivity'),
       speed = this.get<HTMLInputElement>('speed'),
       reduced = this.get<HTMLInputElement>('reduced-motion'),
+      frameTime = this.get<HTMLInputElement>('frame-time'),
       audio = this.get<HTMLInputElement>('audio-enabled'),
       volume = this.get<HTMLInputElement>('master-volume'),
       mute = this.get<HTMLButtonElement>('audio-toggle');
@@ -126,6 +132,7 @@ export class Interface {
     sensitivity.value = String(settings.sensitivity);
     speed.value = String(settings.speed);
     reduced.checked = settings.reducedMotion;
+    frameTime.checked = settings.frameTime;
     audio.checked = settings.audioEnabled;
     volume.value = String(Math.round(settings.masterVolume * 100));
     const update = (persist: boolean): void => {
@@ -148,9 +155,18 @@ export class Interface {
           reducedMotion: reduced.checked,
           audioEnabled: audio.checked,
           masterVolume: Number(volume.value) / 100,
+          frameTime: frameTime.checked,
         });
     };
-    for (const input of [sensitivity, speed, reduced, feel, audio, volume])
+    for (const input of [
+      sensitivity,
+      speed,
+      reduced,
+      frameTime,
+      feel,
+      audio,
+      volume,
+    ])
       input.addEventListener('input', () => update(true), { signal });
     const toggleAudio = (): void => {
       audio.checked = !audio.checked;
@@ -215,8 +231,11 @@ export class Interface {
     if (!locked && entered)
       (this.mode === 'office' ? this.office : this.enter).focus();
   }
-  /** v0.3 Pass 021: the in-world action offered right now (E key), or none. */
-  setPrompt(prompt: 'dive' | 'surface' | null): void {
+  /**
+   * v0.3 Pass 021: the in-world action offered right now (E key), or none. Pass 022 adds a
+   * one-time hint pointing new players at the tank.
+   */
+  setPrompt(prompt: Prompt | null): void {
     if (prompt === this.prompt) return;
     this.prompt = prompt;
     const element = this.get('dive-prompt');
@@ -226,7 +245,19 @@ export class Interface {
         ? '<kbd>E</kbd> Dive in'
         : prompt === 'surface'
           ? '<kbd>E</kbd> Return to the office'
-          : '';
+          : prompt === 'hint'
+            ? 'Walk up to the tank and look into it to dive in'
+            : '';
+    element.classList.toggle('is-hint', prompt === 'hint');
+  }
+  /** Pass 022: the optional frame-time readout; null hides it. Writes only on change. */
+  setFrameTime(text: string | null): void {
+    const value = text ?? '';
+    if (value === this.frameText) return;
+    this.frameText = value;
+    const element = this.get('frame-readout');
+    element.hidden = text === null;
+    element.textContent = value;
   }
   /** Water-entry wash (0..1); only touches the DOM when it visibly changes. */
   setVeil(value: number): void {

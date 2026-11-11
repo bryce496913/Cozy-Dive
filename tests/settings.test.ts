@@ -40,6 +40,7 @@ describe('settings', () => {
       swimmingFeel: 'natural',
       audioEnabled: true,
       masterVolume: 0.3,
+      frameTime: false,
     });
     expect(
       validateSettings({
@@ -98,6 +99,7 @@ it('migrates old preferences and validates swimming feel', () => {
     swimmingFeel: 'natural',
     audioEnabled: true,
     masterVolume: 0.3,
+    frameTime: false,
   });
   for (const swimmingFeel of ['relaxed', 'natural', 'responsive'] as const) {
     expect(saveSettings(store, { ...DEFAULT_SETTINGS, swimmingFeel })).toBe(

@@ -6,6 +6,8 @@ export interface Settings {
   reducedMotion: boolean;
   audioEnabled: boolean;
   masterVolume: number;
+  /** Pass 022: an unobtrusive frame-time readout, for measuring performance (off by default). */
+  frameTime: boolean;
 }
 export interface SettingsStore {
   getItem(key: string): string | null;
@@ -38,6 +40,7 @@ export const DEFAULT_SETTINGS: Settings = {
   reducedMotion: false,
   audioEnabled: true,
   masterVolume: 0.3,
+  frameTime: false,
 };
 const numberInRange = (
   value: unknown,
@@ -84,6 +87,10 @@ export function validateSettings(value: unknown): Settings {
       typeof data.reducedMotion === 'boolean'
         ? data.reducedMotion
         : DEFAULT_SETTINGS.reducedMotion,
+    frameTime:
+      typeof data.frameTime === 'boolean'
+        ? data.frameTime
+        : DEFAULT_SETTINGS.frameTime,
   };
 }
 export function loadSettings(
@@ -120,6 +127,27 @@ export function saveSettings(
 ): boolean {
   try {
     store.setItem(SETTINGS_KEY, JSON.stringify(validateSettings(settings)));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Pass 022: the office shows a one-time hint ("walk up to the tank…") until the player has dived
+ * once. Stored apart from preferences; unavailable or corrupt storage just shows the hint again.
+ */
+export const DIVE_HINT_KEY = 'cozy-diver.dived.v1';
+export function loadDived(store: SettingsStore): boolean {
+  try {
+    return store.getItem(DIVE_HINT_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+export function saveDived(store: SettingsStore): boolean {
+  try {
+    store.setItem(DIVE_HINT_KEY, '1');
     return true;
   } catch {
     return false;

@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { AQUARIUM, SPAWN } from '../src/config/world';
-import { OFFICE, OFFICE_FOOTPRINTS, TANK } from '../src/config/office';
+import {
+  OFFICE,
+  OFFICE_FOOTPRINTS,
+  TANK,
+  TANK_SCALE,
+} from '../src/config/office';
 import {
   DIVE,
   DivePath,
@@ -26,6 +31,7 @@ const frame = (): DiveFrame => ({
   veil: 0,
   fog: 0,
   bubbles: 0,
+  water: 0,
 });
 const close = (a: Pose, b: Pose, eps = 1e-9) => {
   expect(a.x).toBeCloseTo(b.x, 9);
@@ -156,7 +162,7 @@ describe('Pass 021 surfacing', () => {
       i = frames.findIndex((f) => f.space === 'office');
     expect(i).toBeGreaterThan(0);
     expect(frames.slice(i).every((f) => f.space === 'office')).toBe(true);
-    const t = DIVE.rise + DIVE.out * 0.6,
+    const t = path.switchTime,
       last = path.sample(t - 1e-12, frame()),
       first = path.sample(t + 1e-12, frame());
     expect(last.space).toBe('aquarium');
@@ -166,7 +172,12 @@ describe('Pass 021 surfacing', () => {
     const end = path.sample(path.duration, frame());
     expect(end.y).toBeCloseTo(OFFICE.eyeHeight, 9);
     const f = tankFront();
-    expect(Math.hypot(end.x - f.x, end.z - f.z)).toBeCloseTo(1.05, 6);
+    // A step out from the glass, in front of where the swimmer was (aquarium x -4).
+    expect((end.x - f.x) * f.out.x + (end.z - f.z) * f.out.z).toBeCloseTo(
+      1.05,
+      6,
+    );
+    expect(end.z - f.z).toBeCloseTo(-4 * TANK_SCALE, 6);
     expect(-Math.sin(end.yaw)).toBeCloseTo(-1, 6); // looking -x, into the room
     for (const box of OFFICE_FOOTPRINTS) {
       const cx = Math.max(box.min.x, Math.min(end.x, box.max.x)),
@@ -292,4 +303,134 @@ describe('Pass 021 prompt region', () => {
       }
     expect(offered).toBeGreaterThan(50);
   });
+});
+
+describe('Pass 022 surfacing where you are', () => {
+  const near = (x: number, z: number): Pose => ({
+    x,
+    y: AQUARIUM.max.y - 1.5,
+    z,
+    yaw: 0.4,
+    pitch: 0.1,
+  });
+  it.each([-18, -12, -4, 0, 5, 13, 18])(
+    'from aquarium x %s, leaves through the nearest glass and stands clear of the furniture',
+    (x) => {
+      const from = near(x, -6),
+        path = new DivePath('surface', from, false),
+        f = tankFront(),
+        exitX = Math.max(-15, Math.min(15, x));
+      // The view crosses at the switch from the identical viewpoint, at the exit point.
+      const last = path.sample(path.switchTime - 1e-12, frame()),
+        first = path.sample(path.switchTime + 1e-12, frame());
+      expect(last.space).toBe('aquarium');
+      expect(first.space).toBe('office');
+      close(aquariumToOffice(last), first, 1e-6);
+      expect(last.x).toBeCloseTo(exitX, 6);
+      // Stands in front of that part of the glass, at eye height, facing the room.
+      const end = path.sample(path.duration, frame());
+      expect(end.z - f.z).toBeCloseTo(exitX * TANK_SCALE, 6);
+      expect(end.y).toBeCloseTo(OFFICE.eyeHeight, 9);
+      for (const box of OFFICE_FOOTPRINTS) {
+        const cx = Math.max(box.min.x, Math.min(end.x, box.max.x)),
+          cz = Math.max(box.min.z, Math.min(end.z, box.max.z));
+        expect(Math.hypot(end.x - cx, end.z - cz)).toBeGreaterThan(
+          OFFICE.playerRadius,
+        );
+      }
+      // Smooth throughout: no frame-to-frame jumps within a space.
+      const frames = sampleAll(path);
+      for (let k = 1; k < frames.length; k++) {
+        const a = frames[k - 1],
+          b = frames[k];
+        if (a.space !== b.space) continue;
+        const step = Math.hypot(b.x - a.x, b.y - a.y, b.z - a.z);
+        expect(step).toBeLessThan(a.space === 'office' ? 0.02 : 0.25);
+      }
+    },
+  );
+  it('takes longer to rise from further back, within bounds', () => {
+    const close1 = new DivePath('surface', near(0, 11), false),
+      far = new DivePath('surface', near(0, -13), false);
+    expect(far.switchTime).toBeGreaterThan(close1.switchTime);
+    expect(close1.switchTime - DIVE.out * 0.6).toBeGreaterThanOrEqual(
+      DIVE.riseMin - 1e-9,
+    );
+    expect(far.switchTime - DIVE.out * 0.6).toBeLessThanOrEqual(
+      DIVE.riseMax + 1e-9,
+    );
+  });
+});
+
+describe('Pass 022 pause-screen switch', () => {
+  it('fades out where you are and back in at the other space, without moving', () => {
+    const swimPose: Pose = { x: 3, y: 6, z: 2, yaw: 1, pitch: -0.2 },
+      path = new DivePath('switch', inFront, false, {
+        space: 'aquarium',
+        pose: swimPose,
+      });
+    expect(path.start.space).toBe('office');
+    expect(path.end.space).toBe('aquarium');
+    expect(path.duration).toBeCloseTo(DIVE.fade * 2, 9);
+    expect(path.switchTime).toBeCloseTo(DIVE.fade, 9);
+    const frames = sampleAll(path);
+    for (const f of frames) close(f, f.space === 'office' ? inFront : swimPose);
+    // Fully veiled at the cut, clear at both ends.
+    const before = path.sample(DIVE.fade - 1e-9, frame()),
+      after = path.sample(DIVE.fade + 1e-9, frame());
+    expect(before.veil).toBeGreaterThan(0.999);
+    expect(after.veil).toBeGreaterThan(0.999);
+    expect(frames[0].veil).toBeLessThan(1e-6);
+    expect(path.sample(path.duration, frame()).veil).toBeLessThan(1e-6);
+    expect(after.fog).toBeCloseTo(DIVE.insideFog, 9);
+    // Choosing the destination again resumes it; the origin cancels it.
+    expect(interruptedChoice(path, 'aquarium')).toBe('resume');
+    expect(interruptedChoice(path, 'office')).toBe('cancel');
+    // And back the other way.
+    const back = new DivePath('switch', swimPose, false, {
+      space: 'office',
+      pose: inFront,
+    });
+    expect(back.start.space).toBe('aquarium');
+    expect(back.end.space).toBe('office');
+  });
+});
+
+describe('Pass 022 sound crossfade', () => {
+  const swim: Pose = { x: -2, y: AQUARIUM.max.y - 1.5, z: 3, yaw: 0, pitch: 0 };
+  it.each([
+    ['dive', false],
+    ['dive', true],
+    ['surface', false],
+    ['surface', true],
+    ['switch', false],
+  ] as const)(
+    '%s (reduced %s) moves the soundscape smoothly from one space to the other',
+    (kind, reduced) => {
+      const path =
+          kind === 'dive'
+            ? new DivePath('dive', inFront, reduced)
+            : kind === 'surface'
+              ? new DivePath('surface', swim, reduced)
+              : new DivePath('switch', inFront, true, {
+                  space: 'aquarium',
+                  pose: swim,
+                }),
+        frames = sampleAll(path),
+        from = path.start.space === 'office' ? 0 : 1,
+        to = 1 - from;
+      expect(frames[0].water).toBeCloseTo(from, 9);
+      expect(path.sample(path.duration, frame()).water).toBeCloseTo(to, 9);
+      // One way only, without jumps (also across the switch, where it is halfway).
+      for (let k = 1; k < frames.length; k++) {
+        const step = (frames[k].water - frames[k - 1].water) * (to - from);
+        expect(step).toBeGreaterThanOrEqual(-1e-12);
+        expect(Math.abs(frames[k].water - frames[k - 1].water)).toBeLessThan(
+          0.02,
+        );
+      }
+      const at = path.sample(path.switchTime, frame());
+      expect(at.water).toBeCloseTo(0.5, 6);
+    },
+  );
 });

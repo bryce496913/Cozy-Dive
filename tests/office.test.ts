@@ -19,7 +19,8 @@ describe('Pass 020 office environment', () => {
       office.root.traverse((o) => {
         if (o instanceof THREE.Mesh) meshes.push(o);
       });
-      expect(meshes.length).toBeLessThanOrEqual(26);
+      // 26 in Pass 020; Pass 022's contact shadows add exactly one merged mesh.
+      expect(meshes.length).toBeLessThanOrEqual(27);
       const room = new THREE.Box3(
         new THREE.Vector3(
           OFFICE.room.min.x,

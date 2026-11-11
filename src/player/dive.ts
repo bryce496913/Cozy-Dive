@@ -27,6 +27,8 @@ export interface DiveFrame extends Pose {
   fog: number;
   /** Bubble burst strength, 0..1 (the entry splash). */
   bubbles: number;
+  /** Pass 022: how much of the soundscape is underwater (0 office .. 1 water), for a crossfade. */
+  water: number;
 }
 export const DIVE = {
   /** Office: stand off, then lean into the glass (s). */
@@ -34,8 +36,7 @@ export const DIVE = {
   lean: 0.55,
   /** Aquarium: drift from the glass to the swim start (s). */
   settle: 1.9,
-  /** Surfacing: rise to the glass, pass out, stand up (s). */
-  rise: 1.7,
+  /** Surfacing: pass out through the glass, stand up (s); the rise before is timed by distance. */
   out: 0.5,
   standUp: 1.4,
   /** Reduced motion: fade out, cut, fade in (s each). */
@@ -59,6 +60,13 @@ export const DIVE = {
   /** ...and at most this far past either end of the glass, sideways (m). */
   promptSideMargin: 0.2,
   surfaceBand: 1.3,
+  /** Pass 022: surfacing exits through the glass nearest the swimmer, this far in from its ends
+   * (aquarium units), after a rise timed by distance (s = base + perUnit * distance, clamped). */
+  exitMargin: 3,
+  riseBase: 0.9,
+  risePerUnit: 0.05,
+  riseMin: 1.1,
+  riseMax: 2.2,
 } as const;
 
 /** Tank frame: aquarium coordinates -> office (rotate by TANK.yaw, scale, translate). */
@@ -128,39 +136,90 @@ interface Segment {
   /** The water-contact wash rising into (or falling out of) the crossing. */
   contact?: 'rise' | 'fall';
   fade?: 'out' | 'in';
+  /** Underwater share of the soundscape across the segment (eased). */
+  water: readonly [number, number];
 }
 
-/** A planned dive or surfacing; sample it with elapsed seconds. */
+/** A dive into the tank, a surfacing out of it, or a pause-screen switch (a calm fade). */
+export type TransitionKind = 'dive' | 'surface' | 'switch';
+const other = (space: Space): Space =>
+  space === 'office' ? 'aquarium' : 'office';
+const fogOf = (space: Space): number =>
+  space === 'office' ? DIVE.outsideFog : DIVE.insideFog;
+const waterOf = (space: Space): number => (space === 'office' ? 0 : 1);
+
+/** A planned transition; sample it with elapsed seconds. */
 export class DivePath {
-  readonly kind: 'dive' | 'surface';
+  readonly kind: TransitionKind;
   readonly duration: number;
+  /** Seconds from the start at which the view moves into the other space. */
+  readonly switchTime: number;
   /** Where the player started (restored if the transition is cancelled). */
   readonly start: { space: Space; pose: Pose };
   /** Where the player ends: the space, and the pose to hand to walking/swimming. */
   readonly end: { space: Space; pose: Pose };
   private readonly segments: Segment[];
-  constructor(kind: 'dive' | 'surface', from: Pose, reducedMotion: boolean) {
+  /**
+   * `from` is the current pose. A `switch` (Pass 022: the pause screen's buttons) fades out there
+   * and back in at `target`, the other space's remembered pose.
+   */
+  constructor(
+    kind: TransitionKind,
+    from: Pose,
+    reducedMotion: boolean,
+    target?: { space: Space; pose: Pose },
+  ) {
     this.kind = kind;
     this.start = {
-      space: kind === 'dive' ? 'office' : 'aquarium',
+      space:
+        kind === 'dive'
+          ? 'office'
+          : kind === 'surface'
+            ? 'aquarium'
+            : other(target?.space ?? 'office'),
       pose: { ...from },
     };
     const front = tankFront(),
       // Camera forward is (-sin yaw, -cos yaw): looking into the tank means forward = -out.
       facing = Math.atan2(front.out.x, front.out.z),
       outward = wrap(facing + Math.PI),
-      at = (gap: number, yaw: number, y = front.y): Pose => ({
-        x: front.x + front.out.x * gap,
+      // Along the glass: aquarium +x seen from the room.
+      side = { x: Math.cos(TANK.yaw), z: -Math.sin(TANK.yaw) },
+      at = (gap: number, yaw: number, y = front.y, lateral = 0): Pose => ({
+        x: front.x + front.out.x * gap + side.x * lateral,
         y,
-        z: front.z + front.out.z * gap,
+        z: front.z + front.out.z * gap + side.z * lateral,
         yaw,
         pitch: 0,
       });
-    const swimStart: Pose = { ...SPAWN, yaw: 0, pitch: -0.06 },
-      // Standing a step back from the tank, facing back into the room.
-      standing: Pose = { ...at(1.05, outward, OFFICE.eyeHeight), pitch: -0.08 };
+    const swimStart: Pose = { ...SPAWN, yaw: 0, pitch: -0.06 };
     const s: Segment[] = [];
-    if (kind === 'dive') {
+    if (kind === 'switch') {
+      const to = target ?? { space: other(this.start.space), pose: from };
+      s.push(
+        {
+          space: this.start.space,
+          from,
+          to: from,
+          duration: DIVE.fade,
+          curve: ease,
+          fog: [fogOf(this.start.space), fogOf(this.start.space)],
+          fade: 'out',
+          water: [waterOf(this.start.space), 0.5],
+        },
+        {
+          space: to.space,
+          from: to.pose,
+          to: to.pose,
+          duration: DIVE.fade,
+          curve: ease,
+          fog: [fogOf(to.space), fogOf(to.space)],
+          fade: 'in',
+          water: [0.5, waterOf(to.space)],
+        },
+      );
+      this.end = { space: to.space, pose: { ...to.pose } };
+    } else if (kind === 'dive') {
       const near = at(DIVE.standOff, facing),
         touch = at(DIVE.switchGap, facing);
       if (reducedMotion) {
@@ -173,6 +232,7 @@ export class DivePath {
             curve: ease,
             fog: [DIVE.outsideFog, DIVE.outsideFog],
             fade: 'out',
+            water: [0, 0.5],
           },
           {
             space: 'aquarium',
@@ -182,6 +242,7 @@ export class DivePath {
             curve: ease,
             fog: [DIVE.insideFog, DIVE.insideFog],
             fade: 'in',
+            water: [0.5, 1],
           },
         );
       } else {
@@ -191,6 +252,7 @@ export class DivePath {
             from,
             to: near,
             duration: DIVE.approach,
+            water: [0, 0],
             curve: ease,
             fog: [DIVE.outsideFog, DIVE.outsideFog],
           },
@@ -202,6 +264,7 @@ export class DivePath {
             curve: easeIn,
             fog: [DIVE.outsideFog, DIVE.outsideFog],
             contact: 'rise',
+            water: [0, 0.5],
           },
           {
             space: 'aquarium',
@@ -212,13 +275,25 @@ export class DivePath {
             fog: [DIVE.outsideFog, DIVE.insideFog],
             splash: true,
             contact: 'fall',
+            water: [0.5, 1],
           },
         );
       }
       this.end = { space: 'aquarium', pose: swimStart };
     } else {
+      // Pass 022: leave through the part of the glass nearest the swimmer, and stand in front of it
+      // (a step back from the tank, facing back into the room).
+      const exitX = Math.max(
+          -(AQUARIUM.max.x - DIVE.exitMargin),
+          Math.min(AQUARIUM.max.x - DIVE.exitMargin, from.x),
+        ),
+        lateral = exitX * TANK_SCALE,
+        standing: Pose = {
+          ...at(1.05, outward, OFFICE.eyeHeight, lateral),
+          pitch: -0.08,
+        };
       const exitInside: Pose = {
-          x: 0,
+          x: exitX,
           y: AQUARIUM.max.y - AQUARIUM.clearance - 1.6,
           z: AQUARIUM.max.z - 1.2,
           yaw: wrap(Math.PI), // facing out through the front glass (+z)
@@ -232,7 +307,20 @@ export class DivePath {
           ...exitInside,
           z: AQUARIUM.max.z - DIVE.exitInset / TANK_SCALE,
         }),
-        out = at(DIVE.standOff, outward, exitOffice.y);
+        out = at(DIVE.standOff, outward, exitOffice.y, lateral),
+        rise = Math.max(
+          DIVE.riseMin,
+          Math.min(
+            DIVE.riseMax,
+            DIVE.riseBase +
+              DIVE.risePerUnit *
+                Math.hypot(
+                  from.x - exitInside.x,
+                  from.y - exitInside.y,
+                  from.z - exitInside.z,
+                ),
+          ),
+        );
       if (reducedMotion) {
         s.push(
           {
@@ -243,6 +331,7 @@ export class DivePath {
             curve: ease,
             fog: [DIVE.insideFog, DIVE.insideFog],
             fade: 'out',
+            water: [1, 0.5],
           },
           {
             space: 'office',
@@ -252,6 +341,7 @@ export class DivePath {
             curve: ease,
             fog: [DIVE.outsideFog, DIVE.outsideFog],
             fade: 'in',
+            water: [0.5, 0],
           },
         );
       } else {
@@ -261,7 +351,8 @@ export class DivePath {
             space: 'aquarium',
             from,
             to: exitInside,
-            duration: DIVE.rise,
+            duration: rise,
+            water: [1, 0.85],
             curve: ease,
             fog: [DIVE.insideFog, DIVE.outsideFog],
           },
@@ -274,6 +365,7 @@ export class DivePath {
             fog: [DIVE.outsideFog, DIVE.outsideFog],
             splash: true,
             contact: 'rise',
+            water: [0.85, 0.5],
           },
           {
             space: 'office',
@@ -283,12 +375,14 @@ export class DivePath {
             curve: easeOut,
             fog: [DIVE.outsideFog, DIVE.outsideFog],
             contact: 'fall',
+            water: [0.5, 0.15],
           },
           {
             space: 'office',
             from: out,
             to: standing,
             duration: DIVE.standUp,
+            water: [0.15, 0],
             curve: ease,
             fog: [DIVE.outsideFog, DIVE.outsideFog],
           },
@@ -298,6 +392,12 @@ export class DivePath {
     }
     this.segments = s;
     this.duration = s.reduce((sum, seg) => sum + seg.duration, 0);
+    let switchTime = 0;
+    for (const seg of s) {
+      if (seg.space !== this.start.space) break;
+      switchTime += seg.duration;
+    }
+    this.switchTime = switchTime;
   }
   /** The frame at `elapsed` seconds (clamped to the path). */
   sample(elapsed: number, out: DiveFrame): DiveFrame {
@@ -333,6 +433,7 @@ export class DivePath {
               ? DIVE.contactVeil * (1 - ease(Math.min(1, local / 0.4)))
               : 0;
     out.bubbles = seg.splash ? Math.max(0, 1 - local * 1.6) : 0;
+    out.water = seg.water[0] + (seg.water[1] - seg.water[0]) * ease(local);
     return out;
   }
 }

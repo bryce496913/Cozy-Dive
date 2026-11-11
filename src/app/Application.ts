@@ -23,6 +23,10 @@ import {
 import { OfficeScene } from '../rendering/OfficeScene';
 import { OfficeAmbience } from '../audio/OfficeAmbience';
 import { OFFICE, OFFICE_FOOTPRINTS } from '../config/office';
+import { FrameMeter, formatFrameSummary } from '../ui/frameMeter';
+
+/** Pass 022: seconds in the office before the first-visit hint appears. */
+const HINT_DELAY = 4;
 import {
   createWalkState,
   stepWalking,
@@ -32,7 +36,9 @@ import {
 import { Interface, type ExperienceMode } from '../ui/Interface';
 import {
   DEFAULT_SETTINGS,
+  loadDived,
   loadSettings,
+  saveDived,
   saveSettings,
   type Settings,
 } from '../ui/settings';
@@ -62,6 +68,12 @@ export class Application {
   private mode: ExperienceMode;
   private readonly walk = createWalkState(OFFICE.spawn);
   private officeTime = 0;
+  /** Pass 022: whether the player has ever dived (hides the first-visit hint for good). */
+  private dived = false;
+  /** Seconds walked in the office this visit, before the first-visit hint appears. */
+  private officeVisit = 0;
+  private readonly frameMeter = new FrameMeter();
+  private lastFrameAt = 0;
   /** v0.3 Pass 021: the dive or surfacing in progress, if any. */
   private dive?: { path: DivePath; elapsed: number; splashed: boolean };
   /** Reused every frame for the prompt check (no per-frame allocation). */
@@ -76,6 +88,7 @@ export class Application {
     veil: 0,
     fog: 0,
     bubbles: 0,
+    water: 0,
   };
   /** Each space keeps its own look direction across switches. */
   private readonly looks: Record<
@@ -124,6 +137,11 @@ export class Application {
       this.settings = loadSettings(localStorage, prefersReduced);
     } catch {
       this.settings = { ...DEFAULT_SETTINGS, reducedMotion: prefersReduced };
+    }
+    try {
+      this.dived = loadDived(localStorage);
+    } catch {
+      this.dived = false;
     }
     this.ui = new Interface(
       root,
@@ -240,19 +258,37 @@ export class Application {
     const resuming =
       !!this.dive && interruptedChoice(this.dive.path, mode) === 'resume';
     if (this.dive && !resuming) this.cancelDive();
-    if (!resuming && mode !== this.mode) {
-      // The pause-screen buttons switch spaces by a cut; in the world, E dives (Pass 021).
+    if (!resuming && mode !== this.mode && !this.entered) {
+      // The first entry from the start screen (whose overlay covers the view) is a plain cut.
+      this.cut(mode);
+    } else if (!resuming && mode !== this.mode) {
+      // Pass 022: the pause screen's buttons switch spaces with a calm fade (it plays once pointer
+      // lock is granted); in the world, E dives (Pass 021). Each space keeps its own position and
+      // look direction.
       this.looks[this.mode] = {
         yaw: this.controls.yaw,
         pitch: this.controls.pitch,
       };
-      this.controls.yaw = this.looks[mode].yaw;
-      this.controls.pitch = this.looks[mode].pitch;
-      this.mode = mode;
-      this.ui.setMode(mode);
+      const there =
+        mode === 'office' ? this.walk.position : this.state.position;
       this.controls.clear();
       stopWalking(this.walk);
       resetSwimming(this.state);
+      this.ui.setPrompt(null);
+      this.dive = {
+        path: new DivePath('switch', { ...this.pose() }, true, {
+          space: mode,
+          pose: {
+            x: there.x,
+            y: there.y,
+            z: there.z,
+            yaw: this.looks[mode].yaw,
+            pitch: this.looks[mode].pitch,
+          },
+        }),
+        elapsed: 0,
+        splashed: false,
+      };
     }
     if (!canvas.requestPointerLock) {
       this.ui.showError(
@@ -270,11 +306,33 @@ export class Application {
       this.lockError();
     }
   };
-  /** Only the current space is heard: the office ambience or the underwater soundscape. */
+  /** Switch spaces at once (first entry), each keeping its own look direction. */
+  private cut(mode: ExperienceMode): void {
+    const controls = this.controls!;
+    this.looks[this.mode] = { yaw: controls.yaw, pitch: controls.pitch };
+    controls.yaw = this.looks[mode].yaw;
+    controls.pitch = this.looks[mode].pitch;
+    this.mode = mode;
+    this.ui.setMode(mode);
+    controls.clear();
+    stopWalking(this.walk);
+    resetSwimming(this.state);
+  }
+  /**
+   * Only the current space is heard: the office ambience or the underwater soundscape. During a
+   * transition (Pass 022) both play, crossfaded by the frame's underwater share.
+   */
   private updateAudio(locked: boolean): void {
-    const audible = locked && !document.hidden;
-    this.audio?.setActive(audible && this.mode === 'aquarium');
-    this.officeAudio?.setActive(audible && this.mode === 'office');
+    const audible = locked && !document.hidden,
+      crossfading = !!this.dive;
+    this.audio?.setActive(audible && (crossfading || this.mode === 'aquarium'));
+    this.officeAudio?.setActive(
+      audible && (crossfading || this.mode === 'office'),
+    );
+    if (!crossfading) {
+      this.audio?.setMix(1);
+      this.officeAudio?.setMix(1);
+    }
   }
   private lockError = (): void => {
     this.audio?.setActive(false);
@@ -342,6 +400,14 @@ export class Application {
     // The key press is a user gesture: unlock the destination's audio now.
     if (kind === 'dive') this.audio?.unlockFromGesture();
     else this.officeAudio?.unlockFromGesture();
+    if (kind === 'dive' && !this.dived) {
+      this.dived = true;
+      try {
+        saveDived(localStorage);
+      } catch {
+        /* Storage unavailable: the hint may show again next visit. */
+      }
+    }
     this.controls.clear();
     stopWalking(this.walk);
     resetSwimming(this.state);
@@ -351,6 +417,8 @@ export class Application {
       elapsed: 0,
       splashed: false,
     };
+    // Both soundscapes play through the transition, crossfaded frame by frame.
+    this.updateAudio(this.controls.locked);
   };
   /** Advance and draw the dive; hand control back at its end. */
   private tickDive(dt: number): void {
@@ -369,6 +437,8 @@ export class Application {
       this.updateAudio(controls.locked);
     }
     this.ui.setVeil(f.veil);
+    this.audio?.setMix(f.water);
+    this.officeAudio?.setMix(1 - f.water);
     if (f.bubbles > 0.95 && !dive.splashed) {
       dive.splashed = true;
       if (!this.settings.reducedMotion) this.ui.burst();
@@ -452,6 +522,19 @@ export class Application {
     this.looks[space] = { yaw: pose.yaw, pitch: pose.pitch };
     this.updateAudio(this.controls.locked);
   }
+  /** Pass 022: feed the optional frame-time readout with real frame intervals. */
+  private measureFrame(now: number): void {
+    if (!this.settings.frameTime) {
+      this.ui.setFrameTime(null);
+      this.lastFrameAt = 0;
+      return;
+    }
+    const interval = this.lastFrameAt ? now - this.lastFrameAt : 0;
+    this.lastFrameAt = now;
+    const summary = this.frameMeter.record(interval);
+    if (summary) this.ui.setFrameTime(formatFrameSummary(summary));
+    else if (!this.frameMeter.summary) this.ui.setFrameTime('measuring…');
+  }
   private tick = (now: number): void => {
     if (this.disposed || !this.world || !this.controls) return;
     const dt = this.previous
@@ -461,19 +544,24 @@ export class Application {
         )
       : 0;
     this.previous = now;
+    this.measureFrame(now);
     if (this.dive) {
       this.tickDive(dt);
       this.frame = requestAnimationFrame(this.tick);
       return;
     }
     const pose = this.pose();
+    if (this.mode === 'office' && this.controls.locked && !document.hidden)
+      this.officeVisit += dt;
     this.ui.setPrompt(
       !this.controls.locked
         ? null
         : this.mode === 'office'
           ? canDive(pose)
             ? 'dive'
-            : null
+            : !this.dived && this.officeVisit > HINT_DELAY
+              ? 'hint'
+              : null
           : canSurface(pose.y)
             ? 'surface'
             : null,

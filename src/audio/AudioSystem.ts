@@ -89,6 +89,15 @@ export class AudioSystem {
     this.volume = unit(settings.masterVolume);
     this.reconcile();
   }
+  /** Pass 022: share of the underwater soundscape during a dive's crossfade (1 otherwise). */
+  private mix = 1;
+  /** Crossfade share (0..1); only reschedules the gain when it moves noticeably. */
+  setMix(mix: number): void {
+    const m = Math.round(Math.max(0, Math.min(1, mix)) * 20) / 20;
+    if (m === this.mix) return;
+    this.mix = m;
+    this.reconcile();
+  }
   setActive(active: boolean): void {
     if (this.active === active) return;
     this.active = active;
@@ -154,7 +163,7 @@ export class AudioSystem {
           this.events.resume();
           this.playing = true;
         }
-        this.graph.fade(volumeGain(this.volume), 0.3);
+        this.graph.fade(volumeGain(this.volume) * this.mix, 0.3);
       } else {
         this.playing = false;
         this.graph.quietSwimming();

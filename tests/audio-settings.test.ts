@@ -17,7 +17,12 @@ describe('audio preferences in existing v1 storage', () => {
     };
     expect(
       loadSettings({ getItem: () => JSON.stringify(previous), setItem() {} }),
-    ).toEqual({ ...previous, audioEnabled: true, masterVolume: 0.3 });
+    ).toEqual({
+      ...previous,
+      audioEnabled: true,
+      masterVolume: 0.3,
+      frameTime: false,
+    });
   });
   it('persists mute independently of the chosen volume', () => {
     const data = new Map<string, string>();
