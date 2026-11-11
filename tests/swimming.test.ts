@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { AQUARIUM, SPAWN, SWIMMING } from '../src/config/world';
+import { AQUARIUM, SPAWN, SWIMMING, SWIM_FEELS } from '../src/config/world';
 import {
   clampToBounds,
   integrateSwimming,
@@ -55,7 +55,7 @@ describe('camera-relative swimming directions', () => {
 });
 
 describe('water integration', () => {
-  it('accelerates gradually to a reasonable rhythmic speed', () => {
+  it('accelerates gently to a reasonable steady speed', () => {
     const s = state();
     integrateSwimming(s, direction(1), 1 / 60, tuning, AQUARIUM);
     expect(-s.velocity.z).toBeGreaterThan(0);
@@ -196,25 +196,42 @@ describe('natural swimming', () => {
     expect(strokeEnvelope(0.0001, 0.45)).toBeLessThan(0.000001);
     expect(strokeEnvelope(0.4499, 0.45)).toBeLessThan(0.000001);
   });
-  it('repeats kicks with recognizable glides and never stops between strokes', () => {
+  it('holds one steady chill speed while held: no build-up and no stroke surges (playtest)', () => {
     const s = state();
     simulate(s, 4, direction(1));
     let min = Infinity,
-      max = 0,
-      maxChange = 0;
-    for (let i = 0; i < 132; i++) {
-      const previous = -s.velocity.z;
+      max = 0;
+    for (let i = 0; i < 600; i++) {
       integrateSwimming(s, direction(1), 1 / 120, tuning, openWater);
-      const speed = -s.velocity.z;
-      min = Math.min(min, speed);
-      max = Math.max(max, speed);
-      maxChange = Math.max(maxChange, Math.abs(speed - previous));
+      min = Math.min(min, -s.velocity.z);
+      max = Math.max(max, -s.velocity.z);
     }
-    expect(min).toBeGreaterThan(1.5);
-    expect(max - min).toBeGreaterThan(0.5);
-    expect(maxChange).toBeLessThan(0.12);
-    expect(s.strokeTime).toBeCloseTo(0.7, 5);
+    // Exactly the chosen speed, flat to within 0.1%; strokes still cycle (sway and sound).
+    expect(min).toBeGreaterThan(tuning.speed * 0.999);
+    expect(max).toBeLessThanOrEqual(tuning.speed * 1.000001);
+    expect(s.strokeTime).toBeGreaterThan(0);
   });
+  it.each(['relaxed', 'natural', 'responsive'] as const)(
+    'with the %s feel, eases up to that speed within its cruise time and never overshoots',
+    (feel) => {
+      const s = state(),
+        t = { ...tuning, feel };
+      let previous = 0,
+        reached = Infinity;
+      for (let i = 1; i <= 120 * 4; i++) {
+        integrateSwimming(s, direction(1), 1 / 120, t, openWater);
+        const speed = -s.velocity.z;
+        // Never slows, never exceeds the chosen speed.
+        expect(speed).toBeGreaterThanOrEqual(previous - 1e-9);
+        expect(speed).toBeLessThanOrEqual(t.speed * 1.000001);
+        if (reached === Infinity && speed >= 0.95 * t.speed) reached = i / 120;
+        previous = speed;
+      }
+      // Gentle start (not instant), settled within ~1.5x the feel's cruise time.
+      expect(reached).toBeGreaterThan(0.3);
+      expect(reached).toBeLessThan(SWIM_FEELS[feel].cruise * 1.5);
+    },
+  );
   it('coasts on release, settles residual velocity, and reverses with weight', () => {
     const s = state();
     simulate(s, 2, direction(1));
@@ -438,23 +455,19 @@ describe('coherent camera-directed three-dimensional propulsion', () => {
       expect(pitched.strokeTime).toBeCloseTo(level.strokeTime, 7);
     },
   );
-  it('has recognizable vertical kicks/glides, coasting, and gradual reversal', () => {
+  it('rises at the same steady speed, coasts on release, and reverses gradually', () => {
     const s = state(),
       d = direction(1, 0, Math.PI / 2);
     simulate(s, 4, d);
     let min = Infinity,
-      max = 0,
-      change = 0;
+      max = 0;
     for (let i = 0; i < 132; i++) {
-      const v = s.velocity.y;
       integrateSwimming(s, d, 1 / 120, tuning, openWater);
       min = Math.min(min, s.velocity.y);
       max = Math.max(max, s.velocity.y);
-      change = Math.max(change, Math.abs(s.velocity.y - v));
     }
-    expect(min).toBeGreaterThan(1.5);
-    expect(max - min).toBeGreaterThan(0.5);
-    expect(change).toBeLessThan(0.12);
+    expect(min).toBeGreaterThan(tuning.speed * 0.999);
+    expect(max - min).toBeLessThan(0.005);
     const released = s.position.y,
       v = s.velocity.y;
     simulate(s, 0.1);

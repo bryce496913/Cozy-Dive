@@ -141,9 +141,10 @@ export function integrateSwimming(
     const pulse = moving
       ? strokeEnvelope((state.strokeTime + h / 2) / feel.cycle, feel.active)
       : 0;
-    const force = moving
-      ? 1 - feel.rhythm + (feel.rhythm * pulse * 2) / feel.active
-      : 0;
+    // A steady push: strokes show in the body's sway and sound, never as speed surges.
+    const force = moving ? 1 : 0;
+    // While held, velocity settles on the swim speed within `cruise` seconds (~95%).
+    const cruiseRate = 3 / feel.cruise;
     const blend = -Math.expm1(-feel.response * h);
     state.breathBlend +=
       ((state.depthChanging || tuning.reducedMotion ? 0 : 1) -
@@ -177,9 +178,14 @@ export function integrateSwimming(
           ? SWIMMING.hoverDamping
           : feel.drag;
       const terminal = (state.thrust[axis] + (axis === 'y' ? hover : 0)) / drag;
-      const decay = Math.exp(-drag * h);
+      // Driven axes settle quickly on the swim speed; coasting and hovering keep their drag.
+      const rate =
+        moving && (axis !== 'y' || state.depthChanging)
+          ? Math.max(drag, cruiseRate)
+          : drag;
+      const decay = Math.exp(-rate * h);
       state.position[axis] +=
-        terminal * h + ((state.velocity[axis] - terminal) * (1 - decay)) / drag;
+        terminal * h + ((state.velocity[axis] - terminal) * (1 - decay)) / rate;
       state.velocity[axis] =
         terminal + (state.velocity[axis] - terminal) * decay;
       if (
