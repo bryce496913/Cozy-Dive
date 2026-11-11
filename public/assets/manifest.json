@@ -801,5 +801,134 @@
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium reef fish (Pass 016)"
+  },
+  {
+    "id": "reef-shark",
+    "file": "assets/models/creatures/reef-shark.glb",
+    "sha256": "fe31df4d67f8102cf1d58f55015f2790397bd6916f110ee832e569fb6ff47ac7",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 741020,
+    "visualPrimitives": 2,
+    "visualTriangles": 11998,
+    "collisionTriangles": 0,
+    "materials": 1,
+    "images": [
+      {
+        "name": "creature_shark_normal",
+        "width": 1024,
+        "height": 1024,
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 11,
+        "encodedBytes": 256312
+      },
+      {
+        "name": "creature_shark_base",
+        "width": 1024,
+        "height": 1024,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 11,
+        "encodedBytes": 68953
+      },
+      {
+        "name": "creature_shark_orm",
+        "width": 256,
+        "height": 256,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 9,
+        "encodedBytes": 949
+      }
+    ],
+    "geometryAccessorBytes": 293376,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Outer reef big creatures (Pass 025)"
+  },
+  {
+    "id": "eagle-ray",
+    "file": "assets/models/creatures/eagle-ray.glb",
+    "sha256": "85042c310e3320b689c449f6513ffddaf94a99f9a423fc119ff39694622f26b5",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 757440,
+    "visualPrimitives": 2,
+    "visualTriangles": 6096,
+    "collisionTriangles": 0,
+    "materials": 1,
+    "images": [
+      {
+        "name": "creature_ray_normal",
+        "width": 1024,
+        "height": 1024,
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 11,
+        "encodedBytes": 519837
+      },
+      {
+        "name": "creature_ray_base",
+        "width": 1024,
+        "height": 1024,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 11,
+        "encodedBytes": 38715
+      },
+      {
+        "name": "creature_ray_orm",
+        "width": 256,
+        "height": 256,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 9,
+        "encodedBytes": 3527
+      }
+    ],
+    "geometryAccessorBytes": 77616,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Outer reef big creatures (Pass 025)"
+  },
+  {
+    "id": "sea-turtle",
+    "file": "assets/models/creatures/sea-turtle.glb",
+    "sha256": "512993c07e8d9fa148cdcbabd8223cd06796651e51f78b8f5c22ef394b8d5b36",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 1068892,
+    "visualPrimitives": 2,
+    "visualTriangles": 9474,
+    "collisionTriangles": 0,
+    "materials": 1,
+    "images": [
+      {
+        "name": "creature_turtle_normal",
+        "width": 1024,
+        "height": 1024,
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 11,
+        "encodedBytes": 655000
+      },
+      {
+        "name": "creature_turtle_base",
+        "width": 1024,
+        "height": 1024,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 11,
+        "encodedBytes": 158428
+      },
+      {
+        "name": "creature_turtle_orm",
+        "width": 256,
+        "height": 256,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 9,
+        "encodedBytes": 4925
+      }
+    ],
+    "geometryAccessorBytes": 117840,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Outer reef big creatures (Pass 025)"
   }
 ]
