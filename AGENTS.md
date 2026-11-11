@@ -2,7 +2,7 @@
 
 ## Vision and scope
 
-Build a peaceful browser aquarium for relaxing exploration: enjoyable swimming, inviting scenery, no pressure. The long-term idea includes an office, a tiny diver in a customizable aquarium, and paths to the ocean. Those are later milestones. Follow the requested pass; do not add progression, quests, combat, accounts, backends, multiplayer, or unrequested frameworks. Use code-generated scenery and local assets; never depend on externally hosted runtime assets.
+Build a peaceful browser aquarium for relaxing exploration: enjoyable swimming, inviting scenery, no pressure. The office and the dive are done (v0.3). v0.4 adds a hidden passage from the tank into larger outer waters; v0.5 lets the player personalize the tank. Follow the requested pass; do not add quests, combat, accounts, backends, multiplayer, or unrequested frameworks. The one agreed form of progression is gentle discovery: things seen in the outer waters unlock for the tank, with no counters, currency, timers, scores or anything to lose. Use code-generated scenery and local assets; never depend on externally hosted runtime assets.
 
 ## Architecture conventions
 
