@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.3 / Pass 021 — The Dive (`0.3.0-alpha.3`)** is a first-person, browser-based aquarium prototype. Start in a cosy, rainy home office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15`. No scores, timers, combat, accounts, or external asset services.
+A quiet little world beneath the surface. **v0.3 / Pass 021 — The Dive (`0.3.0-alpha.4`)** is a first-person, browser-based aquarium prototype. Start in a cosy, rainy home office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15`. No scores, timers, combat, accounts, or external asset services.
 
 ## Stack and requirements
 
@@ -224,6 +224,7 @@ Walk up to the tank and look at it: **E · Dive in** appears.
 - **Surfacing:** near the surface, **E · Return to the office** brings you out through the glass and back on your feet in the room.
 - **How it stays seamless:** the tank's glass already shows exactly what the aquarium camera sees from your position (Pass 020). The dive switches to the full aquarium a few centimetres from the glass, from the identical viewpoint, so you simply keep moving.
 - **Reduced motion:** the glide becomes a short fade.
+- **Eye height:** after the first playtest, the office eye height is 1.28 m (was 1.6 m, which felt too tall).
 - **The pause screen:** still offers instant switching.
 
 See [the office architecture](docs/OFFICE.md#the-dive-pass-021) and [validation](docs/VALIDATION_V03_PASS_021.md).
