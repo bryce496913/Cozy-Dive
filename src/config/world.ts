@@ -21,7 +21,12 @@ export interface FeelTuning {
   active: number;
   drag: number;
   response: number;
-  rhythm: number;
+  /**
+   * Seconds to settle at the steady swim speed while a key is held (Pass 021 playtest: speed
+   * kept building for seconds and surged every stroke; it now eases to one calm speed and stays).
+   * Letting go still coasts out slowly on `drag`.
+   */
+  cruise: number;
   breathing: number;
 }
 /** Pass 019 playtest: breathing buoyancy forces are 60% of their earlier values (calmer idle bob). */
@@ -31,7 +36,7 @@ export const SWIM_FEELS: Record<SwimmingFeel, FeelTuning> = {
     active: 0.35,
     drag: 0.8,
     response: 5,
-    rhythm: 0.85,
+    cruise: 0.9,
     breathing: 0.084,
   },
   natural: {
@@ -39,7 +44,7 @@ export const SWIM_FEELS: Record<SwimmingFeel, FeelTuning> = {
     active: 0.45,
     drag: 1.1,
     response: 8,
-    rhythm: 0.75,
+    cruise: 0.7,
     breathing: 0.12,
   },
   responsive: {
@@ -47,7 +52,7 @@ export const SWIM_FEELS: Record<SwimmingFeel, FeelTuning> = {
     active: 0.5,
     drag: 1.8,
     response: 12,
-    rhythm: 0.3,
+    cruise: 0.45,
     breathing: 0.072,
   },
 };

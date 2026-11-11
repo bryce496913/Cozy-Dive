@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.3 / Pass 021 — The Dive (`0.3.0-alpha.4`)** is a first-person, browser-based aquarium prototype. Start in a cosy, rainy home office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15`. No scores, timers, combat, accounts, or external asset services.
+A quiet little world beneath the surface. **v0.3 / Pass 021 — The Dive (`0.3.0-alpha.5`)** is a first-person, browser-based aquarium prototype. Start in a cosy, rainy home office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15`. No scores, timers, combat, accounts, or external asset services.
 
 ## Stack and requirements
 
@@ -48,7 +48,7 @@ This is a technical release candidate; final v0.2 approval awaits manual MacBook
 
 - Seeded procedural aquarium with rippled sand, embedded rocks, planted banks, visible glass seams, and 41 tropical marine fish across six species with distinct social behavior.
 - Six marine habitat forms (seagrass, macroalgae and soft corals) in seeded habitat patches, with shared-current vertex bending, stable bases and smooth reduced-motion settling. Suspended particles, translucent light shafts, hemisphere and surface lighting, and distance fog.
-- First-person swimming with smooth kick-and-glide propulsion, weighted direction changes, progressive water drag, and damped breathing buoyancy. Bounded 1/240-second steps sample forces and integrate linear drag analytically; long frame gaps are capped at 100 ms.
+- First-person swimming at one steady, calm speed (it eases in within about a second, then holds; strokes show only as a subtle sway and soft sound), weighted direction changes, progressive water drag, and damped breathing buoyancy. Bounded 1/240-second steps sample forces and integrate linear drag analytically; long frame gaps are capped at 100 ms.
 - A safe starting position, clearance from all six aquarium boundaries, and sliding collisions against 139 structural hulls: 34 reef rocks, 39 coral/older decorative components, and 66 components across six aquarium ornaments. Thin foliage and decorative pebbles remain passable.
 - Pointer lock only following an explicit button click. Escape, loss of focus, and hidden tabs pause controls.
 - Optional procedural underwater ambience, slow currents, gentle stroke-driven swimming sound, and sparse ornament-adjacent water details. Silent preview; audio fades on pause/mute and suspends in hidden tabs.
@@ -100,7 +100,7 @@ See [fish](docs/FISH.md), [marine forms](docs/PLANTS.md), [habitat anchors](docs
 
 ## Swimming physics and tuning
 
-Holding a movement key repeats an active stroke followed by a glide. A squared-sine envelope builds and fades the propulsion **force**, which is filtered before integration; velocity and position are never multiplied by a wave. A small baseline thrust softens the rhythm. Releasing input cuts thrust while velocity decays under water drag, settling tiny horizontal residuals to zero. Direction changes redirect the filtered force without resetting velocity. Diagonal normalization and pitch-relative forward movement are preserved; all three propulsion axes use the same force pulse, filtering, drag, and coasting, including nearly vertical swimming.
+Holding a movement key eases the diver up to the chosen swim speed within each feel's `cruise` time (Relaxed 0.9 s, Natural 0.7 s, Responsive 0.45 s), then holds that speed exactly. The Pass 021 playtest found speed building for several seconds and surging with every stroke; strokes now set only the subtle body sway and the stroke sound, through a squared-sine envelope. Releasing input cuts thrust while velocity decays under water drag, settling tiny horizontal residuals to zero. Direction changes redirect the filtered force without resetting velocity. Diagonal normalization and pitch-relative forward movement are preserved; all three propulsion axes use the same steady force, filtering, drag, and coasting, including nearly vertical swimming.
 
 Choose **Relaxed**, **Natural** (default), or **Responsive** in Settings. Existing v1 or v2 storage migrates to v3 on first load, keeping every preference; the swim speed keeps its place on the slower Pass 019 scale (60% of v1). Missing/invalid feel values become Natural without losing other preferences. Speed is a nominal average horizontal speed: instantaneous speed varies across the stroke.
 
@@ -132,7 +132,7 @@ Seagrass, macroalgae and flexible coral tissue remain passable. Solid reef rock 
 
 Tune `COLLISION.playerRadius`, contact budget, numerical skin, and tolerance in `src/config/world.ts`. Broad-phase rejection, reusable contact buffers, and a bounded eight-contact solver keep normal steps allocation-free; there is no physics-engine dependency or extra rendering pass. Expanded face planes approximate a sphere against a convex rock conservatively at sharp edges/vertices, with a slight extra corner margin. Hulls are static and assume the environment root remains untransformed; rebuilding/moving scenery requires regenerating colliders. Sand still uses the existing floor clearance, rather than per-triangle terrain collision.
 
-For later tuning, adjust cadence/active fraction together, then drag/force response for glide and control. Reduce rhythmic fraction for steadier speed; lower breathing force or visual pitch for comfort. Subjective comfort and laptop GPU performance still need human playtesting.
+For later tuning, adjust `cruise` for how quickly the steady speed is reached, `drag` for how long the coast lasts after release, and cadence/active fraction for the sway and sound rhythm; lower breathing force or visual pitch for comfort. Subjective comfort and laptop GPU performance still need human playtesting.
 
 ## Validation and manual testing
 
@@ -225,6 +225,7 @@ Walk up to the tank and look at it: **E · Dive in** appears.
 - **How it stays seamless:** the tank's glass already shows exactly what the aquarium camera sees from your position (Pass 020). The dive switches to the full aquarium a few centimetres from the glass, from the identical viewpoint, so you simply keep moving.
 - **Reduced motion:** the glide becomes a short fade.
 - **Eye height:** after the first playtest, the office eye height is 1.28 m (was 1.6 m, which felt too tall).
+- **Steady swimming:** holding W now eases to one calm speed within about a second and stays there. It no longer keeps building, or surges with each stroke.
 - **The pause screen:** still offers instant switching.
 
 See [the office architecture](docs/OFFICE.md#the-dive-pass-021) and [validation](docs/VALIDATION_V03_PASS_021.md).

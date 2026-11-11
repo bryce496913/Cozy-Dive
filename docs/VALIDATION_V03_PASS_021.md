@@ -102,3 +102,24 @@ The cause was the stepping technique: frames rendered back to back in one task a
 ## 7. Playtest change (`0.3.0-alpha.4`)
 
 - **Eye height 1.6 m → 1.28 m.** The first real playtest found the office fine, but the person felt too tall, so the eye height is 20% lower. It is one constant (`OFFICE.eyeHeight`), and the spawn and the surfacing stand-up both follow it. The harnesses now expect 1.28 m.
+
+## 8. Playtest change (`0.3.0-alpha.5`): steady swimming
+
+**Playtest:** "acceleration seems to increase the longer the user holds down W."
+
+**Measured on the default Natural feel at the default speed (1.68).** The velocity approached its target on the coasting drag (time constant 1/1.1 s), so average speed kept building for about 4 s (1.03 at 1 s, 2.04 at 6 s). Each stroke also surged it by about ±22% (1.31–2.04).
+
+**Change.**
+
+- **Steady push:** propulsion is now constant while a key is held.
+- **Cruise time:** velocity settles on the chosen speed within each feel's `cruise` time, then holds it.
+- **Strokes:** they still drive the subtle body sway and the stroke sound.
+- **Coast:** releasing keeps the old slow drag, so it is unchanged.
+
+| Feel       | 95% of speed reached | Speed after 2 s (min–max) | 1 s after release |
+| ---------- | -------------------- | ------------------------- | ----------------- |
+| Relaxed    | 1.2 s                | 1.674–1.680               | 0.76              |
+| Natural    | 0.9 s                | 1.679–1.680               | 0.56              |
+| Responsive | 0.6 s                | 1.680–1.680               | 0.28              |
+
+**Tests.** The two tests that required per-stroke speed surges now require the opposite: one steady speed, flat to within 0.1%, both horizontally and vertically. New per-feel tests check a gentle start, settling within 1.5× the cruise time, and no overshoot. Frame-rate consistency (30/60/120 Hz) still holds.
