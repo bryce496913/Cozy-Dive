@@ -11,6 +11,7 @@ import * as THREE from 'three';
 import { AQUARIUM } from '../config/world';
 import { CollisionWorld, type ConvexCollider } from '../player/collision';
 import { rockCollider } from './rockCollider';
+import { Crevice } from './passage/Crevice';
 import { createRockTemplates } from './RockGeometry';
 import { FishSystem } from '../fish/FishSystem';
 
@@ -42,6 +43,8 @@ export class Aquarium {
   readonly grass: MeadowSystem;
   readonly fish: FishSystem;
   readonly anchoredLife: AnchoredLife;
+  /** v0.4 Pass 023: the hidden crevice leading to the outer waters. */
+  readonly crevice: Crevice;
   readonly plants: PlantSystem;
   private readonly motes: THREE.Points;
   private readonly beams: THREE.Group;
@@ -293,6 +296,12 @@ export class Aquarium {
       substrateHeight,
     });
     this.root.add(this.fish.root);
+    // Pass 023: added last, in the clear space behind the central channel, so every earlier
+    // placement (drawn from the shared random stream) is unchanged. Fish and the swimmer share the
+    // same collider list, so both treat the outcrop as solid.
+    this.crevice = new Crevice();
+    this.root.add(this.crevice.root);
+    colliders.push(...this.crevice.colliders);
   }
   /**
    * Replace the accepted coarse sand (whose RNG draws are preserved above) with a denser rippled
@@ -388,6 +397,7 @@ export class Aquarium {
     this.beams.rotation.y = reducedMotion ? 0 : Math.sin(time * 0.12) * 0.015;
   }
   dispose(): void {
+    this.crevice.dispose();
     this.anchoredLife.dispose();
     this.ornaments.dispose();
     this.fish.dispose();

@@ -555,6 +555,20 @@ kbd {
   padding: 1px 6px;
   margin-right: 8px;
 }
+/* v0.4 Pass 023: the hidden passage's darkness. */
+.passage-veil {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    #02090cee 0%,
+    #010507 70%,
+    #000 100%
+  );
+  z-index: 5;
+}
 .dive-veil {
   position: fixed;
   inset: 0;

@@ -327,7 +327,8 @@ describe('production structural composition', () => {
     try {
       installAuthoredHulls(world);
       installReefHulls(world, asset);
-      expect(world.collision.colliders.length).toBe(503); // Pass 019: 124 wreck hulls (was 56)
+      // Pass 019: 124 wreck hulls (was 56); Pass 023: +12 for the hidden crevice.
+      expect(world.collision.colliders.length).toBe(515);
       // Every route keeps its conservative 0.65 sweep clear in the composed structural world.
       expect(integrationRoutes(world)).toHaveLength(9);
       for (const home of world.anchoredLife.hidden.homes) {

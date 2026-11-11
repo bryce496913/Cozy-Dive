@@ -25,7 +25,8 @@ describe('quiet hidden discoveries', () => {
     expect(a.fish.simulation.fish).toEqual(
       spawnFish(a.fish.simulation.habitat),
     );
-    expect(a.collision.colliders).toHaveLength(139);
+    // 139 until Pass 023: the hidden crevice adds 7 rock hulls and 5 channel seals.
+    expect(a.collision.colliders).toHaveLength(151);
     const b = new Aquarium();
     try {
       expect(

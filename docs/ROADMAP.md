@@ -7,8 +7,8 @@ These milestones describe direction, not commitments or a fixed release schedule
 | **v0.1 — First Dive**               | Project foundation, procedural aquarium, calm first-person swimming, boundaries, settings, tests, and desktop prototype. |
 | **v0.2 — Living Aquarium**          | Tropical marine reef life and lightweight fish behavior; improve scenery and measure performance.                        |
 | **v0.3 — Office & Dive Transition** | Office environment and a seamless entry into the aquarium.                                                               |
-| **v0.4 — Personalization**          | Adding fish, decorations and plants, with persistent saves.                                                              |
-| **v0.5 — Beyond the Glass**         | The first passage into a larger tropical reef.                                                                           |
+| **v0.4 — First Passage**            | Swim through a hidden opening in the tank into a larger tropical reef, with new environments, creatures and big animals. |
+| **v0.5 — Personalization**          | Add fish, decorations and plants you have seen in the outer waters, with persistent saves.                               |
 | **v0.6 — Expanding Oceans**         | New environments, species and discoveries.                                                                               |
 
 **Vision (agreed after the Pass 018 playtest).** An office fish-tank escape is the entry point: a memorable start, a strong visual identity and a natural home. It is also a metaphor for escaping the everyday into something peaceful. A tiny aquarium in the real world becomes an enormous underwater playground, with hidden passages into expansive oceans; the aquarium is a portal into an ocean world. Later milestones (polish, accessibility, broader device testing and a public beta) follow once these are in place.
@@ -41,3 +41,23 @@ Pass 021 (`0.3.0-alpha.2` to `alpha.6`) added the dive and surfacing. After revi
 - **Validation:** a full browser regression run.
 
 v0.3 closes on the user's macOS acceptance of this candidate. v0.4 (Personalization) is not started by it.
+
+**v0.3 accepted at `0.3.0-rc.1`. Order swapped after acceptance:** First Passage is now v0.4 and Personalization v0.5, so exploring fills the catalog.
+
+**v0.4 First Passage passes**
+
+- **Pass 023, The opening:**
+  - a hidden crevice in the tank and a dark tunnel to the outer waters;
+  - an environment system that loads, renders and cleans up one water world at a time;
+  - the local sightings journal;
+  - a placeholder open-water area beyond the tunnel.
+- **Pass 024, The outer reef:** the larger tropical reef, with sand channels, coral heads, a drop-off, soft boundaries, new reef-fish schools, open-water sound and performance budgets.
+- **Pass 025, Big creatures:** reef sharks, rays and a sea turtle with calm behaviour, plus "seen" detection and a quiet "Seen" page.
+- **Pass 026, Polish and acceptance:** the v0.4 release candidate.
+
+**v0.5 Personalization.** The catalog is built from what you have seen in the outer waters. Big animals are added to the tank as babies or mini versions, so they suit its size.
+
+**Agreed scope change: gentle discovery unlocks.** Seeing creatures and features in the outer waters unlocks them for the tank. It is deliberately pressure-free:
+
+- no counters to complete, currency, timers or scores;
+- nothing to lose or miss.

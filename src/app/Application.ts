@@ -21,6 +21,27 @@ import {
   type Pose,
 } from '../player/dive';
 import { OfficeScene } from '../rendering/OfficeScene';
+import { OuterWatersScene } from '../rendering/OuterWatersScene';
+import type { WaterWorld } from '../rendering/WaterWorld';
+import { PASSAGE } from '../config/passage';
+import {
+  frameTurn,
+  mapPoint,
+  mapVector,
+  mouthDistance,
+  passageDarkness,
+  passageFrame,
+  passageTarget,
+  returnPose,
+  type WaterWorldId,
+} from '../player/passage';
+import {
+  SightingTracker,
+  loadJournal,
+  recordSighting,
+  saveJournal,
+  type Sighting,
+} from '../discovery/journal';
 import { OfficeAmbience } from '../audio/OfficeAmbience';
 import { OFFICE, OFFICE_FOOTPRINTS } from '../config/office';
 import { FrameMeter, formatFrameSummary } from '../ui/frameMeter';
@@ -64,6 +85,18 @@ export class Application {
   private world?: UnderwaterScene;
   /** v0.3 Pass 020: the office around the tank, sharing the aquarium's renderer. */
   private office?: OfficeScene;
+  /** v0.4 Pass 023: the outer waters, while they might be needed. */
+  private outer?: OuterWatersScene;
+  /** Which water world the swimmer is in. */
+  private waterWorld: WaterWorldId = 'aquarium';
+  /** Seconds the outer waters have been out of range (released after a delay). */
+  private outerIdle = 0;
+  /** "Return to the tank" arrives out of darkness (1 → 0). */
+  private arrival = 0;
+  private readonly mapped = { x: 0, y: 0, z: 0 };
+  private sightings: readonly Sighting[] = [];
+  private tracker = new SightingTracker([]);
+  private readonly lookForward = { x: 0, y: 0, z: -1 };
   private officeAudio?: OfficeAmbience;
   private mode: ExperienceMode;
   private readonly walk = createWalkState(OFFICE.spawn);
@@ -148,7 +181,14 @@ export class Application {
       this.settings,
       this.enter,
       this.changeSettings,
+      this.returnToTank,
     );
+    try {
+      this.sightings = loadJournal(localStorage);
+    } catch {
+      this.sightings = [];
+    }
+    this.tracker = new SightingTracker(this.sightings);
     try {
       this.world = new UnderwaterScene(this.ui.sceneHost, () => {
         if (document.pointerLockElement) document.exitPointerLock();
@@ -400,6 +440,8 @@ export class Application {
     // The key press is a user gesture: unlock the destination's audio now.
     if (kind === 'dive') this.audio?.unlockFromGesture();
     else this.officeAudio?.unlockFromGesture();
+    // The dive always lands in the tank (the outer waters are released once out of range).
+    if (kind === 'dive') this.setWaterWorld('aquarium');
     if (kind === 'dive' && !this.dived) {
       this.dived = true;
       try {
@@ -455,21 +497,23 @@ export class Application {
           dt,
         );
     } else {
-      const w = this.world!;
+      const tank = this.world!,
+        w = this.water();
       w.camera.position.set(f.x, f.y, f.z);
       w.camera.rotation.set(f.pitch, f.yaw, 0, 'YXZ');
-      w.setHaze(f.fog);
+      if (w === tank) tank.setHaze(f.fog);
       // Surfacing: the front glass shows the office from the swimmer's mapped viewpoint.
       if (
+        w === tank &&
         dive.path.kind === 'surface' &&
         !this.settings.reducedMotion &&
         !document.hidden
       )
-        w.setOutsideView(
+        tank.setOutsideView(
           this.office!.renderOutside(w.camera),
           this.office!.resolution,
         );
-      this.ui.setDepth(AQUARIUM.max.y - f.y);
+      this.ui.setDepth(w.bounds.max.y - f.y);
       // The underwater soundscape follows the drifting camera (swimming is reset, so it is still).
       this.state.position.x = f.x;
       this.state.position.y = f.y;
@@ -522,6 +566,103 @@ export class Application {
     this.looks[space] = { yaw: pose.yaw, pitch: pose.pitch };
     this.updateAudio(this.controls.locked);
   }
+  /** v0.4 Pass 023: the water world the swimmer is in (the tank unless in the outer waters). */
+  private water(): WaterWorld {
+    return this.waterWorld === 'outer' && this.outer ? this.outer : this.world!;
+  }
+  private setWaterWorld(id: WaterWorldId): void {
+    this.waterWorld = id;
+    this.ui.setOuter(id === 'outer');
+  }
+  /**
+   * Load the outer waters as the swimmer nears the crevice and release them once well away from
+   * it (after a delay, so passing by does not reload them); they stay while the swimmer is there.
+   */
+  private manageOuter(dt: number): void {
+    const swimming = this.mode === 'aquarium',
+      distance = mouthDistance(this.state.position),
+      inTank = this.waterWorld === 'aquarium';
+    if (!this.outer) {
+      if (swimming && inTank && distance < PASSAGE.preload)
+        this.outer = new OuterWatersScene(this.world!.renderer);
+      this.outerIdle = 0;
+      return;
+    }
+    const keep =
+      !inTank || (swimming && distance < PASSAGE.release) || !!this.dive;
+    this.outerIdle = keep ? 0 : this.outerIdle + dt;
+    if (this.outerIdle > PASSAGE.releaseDelay) {
+      this.outer.dispose();
+      this.outer = undefined;
+      this.outerIdle = 0;
+    }
+  }
+  /**
+   * Past the threshold in the crevice (or back out of the tunnel's start), continue in the other
+   * world from the identical relative pose: position, velocity, thrust and look all carry across.
+   */
+  private crossPassage(): void {
+    const target = passageTarget(
+      this.waterWorld,
+      this.state.position,
+      !!this.outer?.isReady,
+    );
+    if (target === this.waterWorld) return;
+    const from = passageFrame(this.waterWorld),
+      to = passageFrame(target),
+      s = this.state;
+    mapPoint(s.position, from, to, this.mapped);
+    s.position.x = this.mapped.x;
+    s.position.y = this.mapped.y;
+    s.position.z = this.mapped.z;
+    mapVector(s.velocity, from, to, s.velocity);
+    mapVector(s.thrust, from, to, s.thrust);
+    s.neutralDepth += to.origin.y - from.origin.y;
+    this.controls!.turn(frameTurn(from, to));
+    this.setWaterWorld(target);
+  }
+  /** "Return to the tank" from the pause screen: back outside the crevice, out of darkness. */
+  private returnToTank = (): void => {
+    if (this.waterWorld !== 'outer' || !this.controls) return;
+    if (this.dive) this.cancelDive();
+    const pose = returnPose();
+    Object.assign(this.state.position, { x: pose.x, y: pose.y, z: pose.z });
+    this.state.neutralDepth = pose.y;
+    resetSwimming(this.state);
+    // From the office, the water's remembered look is used by the pause-screen fade instead.
+    if (this.mode === 'aquarium') {
+      this.controls.yaw = pose.yaw;
+      this.controls.pitch = pose.pitch;
+      this.controls.clear();
+    }
+    this.looks.aquarium = { yaw: pose.yaw, pitch: pose.pitch };
+    this.setWaterWorld('aquarium');
+    this.arrival = 1;
+    this.enter('aquarium');
+  };
+  /** Count anything comfortably in view as seen (the sightings journal). */
+  private lookFor(water: WaterWorld, dt: number): void {
+    if (!water.sightings.length) return;
+    const c = this.controls!,
+      cp = Math.cos(c.pitch),
+      f = this.lookForward;
+    f.x = -Math.sin(c.yaw) * cp;
+    f.y = Math.sin(c.pitch);
+    f.z = -Math.cos(c.yaw) * cp;
+    const seen = this.tracker.update(
+      water.sightings,
+      this.state.position,
+      f,
+      dt,
+    );
+    if (!seen) return;
+    this.sightings = recordSighting(this.sightings, seen.id, new Date());
+    try {
+      saveJournal(localStorage, this.sightings);
+    } catch {
+      /* Unavailable storage: the sighting is kept for this visit only. */
+    }
+  }
   /** Pass 022: feed the optional frame-time readout with real frame intervals. */
   private measureFrame(now: number): void {
     if (!this.settings.frameTime) {
@@ -562,10 +703,11 @@ export class Application {
             : !this.dived && this.officeVisit > HINT_DELAY
               ? 'hint'
               : null
-          : canSurface(pose.y)
+          : this.waterWorld === 'aquarium' && canSurface(pose.y)
             ? 'surface'
             : null,
     );
+    this.manageOuter(dt);
     if (this.mode === 'office' && this.office) {
       this.tickOffice(dt);
       this.frame = requestAnimationFrame(this.tick);
@@ -588,21 +730,24 @@ export class Application {
         this.controls.pitch,
         this.direction,
       );
+      const swim = this.water();
       integrateSwimming(
         this.state,
         this.direction,
         dt,
         this.tuning,
-        AQUARIUM,
-        this.world.aquarium.collision,
+        swim.bounds,
+        swim.collision,
       );
+      this.crossPassage();
     }
-    this.world.camera.position.set(
+    const water = this.water();
+    water.camera.position.set(
       this.state.position.x,
       this.state.position.y,
       this.state.position.z,
     );
-    this.world.camera.rotation.set(
+    water.camera.rotation.set(
       this.controls.pitch +
         (this.settings.reducedMotion ? 0 : this.state.bodyPitch),
       this.controls.yaw,
@@ -610,10 +755,19 @@ export class Application {
       'YXZ',
     );
     this.audio?.update(dt, this.state, this.tuning, this.controls.yaw);
-    this.ui.setDepth(AQUARIUM.max.y - this.state.position.y);
-    this.playerPresence.active = this.controls.locked && !document.hidden;
+    this.ui.setDepth(water.bounds.max.y - this.state.position.y);
+    this.arrival = Math.max(0, this.arrival - dt / PASSAGE.arrivalFade);
+    this.ui.setDarkness(
+      Math.max(
+        this.arrival,
+        passageDarkness(this.waterWorld, this.state.position),
+      ),
+    );
+    if (this.controls.locked && !document.hidden) this.lookFor(water, dt);
+    this.playerPresence.active =
+      this.controls.locked && !document.hidden && water === this.world;
     if (!document.hidden)
-      this.world.render(
+      water.render(
         this.elapsed,
         this.settings.reducedMotion,
         dt,
@@ -661,6 +815,8 @@ export class Application {
     this.officeAudio?.dispose();
     this.controls?.dispose();
     this.office?.dispose();
+    this.outer?.dispose();
+    this.outer = undefined;
     this.world?.dispose();
     this.ui.dispose();
   };

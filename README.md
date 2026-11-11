@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.3 / Pass 022 — Office & Dive release candidate (`0.3.0-rc.1`)** is a first-person, browser-based aquarium prototype. Start in a cosy, rainy home office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15`. No scores, timers, combat, accounts, or external asset services.
+A quiet little world beneath the surface. **v0.4 / Pass 023 — The opening (`0.4.0-alpha.1`)** is a first-person, browser-based aquarium prototype. Start in a cosy, rainy home office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15` and v0.3 (Office & Dive Transition) at `0.3.0-rc.1`. No scores, timers, combat, accounts, or external asset services.
 
 ## Stack and requirements
 
@@ -45,7 +45,7 @@ In the office, W A S D walk and the mouse looks around.
 
 Click **Return to the Water** to resume. Look up or down and use W/S to change depth; A/D always strafe horizontally. Space and Shift have no swimming action. Pausing or losing browser focus clears held input and propulsion momentum while retaining a resting breath’s phase and small vertical velocity. Diagonal input is normalized. Subtle stroke-related pitch feedback stays below 0.07 degrees, with no roll or visual position offsets. Looking straight up/down is limited.
 
-This is the v0.3 release candidate; v0.3 closes on manual MacBook Air acceptance. See [Pass 022 validation](docs/VALIDATION_V03_PASS_022.md), [Pass 021 validation](docs/VALIDATION_V03_PASS_021.md), [Pass 020 validation](docs/VALIDATION_V03_PASS_020.md), [Pass 019 validation](docs/VALIDATION_V02_PASS_019.md), [Pass 018 validation](docs/VALIDATION_V02_PASS_018.md), [Pass 017 validation](docs/VALIDATION_V02_PASS_017.md), [Pass 016 validation](docs/VALIDATION_V02_PASS_016.md), [Pass 015 validation](docs/VALIDATION_V02_PASS_015.md), [Pass 014 validation](docs/VALIDATION_V02_PASS_014.md), [Pass 013 validation](docs/VALIDATION_V02_PASS_013.md) and [repeatable benchmarks](validation/README.md).
+This is a v0.4 development candidate. See [Pass 023 validation](docs/VALIDATION_V04_PASS_023.md), [Pass 022 validation](docs/VALIDATION_V03_PASS_022.md), [Pass 021 validation](docs/VALIDATION_V03_PASS_021.md), [Pass 020 validation](docs/VALIDATION_V03_PASS_020.md), [Pass 019 validation](docs/VALIDATION_V02_PASS_019.md), [Pass 018 validation](docs/VALIDATION_V02_PASS_018.md), [Pass 017 validation](docs/VALIDATION_V02_PASS_017.md), [Pass 016 validation](docs/VALIDATION_V02_PASS_016.md), [Pass 015 validation](docs/VALIDATION_V02_PASS_015.md), [Pass 014 validation](docs/VALIDATION_V02_PASS_014.md), [Pass 013 validation](docs/VALIDATION_V02_PASS_013.md) and [repeatable benchmarks](validation/README.md).
 
 ## Current features
 
@@ -218,6 +218,18 @@ Behaviour, homes, collision and animation contracts are unchanged; clownfish and
 ### v0.2 Pass 016 candidate
 
 All 40 fish now swim as authored morph rigs: the accepted chromis, plus new pajama cardinalfish, firefish, yellow assessors and royal grammas built on the same rig and morph contract, alongside the Pass 013 clownfish. Simulation, behaviour, pause and reduced motion are unchanged, and the procedural fish remain as the fallback. See [validation and matched captures](docs/VALIDATION_V02_PASS_016.md). This pass awaits user review and MacBook Air acceptance.
+
+### v0.4 Pass 023 candidate — The opening
+
+Somewhere at the back of the tank there is a dark crack in the rock. Swim into it and keep going.
+
+- **The crevice:** a rock outcrop in the back-right corner, against the glass. Its crack opens into the narrow alley behind the right bank, half hidden by seagrass and out of sight from the usual swim start.
+- **The passage:** inside, the crack darkens. Deep in the dark you pass into a winding tunnel in the outer waters, and you never stop swimming: position, speed and look carry straight across, and nothing jumps. The tunnel leads through a cliff and opens onto open blue water above a sand plain. That area is a placeholder for the outer reef (Pass 024).
+- **Getting back:** swim back through the tunnel, or choose **Return to the tank** on the pause screen.
+- **Only one world at a time:** the outer waters load as you near the crevice, render only while you are in them, and are released when you are well away again.
+- **Sightings journal:** the groundwork for v0.5. Things seen in the outer waters will be remembered locally, though nothing in the outer waters counts as a sighting yet.
+
+See [the passage architecture](docs/PASSAGE.md) and [validation](docs/VALIDATION_V04_PASS_023.md).
 
 ### v0.3 Pass 022 release candidate — polish and acceptance
 
