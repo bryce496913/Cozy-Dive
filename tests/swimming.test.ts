@@ -69,7 +69,13 @@ describe('water integration', () => {
     const s = state();
     s.velocity.x = 2;
     integrateSwimming(s, direction(), 0.1, tuning, AQUARIUM);
-    expect(s.velocity.x).toBeCloseTo(2 * Math.exp(-1.1 * 0.1));
+    // Water drag plus the gentle deceleration that ends the glide: v' = -k v - f.
+    const k = SWIM_FEELS.natural.drag,
+      f = (k * tuning.speed) / Math.expm1(k * SWIM_FEELS.natural.rest);
+    expect(s.velocity.x).toBeCloseTo(
+      (2 + f / k) * Math.exp(-k * 0.1) - f / k,
+      4,
+    );
     expect(s.position.x).toBeGreaterThan(0);
     expect(s.velocity.x).toBeGreaterThan(0);
   });
@@ -232,6 +238,53 @@ describe('natural swimming', () => {
       expect(reached).toBeLessThan(SWIM_FEELS[feel].cruise * 1.5);
     },
   );
+  it.each(['relaxed', 'natural', 'responsive'] as const)(
+    'with the %s feel, a released glide slows and comes to a complete stop on time (playtest)',
+    (feel) => {
+      const t = { ...tuning, feel },
+        s = state();
+      simulate(s, 3, direction(1), t, 120);
+      let previous = -s.velocity.z,
+        stoppedAt = Infinity;
+      for (let i = 1; i <= 120 * 6; i++) {
+        integrateSwimming(s, direction(), 1 / 120, t, openWater);
+        const speed = -s.velocity.z;
+        expect(speed).toBeLessThanOrEqual(previous + 1e-12);
+        expect(speed).toBeGreaterThanOrEqual(0);
+        if (stoppedAt === Infinity && speed === 0) stoppedAt = i / 120;
+        previous = speed;
+      }
+      // Exactly at rest within the feel's rest time, and still at rest afterwards.
+      expect(stoppedAt).toBeLessThanOrEqual(SWIM_FEELS[feel].rest + 0.02);
+      expect(stoppedAt).toBeGreaterThan(SWIM_FEELS[feel].rest * 0.85);
+      // (Vertically, only the gentle idle breathing remains.)
+      expect(Math.hypot(s.velocity.x, s.velocity.z)).toBe(0);
+    },
+  );
+  it('after a rest, the next stroke starts from zero exactly like the first one', () => {
+    const fresh = state(),
+      again = state();
+    simulate(again, 3, direction(1), tuning, 120);
+    simulate(again, SWIM_FEELS.natural.rest + 1, direction(), tuning, 120);
+    expect(Math.hypot(again.velocity.x, again.velocity.z)).toBe(0);
+    for (let i = 0; i < 120 * 2; i++) {
+      integrateSwimming(fresh, direction(1), 1 / 120, tuning, openWater);
+      integrateSwimming(again, direction(1), 1 / 120, tuning, openWater);
+      expect(-again.velocity.z).toBeCloseTo(-fresh.velocity.z, 9);
+    }
+  });
+  it('pressing again mid-glide carries on smoothly from the current speed', () => {
+    const s = state();
+    simulate(s, 3, direction(1), tuning, 120);
+    simulate(s, 0.8, direction(), tuning, 120);
+    const gliding = -s.velocity.z;
+    expect(gliding).toBeGreaterThan(0.2 * tuning.speed);
+    expect(gliding).toBeLessThan(0.8 * tuning.speed);
+    integrateSwimming(s, direction(1), 1 / 120, tuning, openWater);
+    expect(Math.abs(-s.velocity.z - gliding)).toBeLessThan(0.05);
+    simulate(s, 2, direction(1), tuning, 120);
+    expect(-s.velocity.z).toBeCloseTo(tuning.speed, 2);
+  });
   it('coasts on release, settles residual velocity, and reverses with weight', () => {
     const s = state();
     simulate(s, 2, direction(1));

@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.3 / Pass 021 — The Dive (`0.3.0-alpha.5`)** is a first-person, browser-based aquarium prototype. Start in a cosy, rainy home office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15`. No scores, timers, combat, accounts, or external asset services.
+A quiet little world beneath the surface. **v0.3 / Pass 021 — The Dive (`0.3.0-alpha.6`)** is a first-person, browser-based aquarium prototype. Start in a cosy, rainy home office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15`. No scores, timers, combat, accounts, or external asset services.
 
 ## Stack and requirements
 
@@ -100,7 +100,7 @@ See [fish](docs/FISH.md), [marine forms](docs/PLANTS.md), [habitat anchors](docs
 
 ## Swimming physics and tuning
 
-Holding a movement key eases the diver up to the chosen swim speed within each feel's `cruise` time (Relaxed 0.9 s, Natural 0.7 s, Responsive 0.45 s), then holds that speed exactly. The Pass 021 playtest found speed building for several seconds and surging with every stroke; strokes now set only the subtle body sway and the stroke sound, through a squared-sine envelope. Releasing input cuts thrust while velocity decays under water drag, settling tiny horizontal residuals to zero. Direction changes redirect the filtered force without resetting velocity. Diagonal normalization and pitch-relative forward movement are preserved; all three propulsion axes use the same steady force, filtering, drag, and coasting, including nearly vertical swimming.
+Holding a movement key eases the diver up to the chosen swim speed within each feel's `cruise` time (Relaxed 0.9 s, Natural 0.7 s, Responsive 0.45 s), then holds that speed exactly. The Pass 021 playtest found speed building for several seconds and surging with every stroke; strokes now set only the subtle body sway and the stroke sound, through a squared-sine envelope. Releasing input cuts thrust; water drag plus a gentle constant deceleration ends the horizontal glide exactly at each feel's `rest` time (Relaxed 3 s, Natural 2.5 s, Responsive 1.6 s), so the next stroke starts from rest. Direction changes redirect the filtered force without resetting velocity. Diagonal normalization and pitch-relative forward movement are preserved; all three propulsion axes use the same steady force, filtering, drag, and coasting, including nearly vertical swimming.
 
 Choose **Relaxed**, **Natural** (default), or **Responsive** in Settings. Existing v1 or v2 storage migrates to v3 on first load, keeping every preference; the swim speed keeps its place on the slower Pass 019 scale (60% of v1). Missing/invalid feel values become Natural without losing other preferences. Speed is a nominal average horizontal speed: instantaneous speed varies across the stroke.
 
@@ -226,6 +226,7 @@ Walk up to the tank and look at it: **E · Dive in** appears.
 - **Reduced motion:** the glide becomes a short fade.
 - **Eye height:** after the first playtest, the office eye height is 1.28 m (was 1.6 m, which felt too tall).
 - **Steady swimming:** holding W now eases to one calm speed within about a second and stays there. It no longer keeps building, or surges with each stroke.
+- **Coming to rest:** letting go glides you to a complete stop within a few seconds (Natural 2.5 s), like a person. The next stroke starts from rest again; pressing W mid-glide carries on smoothly.
 - **The pause screen:** still offers instant switching.
 
 See [the office architecture](docs/OFFICE.md#the-dive-pass-021) and [validation](docs/VALIDATION_V03_PASS_021.md).

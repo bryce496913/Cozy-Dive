@@ -109,6 +109,22 @@ export function clampToBounds(
   }
 }
 
+/**
+ * Slow the released horizontal glide by `dv` (m/s) along its direction, stopping exactly at zero,
+ * and take back the matching distance (the speed fell linearly over the step `h`). Vertically the
+ * hover spring already brings the diver to rest at its coasting depth.
+ */
+function glideToRest(state: SwimState, dv: number, h: number): void {
+  const v = state.velocity,
+    speed = Math.hypot(v.x, v.z);
+  if (speed === 0) return;
+  const k = Math.max(0, speed - dv) / speed,
+    back = (1 - k) * 0.5 * h;
+  state.position.x -= v.x * back;
+  state.position.z -= v.z * back;
+  v.x *= k;
+  v.z *= k;
+}
 /** One force/drag stroke model for all three axes; resting depth is captured after coasting. */
 export function integrateSwimming(
   state: SwimState,
@@ -145,6 +161,10 @@ export function integrateSwimming(
     const force = moving ? 1 : 0;
     // While held, velocity settles on the swim speed within `cruise` seconds (~95%).
     const cruiseRate = 3 / feel.cruise;
+    // Released: water drag plus a gentle constant deceleration, chosen so a glide from the swim
+    // speed ends exactly `rest` seconds later (v' = -drag v - f stops at ln(1 + drag v0 / f) / drag).
+    const restDeceleration =
+      (feel.drag * tuning.speed) / Math.expm1(feel.drag * feel.rest);
     const blend = -Math.expm1(-feel.response * h);
     state.breathBlend +=
       ((state.depthChanging || tuning.reducedMotion ? 0 : 1) -
@@ -195,6 +215,7 @@ export function integrateSwimming(
       )
         state.velocity[axis] = 0;
     }
+    if (!moving) glideToRest(state, restDeceleration * h, h);
     const integratedY = state.position.y;
     if (collision) collision.move(state, fromX, fromY, fromZ);
     clampToBounds(state, bounds);

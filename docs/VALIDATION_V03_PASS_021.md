@@ -123,3 +123,33 @@ The cause was the stepping technique: frames rendered back to back in one task a
 | Responsive | 0.6 s                | 1.680–1.680               | 0.28              |
 
 **Tests.** The two tests that required per-stroke speed surges now require the opposite: one steady speed, flat to within 0.1%, both horizontally and vertically. New per-feel tests check a gentle start, settling within 1.5× the cruise time, and no overshoot. Frame-rate consistency (30/60/120 Hz) still holds.
+
+## 9. Playtest change (`0.3.0-alpha.6`): gliding to rest
+
+**Playtest.** "When the user stops swimming for a bit, the acceleration should return to zero." Like a person:
+
+- holding W gives a constant speed;
+- letting go slows you down;
+- after a few seconds you are at rest, and the next stroke starts from the beginning.
+
+**Measured before.** Water drag alone only ever shrinks speed by a fraction, so the glide never really ended. On Natural you were still drifting at 0.06 m/s after 3 s and only stopped after 6.8 s (Relaxed 9.3 s). Pressing W again picked up that drift.
+
+**Change.**
+
+- **Finite glide:** after release, a gentle constant deceleration on top of the drag ends the horizontal glide exactly at each feel's `rest` time: Relaxed 3 s, Natural 2.5 s, Responsive 1.6 s.
+- **Unchanged:** vertical motion still settles through the hover spring at its coasting depth, and glide distance is about the same (Natural 1.24 m).
+- **Re-pressing:** pressing W mid-glide carries on smoothly from the current speed; after a rest, it starts from zero.
+
+| Feel       | Speed 1 s after release | 2 s  | At rest |
+| ---------- | ----------------------- | ---- | ------- |
+| Relaxed    | 0.66                    | 0.21 | 3.0 s   |
+| Natural    | 0.48                    | 0.08 | 2.5 s   |
+| Responsive | 0.19                    | 0    | 1.6 s   |
+
+**Tests.**
+
+- **Per feel:** the glide only ever slows and is exactly at rest by its time.
+- **After a rest:** the next stroke matches a first stroke from rest exactly.
+- **Mid-glide press:** it continues without a jump.
+
+**In the browser** (SwiftShader, real key input): steady while held, at rest about 2.5 s after letting go, then a fresh ease-up on the next press, with no errors.

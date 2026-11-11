@@ -27,6 +27,12 @@ export interface FeelTuning {
    * Letting go still coasts out slowly on `drag`.
    */
   cruise: number;
+  /**
+   * Seconds to glide to a complete horizontal stop after letting go from the swim speed (Pass 021 playtest:
+   * like a person, the glide slows and ends; the next stroke then starts from rest). A gentle
+   * constant deceleration on top of the water drag makes the stop finite.
+   */
+  rest: number;
   breathing: number;
 }
 /** Pass 019 playtest: breathing buoyancy forces are 60% of their earlier values (calmer idle bob). */
@@ -37,6 +43,7 @@ export const SWIM_FEELS: Record<SwimmingFeel, FeelTuning> = {
     drag: 0.8,
     response: 5,
     cruise: 0.9,
+    rest: 3,
     breathing: 0.084,
   },
   natural: {
@@ -45,6 +52,7 @@ export const SWIM_FEELS: Record<SwimmingFeel, FeelTuning> = {
     drag: 1.1,
     response: 8,
     cruise: 0.7,
+    rest: 2.5,
     breathing: 0.12,
   },
   responsive: {
@@ -53,6 +61,7 @@ export const SWIM_FEELS: Record<SwimmingFeel, FeelTuning> = {
     drag: 1.8,
     response: 12,
     cruise: 0.45,
+    rest: 1.6,
     breathing: 0.072,
   },
 };
