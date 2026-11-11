@@ -226,3 +226,17 @@ COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy023-passage node validation/
 ```
 
 `passage.mjs` enters the water with real pointer lock, places the swimmer outside the hidden crevice and waits for the outer waters to load. It then holds W through the crack, capturing the frames either side of the world swap. It steers along the tunnel to open water, makes a pause-screen round trip to the office, swims back into the tank and uses Return to the tank. Finally it checks the outer waters are released far away, with GPU geometry and texture counts back to their starting values. The loop is stepped at 30 Hz, yielding a real frame each step.
+
+## Pass 024 outer reef
+
+```bash
+COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy024-reef node validation/outer-reef.mjs
+```
+
+`outer-reef.mjs` swims through the crack with real input, recording main-thread long tasks while the reef is prepared. At five fixed viewpoints it records draw calls, triangles, CPU submit time and the reef pieces drawn. With real keys it checks that:
+
+- the seabed is a floor;
+- the drop-off can be swum down;
+- the soft edge turns the swimmer back.
+
+It also checks that fish move and stay above the sand. Finally it makes two full visits, each ending with Return to the tank and release, and checks that GPU memory does not grow from one visit to the next.

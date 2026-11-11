@@ -136,11 +136,17 @@ try {
   assert(s.outer, 'the outer waters load near the crevice');
   for (let i = 0; i < 400 && !s.ready; i++) s = await step(1);
   assert(s.ready, 'the outer waters become ready');
-  // Main-thread cost of building the outer waters (a second copy, built and disposed at once).
+  // Main-thread cost of building the outer waters' synchronous part (a second copy, built and
+  // disposed at once; Pass 024's reef and fish are prepared in later tasks).
   report.buildMs = await page.evaluate(() => {
     const a = window.__cozy,
       t0 = performance.now(),
-      copy = new a.outer.constructor(a.world.renderer),
+      copy = new a.outer.constructor(a.world.renderer, {
+        reef: a.world.reefLoader,
+        fish: a.world.authored.loader,
+        plants: a.world.aquarium.plants.material,
+        soundSpots: a.tankSoundSpots.length,
+      }),
       ms = performance.now() - t0;
     copy.dispose();
     return Math.round(ms);
