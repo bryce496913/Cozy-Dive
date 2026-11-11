@@ -32,3 +32,12 @@ Pass 012 responds to rejection of the placeholder-like visuals with an opt-in GL
 Pass 019 applies the fixes from the user's Pass 018 MacBook playtest (seahorse and clownfish scale, a clownfish juvenile, the filter mounted at the top corner, the moray resting in its log, 20% slower swimming, and texture pop-in) and records the agreed v0.3–v0.6 sequence above. No v0.3 office work is included.
 
 v0.2 was accepted at `0.2.0-rc.15`. Pass 020 (`0.3.0-alpha.1`) starts v0.3 with the office: a walkable, procedurally built home office with a live miniature of the aquarium on its stand and its own ambience. Pass 021 adds the seamless dive from office to tank, and Pass 022 polishes and accepts v0.3.
+
+Pass 021 (`0.3.0-alpha.2` to `alpha.6`) added the dive and surfacing. After review and playtests, interruptions became safe and the aquarium kept one clock. The eye height was lowered, swimming now holds one steady speed, and a released glide comes to rest. Pass 022 (`0.3.0-rc.1`) is the v0.3 release candidate:
+
+- **Transitions:** pause-screen switches fade, and surfacing exits through the glass nearest you.
+- **Feel:** soft contact shadows in the office, a crossfaded soundscape through every transition, and a one-time hint pointing at the tank.
+- **Measurement:** an optional frame-time readout, so performance can be checked on the target MacBook Air.
+- **Validation:** a full browser regression run.
+
+v0.3 closes on the user's macOS acceptance of this candidate. v0.4 (Personalization) is not started by it.

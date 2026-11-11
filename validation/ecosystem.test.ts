@@ -213,7 +213,9 @@ it.each([
             'reef' in options
               ? expectedHulls
               : 'authored' in options
-                ? 216
+                ? // 216 until Pass 019 round 2: the redesigned shipwreck's convex
+                  // strake segments added 68 hulls (503 in the aquarium, from 435).
+                  284
                 : 139,
           );
           expect(aquarium.collision.colliders.length).toBe(expectedHulls);

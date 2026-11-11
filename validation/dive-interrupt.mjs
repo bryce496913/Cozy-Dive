@@ -8,7 +8,8 @@
  *    that pose with no jump). While paused, nothing advances.
  * 2. A hidden tab mid-surfacing: the transition, the aquarium clock and the office's reverse view
  *    all stop rendering/advancing; it resumes when the tab returns.
- * 3. Five consecutive dive/surface cycles, then reduced-motion surfacing.
+ * 3. Consecutive cycles (COZY_CYCLES, default 5) of dive, swim, surface and a pause-screen
+ *    fade there and back, then reduced-motion surfacing.
  * 4. GPU geometry/texture counts and compiled shader programs return to their starting values; no
  *    console errors.
  * The animation loop is stepped by hand (10 Hz, within the 0.1 s frame cap) to keep SwiftShader
@@ -134,14 +135,15 @@ try {
         aquariumTime: a.elapsed,
       };
     });
-  /** Get into `space` (by the pause screen's cut) and start its transition with E. */
+  /** Get into `space` (by the pause screen's fade, Pass 022) and start its transition with E. */
   const begin = async (kind) => {
     const space = kind === 'dive' ? 'office' : 'aquarium';
     if ((await state()).mode !== space) {
       await page.keyboard.press('Escape');
       await paused();
       await choose(space);
-      await step(1);
+      let s = await step(1);
+      while (s.elapsed !== null) s = await step(1);
     }
     await page.evaluate((kind) => {
       const a = window.__cozy;
@@ -290,16 +292,43 @@ try {
   }
 
   // 3. Five full dive/surface cycles.
-  for (let i = 0; i < 5; i++) {
+  // COZY_CYCLES (default 5) full cycles; a long run doubles as a soak (Pass 022). Each cycle also
+  // swims a few seconds and switches spaces once from the pause screen.
+  report.perCycle = [];
+  for (let i = 0; i < Number(process.env.COZY_CYCLES || 5); i++) {
     await begin('dive');
     await finish();
     assert.equal((await state()).mode, 'aquarium');
+    await page.keyboard.down('w');
+    await step(20);
+    await page.keyboard.up('w');
     await begin('surface');
     await finish();
     assert.equal((await state()).mode, 'office');
+    // Pause-screen fade there and back.
+    for (const space of ['aquarium', 'office']) {
+      await page.keyboard.press('Escape');
+      await paused();
+      await choose(space);
+      let s = await step(1);
+      while (s.elapsed !== null) s = await step(1);
+      assert.equal((await state()).mode, space);
+    }
     report.cycles++;
+    console.log(`cycle ${report.cycles}`, JSON.stringify(await snapshot()));
+    report.perCycle.push({
+      ...(await snapshot()),
+      heapMB: await page.evaluate(() =>
+        Math.round((performance.memory?.usedJSHeapSize ?? 0) / 1e6),
+      ),
+    });
   }
   report.afterCycles = await snapshot();
+  assert.deepEqual(
+    { ...report.afterCycles },
+    { ...before },
+    'GPU resources unchanged after the cycles',
+  );
 
   // Reduced-motion surfacing: a short fade, no reverse view.
   await page.evaluate(() => {

@@ -526,6 +526,28 @@ kbd {
   pointer-events: none;
   z-index: 6;
 }
+.dive-prompt.is-hint {
+  background: #0b2e2f80;
+  border-color: #d6e3bb33;
+  color: #e8f0dccc;
+  letter-spacing: 0.4px;
+}
+/* Pass 022: optional frame-time readout, small and out of the way. */
+.frame-time {
+  position: fixed;
+  top: 64px;
+  left: 28px;
+  margin: 0;
+  font:
+    11px/1.2 ui-monospace,
+    'SF Mono',
+    Menlo,
+    monospace;
+  color: #e8f0dcb3;
+  letter-spacing: 0.3px;
+  pointer-events: none;
+  z-index: 6;
+}
 .dive-prompt kbd {
   font: inherit;
   border: 1px solid #d6e3bb88;

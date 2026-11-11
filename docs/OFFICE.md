@@ -26,7 +26,7 @@ The aquarium keeps simulating at full scale in its own scene and renderer. Each 
 ## Limits
 
 - **Tank interior.** Beyond its walls the aquarium shows its teal background, which reads like the background board of a real tank. The water surface is not visible from above, because the tank has a hood.
-- **Lighting.** No shadows. The spotlight stands in for an area light.
+- **Lighting.** No real-time shadows. The spotlight stands in for an area light. Pass 022 adds baked contact shadows (below).
 
 ## The dive (Pass 021)
 
@@ -52,5 +52,18 @@ The aquarium keeps simulating at full scale in its own scene and renderer. Each 
 - **Interruptions.** On the pause screen, choosing where the transition was going resumes it from where it stopped. Choosing where it came from cancels it and puts you back exactly where you pressed E, in that space. The walking or swimming state always matches the camera afterwards, so nothing snaps.
 - **One aquarium clock.** The aquarium simulates on the same clock whether it is seen in miniature from the office, during the dive or while swimming. It keeps running through transitions, so fish and plants never jump in phase at the switch.
 - **Warm shaders.** The surfacing view's shader is compiled during loading; only its plane and render target are created per surfacing, and both are freed when it ends.
-- **Audio.** The destination's audio is unlocked by the E key press. Each soundscape is active only in its own space.
+- **Audio.** The destination's audio is unlocked by the E key press. Outside transitions, each soundscape is active only in its own space. During any transition (Pass 022) both play, crossfaded by the frame's `water` share: it eases from 0 (office) to 1 (water), is exactly 0.5 at the switch, and moves one way only (tested). Gains are rescheduled only when the share moves by 5%.
 - **Reduced motion.** A 0.45 s fade out, a cut, and a 0.45 s fade in. No glide, no bubbles.
+
+## Pass 022 polish
+
+- **Surface where you are.** Surfacing exits through the front glass at the swimmer's own x, kept 3 aquarium units in from either end. You stand 1.05 m out from that point, facing the room, which is clear of furniture for every exit (tested). The rise to the glass is timed by distance: 0.9 s plus 0.05 s per aquarium unit, clamped to 1.1–2.2 s. `DivePath.switchTime` records when the view changes space.
+- **Pause-screen switch.** A `'switch'` transition fades out where you are and back in at the other space's remembered pose and look. It is interruptible like the dive. The first entry from the start screen stays a cut, since the overlay already covers the view.
+- **Contact shadows** (`environment/office/ContactShadows.ts`).
+  - **Shape:** each footprint (desk, chair base, shelf, tank cabinet, plant pots) gets a rounded patch whose vertex alpha fades from the edge outwards over a fixed spread. Four bands do the same along the walls.
+  - **Cost:** everything merges into one indexed geometry with one transparent, depth-test-only material, lifted 7 mm with a polygon offset. That is one extra draw call, no texture and no shadow maps.
+  - **Containment:** patches against a wall stop at the wall.
+- **First-visit hint.** After 4 s walking in the office, while not already at the tank, the prompt shows "Walk up to the tank and look into it to dive in". The first dive stores `cozy-diver.dived.v1`, and the hint never returns. Unavailable or corrupt storage just shows it again.
+- **Frame-time readout** (`ui/frameMeter.ts`, Settings → Show frame time, off by default).
+  - **Sampling:** real frame intervals go into a fixed 120-frame ring, with no per-frame allocation.
+  - **Readout:** twice a second it shows the mean frame time, frame rate and 95th-percentile frame time. Pauses over 1 s are ignored.

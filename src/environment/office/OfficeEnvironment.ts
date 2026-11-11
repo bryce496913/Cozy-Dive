@@ -1,6 +1,11 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import {
+  contactShadowGeometry,
+  contactShadowMaterial,
+  officeShadowLayout,
+} from './ContactShadows';
 import { OFFICE, TANK } from '../../config/office';
 import {
   artTexture,
@@ -855,6 +860,12 @@ export class OfficeEnvironment {
       rug,
       new THREE.MeshStandardMaterial({ map: own(rugTexture()), roughness: 1 }),
       'Office rug',
+    );
+    // Pass 022: soft baked contact shadows under the furniture and along the walls (one draw).
+    this.plane(
+      contactShadowGeometry(officeShadowLayout()),
+      contactShadowMaterial(),
+      'Office contact shadows',
     );
     // Garden beyond the window, lit by daylight rather than the room.
     const garden = new THREE.PlaneGeometry(7, 4.4);

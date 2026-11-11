@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.3 / Pass 021 — The Dive (`0.3.0-alpha.6`)** is a first-person, browser-based aquarium prototype. Start in a cosy, rainy home office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15`. No scores, timers, combat, accounts, or external asset services.
+A quiet little world beneath the surface. **v0.3 / Pass 022 — Office & Dive release candidate (`0.3.0-rc.1`)** is a first-person, browser-based aquarium prototype. Start in a cosy, rainy home office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15`. No scores, timers, combat, accounts, or external asset services.
 
 ## Stack and requirements
 
@@ -32,17 +32,20 @@ Vite binds to all interfaces for cloud development; use `npm run dev -- --host 1
 
 ## Swimming controls
 
-| Input  | Action                                  |
-| ------ | --------------------------------------- |
-| W / S  | Swim forward / backward along your view |
-| A / D  | Strafe left / right                     |
-| Mouse  | Look around                             |
-| Escape | Release mouse capture and pause         |
-| M      | Toggle ambient audio while swimming     |
+| Input  | Action                                                       |
+| ------ | ------------------------------------------------------------ |
+| W / S  | Swim forward / backward along your view                      |
+| A / D  | Strafe left / right                                          |
+| Mouse  | Look around                                                  |
+| Escape | Release mouse capture and pause                              |
+| M      | Toggle ambient audio while swimming                          |
+| E      | At the tank: dive in. Near the surface: return to the office |
+
+In the office, W A S D walk and the mouse looks around.
 
 Click **Return to the Water** to resume. Look up or down and use W/S to change depth; A/D always strafe horizontally. Space and Shift have no swimming action. Pausing or losing browser focus clears held input and propulsion momentum while retaining a resting breath’s phase and small vertical velocity. Diagonal input is normalized. Subtle stroke-related pitch feedback stays below 0.07 degrees, with no roll or visual position offsets. Looking straight up/down is limited.
 
-This is a technical release candidate; final v0.2 approval awaits manual MacBook Air acceptance. See [Pass 021 validation](docs/VALIDATION_V03_PASS_021.md), [Pass 020 validation](docs/VALIDATION_V03_PASS_020.md), [Pass 019 validation](docs/VALIDATION_V02_PASS_019.md), [Pass 018 validation](docs/VALIDATION_V02_PASS_018.md), [Pass 017 validation](docs/VALIDATION_V02_PASS_017.md), [Pass 016 validation](docs/VALIDATION_V02_PASS_016.md), [Pass 015 validation](docs/VALIDATION_V02_PASS_015.md), [Pass 014 validation](docs/VALIDATION_V02_PASS_014.md), [Pass 013 validation](docs/VALIDATION_V02_PASS_013.md) and [repeatable benchmarks](validation/README.md).
+This is the v0.3 release candidate; v0.3 closes on manual MacBook Air acceptance. See [Pass 022 validation](docs/VALIDATION_V03_PASS_022.md), [Pass 021 validation](docs/VALIDATION_V03_PASS_021.md), [Pass 020 validation](docs/VALIDATION_V03_PASS_020.md), [Pass 019 validation](docs/VALIDATION_V02_PASS_019.md), [Pass 018 validation](docs/VALIDATION_V02_PASS_018.md), [Pass 017 validation](docs/VALIDATION_V02_PASS_017.md), [Pass 016 validation](docs/VALIDATION_V02_PASS_016.md), [Pass 015 validation](docs/VALIDATION_V02_PASS_015.md), [Pass 014 validation](docs/VALIDATION_V02_PASS_014.md), [Pass 013 validation](docs/VALIDATION_V02_PASS_013.md) and [repeatable benchmarks](validation/README.md).
 
 ## Current features
 
@@ -159,7 +162,7 @@ To test manually:
 
 - Desktop keyboard/mouse only; mobile touch controls are outside this pass.
 - Collision covers major static rocks, solid ornament components and aquarium limits. Delicate foliage and decorative pebbles remain passable; there is no contact-driven plant deformation, per-triangle sand collision, or dynamic rigid-body physics.
-- Schooling is local steering rather than global pathfinding or hard fish collision. Occasional close passes or temporary fragmentation are possible. Diver reactions are soft avoidance rather than hard player-fish collision. Foraging is visual activity only; there is no food system or identification UI. No office, passages, customization, ocean or progression.
+- Schooling is local steering rather than global pathfinding or hard fish collision. Occasional close passes or temporary fragmentation are possible. Diver reactions are soft avoidance rather than hard player-fish collision. Foraging is visual activity only; there is no food system or identification UI. No passages, customization, larger ocean or progression.
 - Sand is a rippled procedural surface with authored PBR detail (visual relief sits up to 7 cm above the habitat reference); light shafts remain simple and the full lighting overhaul is reserved for a later pass. The water surface is a visual plane, not a fluid simulation.
 - Shipped GLBs use Draco geometry and KTX2/Basis textures (about 14.5 MB of models). Textures stay block-compressed on the GPU where the browser supports a compressed format; otherwise three.js falls back to uncompressed RGBA. Reef rocks are carved inside their accepted footprints, so the overall layout and rock placement are unchanged from Pass 013.
 - Player position is not persisted. Only settings are saved, per origin in browser local storage.
@@ -216,6 +219,17 @@ Behaviour, homes, collision and animation contracts are unchanged; clownfish and
 
 All 40 fish now swim as authored morph rigs: the accepted chromis, plus new pajama cardinalfish, firefish, yellow assessors and royal grammas built on the same rig and morph contract, alongside the Pass 013 clownfish. Simulation, behaviour, pause and reduced motion are unchanged, and the procedural fish remain as the fallback. See [validation and matched captures](docs/VALIDATION_V02_PASS_016.md). This pass awaits user review and MacBook Air acceptance.
 
+### v0.3 Pass 022 release candidate — polish and acceptance
+
+- **Surface where you are:** surfacing leaves through the part of the front glass nearest you and stands you in front of it, after a rise timed by how far you are from the glass.
+- **Calm switching:** the pause screen's office and water buttons now fade between the spaces instead of cutting. Escape mid-fade behaves like any transition: choose the destination to carry on, or the origin to stay.
+- **Sound:** the office and underwater soundscapes crossfade through every dive, surfacing and switch, instead of swapping at the glass.
+- **Contact shadows:** soft baked shadows under the furniture, the tank's cabinet and the plants, and a gentle darkening along the base of the walls. They are one extra draw call, with no real-time shadow maps.
+- **First visit:** after a few seconds in the office, a quiet hint ("Walk up to the tank and look into it to dive in") shows until you dive for the first time.
+- **Frame time:** Settings → **Show frame time** adds a small readout of mean frame time, frame rate and 95th-percentile frame time, for checking performance on your own device. It is off by default.
+
+See [validation](docs/VALIDATION_V03_PASS_022.md).
+
 ### v0.3 Pass 021 candidate — The Dive
 
 Walk up to the tank and look at it: **E · Dive in** appears.
@@ -227,7 +241,7 @@ Walk up to the tank and look at it: **E · Dive in** appears.
 - **Eye height:** after the first playtest, the office eye height is 1.28 m (was 1.6 m, which felt too tall).
 - **Steady swimming:** holding W now eases to one calm speed within about a second and stays there. It no longer keeps building, or surges with each stroke.
 - **Coming to rest:** letting go glides you to a complete stop within a few seconds (Natural 2.5 s), like a person. The next stroke starts from rest again; pressing W mid-glide carries on smoothly.
-- **The pause screen:** still offers instant switching.
+- **The pause screen:** offered instant switching in Pass 021; Pass 022 makes it a calm fade.
 
 See [the office architecture](docs/OFFICE.md#the-dive-pass-021) and [validation](docs/VALIDATION_V03_PASS_021.md).
 

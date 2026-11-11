@@ -62,10 +62,19 @@ export class OfficeAmbience {
     this.seed = (Math.imul(this.seed, 1664525) + 1013904223) >>> 0;
     return this.seed / 4294967296;
   }
+  /** Pass 022: share of the office soundscape during a dive's crossfade (1 otherwise). */
+  private mix = 1;
   private get level(): number {
     return this.active && this.visible && this.enabled && !this.disposed
-      ? this.volume
+      ? this.volume * this.mix
       : 0;
+  }
+  /** Crossfade share (0..1); only reschedules the gain when it moves noticeably. */
+  setMix(mix: number): void {
+    const m = Math.round(Math.max(0, Math.min(1, mix)) * 20) / 20;
+    if (m === this.mix) return;
+    this.mix = m;
+    this.reconcile();
   }
   /** Call from the Enter click or an explicit unmute. */
   unlockFromGesture(): void {

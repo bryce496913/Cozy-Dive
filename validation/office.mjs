@@ -6,7 +6,7 @@
  * 2. "Enter the Office" -> pointer lock -> held W and mouse look actually walk the player, who stays
  *    inside the room and outside furniture; the depth readout is hidden.
  * 3. Escape pauses (overlay offers "Return to the Office" and "Enter the Water"); entering the
- *    water switches to swimming; pausing and "Enter the Office" returns.
+ *    water fades to swimming (Pass 022); pausing and "Enter the Office" fades back.
  * 4. Switching back and forth does not grow GPU geometry/texture counts (no leaks).
  * 5. Fixed-camera views of the room, desk, window, shelf and the live miniature tank, with draw
  *    calls, triangles and CPU submit time for the office frame (miniature included).
@@ -92,6 +92,12 @@ try {
   // Pause, enter the water, pause, return to the office.
   const memory = () =>
     page.evaluate(() => ({ ...window.__cozy.world.renderer.info.memory }));
+  // Pass 022: pause-screen switches fade (about a second, longer in software rendering).
+  const switched = (mode) =>
+    page.waitForFunction(
+      (mode) => !window.__cozy.dive && window.__cozy.mode === mode,
+      mode,
+    );
   report.memoryBefore = await memory();
   await page.keyboard.press('Escape');
   await page
@@ -101,6 +107,7 @@ try {
     .getByRole('button', { name: 'Enter the Water', exact: true })
     .click();
   await settle(page);
+  await switched('aquarium');
   report.swimMode = await page.evaluate(() => window.__cozy.mode);
   assert.equal(report.swimMode, 'aquarium');
   await page.keyboard.down('w');
@@ -113,12 +120,14 @@ try {
       .getByRole('button', { name: 'Enter the Office', exact: true })
       .click();
     await settle(page);
+    await switched('office');
     await page.waitForTimeout(500);
     await page.keyboard.press('Escape');
     await page
       .getByRole('button', { name: 'Enter the Water', exact: true })
       .click();
     await settle(page);
+    await switched('aquarium');
     await page.waitForTimeout(500);
   }
   await page.keyboard.press('Escape');
@@ -126,6 +135,7 @@ try {
     .getByRole('button', { name: 'Enter the Office', exact: true })
     .click();
   await settle(page);
+  await switched('office');
   await page.waitForTimeout(800);
   report.memoryAfter = await memory();
   assert.deepEqual(report.memoryAfter, report.memoryBefore);
