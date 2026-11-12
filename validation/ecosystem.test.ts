@@ -216,8 +216,9 @@ it.each([
                 ? // 216 until Pass 019 round 2: the redesigned shipwreck's convex
                   // strake segments added 68 hulls (503 in the aquarium, from 435).
                   // Pass 023: +12 for the hidden crevice (7 rocks, 5 channel seals).
-                  296
-                : 151, // 139 until Pass 023 (+12 for the hidden crevice)
+                  // Pass 026 playtest: +6 rocks around its mouth.
+                  302
+                : 157, // 139 until Pass 023 (+12 for the hidden crevice; +6 in the Pass 026 playtest)
           );
           expect(aquarium.collision.colliders.length).toBe(expectedHulls);
           expect(snapshot.seahorseDistance).toBeLessThan(0.13);

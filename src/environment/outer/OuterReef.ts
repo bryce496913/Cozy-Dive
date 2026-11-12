@@ -34,13 +34,14 @@ import {
  * soft corals and fans 7-13k. Beyond the last distance a piece is not drawn (fog hides it).
  */
 export const OUTER_DETAIL = {
-  // Pass 026: the reef top is far denser, so full detail is kept closer (fog hides the rest).
-  rock: [4, 10, 40],
+  // Pass 026 playtest: the water is less clear (fog 0.06), so nothing is drawn past 32 m and the
+  // far changes happen deep in the haze; the near ones are pushed out a little to pop less.
+  rock: [4.5, 12, 32],
   /** Massive colonies: full, far level, then a 1.3k-triangle mound in their own colour. */
-  massive: [2.5, 13, 40],
-  branching: [3.5, 12],
-  plate: 13,
-  plant: 13,
+  massive: [3, 14, 32],
+  branching: [4, 14],
+  plate: 16,
+  plant: 16,
   debris: 12,
   /** Re-sort when the eye has moved this far, or this often (s). */
   resortDistance: 1.5,

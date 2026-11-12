@@ -56,6 +56,7 @@ import {
   type WalkWorld,
 } from '../player/walking';
 import { Interface, type ExperienceMode } from '../ui/Interface';
+import { installDeepFog } from '../rendering/deepFog';
 import {
   DEFAULT_SETTINGS,
   loadDived,
@@ -162,6 +163,8 @@ export class Application {
     configureWorld?: (world: UnderwaterScene, state: SwimState) => void,
     options: ApplicationOptions = {},
   ) {
+    // Pass 026: before anything compiles (the outer waters share the tank's programs).
+    installDeepFog();
     this.mode = options.startMode ?? 'office';
     const now = new Date();
     this.clockBase =

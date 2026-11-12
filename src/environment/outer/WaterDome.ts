@@ -10,7 +10,7 @@ import * as THREE from 'three';
 export const WATER_LIGHT = {
   /** Horizon (and fog) colour at the reef top, and at the bottom of the reach down the wall. */
   shallow: 0x174f69,
-  deep: 0x082337,
+  deep: 0x041624,
   /** Depths (m) over which the horizon darkens from shallow to deep. */
   from: 4,
   to: -14,
@@ -18,8 +18,8 @@ export const WATER_LIGHT = {
   surface: 0x5aa9c2,
   abyss: 0x01070d,
   /** At the deepest, light is this much dimmer and fog this much denser (fractions). */
-  dimming: 0.45,
-  thickening: 0.6,
+  dimming: 0.7,
+  thickening: 0.8,
   /** The blue's brightness while the reef beyond the tunnel is still loading. */
   unlit: 0.12,
   /** Dome radius (inside the camera's far plane). */
@@ -58,7 +58,7 @@ varying vec3 vDirection;
 void main() {
   float y = normalize(vDirection).y;
   vec3 up = mix(horizon, surface, pow(smoothstep(0.0, 1.0, y), 1.6));
-  vec3 down = mix(horizon, abyss, smoothstep(0.3, 0.95, -y));
+  vec3 down = mix(horizon, abyss, smoothstep(0.0, 0.45, -y));
   gl_FragColor = vec4(y >= 0.0 ? up : down, 1.0);
   #include <colorspace_fragment>
 }`;
