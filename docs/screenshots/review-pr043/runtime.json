@@ -1,0 +1,104 @@
+{
+  "errors": [],
+  "warnings": [],
+  "initial": {
+    "mode": "office",
+    "world": "aquarium",
+    "fish": 3,
+    "plants": 0.1,
+    "office": 0.1,
+    "outlook": true,
+    "cube": true,
+    "walk": {
+      "x": 0.25,
+      "y": 1.28,
+      "z": 1.6
+    }
+  },
+  "walked": {
+    "mode": "office",
+    "world": "aquarium",
+    "fish": 18,
+    "plants": 0.6,
+    "office": 0.6,
+    "outlook": true,
+    "cube": true,
+    "walk": {
+      "x": 0.583265694662476,
+      "y": 1.28,
+      "z": 1.2200229255796087
+    }
+  },
+  "pauseFrozen": true,
+  "before": {
+    "geometries": 431,
+    "textures": 116
+  },
+  "dive-before": {
+    "mode": "office",
+    "elapsed": 2.3499,
+    "position": {
+      "x": 0.8509838499540862,
+      "y": 0.9444444444444444,
+      "z": 0.6
+    },
+    "fog": 0.026,
+    "outlook": true
+  },
+  "dive-after": {
+    "mode": "aquarium",
+    "elapsed": 2.3501000000000003,
+    "position": {
+      "x": -1.077575745268301e-15,
+      "y": 6.9997473750692505,
+      "z": 17.599094760664816
+    },
+    "fog": 0.00900000014126928,
+    "outlook": true
+  },
+  "surface-before": {
+    "mode": "aquarium",
+    "elapsed": 1.7415720432060584,
+    "position": {
+      "x": -4.000000000000001,
+      "y": 11.749999999999998,
+      "z": 12.919920013333332
+    },
+    "fog": 0.009,
+    "outlook": true
+  },
+  "surface-after": {
+    "mode": "office",
+    "elapsed": 1.7417720432060584,
+    "position": {
+      "x": 0.9808711411111112,
+      "y": 1.0763888888888888,
+      "z": 0.4888888888888889
+    },
+    "fog": 0.009,
+    "outlook": true
+  },
+  "end": {
+    "mode": "office",
+    "world": "aquarium",
+    "fish": 27,
+    "plants": 0.8999999999999999,
+    "office": 0.7999999999999999,
+    "outlook": true,
+    "cube": true,
+    "walk": {
+      "x": -0.0988888888888888,
+      "y": 1.28,
+      "z": 0.488888888888889
+    }
+  },
+  "after": {
+    "geometries": 431,
+    "textures": 116
+  },
+  "disposal": {
+    "cube": 1,
+    "geometry": 1,
+    "material": 1
+  }
+}
