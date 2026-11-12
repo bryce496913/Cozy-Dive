@@ -399,13 +399,15 @@ import fs from 'node:fs';
         // Pass 016 authored fish schools (462) + Pass 017 fish distance levels (36 parts).
         // Pass 019 warm-up uploads every distance level up front, Pass 019 round 2 adds the carved
         // den rock and the new moray head, and v0.3 Pass 020 the office (26 geometries).
-        // Pass 023: +8 for the hidden crevice (7 boulder geometries and its dark liner).
-        assert.equal(snapshot.tropical.geometries, 575);
+        // Pass 023: +8 for the hidden crevice (7 boulder geometries and its dark liner). Pass 026
+        // playtest: +7 (6 rocks around its mouth, and darkness veils; the rock tube replaces the liner).
+        assert.equal(snapshot.tropical.geometries, 582);
         // Pass 019 round 2: moray head skin, frogfish camouflage, wreck sand. Pass 023: +2 for the
-        // hidden crevice (its fallback rock material, kept for the procedural reef, and its liner).
+        // hidden crevice (its fallback rock material, kept for the procedural reef, and its liner;
+        // Pass 026 playtest: the darkness veils' material replaces the liner's).
         assert.equal(snapshot.tropical.materials, 111);
-        // Pass 023: +12 for the hidden crevice (7 rocks, 5 channel seals).
-        assert.equal(snapshot.tropical.hulls, 515);
+        // Pass 023: +12 for the hidden crevice (7 rocks, 5 channel seals); Pass 026 playtest: +6 rocks.
+        assert.equal(snapshot.tropical.hulls, 521);
         assert.equal(snapshot.corrections, 0);
         if (longSession.length) {
           assert.deepEqual(

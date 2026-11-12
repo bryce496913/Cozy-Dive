@@ -372,8 +372,9 @@ describe('anchored marine inhabitants', () => {
     expect(m.behavior.extension).toBeLessThan(0.02);
     expect(['hidden', 'retreating']).toContain(m.behavior.state);
     expect(m.behavior.retreats).toBeGreaterThan(0);
-    // 139 until Pass 023: the hidden crevice adds 7 rock hulls and 5 channel seals.
-    expect(a.collision.colliders).toHaveLength(151);
+    // 139 until Pass 023: the hidden crevice adds 7 rock hulls and 5 channel seals; the Pass 026
+    // playtest adds 6 more rocks around its mouth.
+    expect(a.collision.colliders).toHaveLength(157);
   });
   it('freezes all anchored poses on pause and settles optional motion with reduced motion', () => {
     const l = a.anchoredLife;
