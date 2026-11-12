@@ -1,5 +1,6 @@
 import { AuthoredAquarium } from '../environment/AuthoredAquarium';
 import { AuthoredReef } from '../environment/AuthoredReef';
+import { TankOutlook } from './TankOutlook';
 import { warmUpScene } from './warmUp';
 import { findSeahorseGrip } from '../creatures/discoveries/SeahorseGrip';
 import { SEAHORSE_SCALE } from '../creatures/discoveries/Seahorse';
@@ -65,6 +66,8 @@ export class UnderwaterScene implements WaterWorld {
     fragmentShader: OUTSIDE_FRAGMENT,
     fog: false,
   });
+  /** v0.4 Pass 027: the office, blurred, through the glass (once the office has captured it). */
+  readonly outlook = new TankOutlook();
   /** Reused by `renderView` to restore the clear colour (no per-frame allocation). */
   private readonly clearColor = new THREE.Color();
   setPresentation(value: Presentation): void {
@@ -102,6 +105,7 @@ export class UnderwaterScene implements WaterWorld {
     this.scene.add(fill);
     this.aquarium = new Aquarium();
     this.scene.add(this.aquarium.root);
+    this.scene.add(this.outlook.mesh);
     this.assetStatus.textContent = 'Preparing aquarium details…';
     this.assetStatus.setAttribute('role', 'status');
     this.assetStatus.style.cssText =
@@ -307,6 +311,9 @@ export class UnderwaterScene implements WaterWorld {
       clearColor = this.renderer.getClearColor(this.clearColor),
       clearAlpha = this.renderer.getClearAlpha();
     if (fog instanceof THREE.FogExp2) fog.density = fogDensity;
+    // Seen from the room, the tank shows the room itself, not a capture of it (Pass 027).
+    const outlook = this.outlook.mesh.visible;
+    this.outlook.mesh.visible = false;
     // Rendered directly, the background colour is not tone mapped. Keep it identifiable in the
     // target (alpha 0, background colour) so the glass can treat it the same way (Pass 021).
     if (background instanceof THREE.Color) {
@@ -322,6 +329,7 @@ export class UnderwaterScene implements WaterWorld {
       this.scene.background = background;
       this.renderer.setClearColor(clearColor, clearAlpha);
       if (fog instanceof THREE.FogExp2) fog.density = density;
+      this.outlook.mesh.visible = outlook;
     }
   }
   dispose(): void {
@@ -333,6 +341,7 @@ export class UnderwaterScene implements WaterWorld {
     this.resizeObserver.disconnect();
     this.outside?.geometry.dispose();
     this.outsideMaterial.dispose();
+    this.outlook.dispose();
     this.reef.dispose();
     this.authored.dispose();
     this.aquarium.dispose();

@@ -60,11 +60,13 @@ export function officeShadowLayout(): {
     round = 0.04,
   ): ShadowPatch => ({ center: c, size: s, round, strength, spread });
   const patches: ShadowPatch[] = [
-    // The desk stands on legs: a lighter shadow under its whole top.
+    // The L-desk stands on legs: a lighter shadow under its whole top.
     patch(o.desk.center, o.desk.size, 0.26, 0.28),
-    // The chair's base is smaller than its seat.
+    patch(o.deskReturn.center, o.deskReturn.size, 0.26, 0.28),
+    // The chairs' bases are smaller than their seats.
     patch(o.chair.center, { x: 0.5, z: 0.5 }, 0.3, 0.16, 0.25),
-    patch(o.shelf.center, o.shelf.size, 0.42, 0.14),
+    ...o.guestChairs.map((c) => patch(c, { x: 0.42, z: 0.42 }, 0.24, 0.14)),
+    patch(o.boxes.center, o.boxes.size, 0.42, 0.12),
     // The tank's cabinet: solid, and heavy.
     patch(o.stand.center, o.stand.size, 0.48, 0.15),
     ...o.plants.map((p) =>

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { OFFICE, TANK_SCALE } from '../config/office';
+import { OFFICE, TANK, TANK_SCALE } from '../config/office';
 import { glassClarity } from '../player/dive';
 import { OfficeEnvironment } from '../environment/office/OfficeEnvironment';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
@@ -7,7 +7,7 @@ import type { UnderwaterScene } from './UnderwaterScene';
 import { warmUpScene } from './warmUp';
 
 /**
- * v0.3 Pass 020: renders the cosy office around the real aquarium.
+ * v0.3 Pass 020: renders the office around the real aquarium (v0.4 Pass 027: the glass office).
  *
  * The aquarium keeps simulating at full scale in its own scene. Each frame its camera is the office
  * camera mapped into aquarium space (divided by TANK_SCALE), which sees exactly what a one-metre
@@ -50,6 +50,8 @@ void main(){
   gl_FragColor=vec4(c,1.);
   #include <colorspace_fragment>
 }`;
+/** Pass 027: pixels per face of the office capture shown inside the tank (small: it is blurred). */
+export const OFFICE_CAPTURE = 128;
 /** Miniature render resolution relative to the screen. */
 export const MINIATURE_RESOLUTION = 0.6;
 /** Underwater haze for the outside view (the indoor view uses 0.026). */
@@ -107,35 +109,37 @@ export class OfficeScene {
     0.005,
     30,
   );
+  private cube?: THREE.WebGLCubeRenderTarget;
   private disposed = false;
 
   constructor(private readonly world: UnderwaterScene) {
     this.scene.name = 'Office';
-    this.scene.background = new THREE.Color(0x3a332d);
+    this.scene.background = new THREE.Color(0xd9dbdb);
     this.scene.add(this.office.root);
-    // Soft rainy daylight through the window, a warm desk lamp, and a gentle room fill.
-    const sky = new THREE.HemisphereLight(0xf4efe6, 0x6e5a48, 1.15);
-    // A wide, fully soft spot from just outside the window stands in for an area light (whose
-    // lookup tables would add ~280 kB to the bundle).
-    const daylight = new THREE.SpotLight(0xe2eaf0, 9, 9, 1.1, 1, 1.2);
+    // Pass 027: a bright, cool office: ceiling panels, daylight through the window, and the
+    // open-plan office beyond the glass lit by its own panels.
+    const sky = new THREE.HemisphereLight(0xf2f5f6, 0x8a8478, 1.25);
+    const daylight = new THREE.SpotLight(0xe6eef4, 5, 7, 1.1, 1, 1.2);
     daylight.position.set(
       this.office.window.center.x,
       this.office.window.center.y + 0.3,
       this.office.window.center.z - 0.6,
     );
-    daylight.target.position.set(this.office.window.center.x + 0.4, 0.4, 1.2);
+    daylight.target.position.set(this.office.window.center.x - 0.3, 0.4, 0.8);
     this.scene.add(daylight.target);
-    const bounce = new THREE.DirectionalLight(0xdfe7ee, 0.55);
-    bounce.position.set(-0.6, 2.4, -4);
-    const lamp = new THREE.PointLight(0xffc68a, 2.2, 3.2, 1.6);
+    const bounce = new THREE.PointLight(0xf4f6f6, 2.2, 7, 1.4);
+    bounce.position.copy(this.office.panel);
+    const lamp = new THREE.PointLight(0xf6f7f4, 2.6, 6, 1.4);
     lamp.position.copy(this.office.lampBulb);
+    const openPlan = new THREE.PointLight(0xf4f6f6, 7, 14, 1.2);
+    openPlan.position.set(0, 2.6, 6.2);
     const tankLight = new THREE.PointLight(0xbfe8e8, 0.35, 1.6, 2);
     tankLight.position.set(
       OFFICE.stand.center.x - 0.6,
       1.25,
       OFFICE.stand.center.z,
     );
-    this.lights.push(sky, daylight, bounce, lamp, tankLight);
+    this.lights.push(sky, daylight, bounce, lamp, openPlan, tankLight);
     this.scene.add(...this.lights);
 
     this.target = new THREE.WebGLRenderTarget(1, 1, {
@@ -165,7 +169,44 @@ export class OfficeScene {
     this.inverseTank.copy(this.office.tankRoot.matrixWorld).invert();
     this.camera.position.set(OFFICE.spawn.x, OFFICE.spawn.y, OFFICE.spawn.z);
     this.camera.rotation.set(-0.12, OFFICE.spawnYaw, 0, 'YXZ');
-    this.prepared = warmUpScene(world.renderer, this.scene, this.camera);
+    // Pass 027: once ready, the tank gets its blurred view of the office through the glass.
+    this.prepared = warmUpScene(world.renderer, this.scene, this.camera).then(
+      () => {
+        if (!this.disposed) world.outlook.setView(this.captureFromTank());
+      },
+    );
+  }
+
+  /**
+   * v0.4 Pass 027: the office as seen from the tank's centre: a small cube capture, turned to the
+   * aquarium's axes so the tank can look it up by its own directions (see TankOutlook). The tank
+   * itself is hidden for the capture. Captured once: the room is still (only the clock moves).
+   */
+  captureFromTank(): THREE.CubeTexture {
+    const cube = (this.cube ??= new THREE.WebGLCubeRenderTarget(
+        OFFICE_CAPTURE,
+        {
+          generateMipmaps: true,
+          minFilter: THREE.LinearMipmapLinearFilter,
+        },
+      )),
+      camera = new THREE.CubeCamera(0.03, 30, cube),
+      holder = new THREE.Group(),
+      tank = this.office.tankRoot,
+      visible = tank.visible;
+    holder.position.set(0, TANK.size.y / 2, 0).applyMatrix4(tank.matrixWorld);
+    holder.quaternion.copy(this.tankRotation);
+    holder.add(camera);
+    this.scene.add(holder);
+    holder.updateMatrixWorld(true);
+    tank.visible = false;
+    try {
+      camera.update(this.world.renderer, this.scene);
+    } finally {
+      tank.visible = visible;
+      this.scene.remove(holder);
+    }
+    return cube.texture;
   }
 
   /** Map the office camera into aquarium space (exact miniature view). */
@@ -286,6 +327,10 @@ export class OfficeScene {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    if (this.cube) {
+      this.world.outlook.setView(null);
+      this.cube.dispose();
+    }
     this.office.dispose();
     this.lights.forEach((l) => l.dispose());
     this.portal.dispose();

@@ -56,10 +56,18 @@ describe('Pass 020 office walking', () => {
     );
   });
   it('matches across frame rates and caps long frame gaps', () => {
+    // Pass 027: a clear run across the glass office, between the tank and the guest chairs.
     const run = (fps: number) => {
-      const s = createWalkState({ x: 0, y: 1.6, z: 1 });
+      const s = createWalkState({ x: 1.3, y: 1.6, z: 1.85 });
       for (let i = 0; i < fps * 2; i++)
-        stepWalking(s, { forward: 1, right: 0.4 }, 0.3, 1 / fps, tuning, world);
+        stepWalking(
+          s,
+          { forward: 1, right: 0.4 },
+          Math.PI / 2,
+          1 / fps,
+          tuning,
+          world,
+        );
       return s.position;
     };
     const p30 = run(30),
