@@ -33,7 +33,10 @@ async function open() {
     const r = await route.fetch();
     await route.fulfill({
       response: r,
-      body: (await r.text()) + '\nwindow.__cozy=app;',
+      // Rendering is staged explicitly below; preparation needs no live preview loop.
+      body:
+        (await r.text()) +
+        '\nwindow.__cozy=app;cancelAnimationFrame(app.frame);',
     });
   });
   return page;
@@ -52,6 +55,9 @@ try {
   assert.equal(
     await page.evaluate(() => window.__cozy.world.authored.ready),
     true,
+  );
+  await page.evaluate(() =>
+    Promise.all([window.__cozy.world.prepared, window.__cozy.office.prepared]),
   );
   await page
     .getByRole('button', { name: 'Enter the Water', exact: true })
@@ -256,8 +262,9 @@ try {
       hulls: q.collision.colliders.length,
     };
   });
-  // Pass 014: the reef library is the fourth local request; reef parts replace rock hulls.
-  assert.deepEqual(report.inventory, { fish: 41, hidden: 7, hulls: 503 });
+  // The accepted 503 authored hulls plus the crevice's 12 channel/rock hulls (Pass 023)
+  // and 6 mouth rocks (Pass 026 playtest). Frogfish animation adds no solid hulls.
+  assert.deepEqual(report.inventory, { fish: 41, hidden: 7, hulls: 521 });
   assert.equal(report.requests.length, 10); // + Pass 015 nudibranchs + Pass 016 five fish libraries
   assert.deepEqual(report.errors, []);
   report.cleanup = await page.evaluate(() => {
@@ -287,8 +294,8 @@ try {
       () => window.__cozy.world.aquarium.collision.colliders.length,
     ),
     // Procedural ornament hulls remain; the independent Pass 014 reef library still loads and
-    // replaces the 34 rock hulls with its 253 authored parts (139 - 34 + 253).
-    358,
+    // replaces the 34 rock hulls with its 253 authored parts; the crevice contributes 18.
+    376,
   );
   assert.match(
     await fallback.getByRole('status').textContent(),

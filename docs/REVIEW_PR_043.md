@@ -2,6 +2,8 @@
 
 Reviewed November 12, 2026 against merged `main` at `27a517868bba392020b3db470d2fa2479afac249` (`0.4.0-alpha.6`). Scope: PR #43's changes from `4d91cc2`, their integration with the existing office/dive lifecycle, and relevant checks on current main. This report does not change runtime behavior.
 
+**Resolution:** The backdrop regression below was fixed in [PR #45](https://github.com/bryce496913/Cozy-Dive/pull/45). This report retains the original finding and evidence from `27a5178`.
+
 ## Finding
 
 ### P2 — Preserve the backdrop across the dive's scene switch

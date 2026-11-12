@@ -401,11 +401,14 @@ import fs from 'node:fs';
         // den rock and the new moray head, and v0.3 Pass 020 the office (26 geometries).
         // Pass 023: +8 for the hidden crevice (7 boulder geometries and its dark liner). Pass 026
         // playtest: +7 (6 rocks around its mouth, and darkness veils; the rock tube replaces the liner).
-        assert.equal(snapshot.tropical.geometries, 582);
+        // PR #47 adds the procedural fallback jaw alongside the re-authored frogfish.
+        assert.equal(snapshot.tropical.geometries, 583);
         // Pass 019 round 2: moray head skin, frogfish camouflage, wreck sand. Pass 023: +2 for the
         // hidden crevice (its fallback rock material, kept for the procedural reef, and its liner;
         // Pass 026 playtest: the darkness veils' material replaces the liner's).
-        assert.equal(snapshot.tropical.materials, 111);
+        // The re-authored frogfish prunes the old skin palette; its lure shares the
+        // body's tinted skin instead of receiving another clone/tint pass.
+        assert.equal(snapshot.tropical.materials, 108);
         // Pass 023: +12 for the hidden crevice (7 rocks, 5 channel seals); Pass 026 playtest: +6 rocks.
         assert.equal(snapshot.tropical.hulls, 521);
         assert.equal(snapshot.corrections, 0);
