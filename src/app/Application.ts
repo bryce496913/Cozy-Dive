@@ -576,6 +576,8 @@ export class Application {
     return this.waterWorld === 'outer' && this.outer ? this.outer : this.world!;
   }
   private setWaterWorld(id: WaterWorldId): void {
+    // Pass 026: entering the outer waters (the tunnel) starts preparing the reef beyond it.
+    if (id === 'outer') this.outer?.begin();
     this.waterWorld = id;
     this.ui.setOuter(id === 'outer');
     // Pass 024: the soundscape's small sounds come from the current world's places.

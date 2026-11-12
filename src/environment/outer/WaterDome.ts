@@ -20,6 +20,8 @@ export const WATER_LIGHT = {
   /** At the deepest, light is this much dimmer and fog this much denser (fractions). */
   dimming: 0.45,
   thickening: 0.6,
+  /** The blue's brightness while the reef beyond the tunnel is still loading. */
+  unlit: 0.12,
   /** Dome radius (inside the camera's far plane). */
   radius: 140,
 } as const;
@@ -68,6 +70,7 @@ export class WaterDome {
   /** How deep the eye is (see `depthShade`); light dims and fog thickens with it. */
   shade = 0;
   private readonly deepColour = new THREE.Color(WATER_LIGHT.deep);
+  private readonly surface = new THREE.Color(WATER_LIGHT.surface);
   private readonly material: THREE.ShaderMaterial;
   private disposed = false;
   constructor() {
@@ -77,7 +80,7 @@ export class WaterDome {
       fragmentShader: FRAGMENT,
       uniforms: {
         horizon: { value: this.horizon },
-        surface: { value: new THREE.Color(WATER_LIGHT.surface) },
+        surface: { value: this.surface },
         abyss: { value: new THREE.Color(WATER_LIGHT.abyss) },
       },
       side: THREE.BackSide,
@@ -92,12 +95,18 @@ export class WaterDome {
     this.mesh.frustumCulled = false;
     this.mesh.renderOrder = -1;
   }
-  /** Centre the dome on the eye and set the horizon for its depth. */
-  update(eye: THREE.Vector3): void {
+  /**
+   * Centre the dome on the eye and set the horizon for its depth. `light` (0..1) scales the whole
+   * blue: Pass 026 keeps it nearly dark beyond the tunnel until the reef is ready.
+   */
+  update(eye: THREE.Vector3, light = 1): void {
     if (this.disposed) return;
     this.mesh.position.copy(eye);
     this.shade = depthShade(eye.y);
     this.horizon.setHex(WATER_LIGHT.shallow).lerp(this.deepColour, this.shade);
+    const k = WATER_LIGHT.unlit + (1 - WATER_LIGHT.unlit) * light;
+    this.horizon.multiplyScalar(k);
+    this.surface.setHex(WATER_LIGHT.surface).multiplyScalar(k);
   }
   dispose(): void {
     if (this.disposed) return;

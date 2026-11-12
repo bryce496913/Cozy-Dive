@@ -24,9 +24,12 @@ import {
   channelCentre,
   channelWeight,
   dropWeight,
-  edgeCurrent,
+  easeAtEdges,
+  easeFactor,
   seabedHeight,
 } from '../src/environment/outer/OuterTerrain';
+import { reefObstacles } from '../src/environment/outer/OuterCreatures';
+import { WATER_LIGHT, depthShade } from '../src/environment/outer/WaterDome';
 import { spawnFish } from '../src/fish/FishSpawner';
 import type { ConvexCollider } from '../src/player/collision';
 import { createSwimState, integrateSwimming } from '../src/player/swimming';
@@ -37,69 +40,120 @@ import {
 
 const v = (x: number, y: number, z: number): Vec3 => ({ x, y, z });
 
-describe('Pass 024 outer seabed and edges', () => {
-  it('has a winding channel, a gentle reef flat and a drop-off into deep water', () => {
-    // The channel is lower than the sand beside it, all along the reef.
-    for (let z = OUTER.cliffZ - 4; z > OUTER.dropOff.start; z -= 6) {
+describe('Pass 026 outer seabed and edges', () => {
+  it('has a sand gully, a reef top near the sand level and a wall falling into the deep', () => {
+    // The gully is lower than the reef beside it, from the cliff to the lip.
+    for (let z = OUTER.cliffZ - 4; z > OUTER.dropOff.start; z -= 4) {
       const c = channelCentre(z);
       expect(channelWeight(c, z)).toBeCloseTo(1, 6);
-      expect(seabedHeight(c, z)).toBeLessThan(seabedHeight(c + 9, z));
+      expect(seabedHeight(c, z)).toBeLessThan(seabedHeight(c + 6, z));
     }
-    // The reef flat stays within a metre or two of the sand level.
+    // The reef top stays within a metre or two of the sand level.
     for (let x = -36; x <= 36; x += 6)
-      for (let z = OUTER.cliffZ - 2; z > OUTER.dropOff.start; z -= 6) {
+      for (let z = OUTER.cliffZ - 2; z > OUTER.dropOff.start; z -= 4) {
         expect(seabedHeight(x, z)).toBeGreaterThan(OUTER.floorY - 2);
         expect(seabedHeight(x, z)).toBeLessThan(OUTER.floorY + 2.5);
       }
-    // Over the drop-off it falls away by its full depth.
+    // The lip is close to the tunnel, and the wall below it is steep and deep.
+    expect(OUTER.cliffZ - OUTER.dropOff.start).toBeLessThanOrEqual(30);
     expect(dropWeight(OUTER.dropOff.start + 1)).toBe(0);
     expect(dropWeight(OUTER.dropOff.end - 1)).toBe(1);
-    expect(seabedHeight(0, OUTER.dropOff.end - 5)).toBeLessThan(
-      OUTER.floorY - OUTER.dropOff.depth + 2,
+    const fall =
+      seabedHeight(0, OUTER.dropOff.start + 1) -
+      seabedHeight(0, OUTER.dropOff.end - 1);
+    expect(fall).toBeGreaterThan(OUTER.dropOff.depth - 2);
+    expect(
+      fall / (OUTER.dropOff.start - OUTER.dropOff.end + 2),
+    ).toBeGreaterThan(3);
+    // Beyond the wall's foot the bottom keeps falling away, out of reach.
+    expect(seabedHeight(0, OUTER.dropOff.end - 40)).toBeLessThan(
+      seabedHeight(0, OUTER.dropOff.end - 2) - 10,
     );
-    // Always inside the swimmable volume.
-    for (let z = OUTER.cliffZ; z > OUTER.bounds.min.z; z -= 5)
-      expect(seabedHeight(0, z)).toBeGreaterThan(OUTER.bounds.min.y);
   });
-  it('turns the swimmer back gently near the edges, and nowhere else', () => {
-    const out = v(0, 0, 0),
-      r = OUTER.reef;
-    expect(edgeCurrent(v(0, 5, -60), out)).toEqual({ x: 0, y: -0, z: 0 });
-    edgeCurrent(v(r.maxX + OUTER.edgeWidth, 5, -60), out);
-    expect(out.x).toBeCloseTo(-OUTER.edgeCurrent, 6);
-    edgeCurrent(v(r.minX - OUTER.edgeWidth / 2, 5, -60), out);
-    expect(out.x).toBeGreaterThan(0);
-    expect(out.x).toBeLessThan(OUTER.edgeCurrent);
-    edgeCurrent(v(0, 5, r.minZ - OUTER.edgeWidth), out);
-    expect(out.z).toBeCloseTo(OUTER.edgeCurrent, 6);
-    edgeCurrent(v(0, r.maxY + OUTER.edgeWidth, -60), out);
-    expect(out.y).toBeCloseTo(-OUTER.edgeCurrent, 6);
-    // The current never points outward, and is never stronger than its limit.
-    for (let x = -60; x <= 60; x += 3) {
-      edgeCurrent(v(x, 5, -60), out);
-      expect(out.x * Math.sign(x)).toBeLessThanOrEqual(0);
-      expect(Math.abs(out.x)).toBeLessThanOrEqual(OUTER.edgeCurrent + 1e-9);
+  it('slows outward swimming to a hover near every edge, and leaves the rest alone', () => {
+    const r = OUTER.reach,
+      lip = OUTER.dropOff.start;
+    const eased = (p: Vec3, d: Vec3) => easeAtEdges(p, { ...d });
+    // Inside the reach nothing changes, in any direction.
+    for (const d of [
+      v(1, 0, 0),
+      v(-1, 0, 0),
+      v(0, 1, 0),
+      v(0, -1, 0),
+      v(0, 0, -1),
+    ])
+      expect(eased(v(0, 3, -45), d)).toEqual(d);
+    // Out over the blue: slower the further past the lip, then stopped.
+    let previous = 1;
+    for (let past = 0; past <= r.past + r.stop + 1; past += 0.5) {
+      const k = -eased(v(0, 0, lip - past), v(0, 0, -1)).z;
+      expect(k).toBeLessThanOrEqual(previous + 1e-12);
+      previous = k;
+    }
+    expect(-eased(v(0, 0, lip - r.past), v(0, 0, -1)).z).toBeCloseTo(
+      r.crawl,
+      9,
+    );
+    expect(eased(v(0, 0, lip - r.past - r.stop), v(0, 0, -1)).z).toBeCloseTo(
+      0,
+      9,
+    );
+    // Swimming back towards the reef is never slowed.
+    expect(eased(v(0, 0, lip - r.past - r.stop), v(0, 0, 1)).z).toBe(1);
+    // Down the wall, up high and at both sides alike.
+    expect(
+      eased(v(0, r.down - r.depth - r.stop, -60), v(0, -1, 0)).y,
+    ).toBeCloseTo(0, 9);
+    expect(eased(v(0, r.down - r.depth - r.stop, -60), v(0, 1, 0)).y).toBe(1);
+    expect(eased(v(0, r.up + r.rise + r.stop, -45), v(0, 1, 0)).y).toBeCloseTo(
+      0,
+      9,
+    );
+    for (const side of [-1, 1]) {
+      const x = side * (r.halfWidth + r.side + r.stop);
+      expect(eased(v(x, 3, -45), v(side, 0, 0)).x).toBeCloseTo(0, 9);
+      expect(eased(v(x, 3, -45), v(-side, 0, 0)).x).toBe(-side);
+    }
+    // A little way out over the blue (5-8 m past the lip) before it all but stops.
+    expect(r.past).toBeGreaterThanOrEqual(5);
+    expect(r.past).toBeLessThanOrEqual(8);
+    expect(easeFactor(-1, 3)).toBe(1);
+  });
+  it('fades into darker blue with depth', () => {
+    expect(depthShade(WATER_LIGHT.from + 1)).toBe(0);
+    expect(depthShade(WATER_LIGHT.to - 1)).toBe(1);
+    let previous = 0;
+    for (let y = WATER_LIGHT.from; y >= WATER_LIGHT.to; y -= 1) {
+      expect(depthShade(y)).toBeGreaterThanOrEqual(previous);
+      previous = depthShade(y);
     }
   });
 });
 
-describe('Pass 024 reef layout', () => {
+describe('Pass 024/026 reef layout', () => {
   const layout = outerReefLayout();
   it('is deterministic and dresses the reef generously', () => {
     expect(outerReefLayout()).toEqual(layout);
     const count = (f: string) =>
       layout.placements.filter((p) => p.family === f).length;
     expect(layout.heads).toHaveLength(OUTER_REEF.heads);
-    expect(count('rock')).toBeGreaterThan(50);
+    // Pass 026: a dense reef top, little bare sand, and fans down the wall.
+    expect(count('rock')).toBeGreaterThan(150);
     expect(
       count('massive') + count('branching') + count('plate'),
-    ).toBeGreaterThan(40);
-    expect(count('soft') + count('fan')).toBeGreaterThan(15);
-    expect(count('blade') + count('grass')).toBeGreaterThan(200);
+    ).toBeGreaterThan(200);
+    expect(count('soft') + count('fan')).toBeGreaterThan(120);
+    expect(count('blade') + count('grass')).toBeGreaterThan(80);
+    const onWall = layout.placements.filter(
+      (p) =>
+        (p.family === 'fan' || p.family === 'soft') &&
+        p.position.z < OUTER.dropOff.start - 0.5,
+    );
+    expect(onWall.length).toBeGreaterThan(20);
   });
-  it('keeps coral heads apart, off the channel, clear of the tunnel mouth and inside the reef', () => {
+  it('keeps bommies apart, off the gully, clear of the tunnel mouth and inside the reef', () => {
     for (const h of layout.heads) {
-      expect(buildable(h.x, h.z, 4)).toBe(true);
+      expect(buildable(h.x, h.z, 2.5)).toBe(true);
       expect(h.y).toBeCloseTo(seabedHeight(h.x, h.z), 9);
       for (const o of layout.heads)
         if (o !== h)
@@ -255,7 +309,7 @@ describe('Pass 024 outer collision', () => {
         OUTER.bounds,
         seabedHeight,
       ),
-      s = createSwimState(v(1, 6, -60)),
+      s = createSwimState(v(1, 6, -45)),
       tuning = { speed: 1.68, feel: 'natural' as const, reducedMotion: false };
     // Dive straight down: stops just above the sand, never below it.
     for (let i = 0; i < 60 * 10; i++)
@@ -264,18 +318,23 @@ describe('Pass 024 outer collision', () => {
       seabedHeight(s.position.x, s.position.z) + OUTER.bounds.clearance;
     expect(s.position.y).toBeGreaterThanOrEqual(floor - 1e-9);
     expect(s.position.y).toBeLessThan(floor + 0.05);
-    // Swim along the sand into a rock: blocked by it.
-    const r = createSwimState(v(-5, 1.5, -39));
+    // Swim along the reef into a rock: blocked by it.
+    const rock = boxes.find(
+      (b) => b.min.x > -20 && b.max.x < 20 && b.max.y - b.min.y > 1.5,
+    )!;
+    const y = (rock.min.y + rock.max.y) / 2,
+      z = (rock.min.z + rock.max.z) / 2,
+      r = createSwimState(v(rock.min.x - 3, y, z));
     for (let i = 0; i < 60 * 8; i++)
       integrateSwimming(r, v(1, 0, 0), 1 / 60, tuning, OUTER.bounds, world);
-    expect(r.position.x).toBeLessThan(0);
+    expect(r.position.x).toBeLessThan(rock.max.x);
   });
 });
 
 describe('Pass 024 outer fish', () => {
   const layout = outerReefLayout();
-  it('gathers each school beside a coral head, and they all find room to spawn', () => {
-    const species = outerSpecies(layout.heads);
+  it('gathers each school over the reef top, and they all find room to spawn', () => {
+    const species = outerSpecies(reefObstacles(layout.placements));
     expect(species).toHaveLength(OUTER_SCHOOLS.length);
     // Coarse obstacles like the runtime's: a box per rock or colony.
     const rocks = layout.placements

@@ -15,7 +15,11 @@ import {
   outerInterests,
   outerSpecies,
 } from '../environment/outer/OuterSchools';
-import { easeAtEdges, seabedHeight } from '../environment/outer/OuterTerrain';
+import {
+  easeAtEdges,
+  easeFactor,
+  seabedHeight,
+} from '../environment/outer/OuterTerrain';
 import { reefSightings } from '../environment/outer/outerSightings';
 import { WATER_LIGHT, WaterDome } from '../environment/outer/WaterDome';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
@@ -37,6 +41,12 @@ import { warmUpScene } from './warmUp';
  * world renders per frame.
  */
 const WATER = 0x1d5d76;
+/**
+ * Pass 026: while the reef loads, the light beyond the tunnel stays at `dark` (fraction), and
+ * swimming eases to a stop over `band` m, `hold` m inside the cliff. Once ready, the light opens
+ * over `reveal` s.
+ */
+export const LOADING = { dark: 0.12, hold: 4, band: 3, reveal: 1.8 } as const;
 /** The tank's libraries and plant shader, shared with the outer reef. */
 export interface SharedLibraries {
   readonly reef: AssetLoader;
@@ -59,8 +69,13 @@ export class OuterWatersScene implements WaterWorld {
   readonly sightings: SightCandidate[] = [];
   /** Where the soundscape's small sounds come from here (at the coral heads). */
   readonly soundSpots: Vec3[] = [];
-  /** Resolves once dressed, populated and its shaders compiled (false if disposed first). */
+  /**
+   * Resolves once it can be entered: the tunnel and cliff built and their shaders compiled
+   * (false if disposed first). Pass 026: the reef itself is prepared later, in the tunnel.
+   */
   readonly prepared: Promise<boolean>;
+  /** Pass 026: resolves once the reef, its fish and creatures are ready and compiled. */
+  readonly reefPrepared: Promise<boolean>;
   private world: TerrainCollisionWorld;
   private readonly lights: THREE.Light[] = [];
   /** Each light's intensity at the reef top (Pass 026: they dim with depth). */
@@ -71,6 +86,11 @@ export class OuterWatersScene implements WaterWorld {
   private readonly background: THREE.Color;
   private readonly size = new THREE.Vector2();
   private ready = false;
+  private reefReady = false;
+  /** Pass 026: how far the light has opened at the tunnel's exit (0 dark, 1 open). */
+  private reveal = 0;
+  private begun = false;
+  private start: () => void = () => {};
   private disposed = false;
 
   constructor(
@@ -107,14 +127,33 @@ export class OuterWatersScene implements WaterWorld {
       OUTER.tunnel[1].y,
       OUTER.tunnel[1].z,
     );
-    this.prepared = this.prepare(libraries.fish).then(
-      (ok) => ok,
-      (error: unknown) => {
-        console.error('Cozy Diver: outer waters could not be prepared.', error);
-        if (!this.disposed) this.ready = true;
-        return !this.disposed;
-      },
-    );
+    const failed = (error: unknown): boolean => {
+      console.error('Cozy Diver: outer waters could not be prepared.', error);
+      if (!this.disposed) this.ready = this.reefReady = true;
+      return !this.disposed;
+    };
+    this.prepared = this.prepareTunnel().then((ok) => ok, failed);
+    const begun = new Promise<void>((resolve) => {
+      this.start = resolve;
+    });
+    this.reefPrepared = begun
+      .then(() => this.prepareReef(libraries.fish))
+      .then((ok) => ok, failed);
+  }
+  /**
+   * Pass 026: the tunnel is the loading screen. Call once the swimmer is in it (crossing into the
+   * outer waters does): the reef, its fish and creatures are built and compiled while they swim
+   * through the dark, and the light at the exit opens once they are ready.
+   */
+  begin(): void {
+    if (this.begun || this.disposed) return;
+    this.begun = true;
+    this.reef.begin();
+    this.start();
+  }
+  /** Whether the reef beyond the tunnel is ready (its light has begun to open). */
+  get isReefReady(): boolean {
+    return this.reefReady && !this.disposed;
   }
   private collisionFor(
     colliders: readonly ConvexCollider[],
@@ -125,7 +164,15 @@ export class OuterWatersScene implements WaterWorld {
       seabedHeight,
     );
   }
-  private async prepare(fishLoader: AssetLoader): Promise<boolean> {
+  /** Stage one: the tunnel and cliff, so the swimmer can cross into the outer waters. */
+  private async prepareTunnel(): Promise<boolean> {
+    await warmUpScene(this.renderer, this.scene, this.camera);
+    if (this.disposed) return false;
+    this.ready = true;
+    return true;
+  }
+  /** Stage two, in the tunnel: dress the reef, then add the fish and creatures. */
+  private async prepareReef(fishLoader: AssetLoader): Promise<boolean> {
     await this.reef.ready;
     if (this.disposed) return false;
     this.environment.dress(this.reef.sand, this.reef.rock);
@@ -171,7 +218,7 @@ export class OuterWatersScene implements WaterWorld {
     this.reef.update(this.camera.position, 0, false);
     await warmUpScene(this.renderer, this.scene, this.camera);
     if (this.disposed) return false;
-    this.ready = true;
+    this.reefReady = true;
     return true;
   }
   get bounds(): Bounds {
@@ -180,12 +227,15 @@ export class OuterWatersScene implements WaterWorld {
   get collision(): CollisionWorld {
     return this.world;
   }
-  /** Whether it can be entered (dressed, populated, shaders compiled). */
+  /** Whether it can be entered (the tunnel and cliff built, their shaders compiled). */
   get isReady(): boolean {
     return this.ready && !this.disposed;
   }
   /** Pass 026: swimming outwards slows to a hover near the edges (see `easeAtEdges`). */
   ease(p: Vec3, dir: Vec3): Vec3 {
+    // Pass 026: until the reef is ready, swimming slows to a stop before the tunnel's exit.
+    if (!this.reefReady && dir.z < 0)
+      dir.z *= easeFactor(p.z - (OUTER.cliffZ + LOADING.hold), LOADING.band);
     return easeAtEdges(p, dir);
   }
   render(
@@ -202,11 +252,15 @@ export class OuterWatersScene implements WaterWorld {
       this.camera.aspect = aspect;
       this.camera.updateProjectionMatrix();
     }
-    this.dome.update(this.camera.position);
+    if (this.reefReady)
+      this.reveal = Math.min(1, this.reveal + dt / LOADING.reveal);
+    this.dome.update(this.camera.position, this.reveal);
     this.fog.color.copy(this.dome.horizon);
     this.fog.density =
       OUTER.fog * (1 + WATER_LIGHT.thickening * this.dome.shade);
-    const dim = 1 - WATER_LIGHT.dimming * this.dome.shade;
+    const dim =
+      (1 - WATER_LIGHT.dimming * this.dome.shade) *
+      (LOADING.dark + (1 - LOADING.dark) * this.reveal);
     for (let i = 0; i < this.lights.length; i++)
       this.lights[i].intensity = this.brightness[i] * dim;
     this.background.copy(this.dome.horizon);

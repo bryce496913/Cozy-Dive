@@ -153,8 +153,19 @@ export class OuterReef {
     this.placements = layout.placements;
     this.heads = layout.heads;
     this.seated = this.placements;
-    this.ready = this.load(loader);
+    this.ready = this.started.then(() => this.load(loader));
   }
+  /**
+   * Pass 026: start building (leasing the library, instancing, collision). Until then the reef
+   * costs nothing: the outer waters call this once the swimmer is in the tunnel.
+   */
+  begin(): void {
+    this.go();
+  }
+  private go: () => void = () => {};
+  private readonly started = new Promise<void>((resolve) => {
+    this.go = resolve;
+  });
 
   private own<T extends THREE.Material | THREE.BufferGeometry>(value: T): T {
     if (value instanceof THREE.Material) this.materials.add(value);
