@@ -67,7 +67,7 @@ export class UnderwaterScene implements WaterWorld {
     fog: false,
   });
   /** v0.4 Pass 027: the office, blurred, through the glass (once the office has captured it). */
-  readonly outlook = new TankOutlook();
+  readonly outlook: TankOutlook;
   /** Reused by `renderView` to restore the clear colour (no per-frame allocation). */
   private readonly clearColor = new THREE.Color();
   setPresentation(value: Presentation): void {
@@ -95,6 +95,7 @@ export class UnderwaterScene implements WaterWorld {
     );
     host.append(this.renderer.domElement);
     this.scene.background = new THREE.Color(0x225d73);
+    this.outlook = new TankOutlook(this.scene.background);
     this.scene.fog = new THREE.FogExp2(0x225d73, UNDERWATER_HAZE);
     this.scene.add(new THREE.HemisphereLight(0xc7f2e0, 0x546b56, 2.6));
     const sunlight = new THREE.DirectionalLight(0xfff1cf, 3.2);

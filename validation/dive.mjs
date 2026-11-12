@@ -92,7 +92,11 @@ try {
         a.tick(a.__t);
         cancelAnimationFrame(a.frame);
       }
-      return { mode: a.mode, elapsed: a.dive?.elapsed ?? null };
+      return {
+        mode: a.mode,
+        elapsed: a.dive?.elapsed ?? null,
+        outlook: a.world.outlook.mesh.material.uniforms.reveal.value,
+      };
     }, count);
   /** Step (without screenshots) to the last frame before the space switch, capture it and the next. */
   const captureSwitch = async (name, target) => {
@@ -118,9 +122,15 @@ try {
     while (s.elapsed !== null && s.elapsed + 2 / 60 < switchAt)
       s = await step(1);
     while (s.mode !== target) {
+      if (name === 'dive-switch') assert.equal(s.outlook, 0);
       await page.screenshot({ path: path.join(output, `${name}-before.png`) });
       s = await step(1);
     }
+    if (name === 'dive-switch')
+      assert(
+        s.outlook < 0.01,
+        'entry starts blue, without popping in the captured room',
+      );
     await page.screenshot({ path: path.join(output, `${name}-after.png`) });
     return s;
   };
@@ -145,6 +155,12 @@ try {
     position: { ...window.__cozy.state.position },
   }));
   assert.equal(report.dive.end.mode, 'aquarium');
+  assert.equal(
+    await page.evaluate(
+      () => window.__cozy.world.outlook.mesh.material.uniforms.reveal.value,
+    ),
+    1,
+  );
   await page.screenshot({ path: path.join(output, 'dive-3-arrived.png') });
   // Hand control back to the real loop and swim with W.
   await page.evaluate(() => {
@@ -232,6 +248,12 @@ try {
   await page.waitForFunction(() => !window.__cozy.dive);
   report.reduced.mode = await page.evaluate(() => window.__cozy.mode);
   assert.equal(report.reduced.mode, 'aquarium');
+  assert.equal(
+    await page.evaluate(
+      () => window.__cozy.world.outlook.mesh.material.uniforms.reveal.value,
+    ),
+    1,
+  );
 
   // Back to the office from the pause screen; GPU memory returns to its earlier counts.
   await page.keyboard.press('Escape');

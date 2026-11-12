@@ -30,6 +30,8 @@ export interface DiveFrame extends Pose {
   bubbles: number;
   /** Pass 022: how much of the soundscape is underwater (0 office .. 1 water), for a crossfade. */
   water: number;
+  /** Captured office backdrop: stays blue at entry, then reveals during settling (0..1). */
+  outlook: number;
 }
 export const DIVE = {
   /** Office: stand off, then lean into the glass (s). */
@@ -167,7 +169,7 @@ export class DivePath {
   constructor(
     kind: TransitionKind,
     from: Pose,
-    reducedMotion: boolean,
+    private readonly reducedMotion: boolean,
     target?: { space: Space; pose: Pose },
   ) {
     this.kind = kind;
@@ -435,6 +437,20 @@ export class DivePath {
               : 0;
     out.bubbles = seg.splash ? Math.max(0, 1 - local * 1.6) : 0;
     out.water = seg.water[0] + (seg.water[1] - seg.water[0]) * ease(local);
+    // Match the office miniature's blue background at the exact scene switch. The captured
+    // room then arrives smoothly with the settling motion, using active path time (no timer).
+    out.outlook =
+      this.kind === 'dive' && !this.reducedMotion
+        ? ease(
+            Math.max(
+              0,
+              Math.min(
+                1,
+                (elapsed - this.switchTime) / (this.duration - this.switchTime),
+              ),
+            ),
+          )
+        : 1;
     return out;
   }
 }

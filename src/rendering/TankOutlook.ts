@@ -38,6 +38,8 @@ uniform float blur;
 uniform float tint;
 uniform float light;
 uniform vec3 water;
+uniform vec3 background;
+uniform float reveal;
 varying vec3 vDirection;
 void main() {
   vec3 office = textureLod(map, normalize(vDirection), blur).rgb;
@@ -45,12 +47,15 @@ void main() {
   #include <fog_fragment>
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
+  // Scene backgrounds bypass tone mapping. Blend after output conversion so reveal=0
+  // exactly matches the blue clear colour on the office side of the dive switch.
+  gl_FragColor.rgb = mix(linearToOutputTexel(vec4(background, 1.0)).rgb, gl_FragColor.rgb, reveal);
 }`;
 
 export class TankOutlook {
   readonly mesh: THREE.Mesh<THREE.BoxGeometry, THREE.ShaderMaterial>;
   private disposed = false;
-  constructor() {
+  constructor(background: THREE.Color) {
     const b = AQUARIUM,
       m = OUTLOOK.margin,
       geometry = new THREE.BoxGeometry(
@@ -80,6 +85,8 @@ export class TankOutlook {
           tint: { value: OUTLOOK.tint },
           light: { value: OUTLOOK.light },
           water: { value: new THREE.Color(OUTLOOK.water) },
+          background: { value: background },
+          reveal: { value: 1 },
         },
       ]),
       vertexShader: VERTEX,
@@ -100,6 +107,11 @@ export class TankOutlook {
   }
   get showing(): boolean {
     return this.mesh.visible;
+  }
+  /** Reveal the captured room over the aquarium background during entry (0..1). */
+  setReveal(reveal: number): void {
+    if (this.disposed) return;
+    this.mesh.material.uniforms.reveal.value = Math.max(0, Math.min(1, reveal));
   }
   dispose(): void {
     if (this.disposed) return;

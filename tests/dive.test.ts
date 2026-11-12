@@ -33,6 +33,7 @@ const frame = (): DiveFrame => ({
   fog: 0,
   bubbles: 0,
   water: 0,
+  outlook: 1,
 });
 const close = (a: Pose, b: Pose, eps = 1e-9) => {
   expect(a.x).toBeCloseTo(b.x, 9);
@@ -448,4 +449,41 @@ describe('Pass 022 sound crossfade', () => {
       expect(at.water).toBeCloseTo(0.5, 6);
     },
   );
+});
+
+describe('dive backdrop continuity', () => {
+  it('keeps entry blue through the scene switch and smoothly reveals the room while settling', () => {
+    const path = new DivePath('dive', inFront, false);
+    for (const time of [0, path.switchTime - 0.0001, path.switchTime])
+      expect(path.sample(time, frame()).outlook).toBe(0);
+    expect(path.sample(path.switchTime + 0.0001, frame()).outlook).toBeLessThan(
+      1e-6,
+    );
+    const settling = path.duration - path.switchTime;
+    expect(
+      path.sample(path.switchTime + settling / 2, frame()).outlook,
+    ).toBeCloseTo(0.5, 10);
+    let previous = 0;
+    for (let i = 0; i <= 100; i++) {
+      const time = path.switchTime + (settling * i) / 100;
+      const reveal = path.sample(time, frame()).outlook;
+      expect(reveal).toBeGreaterThanOrEqual(previous);
+      expect(reveal).toBeLessThanOrEqual(1);
+      expect(path.sample(time, frame()).outlook).toBe(reveal); // Paused sampling cannot advance it.
+      previous = reveal;
+    }
+    expect(path.sample(path.duration, frame()).outlook).toBe(1);
+    expect(path.sample(path.duration + 100, frame()).outlook).toBe(1);
+  });
+  it('leaves the backdrop fully revealed for reduced motion, surfacing and pause-screen fades', () => {
+    const paths = [
+      new DivePath('dive', inFront, true),
+      new DivePath('surface', { ...inFront, x: -4, y: 12.6, z: 2 }, false),
+      new DivePath('surface', { ...inFront, x: -4, y: 12.6, z: 2 }, true),
+      new DivePath('switch', inFront, false),
+    ];
+    for (const path of paths)
+      for (const time of [0, path.switchTime, path.duration / 2, path.duration])
+        expect(path.sample(time, frame()).outlook).toBe(1);
+  });
 });
