@@ -19,12 +19,12 @@ import type { SightCandidate } from '../../discovery/journal';
 import { creatureSight } from '../../discovery/sights';
 import type { PlayerPresence } from '../../fish/FishDiverReaction';
 import { ROCK_HALF, type ReefPlacement } from './OuterReefLayout';
-import { channelCentre, seabedHeight } from './OuterTerrain';
+import { seabedHeight } from './OuterTerrain';
 
 /**
- * v0.4 Pass 025: the outer reef's big creatures. Two blacktip reef sharks cruise wide loops in
- * mid-water, three spotted eagle rays glide down the sand channel and out over the drop-off, and
- * a green sea turtle wanders between the coral heads. Their routes are lifted over everything
+ * v0.4 Pass 025/026: the outer reef's big creatures, out in the blue off the wall (Pass 026): two
+ * blacktip reef sharks at two depths, three spotted eagle rays along the wall below the lip, and
+ * a green sea turtle along its face. Their routes are lifted over everything
  * beneath them (`reefObstacles`), and they give the swimmer room (see `Cruiser`).
  */
 
@@ -119,60 +119,38 @@ function oval(
     return { x, y: y(x, z), z };
   });
 }
-/** Hug the floor (the route's lift raises this to the creature's clearance). */
-const LOW = -40;
-const along = (z: number, y: number, dx = 0): Vec3 => ({
-  x: channelCentre(z) + dx,
-  y,
-  z,
-});
+/**
+ * Pass 026: they live in the blue just off the wall, on long loops parallel to it, so a swimmer
+ * hovering past the lip sees something pass every half-minute or so. Loop lengths at their
+ * speeds: sharks about 2 minutes, rays about 2.5, the turtle about 2.
+ */
 export const OUTER_CRUISERS: readonly CruiseGroup[] = [
   {
-    // Mid-water, around the middle of the reef.
+    // Mid-water, a little way out.
     species: 'blacktip-reef-shark',
-    waypoints: oval(4, -74, 27, 26, () => 8),
+    waypoints: oval(0, -70, 30, 6, () => -4),
     members: [{ start: 0, side: 0, up: 0, phase: 0 }],
   },
   {
-    // Lower and further out, dipping over the drop-off.
+    // Deeper and further out, fading into the dark.
     species: 'blacktip-reef-shark',
-    waypoints: oval(-14, -92, 18, 12, (_x, z) => (z < -100 ? -3 : 4)),
-    members: [{ start: 30, side: 0, up: 0, phase: 1.7 }],
+    waypoints: oval(6, -76, 26, 7, () => -11),
+    members: [{ start: 60, side: 0, up: 0, phase: 1.7 }],
   },
   {
-    // Down the sand channel, out over the deep blue, and back over the reef's eastern side.
+    // A loose line gliding along the wall just below the lip.
     species: 'spotted-eagle-ray',
-    waypoints: [
-      along(-40, LOW),
-      along(-55, LOW),
-      along(-70, LOW),
-      along(-85, LOW),
-      along(-96, LOW),
-      along(-104, -2, 4),
-      { x: 14, y: -3, z: -110 },
-      { x: 27, y: -1, z: -105 },
-      { x: 31, y: 2, z: -90 },
-      { x: 29, y: 2, z: -70 },
-      { x: 22, y: 2, z: -52 },
-      { x: 9, y: 1.5, z: -42 },
-    ],
+    waypoints: oval(-4, -66, 28, 3.5, () => -2.5),
     members: [
       { start: 0, side: 0, up: 0, phase: 0 },
-      { start: -6, side: 1.7, up: 0.5, phase: 2.1 },
-      { start: -12, side: -1.5, up: 0.9, phase: 4.2 },
+      { start: -7, side: 1.4, up: 0.6, phase: 2.1 },
+      { start: -14, side: -1.2, up: 1.1, phase: 4.2 },
     ],
   },
   {
-    // Between the coral heads on the western side.
+    // Along the wall's face below the lip.
     species: 'green-sea-turtle',
-    waypoints: [
-      { x: -20, y: 2, z: -46 },
-      { x: -34, y: 2, z: -56 },
-      { x: -38, y: 2, z: -76 },
-      { x: -28, y: 1.5, z: -94 },
-      { x: -14, y: 2.5, z: -82 },
-      { x: -12, y: 2.5, z: -62 },
-    ],
+    waypoints: oval(-10, -62.5, 15, 2.5, () => -4),
     members: [{ start: 0, side: 0, up: 0, phase: 0.8 }],
   },
 ];
@@ -284,7 +262,8 @@ export class OuterCreatures {
         id: creatureSight(c.species.id),
         label: c.species.name,
         position: c.position,
-        radius: c.species.radius,
+        // Big animals are seen from further across the clear blue.
+        radius: c.species.radius + CRUISING.sightReach,
       });
     this.place();
     return true;

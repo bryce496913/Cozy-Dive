@@ -17,8 +17,11 @@ export interface WaterWorld {
   readonly camera: THREE.PerspectiveCamera;
   /** Things that can be seen here for the first time (none in the tank itself). */
   readonly sightings: readonly SightCandidate[];
-  /** Pass 024: a gentle current (m/s) that turns the swimmer back near soft edges, if any. */
-  current?(p: Vec3, out: Vec3): Vec3;
+  /**
+   * Pass 026: soft limits, if any. Scales down the outward part of the swimming direction `dir`
+   * (in place) near the world's edges, so the swimmer slows to a hover instead of meeting a wall.
+   */
+  ease?(p: Vec3, dir: Vec3): Vec3;
   render(
     time: number,
     reducedMotion: boolean,

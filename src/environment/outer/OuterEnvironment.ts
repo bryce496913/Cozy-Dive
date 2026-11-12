@@ -3,7 +3,7 @@ import { OUTER, TUNNEL_FRAME } from '../../config/passage';
 import type { ConvexCollider } from '../../player/collision';
 import { boxCollider } from '../passage/Crevice';
 import { rockCollider } from '../rockCollider';
-import { channelWeight, dropWeight, seabedHeight } from './OuterTerrain';
+import { channelWeight, seabedHeight } from './OuterTerrain';
 
 /**
  * v0.4 Pass 023: the outer waters, first version. A dark winding tunnel through a cliff, starting
@@ -119,6 +119,7 @@ export class OuterEnvironment {
     this.rockMeshes = [
       this.add(this.tunnelMesh(curve, end), rock, 'Passage tunnel'),
       this.add(this.cliffMesh(), rock, 'Cliff face'),
+      this.add(this.wallMesh(), rock, 'Outer wall'),
     ];
     colliders.push(...this.tunnelColliders(curve, end));
     colliders.push(...this.cliffColliders());
@@ -359,31 +360,61 @@ export class OuterEnvironment {
     );
   }
 
-  /** The seabed: sand channel, gentle swell and the drop-off (Pass 024), with sand UVs. */
-  private sandMesh(): THREE.BufferGeometry {
+  /**
+   * The seabed as a height field over `from`..`to` (z), with sand UVs. Pass 026 splits it: the
+   * reef top (sand, lighter in the gully) and the wall (rock, darkening with depth).
+   */
+  private terrainMesh(
+    from: number,
+    to: number,
+    depthSegments: number,
+    tone: (x: number, y: number, z: number) => number,
+  ): THREE.BufferGeometry {
     const b = OUTER.bounds,
       w = b.max.x - b.min.x + 60,
-      d = OUTER.cliffZ - b.min.z + 30,
-      g = new THREE.PlaneGeometry(w, d, 150, 160);
+      d = from - to,
+      g = new THREE.PlaneGeometry(w, d, 150, depthSegments);
     g.rotateX(-Math.PI / 2);
-    g.translate(0, 0, OUTER.cliffZ + 2 - d / 2);
+    g.translate(0, 0, from - d / 2);
     const pos = g.getAttribute('position'),
       colors: number[] = [];
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i),
         z = pos.getZ(i),
-        ripple = 0.03 * Math.sin(x * 2.2 + z * 0.9);
-      pos.setY(i, seabedHeight(x, z) + ripple);
-      // Darker in the channel and down the drop-off, lighter on the reef flat.
-      const tone =
-        (0.78 + 0.1 * smoothNoise(x * 0.4, z * 0.4, 4.2)) *
-        (1 - 0.18 * channelWeight(x, z)) *
-        (1 - 0.55 * dropWeight(z));
-      colors.push(tone, tone * 0.97, tone * 0.9);
+        y = seabedHeight(x, z) + 0.03 * Math.sin(x * 2.2 + z * 0.9);
+      pos.setY(i, y);
+      const t = tone(x, y, z);
+      colors.push(t, t * 0.97, t * 0.9);
     }
     g.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
     g.computeVertexNormals();
     return g;
+  }
+  private sandMesh(): THREE.BufferGeometry {
+    return this.terrainMesh(
+      OUTER.cliffZ + 2,
+      OUTER.dropOff.start - 1,
+      44,
+      (x, _y, z) =>
+        (0.78 + 0.1 * smoothNoise(x * 0.4, z * 0.4, 4.2)) *
+        (1 - 0.18 * channelWeight(x, z)),
+    );
+  }
+  /** The wall below the lip and the deep beyond it, fading to near-black with depth. */
+  private wallMesh(): THREE.BufferGeometry {
+    const lip = OUTER.dropOff.start;
+    return this.terrainMesh(
+      lip + 1.5,
+      OUTER.bounds.min.z - 30,
+      120,
+      (x, y, z) => {
+        const deep = Math.max(0, Math.min(1, -y / OUTER.dropOff.depth));
+        return (
+          (0.42 + 0.14 * smoothNoise(x * 0.3, y * 0.3, z * 0.3)) *
+          (1 - 0.88 * deep * deep * (3 - 2 * deep))
+        );
+      },
+    );
   }
 
   /** Slow motes in the open water. */
@@ -393,8 +424,9 @@ export class OuterEnvironment {
       b = OUTER.bounds;
     for (let i = 0; i < count; i++) {
       data[i * 3] = b.min.x + hash(i, 1, 2) * (b.max.x - b.min.x);
-      data[i * 3 + 1] = 0.5 + hash(i, 3, 4) * 30;
-      data[i * 3 + 2] = b.min.z + hash(i, 5, 6) * (OUTER.cliffZ - b.min.z);
+      // Pass 026: densest around the reef top and the lip, drifting down into the blue.
+      data[i * 3 + 1] = -18 + hash(i, 3, 4) * 36;
+      data[i * 3 + 2] = OUTER.cliffZ - 1 - hash(i, 5, 6) * 55;
     }
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(data, 3));
@@ -414,10 +446,10 @@ export class OuterEnvironment {
     points.name = 'Outer motes';
     return points;
   }
-  /** Broad light shafts from the far surface. */
+  /** Broad light shafts from the far surface, slanting down past the lip into the blue. */
   private shafts(): THREE.Group {
     const group = new THREE.Group(),
-      g = new THREE.CylinderGeometry(0.8, 4.5, 44, 14, 1, true),
+      g = new THREE.CylinderGeometry(0.8, 5, 60, 14, 1, true),
       m = this.own(
         new THREE.MeshBasicMaterial({
           color: 0xc9f0dc,
@@ -429,10 +461,10 @@ export class OuterEnvironment {
         }),
       );
     this.geometries.push(g);
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 7; i++) {
       const beam = new THREE.Mesh(g, m);
-      beam.position.set(-25 + i * 10, 20, -45 - (i % 3) * 14);
-      beam.rotation.z = -0.2;
+      beam.position.set(-27 + i * 9, 12, -46 - (i % 3) * 9);
+      beam.rotation.set(0.18, 0, -0.2);
       group.add(beam);
     }
     group.name = 'Outer light shafts';

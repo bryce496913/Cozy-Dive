@@ -13,8 +13,8 @@ import { FishSystem } from '../../fish/FishSystem';
 import type { ReefLayout } from './OuterReefLayout';
 
 /**
- * v0.4 Pass 024: reef fish in the outer waters. Bigger schools of the tank's own species, each
- * gathered around one of the reef's coral heads, swim with the same simulation and authored rigs
+ * v0.4 Pass 024/026: reef fish in the outer waters. Big schools of the tank's own species over
+ * the reef top (Pass 026: about 170 fish, the chromis in two clouds of 55-70), swim with the same simulation and authored rigs
  * as in the tank (leased from the tank's fish libraries, so each decodes once). If the rigs
  * cannot load, the simulation's simple fish are shown instead.
  */
@@ -27,88 +27,91 @@ const LIBRARY: Readonly<Partial<Record<SpeciesId, AssetId>>> = {
 };
 /** Outer schools switch to their light rigs at this many body lengths. */
 export const OUTER_FISH_DETAIL = 8;
-/** Which species gathers at which coral head, how many, and how high above its seabed. */
+/**
+ * Pass 026: where each school gathers over the reef top (x, z), how high above the reef's own
+ * tops there, and how many. The big chromis schools cloud over the reef in open water; the
+ * smaller species stay low over the coral.
+ */
 export const OUTER_SCHOOLS: readonly {
   readonly species: SpeciesId;
-  readonly head: number;
+  readonly at: { readonly x: number; readonly z: number };
   readonly count: number;
   readonly above: number;
-  /** Where the school gathers relative to its head (beside it, clear of its rocks). */
-  readonly offset: { readonly x: number; readonly z: number };
   readonly spread: {
     readonly x: number;
     readonly y: number;
     readonly z: number;
   };
+  /** Swimming depths, relative to the reef's top beneath the school. */
   readonly depth: readonly [number, number];
 }[] = [
   {
     species: 'blue-green-chromis',
-    head: 0,
-    count: 36,
-    above: 5,
-    offset: { x: 7, z: 2 },
-    spread: { x: 5, y: 1.6, z: 5 },
-    depth: [2.5, 11],
+    at: { x: -9, z: -44 },
+    count: 70,
+    above: 3.2,
+    spread: { x: 6, y: 1.6, z: 5 },
+    depth: [1.4, 7],
   },
   {
     species: 'blue-green-chromis',
-    head: 3,
-    count: 28,
-    above: 5,
-    offset: { x: -7, z: 1 },
-    spread: { x: 4.5, y: 1.4, z: 4.5 },
-    depth: [2.5, 11],
+    at: { x: 13, z: -48 },
+    count: 55,
+    above: 3,
+    spread: { x: 5.5, y: 1.5, z: 4.5 },
+    depth: [1.4, 7],
   },
   {
     species: 'pajama-cardinalfish',
-    head: 5,
-    count: 14,
-    above: 2.2,
-    offset: { x: 5.5, z: -3 },
-    spread: { x: 3, y: 1, z: 3 },
-    depth: [1, 6],
+    at: { x: -19, z: -51 },
+    count: 16,
+    above: 1.8,
+    spread: { x: 3, y: 0.8, z: 2.5 },
+    depth: [0.9, 4],
   },
   {
     species: 'firefish-goby',
-    head: 1,
-    count: 8,
-    above: 1.4,
-    offset: { x: -5.5, z: 3 },
-    spread: { x: 4, y: 0.8, z: 4 },
-    depth: [0.6, 4.5],
+    at: { x: 7, z: -38 },
+    count: 10,
+    above: 1.2,
+    spread: { x: 3.5, y: 0.6, z: 3 },
+    depth: [0.6, 3],
   },
   {
     species: 'yellow-assessor',
-    head: 2,
-    count: 8,
-    above: 1.8,
-    offset: { x: 5.5, z: 4 },
-    spread: { x: 4, y: 1, z: 4 },
-    depth: [0.6, 5],
+    at: { x: 20, z: -40 },
+    count: 10,
+    above: 1.4,
+    spread: { x: 3.5, y: 0.7, z: 3 },
+    depth: [0.6, 3.5],
   },
   {
     species: 'royal-gramma',
-    head: 4,
-    count: 6,
-    above: 1.8,
-    offset: { x: -5, z: -4 },
-    spread: { x: 4, y: 1, z: 4 },
-    depth: [0.6, 5],
+    at: { x: -22, z: -40 },
+    count: 8,
+    above: 1.4,
+    spread: { x: 3.5, y: 0.7, z: 3 },
+    depth: [0.6, 3.5],
   },
 ];
 
-/** The outer species list: the tank's species, retuned per school for the reef's heads. */
-export function outerSpecies(heads: ReefLayout['heads']): FishSpecies[] {
+/**
+ * The outer species list: the tank's species, retuned per school. `top(x, z, r)` is the highest
+ * reef or seabed within `r` of a point (the creatures' obstacle field), so each school floats
+ * above the coral beneath it.
+ */
+export function outerSpecies(
+  top: (x: number, z: number, radius: number) => number,
+): FishSpecies[] {
   return OUTER_SCHOOLS.map((s) => {
     const base = FISH_SPECIES.find((f) => f.id === s.species)!,
-      h = heads[s.head % heads.length];
+      ground = top(s.at.x, s.at.z, Math.max(s.spread.x, s.spread.z));
     return {
       ...base,
       count: s.count,
-      region: { x: h.x + s.offset.x, y: h.y + s.above, z: h.z + s.offset.z },
+      region: { x: s.at.x, y: ground + s.above, z: s.at.z },
       spread: s.spread,
-      depth: [h.y + s.depth[0], h.y + s.depth[1]],
+      depth: [ground + s.depth[0], ground + s.depth[1]],
       individualScale: undefined,
     };
   });
@@ -209,6 +212,8 @@ export class OuterSchools {
         id,
         textures,
         OUTER_FISH_DETAIL,
+        // At distance the eyes are sub-pixel: about 0.35k triangles saved per far fish.
+        /^Eyes_Gills_Mouth/,
       );
       next += counts[i];
       this.schools.push(school);

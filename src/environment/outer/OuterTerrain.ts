@@ -29,6 +29,12 @@ export function dropWeight(z: number): number {
   return smooth((d.start - z) / (d.start - d.end));
 }
 
+/** Pass 026: how far the bottom keeps falling beyond the wall's foot (m). */
+function abyssFall(z: number): number {
+  const a = OUTER.abyss,
+    past = OUTER.dropOff.end - z;
+  return past > 0 ? Math.min(a.depth, past * a.slope) : 0;
+}
 /** Seabed height (m) at (x, z). */
 export function seabedHeight(x: number, z: number): number {
   // Gentle sandy undulation and a low rise towards the sides of the reef.
@@ -42,20 +48,33 @@ export function seabedHeight(x: number, z: number): number {
     swell +
     sides -
     OUTER.channel.depth * channelWeight(x, z) -
-    OUTER.dropOff.depth * dropWeight(z)
+    OUTER.dropOff.depth * dropWeight(z) -
+    abyssFall(z)
   );
 }
 
+/** How far swimming has eased off at a limit: 1 inside it, `crawl` over its band, then 0. */
+export function easeFactor(past: number, band: number): number {
+  const r = OUTER.reach;
+  if (past <= 0) return 1;
+  if (past < band) return 1 - (1 - r.crawl) * smooth(past / band);
+  return r.crawl * (1 - smooth((past - band) / r.stop));
+}
 /**
- * The gentle current that turns a swimmer back near the reef's edges (m/s, into `out`). Zero
- * inside the comfortable reef; it grows smoothly over the edge band, always pointing back in.
+ * Pass 026: soft limits that slow the swimmer instead of pushing them back. Near each limit the
+ * outward part of the swimming direction `dir` is scaled down smoothly (to almost nothing, then
+ * nothing); movement along or back from a limit is untouched. `dir` is changed in place.
  */
-export function edgeCurrent(p: Vec3, out: Vec3): Vec3 {
-  const r = OUTER.reef,
-    w = OUTER.edgeWidth,
-    k = OUTER.edgeCurrent;
-  out.x = k * (smooth((r.minX - p.x) / w) - smooth((p.x - r.maxX) / w));
-  out.y = -k * smooth((p.y - r.maxY) / w);
-  out.z = k * smooth((r.minZ - p.z) / w);
-  return out;
+export function easeAtEdges(p: Vec3, dir: Vec3): Vec3 {
+  const r = OUTER.reach,
+    lip = OUTER.dropOff.start;
+  // Out over the blue, beyond the lip.
+  if (dir.z < 0) dir.z *= easeFactor(lip - p.z, r.past);
+  // Down the wall.
+  if (dir.y < 0) dir.y *= easeFactor(r.down - p.y, r.depth);
+  // Up towards the far surface.
+  if (dir.y > 0) dir.y *= easeFactor(p.y - r.up, r.rise);
+  // The sides of the reef.
+  if (dir.x * p.x > 0) dir.x *= easeFactor(Math.abs(p.x) - r.halfWidth, r.side);
+  return dir;
 }

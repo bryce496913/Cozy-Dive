@@ -1,12 +1,13 @@
-/* v0.4 Pass 024: the outer reef, with real input.
+/* v0.4 Pass 024/026: the outer reef, with real input.
  *
  *   COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy024-reef node validation/outer-reef.mjs
  *
  * Enters the water with real pointer lock and swims through the hidden crack into the outer reef,
- * recording main-thread long tasks while the reef is prepared. Then, at fixed viewpoints, it
+ * recording main-thread long tasks while it is prepared (Pass 026: the reef is prepared while
+ * the swimmer is in the tunnel; how long that takes is recorded too). Then, at fixed viewpoints, it
  * records draw calls, triangles, CPU submit time and how many reef pieces are drawn at each detail
- * level. With real keys it checks that the seabed is a floor, that the drop-off can be swum down,
- * and that the soft edge turns the swimmer back. Fish must move and stay above the sand. Return to
+ * level. With real keys it checks that the seabed is a floor, that the wall can be swum down a
+ * little, and that swimming out over the blue and towards the sides slows to a hover (Pass 026). Fish must move and stay above the sand. Return to
  * the tank, then release far away, twice: GPU memory must not grow from one visit to the next.
  * The loop is stepped by hand (30 Hz), yielding a real frame each step.
  */
@@ -123,29 +124,42 @@ try {
     let s = await step(1);
     for (let i = 0; i < 600 && !s.ready; i++) s = await step(1);
     assert(s.ready, 'the outer reef becomes ready');
-    const longTasks = await page.evaluate(() => window.__longTasks);
     await page.keyboard.down('w');
     for (let i = 0; i < 600 && s.world !== 'outer'; i++) s = await step(1);
     await page.keyboard.up('w');
     assert.equal(s.world, 'outer');
-    return longTasks;
+    // Pass 026: the reef prepares while the swimmer is in the tunnel.
+    const reefMs = await page.evaluate(async () => {
+      await window.__cozy.outer.reefPrepared;
+      return Math.round(window.__cozy.outer.reefPrepareMs);
+    });
+    await step(70);
+    const longTasks = await page.evaluate(() => window.__longTasks);
+    return { longTasks, reefMs };
   };
-  const longTasks = await visit();
+  const { longTasks, reefMs } = await visit();
+  report.reefPreparedAfterCrossingMs = reefMs;
   report.programsOuter = await page.evaluate(
     () => window.__cozy.world.renderer.info.programs.length,
   );
+  // Software-rendered frames are long tasks themselves; the longest is the preparation's stall.
   report.longTasks = longTasks
-    ? { count: longTasks.length, longestMs: Math.max(0, ...longTasks) }
+    ? {
+        longestMs: Math.max(0, ...longTasks),
+        over250ms: longTasks.filter((t) => t > 250).length,
+      }
     : 'unsupported';
 
   // Fixed views: draw calls, triangles, CPU submit (mean of 5 renders), reef pieces drawn.
   const head = await page.evaluate(() => window.__cozy.outer.reef.heads[0]);
   const views = {
-    'from-the-cliff': [0, 8, -34, 0, -0.25],
-    'coral-head': [head.x + 9, head.y + 4, head.z + 6, Math.atan2(9, 6), -0.3],
-    channel: [0, 3, -45, 0, -0.12],
-    'drop-off': [0, 3, -97, 0, -0.45],
-    'reef-edge': [40, 5, -60, -1.2, -0.1],
+    // Pass 026: the arrival, among the bommies, at the lip, out over the blue, back at the wall.
+    'from-the-cliff': [0, 7, -33, 0, -0.2],
+    'coral-head': [head.x + 6, head.y + 4, head.z + 4, Math.atan2(6, 4), -0.35],
+    'reef-top': [-7, 4, -40, 0.3, -0.25],
+    'at-the-lip': [0, 3.5, -53, 0, -0.35],
+    'into-the-blue': [2, -1, -61, 0, -0.05],
+    'back-at-the-wall': [10, -3, -66, Math.PI - 0.4, 0.15],
   };
   for (const [name, [x, y, z, yaw, pitch]] of Object.entries(views)) {
     await place(x, y, z, yaw, pitch);
@@ -205,7 +219,7 @@ try {
   assert.equal(below, 0);
 
   // The seabed is a floor: dive straight down with real W.
-  await place(3, 5, -55, 0, -1.45);
+  await place(3, 5, -44, 0, -1.45);
   await page.keyboard.down('w');
   let s = await step(180);
   await page.keyboard.up('w');
@@ -226,28 +240,44 @@ try {
   // On the sand (or on a low piece of reef just above it), never below.
   assert(s.y >= floor - 1e-6 && s.y < floor + 0.35, 'resting on the seabed');
 
-  // The drop-off can be swum down.
-  await place(0, 2, -104, 0, -1.1);
+  // Pass 026: the wall can be swum down a little, then swimming eases to a hover.
+  await place(0, 0, -59, 0, -1.4);
   await page.keyboard.down('w');
-  s = await step(240);
+  s = await step(300);
   await page.keyboard.up('w');
-  report.dropOff = { y: +s.y.toFixed(2), z: +s.z.toFixed(2) };
-  // Well below the reef flat (around 0 m), over the wall.
-  assert(s.y < -5, 'down the drop-off wall');
+  report.downTheWall = { y: +s.y.toFixed(2), z: +s.z.toFixed(2) };
+  assert(s.y < -5, 'some way down the wall');
+  assert(s.y > -16, 'but not into the deep');
   await page.screenshot({ path: path.join(output, 'down-the-wall.png') });
 
-  // The soft edge turns the swimmer back (holding W towards it).
-  await place(40, 6, -60, -Math.PI / 2, 0);
+  // Out over the blue: holding W past the lip slows to a hover a few metres out.
+  await place(2, 4, -50, 0, 0);
   await page.keyboard.down('w');
-  let furthest = 40;
+  let furthestOut = 0;
+  for (let i = 0; i < 30; i++) {
+    s = await step(10);
+    furthestOut = Math.max(furthestOut, -56 - s.z);
+  }
+  await page.keyboard.up('w');
+  report.outOverTheBlue = { pastTheLip: +furthestOut.toFixed(2) };
+  assert(furthestOut > 4, 'a little way out over the blue');
+  assert(furthestOut < 9.5, 'then hovering');
+  await page.screenshot({
+    path: path.join(output, 'hovering-in-the-blue.png'),
+  });
+
+  // The sides: holding W towards one slows to a hover in the edge band.
+  await place(14, 4, -44, -Math.PI / 2, 0);
+  await page.keyboard.down('w');
+  let furthest = 14;
   for (let i = 0; i < 30; i++) {
     s = await step(10);
     furthest = Math.max(furthest, s.x);
   }
   await page.keyboard.up('w');
   report.edge = { furthestX: +furthest.toFixed(2) };
-  assert(furthest < 56, 'held back well before the outer bounds');
-  assert(furthest > 46, 'but free to swim into the edge band');
+  assert(furthest < 34, 'eased to a hover well before the outer bounds');
+  assert(furthest > 25, 'but free to swim into the edge band');
 
   // Return to the tank, release far away; then a second visit and release.
   const release = async () => {

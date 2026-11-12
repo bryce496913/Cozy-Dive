@@ -139,13 +139,15 @@ try {
     await place(6.4, 1.6, -12.1, Math.PI / 2, 0);
     let s = await step(1);
     for (let i = 0; i < 600 && !s.ready; i++) s = await step(1);
-    assert(s.ready, 'the outer reef becomes ready');
-    const longTasks = await page.evaluate(() => window.__longTasks);
+    assert(s.ready, 'the outer waters can be entered');
     await page.keyboard.down('w');
     for (let i = 0; i < 600 && s.world !== 'outer'; i++) s = await step(1);
     await page.keyboard.up('w');
     assert.equal(s.world, 'outer');
-    return longTasks;
+    // Pass 026: the reef, fish and creatures are prepared while in the tunnel.
+    await page.evaluate(() => window.__cozy.outer.reefPrepared);
+    await step(70);
+    return page.evaluate(() => window.__longTasks);
   };
   const longTasks = await visit();
   report.longTasks = longTasks

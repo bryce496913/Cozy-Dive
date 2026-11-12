@@ -99,7 +99,7 @@ describe('Pass 025 cruising routes', () => {
     expect(steepest).toBeLessThan(0.6);
   });
 
-  it('keeps every outer route clear of the reef, inside the reef and below the surface', () => {
+  it('keeps every outer route clear of the reef and wall, out in the blue off the lip', () => {
     const layout = outerReefLayout(),
       obstacles = reefObstacles(layout.placements),
       cruisers = outerCruisers(obstacles);
@@ -117,9 +117,10 @@ describe('Pass 025 cruising routes', () => {
           species.clearance - 0.05,
         );
         expect(Math.abs(p.x)).toBeLessThan(OUTER.reef.maxX - 6);
-        expect(p.z).toBeLessThan(OUTER.cliffZ - 8);
-        expect(p.z).toBeGreaterThan(OUTER.reef.minZ + 6);
-        expect(p.y).toBeLessThan(OUTER.reef.maxY - 10);
+        // Pass 026: out in the blue, past the reef's lip, within reach of the eye.
+        expect(p.z).toBeLessThan(OUTER.dropOff.start);
+        expect(p.z).toBeGreaterThan(OUTER.bounds.min.z + 6);
+        expect(p.y).toBeLessThan(OUTER.reach.up);
       }
     }
   });

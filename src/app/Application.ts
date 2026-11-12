@@ -100,7 +100,6 @@ export class Application {
   private readonly lookForward = { x: 0, y: 0, z: -1 };
   /** Pass 024: the tank's sound spots, and the outer reef's edge current (reused). */
   private tankSoundSpots: readonly Vec3[] = [];
-  private readonly drift = { x: 0, y: 0, z: 0 };
   private officeAudio?: OfficeAmbience;
   private mode: ExperienceMode;
   private readonly walk = createWalkState(OFFICE.spawn);
@@ -577,6 +576,8 @@ export class Application {
     return this.waterWorld === 'outer' && this.outer ? this.outer : this.world!;
   }
   private setWaterWorld(id: WaterWorldId): void {
+    // Pass 026: entering the outer waters (the tunnel) starts preparing the reef beyond it.
+    if (id === 'outer') this.outer?.begin();
     this.waterWorld = id;
     this.ui.setOuter(id === 'outer');
     // Pass 024: the soundscape's small sounds come from the current world's places.
@@ -750,13 +751,8 @@ export class Application {
         this.direction,
       );
       const swim = this.water();
-      // Pass 024: near soft edges a gentle current turns the swimmer back (through collision).
-      if (swim.current) {
-        swim.current(this.state.position, this.drift);
-        this.state.velocity.x += this.drift.x * dt * PASSAGE.currentResponse;
-        this.state.velocity.y += this.drift.y * dt * PASSAGE.currentResponse;
-        this.state.velocity.z += this.drift.z * dt * PASSAGE.currentResponse;
-      }
+      // Pass 026: near the outer waters' edges, swimming outwards eases off to a hover.
+      swim.ease?.(this.state.position, this.direction);
       integrateSwimming(
         this.state,
         this.direction,
