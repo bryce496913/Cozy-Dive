@@ -40,8 +40,8 @@ The reef top is several times denser than Pass 024's reef, in a smaller area. De
 | Piece                     | Pass 024 levels                | Pass 026 levels                            |
 | ------------------------- | ------------------------------ | ------------------------------------------ |
 | Reef rock                 | full < 8, medium < 22, far     | full < 4, medium < 10, far < 40, then none |
-| Massive colony            | full < 6, far < 28, mound < 70 | full < 2.5, far < 11, coloured mound < 40  |
-| Branching colony          | full < 8, far < 24             | full < 3.5, far < 11                       |
+| Massive colony            | full < 6, far < 28, mound < 70 | full < 2.5, far < 13, coloured mound < 40  |
+| Branching colony          | full < 8, far < 24             | full < 3.5, far < 12                       |
 | Plate colony              | < 28                           | < 13                                       |
 | Soft coral, fan, seagrass | < 24                           | < 13                                       |
 | Shells and rubble         | < 22                           | < 12                                       |
