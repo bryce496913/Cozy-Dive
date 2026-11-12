@@ -155,6 +155,30 @@ export const ASSET_REGISTRY = {
     maxDimension: 0.828,
     requireMorphs: true,
   },
+  // v0.4 Pass 025: the outer reef's big creatures. One Body (+ distance level) each, whose
+  // Stroke_Left / Stroke_Right morphs are the two ends of its swimming stroke.
+  reefShark: {
+    path: 'assets/models/creatures/reef-shark.glb',
+    requiredNodes: ['Shark_Root', 'Body', 'Body_LOD1'],
+    minDimension: 2.6,
+    maxDimension: 3.4,
+    requireMorphs: true,
+  },
+  eagleRay: {
+    path: 'assets/models/creatures/eagle-ray.glb',
+    requiredNodes: ['Ray_Root', 'Body', 'Body_LOD1'],
+    minDimension: 3.9,
+    maxDimension: 4.8,
+    requireMorphs: true,
+  },
+  seaTurtle: {
+    path: 'assets/models/creatures/sea-turtle.glb',
+    requiredNodes: ['Turtle_Root', 'Body', 'Body_LOD1'],
+    // Bounds include the stroke morphs: the flippers' forward sweep spans 2.37 m.
+    minDimension: 1.4,
+    maxDimension: 2.6,
+    requireMorphs: true,
+  },
   acropora: {
     path: 'assets/models/coral/acropora.glb',
     requiredNodes: [

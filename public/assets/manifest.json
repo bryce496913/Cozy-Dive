@@ -801,5 +801,134 @@
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium reef fish (Pass 016)"
+  },
+  {
+    "id": "reef-shark",
+    "file": "assets/models/creatures/reef-shark.glb",
+    "sha256": "300cfdbb6d0072eb1cd8e9647ec1a2b5be036f62bdd91d5c8f5e73a9142d6eef",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 536260,
+    "visualPrimitives": 2,
+    "visualTriangles": 11998,
+    "collisionTriangles": 0,
+    "materials": 1,
+    "images": [
+      {
+        "name": "creature_shark_normal",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 100820
+      },
+      {
+        "name": "creature_shark_base",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 19411
+      },
+      {
+        "name": "creature_shark_orm",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 1221
+      }
+    ],
+    "geometryAccessorBytes": 293376,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Outer reef big creatures (Pass 025)"
+  },
+  {
+    "id": "eagle-ray",
+    "file": "assets/models/creatures/eagle-ray.glb",
+    "sha256": "9abb432fbe207a8234700e6b427b2a34e2ff4112182aa9e99ba11dd0a87c438d",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 372984,
+    "visualPrimitives": 2,
+    "visualTriangles": 6096,
+    "collisionTriangles": 0,
+    "materials": 1,
+    "images": [
+      {
+        "name": "creature_ray_normal",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 155196
+      },
+      {
+        "name": "creature_ray_base",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 16347
+      },
+      {
+        "name": "creature_ray_orm",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 6079
+      }
+    ],
+    "geometryAccessorBytes": 77616,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Outer reef big creatures (Pass 025)"
+  },
+  {
+    "id": "sea-turtle",
+    "file": "assets/models/creatures/sea-turtle.glb",
+    "sha256": "46e28b0545638998d3b589d0e59d7d19a25460f6e437492d2704c3a5bccd3730",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 502076,
+    "visualPrimitives": 2,
+    "visualTriangles": 9474,
+    "collisionTriangles": 0,
+    "materials": 1,
+    "images": [
+      {
+        "name": "creature_turtle_normal",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 183561
+      },
+      {
+        "name": "creature_turtle_base",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 57335
+      },
+      {
+        "name": "creature_turtle_orm",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 10636
+      }
+    ],
+    "geometryAccessorBytes": 117840,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Outer reef big creatures (Pass 025)"
   }
 ]

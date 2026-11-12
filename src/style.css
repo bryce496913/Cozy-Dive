@@ -620,3 +620,76 @@ kbd {
     animation: none;
   }
 }
+
+/* v0.4 Pass 025: the quiet "New sighting" note, and the pause screen's list of things seen. */
+.sighting-note {
+  position: fixed;
+  top: 86px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 7px 16px;
+  border-radius: 999px;
+  background: #0b2e2f99;
+  border: 1px solid #d6e3bb33;
+  color: #e8f0dce6;
+  font:
+    italic 13px Georgia,
+    serif;
+  letter-spacing: 0.3px;
+  pointer-events: none;
+  z-index: 6;
+  opacity: 1;
+  transition: opacity 0.9s ease;
+  animation: sighting-in 0.9s ease;
+}
+.sighting-note.is-fading {
+  opacity: 0;
+}
+@keyframes sighting-in {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sighting-note {
+    animation: none;
+  }
+}
+.seen-toggle {
+  display: block;
+  margin: 14px 0 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid #d6e3bb55;
+  color: #d6e3bb;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+.seen-toggle:hover {
+  border-bottom-color: #d6e3bb;
+}
+.seen-toggle:focus-visible {
+  outline: 2px solid #f4f8ec;
+  outline-offset: 3px;
+}
+.seen-list {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+}
+.seen-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid #c8dbce22;
+  font-size: 13px;
+  color: #e3eddc;
+}
+.seen-list time {
+  font-size: 11px;
+  color: #a6c2b8;
+  white-space: nowrap;
+}

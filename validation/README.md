@@ -240,3 +240,19 @@ COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy024-reef node validation/out
 - the soft edge turns the swimmer back.
 
 It also checks that fish move and stay above the sand. Finally it makes two full visits, each ending with Return to the tank and release, and checks that GPU memory does not grow from one visit to the next.
+
+## Pass 025 big creatures and sightings
+
+```bash
+COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy025-creatures node validation/big-creatures.mjs
+```
+
+`big-creatures.mjs` starts with an empty sightings journal and swims through the crack with real input, recording long tasks and shader programs while the reef prepares. It checks that:
+
+- all six creatures load, cruise and stroke;
+- over two minutes of cruising, no creature's centre, nose, tail or sides enter a reef hull or the seabed;
+- waiting on a shark's route, the shark gives way and keeps its distance;
+- looking at each kind of creature counts it as seen, shows the "New sighting" note and saves the journal;
+- the pause screen's "Seen" list names everything seen, with no counts, and Escape closes it.
+
+It then makes two visits, each ending with Return to the tank and release, and checks that GPU memory does not grow. Finally it reloads the page and checks that the list is still offered.
