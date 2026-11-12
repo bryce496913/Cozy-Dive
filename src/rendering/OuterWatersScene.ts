@@ -90,6 +90,9 @@ export class OuterWatersScene implements WaterWorld {
   /** Pass 026: how far the light has opened at the tunnel's exit (0 dark, 1 open). */
   private reveal = 0;
   private begun = false;
+  /** Pass 026: how long the reef took to prepare after the swimmer entered the tunnel (ms). */
+  reefPrepareMs = 0;
+  private begunAt = 0;
   private start: () => void = () => {};
   private disposed = false;
 
@@ -148,6 +151,7 @@ export class OuterWatersScene implements WaterWorld {
   begin(): void {
     if (this.begun || this.disposed) return;
     this.begun = true;
+    this.begunAt = performance.now();
     this.reef.begin();
     this.start();
   }
@@ -219,6 +223,7 @@ export class OuterWatersScene implements WaterWorld {
     await warmUpScene(this.renderer, this.scene, this.camera);
     if (this.disposed) return false;
     this.reefReady = true;
+    this.reefPrepareMs = performance.now() - this.begunAt;
     return true;
   }
   get bounds(): Bounds {

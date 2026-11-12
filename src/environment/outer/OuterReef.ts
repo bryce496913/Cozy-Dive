@@ -37,8 +37,8 @@ export const OUTER_DETAIL = {
   // Pass 026: the reef top is far denser, so full detail is kept closer (fog hides the rest).
   rock: [4, 10, 40],
   /** Massive colonies: full, far level, then a 1.3k-triangle mound in their own colour. */
-  massive: [2.5, 11, 40],
-  branching: [3.5, 11],
+  massive: [2.5, 13, 40],
+  branching: [3.5, 12],
   plate: 13,
   plant: 13,
   debris: 12,
@@ -434,7 +434,7 @@ export class OuterReef {
 
   /** Far mounds' colours, per massive template (dusky mauve, olive and brown, as up close). */
   private moundMaterial(template: number): THREE.MeshStandardMaterial {
-    const colours = [0x6b5466, 0x5f6a48, 0x6e5c48];
+    const colours = [0x5a4d56, 0x525b45, 0x5d5244];
     return this.own(
       new THREE.MeshStandardMaterial({
         color: colours[template % colours.length],

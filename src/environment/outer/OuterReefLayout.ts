@@ -58,7 +58,7 @@ export const OUTER_REEF = {
   /** Keep the open water right below the tunnel mouth clear (x half-width, z extent). */
   mouthClear: { halfWidth: 5, depth: 5 },
   /** Pass 026: the reef matrix between the bommies: one rock per cell of this size (m). */
-  matrixStep: 3.4,
+  matrixStep: 3.8,
   sandCorals: 30,
   meadows: 3,
   bladesPerMeadow: 45,
@@ -152,7 +152,7 @@ export function outerReefLayout(seed = OUTER_REEF.seed): ReefLayout {
         x + range(-0.35, 0.35) * size,
         top - 0.25,
         z + range(-0.35, 0.35) * size,
-        range(1.0, 1.7),
+        range(1.1, 1.9),
       );
     if (rand() < foot) {
       const ba = a + range(-0.5, 0.5),
@@ -223,7 +223,7 @@ export function outerReefLayout(seed = OUTER_REEF.seed): ReefLayout {
         size,
         size * range(0.4, 0.7),
         rand() * Math.PI * 2,
-        size > 1.7 ? 2 : 1,
+        size > 2.1 ? 2 : 1,
         0.35,
         0.7,
       );

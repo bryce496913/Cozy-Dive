@@ -130,9 +130,8 @@ try {
     assert.equal(s.world, 'outer');
     // Pass 026: the reef prepares while the swimmer is in the tunnel.
     const reefMs = await page.evaluate(async () => {
-      const t0 = performance.now();
       await window.__cozy.outer.reefPrepared;
-      return Math.round(performance.now() - t0);
+      return Math.round(window.__cozy.outer.reefPrepareMs);
     });
     await step(70);
     const longTasks = await page.evaluate(() => window.__longTasks);
@@ -143,8 +142,12 @@ try {
   report.programsOuter = await page.evaluate(
     () => window.__cozy.world.renderer.info.programs.length,
   );
+  // Software-rendered frames are long tasks themselves; the longest is the preparation's stall.
   report.longTasks = longTasks
-    ? { count: longTasks.length, longestMs: Math.max(0, ...longTasks) }
+    ? {
+        longestMs: Math.max(0, ...longTasks),
+        over250ms: longTasks.filter((t) => t > 250).length,
+      }
     : 'unsupported';
 
   // Fixed views: draw calls, triangles, CPU submit (mean of 5 renders), reef pieces drawn.
@@ -154,7 +157,7 @@ try {
     'from-the-cliff': [0, 7, -33, 0, -0.2],
     'coral-head': [head.x + 6, head.y + 4, head.z + 4, Math.atan2(6, 4), -0.35],
     'reef-top': [-7, 4, -40, 0.3, -0.25],
-    'at-the-lip': [0, 1.5, -54, 0, -0.35],
+    'at-the-lip': [0, 3.5, -53, 0, -0.35],
     'into-the-blue': [2, -1, -61, 0, -0.05],
     'back-at-the-wall': [10, -3, -66, Math.PI - 0.4, 0.15],
   };
@@ -248,7 +251,7 @@ try {
   await page.screenshot({ path: path.join(output, 'down-the-wall.png') });
 
   // Out over the blue: holding W past the lip slows to a hover a few metres out.
-  await place(2, -1, -50, 0, 0);
+  await place(2, 4, -50, 0, 0);
   await page.keyboard.down('w');
   let furthestOut = 0;
   for (let i = 0; i < 30; i++) {
