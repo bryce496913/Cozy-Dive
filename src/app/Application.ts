@@ -126,6 +126,7 @@ export class Application {
     fog: 0,
     bubbles: 0,
     water: 0,
+    outlook: 1,
   };
   /** Each space keeps its own look direction across switches. */
   private readonly looks: Record<
@@ -480,6 +481,7 @@ export class Application {
       this.elapsed += dt;
     }
     const f = dive.path.sample(dive.elapsed, this.diveFrame);
+    this.world!.outlook.setReveal(f.outlook);
     if (f.space !== this.mode) {
       this.mode = f.space;
       this.ui.setMode(f.space);
@@ -553,6 +555,7 @@ export class Application {
     const dive = this.dive;
     this.dive = undefined;
     this.world?.setHaze(UNDERWATER_HAZE);
+    this.world?.outlook.setReveal(1);
     this.world?.setOutsideView(null);
     this.office?.releaseOutside();
     this.ui.setVeil(0);

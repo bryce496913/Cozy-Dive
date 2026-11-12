@@ -84,7 +84,7 @@ The home office is remodelled as a small private office in a modern workplace, l
 - **The office from inside the tank** (`rendering/TankOutlook.ts`).
   - **Capture:** once the office has warmed up, `OfficeScene.captureFromTank` renders it into a 128 px cube map with mipmaps. The capture is taken from the tank's centre, with the tank hidden and the cube aligned with the aquarium's axes.
   - **Display:** in the aquarium, a box just outside the glass samples that cube at a soft mip level (1.2), drawn towards the water colour and fogged like the rest of the tank. The office is blurred and watery, clearer through near glass than far glass.
-  - **Where it shows:** only in the swimmer's view. The room's miniature of the tank hides it. While crossing the glass during a dive or surfacing, the live reverse view of the office (Pass 021) is drawn at the glass in front of it.
+  - **Where it shows:** only in the swimmer's view. The room's miniature of the tank hides it. Normal diving keeps the blue background at the scene switch, then smoothly reveals the capture during underwater settling. The reveal follows active transition time, freezes on pause, and resets on completion or cancellation. Surfacing draws the live reverse view of the office (Pass 021) at the front glass in front of it; reduced-motion entry retains its covered fade.
   - **Cost:** one draw call, one cube target (about 0.5 MB with mipmaps), and a single capture, not one per frame.
 - **Draw budget:** the room keeps its 27-mesh budget (tested), and the open-plan office adds at most 11.
 

@@ -134,6 +134,7 @@ try {
         camera: { x: c.position.x, y: c.position.y, z: c.position.z },
         yaw: a.controls.yaw,
         aquariumTime: a.elapsed,
+        outlook: a.world.outlook.mesh.material.uniforms.reveal.value,
         ecosystem: {
           fishSteps: a.world.aquarium.fish.simulation.steps,
           plants: a.world.aquarium.plants.clock.time,
@@ -214,6 +215,7 @@ try {
         const stillPaused = await state();
         assert.equal(stillPaused.dive.elapsed, atPause.dive.elapsed);
         assert.equal(stillPaused.aquariumTime, atPause.aquariumTime);
+        assert.equal(stillPaused.outlook, atPause.outlook);
         assert.deepEqual(stillPaused.ecosystem, atPause.ecosystem);
         assert(near(stillPaused.camera, atPause.camera));
         const { start, end } = atPause.dive;
@@ -241,6 +243,11 @@ try {
           entry.ended = done.mode;
         } else {
           assert.equal(after.dive, null, 'choosing the origin cancels');
+          assert.equal(
+            after.outlook,
+            1,
+            'cancellation clears the temporary backdrop reveal',
+          );
           assert.equal(after.mode, start.space);
           // Exactly where E was pressed, and the camera shows it (no snap to an older pose).
           assert(near(after.player, start.pose, 0.02));
