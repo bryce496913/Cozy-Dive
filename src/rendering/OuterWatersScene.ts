@@ -15,8 +15,9 @@ import {
   outerInterests,
   outerSpecies,
 } from '../environment/outer/OuterSchools';
-import { edgeCurrent, seabedHeight } from '../environment/outer/OuterTerrain';
+import { easeAtEdges, seabedHeight } from '../environment/outer/OuterTerrain';
 import { reefSightings } from '../environment/outer/outerSightings';
+import { WATER_LIGHT, WaterDome } from '../environment/outer/WaterDome';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
 import type { FishHabitat } from '../fish/FishHabitat';
 import type { CollisionWorld, ConvexCollider } from '../player/collision';
@@ -62,6 +63,12 @@ export class OuterWatersScene implements WaterWorld {
   readonly prepared: Promise<boolean>;
   private world: TerrainCollisionWorld;
   private readonly lights: THREE.Light[] = [];
+  /** Each light's intensity at the reef top (Pass 026: they dim with depth). */
+  private readonly brightness: number[] = [];
+  /** Pass 026: the blue around the eye; the fog and background follow its horizon. */
+  private readonly dome = new WaterDome();
+  private readonly fog: THREE.FogExp2;
+  private readonly background: THREE.Color;
   private readonly size = new THREE.Vector2();
   private ready = false;
   private disposed = false;
@@ -71,17 +78,21 @@ export class OuterWatersScene implements WaterWorld {
     libraries: SharedLibraries,
   ) {
     this.scene.name = 'Outer waters';
-    this.scene.background = new THREE.Color(WATER);
-    this.scene.fog = new THREE.FogExp2(WATER, OUTER.fog);
-    this.scene.add(this.environment.root);
+    this.background = new THREE.Color(WATER);
+    this.fog = new THREE.FogExp2(WATER, OUTER.fog);
+    this.scene.background = this.background;
+    this.scene.fog = this.fog;
+    this.scene.add(this.dome.mesh, this.environment.root);
     // The same kinds and number of lights as the tank, so most shader programs are shared with
     // it and need no new compilation (programs are keyed by light counts).
-    const sky = new THREE.HemisphereLight(0xb5e6ea, 0x3d5a4e, 1.7),
+    // Pass 026: a softer sky light, so the reef's lit tops sink into the blue instead of glowing.
+    const sky = new THREE.HemisphereLight(0x9fd6e0, 0x3d5a4e, 1.25),
       sun = new THREE.DirectionalLight(0xfff1d2, 2.4),
       fill = new THREE.DirectionalLight(0x75ced0, 0.5);
     sun.position.set(-20, 60, -40);
     fill.position.set(30, 20, 40);
     this.lights.push(sky, sun, fill);
+    for (const l of this.lights) this.brightness.push(l.intensity);
     this.scene.add(sky, sun, fill);
     this.reef = new OuterReef(libraries.reef, libraries.plants);
     this.scene.add(this.reef.root);
@@ -122,6 +133,9 @@ export class OuterWatersScene implements WaterWorld {
       ...this.environment.colliders,
       ...this.reef.colliders,
     ]);
+    // Pass 026: one map of the reef's tops places the schools and lifts the creatures' routes.
+    const drawn = this.reef.drawnPlacements,
+      obstacles = reefObstacles(drawn);
     const habitat: FishHabitat = {
       bounds: OUTER.bounds,
       // Coarse boxes keep the fish cheap; one more keeps them off the cliff.
@@ -144,19 +158,16 @@ export class OuterWatersScene implements WaterWorld {
     };
     this.schools = new OuterSchools(
       habitat,
-      outerSpecies(this.reef.heads),
+      outerSpecies(obstacles),
       fishLoader,
     );
-    const drawn = this.reef.drawnPlacements;
-    this.creatures = new OuterCreatures(reefObstacles(drawn), fishLoader);
-    const [, creatures] = await Promise.all([
-      this.schools.ready,
-      this.creatures.ready,
-    ]);
+    const creatures = new OuterCreatures(obstacles, fishLoader);
+    this.creatures = creatures;
+    const [, loaded] = await Promise.all([this.schools.ready, creatures.ready]);
     if (this.disposed) return false;
     this.scene.add(this.schools.root);
-    if (creatures) this.scene.add(this.creatures.root);
-    this.sightings.push(...reefSightings(drawn), ...this.creatures.sightings);
+    if (loaded) this.scene.add(creatures.root);
+    this.sightings.push(...reefSightings(drawn), ...creatures.sightings);
     this.reef.update(this.camera.position, 0, false);
     await warmUpScene(this.renderer, this.scene, this.camera);
     if (this.disposed) return false;
@@ -173,9 +184,9 @@ export class OuterWatersScene implements WaterWorld {
   get isReady(): boolean {
     return this.ready && !this.disposed;
   }
-  /** The gentle current near the reef's edges (m/s). */
-  current(p: Vec3, out: Vec3): Vec3 {
-    return edgeCurrent(p, out);
+  /** Pass 026: swimming outwards slows to a hover near the edges (see `easeAtEdges`). */
+  ease(p: Vec3, dir: Vec3): Vec3 {
+    return easeAtEdges(p, dir);
   }
   render(
     _time: number,
@@ -191,6 +202,14 @@ export class OuterWatersScene implements WaterWorld {
       this.camera.aspect = aspect;
       this.camera.updateProjectionMatrix();
     }
+    this.dome.update(this.camera.position);
+    this.fog.color.copy(this.dome.horizon);
+    this.fog.density =
+      OUTER.fog * (1 + WATER_LIGHT.thickening * this.dome.shade);
+    const dim = 1 - WATER_LIGHT.dimming * this.dome.shade;
+    for (let i = 0; i < this.lights.length; i++)
+      this.lights[i].intensity = this.brightness[i] * dim;
+    this.background.copy(this.dome.horizon);
     this.reef.update(this.camera.position, dt, reducedMotion);
     this.schools?.update(dt, active, reducedMotion, player, this.camera);
     this.creatures?.update(dt, active, reducedMotion, player, this.camera);
@@ -206,6 +225,7 @@ export class OuterWatersScene implements WaterWorld {
     this.sightings.length = 0;
     this.reef.dispose();
     this.environment.dispose();
+    this.dome.dispose();
     this.lights.forEach((l) => l.dispose());
     this.scene.clear();
   }

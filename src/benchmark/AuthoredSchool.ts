@@ -79,6 +79,8 @@ export class AuthoredSchool {
     sharedTextures?: Map<string, THREE.Texture>,
     /** v0.4 Pass 024: body lengths at which a fish switches to its distance level. */
     private readonly detailLengths: number = FISH_LOD.bodyLengths,
+    /** v0.4 Pass 026: distance-level parts to leave out (e.g. sub-pixel eyes in big schools). */
+    farOmit?: RegExp,
   ) {
     this.root.name = `Authored ${speciesId} school`;
     this.indices = fish.simulation.fish.flatMap((f, i) =>
@@ -104,7 +106,11 @@ export class AuthoredSchool {
       this.rigs.map((rig) => {
         const parts: THREE.Mesh[] = [];
         rig.traverse((o) => {
-          if (o instanceof THREE.Mesh && isDistanceLevel(o) === far)
+          if (
+            o instanceof THREE.Mesh &&
+            isDistanceLevel(o) === far &&
+            !(far && farOmit?.test(o.name))
+          )
             parts.push(o);
         });
         return parts;

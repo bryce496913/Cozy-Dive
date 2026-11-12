@@ -97,6 +97,8 @@ export const CRUISING = {
   maxPitch: 0.5,
   /** Stroke amplitude with reduced motion preferred. */
   reducedStroke: 0.6,
+  /** Pass 026: big animals count as seen this much further away (m), across the clear blue. */
+  sightReach: 3,
   /** Distance-level hysteresis (fraction of the switch distance). */
   hysteresis: 0.1,
 } as const;

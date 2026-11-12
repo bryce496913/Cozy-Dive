@@ -34,13 +34,14 @@ import {
  * soft corals and fans 7-13k. Beyond the last distance a piece is not drawn (fog hides it).
  */
 export const OUTER_DETAIL = {
-  rock: [8, 22],
-  /** Massive colonies: full, far level, then a 1.3k-triangle mound in their own material. */
-  massive: [6, 28, 70],
-  branching: [8, 24],
-  plate: 28,
-  plant: 24,
-  debris: 22,
+  // Pass 026: the reef top is far denser, so full detail is kept closer (fog hides the rest).
+  rock: [4, 10, 40],
+  /** Massive colonies: full, far level, then a 1.3k-triangle mound in their own colour. */
+  massive: [2.5, 11, 40],
+  branching: [3.5, 11],
+  plate: 13,
+  plant: 13,
+  debris: 12,
   /** Re-sort when the eye has moved this far, or this often (s). */
   resortDistance: 1.5,
   resortInterval: 0.4,
@@ -290,7 +291,9 @@ export class OuterReef {
         [
           { geometry: this.part(`Rock_${t}`).geometry, until: D.rock[0] },
           { geometry: this.part(`Rock_${t}_LOD1`).geometry, until: D.rock[1] },
-          { geometry: this.part(`Rock_${t}_LOD2`).geometry, until: Infinity },
+          { geometry: this.part(`Rock_${t}_LOD2`).geometry, until: D.rock[2] },
+          // Pass 026: beyond this the fog has them entirely.
+          { geometry: null, until: Infinity },
         ],
         this.rock,
         matrices,
@@ -337,9 +340,6 @@ export class OuterReef {
               ? [
                   { geometry: near.geometry, until: reach[0] },
                   { geometry: far.geometry, until: reach[1] },
-                  ...(family === 'massive'
-                    ? [{ geometry: this.mound(), until: reach[2] }]
-                    : []),
                   { geometry: null, until: Infinity },
                 ]
               : [
@@ -350,6 +350,19 @@ export class OuterReef {
             matrices,
           );
         }
+        // Pass 026: far massive colonies become simple mounds in their colony's own colour (the
+        // coral material on the rock-derived mound read as pale stones in the denser reef).
+        if (family === 'massive')
+          this.add(
+            `Outer coral ${name} mound`,
+            [
+              { geometry: null, until: D.massive[1] },
+              { geometry: this.mound(), until: D.massive[2] },
+              { geometry: null, until: Infinity },
+            ],
+            this.moundMaterial(t),
+            matrices,
+          );
         this.collide(this.hulls(`${name}_Root`), matrices);
       }
     // Soft corals, sea fans and seagrass, swaying in the reef's current.
@@ -408,6 +421,17 @@ export class OuterReef {
     this.sand = m;
   }
 
+  /** Far mounds' colours, per massive template (dusky mauve, olive and brown, as up close). */
+  private moundMaterial(template: number): THREE.MeshStandardMaterial {
+    const colours = [0x6b5466, 0x5f6a48, 0x6e5c48];
+    return this.own(
+      new THREE.MeshStandardMaterial({
+        color: colours[template % colours.length],
+        roughness: 0.95,
+        metalness: 0,
+      }),
+    );
+  }
   /** A far mound for massive colonies: the reef's lightest rock, set on y 0 like a colony. */
   private moundGeometry?: THREE.BufferGeometry;
   private mound(): THREE.BufferGeometry {

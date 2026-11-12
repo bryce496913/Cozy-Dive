@@ -36,10 +36,10 @@ export const CREVICE_FRAME: PassageFrame = {
 };
 
 export const OUTER = {
-  /** The outer waters' swimmable volume. */
+  /** The outer waters' swimmable volume (hard limits, well beyond where swimming eases off). */
   bounds: {
-    // Pass 024: deep enough below the drop-off to swim down its wall a little.
-    min: { x: -60, y: -26, z: -140 },
+    // Pass 026: deep enough for the wall below the reef's lip.
+    min: { x: -60, y: -42, z: -140 },
     max: { x: 60, y: 40, z: 3 },
     clearance: 0.65,
   } satisfies Bounds,
@@ -59,17 +59,36 @@ export const OUTER = {
   ] as readonly Vec3[],
   /** Sand level and the water surface far above. */
   floorY: 0,
-  fog: 0.02,
   /**
-   * Pass 024: the comfortable reef (m). Beyond it a gentle current turns the swimmer back
-   * (soft edges instead of walls); it strengthens over `edgeWidth`.
+   * Pass 026: distance fades to dark blue. Exponential fog towards the water colour, which matches the
+   * water's horizon, so the blue past the reef's edge deepens with distance.
    */
-  reef: { minX: -46, maxX: 46, minZ: -126, maxY: 30 },
-  edgeWidth: 8,
-  edgeCurrent: 1.4,
-  /** The seabed: a sand channel winding away from the cliff, and a drop-off into deep blue. */
-  channel: { amplitude: 7, wavelength: 70, halfWidth: 4.5, depth: 0.9 },
-  dropOff: { start: -100, end: -114, depth: 23 },
+  fog: 0.04,
+  /** Pass 026: the reef top is built this wide (m); it reaches further than you can swim. */
+  reef: { minX: -44, maxX: 44 },
+  /**
+   * Pass 026: where swimming eases off (m). Outward movement slows smoothly over each band to
+   * almost nothing, then stops: `past` beyond the reef's lip out over the blue, below `down` on
+   * the wall, beyond `halfWidth` at the sides, and above `up`.
+   */
+  reach: {
+    halfWidth: 24,
+    side: 7,
+    past: 7,
+    down: -6,
+    depth: 7,
+    up: 12,
+    rise: 5,
+    /** The slowest speed (fraction of normal), held until the band's end, then easing to zero. */
+    crawl: 0.06,
+    stop: 2,
+  },
+  /** A narrow sand gully winding from the cliff to the lip; the rest is reef. */
+  channel: { amplitude: 3, wavelength: 40, halfWidth: 2.2, depth: 0.5 },
+  /** Pass 026: the lip of the wall, close to the tunnel, and the wall falling away into the deep. */
+  dropOff: { start: -56, end: -62, depth: 38 },
+  /** Beyond the wall's foot the bottom keeps falling away, out of sight in the dark. */
+  abyss: { slope: 0.5, depth: 90 },
 } as const;
 
 /** The tunnel's start, matching the crevice threshold. */
@@ -93,6 +112,4 @@ export const PASSAGE = {
   /** Return to the tank: arrive this far outside the mouth, facing the room. */
   returnGap: 1.4,
   arrivalFade: 0.6,
-  /** Pass 024: how strongly the edge current steers the swimmer's velocity (1/s). */
-  currentResponse: 2.2,
 } as const;
