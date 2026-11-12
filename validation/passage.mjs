@@ -182,6 +182,11 @@ try {
   assert(Math.abs(previous.dark - s.dark) < 0.12);
   assert(s.dark > 0.8);
 
+  // Pass 026: the reef beyond is prepared while in the tunnel; its exit opens once it is ready.
+  report.reefReadyAtCrossing = await page.evaluate(
+    () => window.__cozy.outer.isReefReady,
+  );
+  await page.evaluate(() => window.__cozy.outer.reefPrepared);
   // 3. Follow the tunnel to open water.
   const tunnel = [
     [0.6, 8.8, -6],
