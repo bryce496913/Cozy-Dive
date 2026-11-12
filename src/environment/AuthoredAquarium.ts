@@ -208,7 +208,9 @@ export class AuthoredAquarium {
       // Pass 019: on its reef-rock perch the frogfish takes on the limestone's muted
       // olive-beige, so it blends in instead of standing out orange.
       const camouflage = new Map<THREE.Material, THREE.Material>();
-      for (const part of [f.body, f.lure, f.leftFoot, f.rightFoot])
+      // The body already contains the jaw and lure; visit each subtree only once so
+      // shared skin receives one tint and one owned material clone.
+      for (const part of [f.body, f.leftFoot, f.rightFoot])
         part.traverse((o) => {
           if (
             !(o instanceof THREE.Mesh) ||

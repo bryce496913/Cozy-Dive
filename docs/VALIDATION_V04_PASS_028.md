@@ -2,7 +2,7 @@
 
 Validation date: November 12, 2026. Release candidate `0.4.0-rc.1` for v0.4 (First Passage), for user review. No merge, release or tag is authorized by this report. v0.4 closes on the user's macOS acceptance after a full play-through.
 
-**Limits of this evidence.** All browser evidence comes from Linux Chromium with SwiftShader software rendering, in a container with four CPU cores. It cannot show:
+**Limits of this evidence.** All browser evidence comes from Linux Chromium with SwiftShader software rendering, in managed cloud containers. It cannot show:
 
 - MacBook Air frame time;
 - how swimming, the passage and the transitions feel at full frame rate;
@@ -15,7 +15,7 @@ Use the frame-time readout (Settings → Show frame time) on the Mac for the fir
 
 | Pass                        | What it added                                                                                                                                                                                                                                                                                                            |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 023 — The opening           | A hidden crack at the back of the tank. Swimming through it carries you, without a pause, into a tunnel in the outer waters. Only one water world is loaded at a time. Groundwork for the sightings journal.                                                                                                             |
+| 023 — The opening           | A hidden crack at the back of the tank. Swimming through it carries you, without a pause, into a tunnel in the outer waters. Only the current world renders; outer waters preload near the crack and stay available for the return. Groundwork for the sightings journal.                                                |
 | 024 — The outer reef        | An open reef beyond the tunnel, built from the tank's own art library: coral heads, rock mounds, seagrass, rubble, about 100 reef fish in schools, and open-water sound.                                                                                                                                                 |
 | 025 — Big creatures         | Two blacktip reef sharks, three spotted eagle rays and a green sea turtle that cruise calmly and give you room. Quiet "New sighting" notes, and a "Seen in the outer waters" page.                                                                                                                                       |
 | 026 — The wall and the blue | The reef reshaped as a wall dive. A dense reef top, a wall falling into the deep, and the blue fading to dark. Swimming slows to a hover near the edges. Big animals pass along the wall. The tunnel doubles as the loading screen. Playtest round: thicker water, a darkening deep, and a better-hidden crevice.        |
@@ -38,13 +38,15 @@ The captures are from the regression harnesses, with fixed, staged camera poses.
 
 ## 2. Checks
 
-| Check                                  | Result                                                                                                                                                                |
-| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run build` / `typecheck` / `lint` | Pass. JS bundle 1,042.2 kB / 299.5 kB gzip                                                                                                                            |
-| `npm run test`                         | **477 passed** (52 files). This also passes when run alongside a build, lint and typecheck: the overlap that tripped three tests in Codex's PR #43 review (section 3) |
-| `npm run test:stress`                  | **10 passed**, including the 5-, 15- and 30-minute ecosystem soaks                                                                                                    |
+| Check                                  | Result                                                                                                                                                                   |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `npm run build` / `typecheck` / `lint` | Pass in the post-merge review. JS bundle 1,043.0 kB / 299.9 kB gzip                                                                                                      |
+| `npm run test`                         | **481 passed** (52 files) in the post-merge review, run with one worker. The original 477-test concurrent run predated the four frogfish checks from PR #47 (section 3). |
+| `npm run test:stress`                  | **10 passed** in the original Pass 028 run (not rerun for this cleanup), including the 5-, 15- and 30-minute ecosystem soaks                                             |
 
 ### Browser regression (run one at a time)
+
+Unless marked post-merge, these are the original Pass 028 measurements from before the frogfish asset refresh. Their GPU counts describe that earlier snapshot; current inventory and focused reruns are recorded below.
 
 | Harness                                                                                | Result                                                                                                                                                                                                                                                                                                          |
 | -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -55,22 +57,32 @@ The captures are from the regression harnesses, with fixed, staged camera poses.
 | `office.mjs`                                                                           | Pass. Walked 2.08 m at 1.28 m eye height. GPU memory unchanged over three office ↔ water round trips. 24–36 draw calls, 20–43 k triangles                                                                                                                                                                       |
 | `dive.mjs`                                                                             | Pass. The scene switches at 2.37 s, and the office backdrop is still blue at the switch (Codex's #45 checks). Surfacing compiles no new programs. Memory 431 / 116 before and after                                                                                                                             |
 | `dive-interrupt.mjs`                                                                   | Pass: eight interruption cases, a hidden tab and reduced-motion surfacing. Five full cycles hold at 431 / 116 / 127                                                                                                                                                                                             |
-| `lifecycle.mjs`                                                                        | Pass, 17 checks. Exact counts unchanged: tank geometries 582, materials 111, hulls 521. Thirty accelerated minutes (54,015 steps) with 0 corrections                                                                                                                                                            |
+| `lifecycle.mjs`                                                                        | Post-merge rerun: 17 checks pass. Resident tank inventory is 583 geometries, 108 materials and 521 hulls. Thirty accelerated minutes (54,000 steps) with 0 corrections. Uploaded GPU inventory stays at 432 geometries / 113 textures.                                                                          |
 | `discoveries`, `anchored-life`, `ornaments`, `reef-overhaul`, `integration`, `browser` | Pass                                                                                                                                                                                                                                                                                                            |
 | `production.mjs` (built preview)                                                       | Pass                                                                                                                                                                                                                                                                                                            |
 | `load-budget.mjs` (built preview)                                                      | Pass. 14.8 MB downloaded (13.7 MB models). Prepared in 7.7–9.8 s over three runs                                                                                                                                                                                                                                |
 | Console errors                                                                         | None, apart from `reef-overhaul`'s deliberate missing-asset fallback check. That check blocks the reef library on purpose and expects the warning                                                                                                                                                               |
 
-Not run, by design: `creature-overhaul`, `fish-overhaul`, `geometry-overhaul` and `playtest-fixes` are one-off before/after comparisons. `asset-smoke`, `texture-memory` and `visual-benchmark` measure the separate benchmark page. None of them covers anything v0.4 changed.
+The original Pass 028 run skipped the older before/after comparison harnesses. The post-merge review now reruns `creature-overhaul` for the frogfish and `geometry-overhaul` in probe mode for anatomy, fallback and disposal. `fish-overhaul` and `playtest-fixes` remain outside this cleanup; `asset-smoke`, `texture-memory` and `visual-benchmark` target the separate benchmark page.
 
 ## 3. Found during this pass
 
 - **Unit tests were sensitive to machine load.** Codex's review of PR #43 saw three simulation tests time out at the default 5 s while a build and lint ran, and pass when re-run alone.
-  - **The cause:** 19 tests rely on that default yet take 1.2–3.6 s on their own, so a threefold slowdown under load fails them.
+  - **The cause:** 20 tests relied on that default yet take 1.2–3.6 s on their own, so a threefold slowdown under load fails them.
   - **The fix:** each now carries an explicit 20 s budget, as the suite's other heavy simulations already do (20–120 s). No assertion changed. The global 5 s default is unchanged.
-  - **Checked:** with the default lowered to 1.2 s, all 477 pass, so no test above that line is left on the default. Under a concurrent build, lint and typecheck, all 477 pass too.
+  - **Original check:** the earlier 477-test suite passed with the default lowered to 1.2 s and during concurrent build/lint/typecheck. That evidence predates PR #47's four frogfish checks. The post-merge review confirms all 481 tests with the accepted timeouts and one worker; it does not repeat the concurrency or 1.2 s experiment.
 - **The reef-overhaul "error" is expected.** Its "failed to load reef" message comes from the fallback check, which aborts the reef download on purpose. The Pass 026 run reported the same entry.
 - **The busiest outer-reef view is heavier than recorded.** `outer-reef.mjs` measures 1.73 M triangles "at the lip". The Pass 026 playtest round recorded up to 1.47 M, but from its own development camera poses, not this harness, so the two figures are not directly comparable. It is noted for the Mac check below.
+
+## Post-merge review before macOS acceptance
+
+Reviewed merged PRs #47 and #48 at `bb06953`. The frogfish's authored body, jaw, lure and feet are attached and the closed/yawning poses render correctly. Its skin now receives one camouflage tint: the body already contains the lure, so traversing the lure again had darkened it twice and allocated an extra material clone.
+
+- **Motion tests:** retain all ten minutes of gape samples and the same bounds, continuity and duty-cycle assertions, but compare aggregate extrema instead of making four assertions per sample. Pause/reduced-motion coverage now includes the jaw angle. No test timeout or assertion threshold changed in this cleanup.
+- **Geometry validation:** the old harness omitted the crevice's 18 hulls. The exact authored expectation is 503 + 18 = **521**; the missing-props fallback is 358 + 18 = **376**. Probe mode passes with **0 intrusions in 58,152 anatomy samples**, usable fallback, and zero GPU geometries/textures after normal and in-flight disposal.
+- **Rendered frogfish:** five skin meshes share one tinted material; closed jaw is 0 rad and the held yawn is 0.42 rad. No console or WebGL errors. The staged comparison harnesses pause their preview loops during preparation, then render the requested views normally.
+- **Native lifecycle:** all 17 checks pass, including pointer lock, keyboard swimming, audio/settings persistence, pause/resume, controlled visibility, unsupported audio and disposal. The accelerated 30-minute soak uses the harness's reduced-motion preference: stable inventory, one audio context, 19 nodes, three buffers, 54,000 fish steps and zero corrections. It is not a 30-minute real-time recording or perceptual audio check.
+- **Art scope:** no GLB, texture or Blender source is regenerated by this cleanup. The untouched seahorse, moray and anemone decoded point clouds match the previous library to five decimal places; Draco re-encoding can reorder vertices. Mac frame time, subjective swimming/audio comfort and final art acceptance remain user checks.
 
 ## 4. Known limitations
 
@@ -92,6 +104,7 @@ Use the production build (`npm run build`, `npm run preview`) in Chrome or Safar
 
 **The tank and the passage**
 
+- [ ] The frogfish sits on its rock, breathes and occasionally yawns; the lure matches its skin, and the jaw settles still with reduced motion.
 - [ ] The crack at the back is hidden but findable. Its edges look like rock, and its centre is dark.
 - [ ] Swimming into it never stops or jumps. The tunnel feels like a natural, slightly mysterious passage, and the light at its end opens without a hitch.
 - [ ] Coming back (through the tunnel, or Return to the tank) feels just as smooth.

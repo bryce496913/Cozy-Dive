@@ -149,19 +149,27 @@ describe('quiet hidden discoveries', () => {
     let last = frogfishGape(0),
       open = 0,
       closed = 0,
-      wide = 0;
+      wide = 0,
+      finite = true,
+      minimum = Infinity,
+      maximum = -Infinity,
+      largestStep = 0;
     // Ten minutes at 30 Hz: continuous, bounded, and genuinely opening and closing.
     for (let i = 1; i < 18000; i++) {
       const g = frogfishGape(i / 30);
-      expect(Number.isFinite(g)).toBe(true);
-      expect(g).toBeGreaterThanOrEqual(0);
-      expect(g).toBeLessThanOrEqual(FROGFISH_YAWN.gape + 1e-9);
-      expect(Math.abs(g - last)).toBeLessThan(0.03);
+      finite &&= Number.isFinite(g);
+      minimum = Math.min(minimum, g);
+      maximum = Math.max(maximum, g);
+      largestStep = Math.max(largestStep, Math.abs(g - last));
       if (g > gulp * 0.8) open++;
       if (g < 0.005) closed++;
       if (g > FROGFISH_YAWN.gape * 0.95) wide++;
       last = g;
     }
+    expect(finite).toBe(true);
+    expect(minimum).toBeGreaterThanOrEqual(0);
+    expect(maximum).toBeLessThanOrEqual(FROGFISH_YAWN.gape + 1e-9);
+    expect(largestStep).toBeLessThan(0.03);
     expect(open).toBeGreaterThan(3000);
     expect(closed).toBeGreaterThan(1000);
     // A held yawn once per cycle: rare, but every cycle.
@@ -405,6 +413,7 @@ describe('quiet hidden discoveries', () => {
     const snapshot = () => ({
       time: d.clock.time,
       motion: d.clock.sample,
+      jaw: d.frogfish.jaw.rotation.x,
       seahorse: d.seahorse.root.position.toArray(),
       frog: d.frogfish.root.position.toArray(),
       instances: d.nudibranchs.meshes.map((m) =>
@@ -419,6 +428,9 @@ describe('quiet hidden discoveries', () => {
     const reduced = snapshot();
     for (let i = 0; i < 60; i++) d.update(1 / 30, true, true);
     expect(d.clock.sample - reduced.motion).toBeLessThan(1e-6);
+    expect(Math.abs(d.frogfish.jaw.rotation.x - reduced.jaw)).toBeLessThan(
+      1e-6,
+    );
     expect(
       d.seahorse.root.position.distanceTo(
         new THREE.Vector3(...reduced.seahorse),

@@ -58,7 +58,11 @@ try {
     const r = await route.fetch();
     await route.fulfill({
       response: r,
-      body: (await r.text()) + '\nwindow.__cozy=app;',
+      // These are staged views, not a live gameplay recording. Stop the preview loop
+      // during shader/texture preparation to avoid a queued SwiftShader render backlog.
+      body:
+        (await r.text()) +
+        '\nwindow.__cozy=app;cancelAnimationFrame(app.frame);',
     });
   });
   page.on('pageerror', (e) => report.errors.push(e.message));
@@ -71,16 +75,37 @@ try {
   await page.goto(base);
   await page.waitForFunction(() => window.__cozy?.world);
   await page.evaluate(() =>
-    Promise.all([
-      window.__cozy.world.authored.ready,
-      window.__cozy.world.reef?.ready,
-    ]),
+    Promise.all([window.__cozy.world.prepared, window.__cozy.office.prepared]),
   );
   await page
     .getByRole('button', { name: 'Enter the Water', exact: true })
     .click();
   await page.waitForFunction(() => !!document.pointerLockElement);
   await page.evaluate(() => cancelAnimationFrame(window.__cozy.frame));
+  // Body, jaw, lure and mirrored feet use the same authored skin. A nested lure must
+  // not be tinted a second time when the controller's body has already been traversed.
+  report.frogfishSkin = await page.evaluate(() => {
+    const f = window.__cozy.world.aquarium.anchoredLife.hidden.frogfish,
+      materials = new Set();
+    let meshes = 0;
+    f.root.traverse((node) => {
+      if (!node.isMesh) return;
+      for (const material of Array.isArray(node.material)
+        ? node.material
+        : [node.material])
+        if (material.name === 'FrogSkin15') {
+          materials.add(material);
+          meshes++;
+        }
+    });
+    return { meshes, skinMaterials: materials.size };
+  });
+  assert(report.frogfishSkin.meshes >= 5);
+  assert.equal(
+    report.frogfishSkin.skinMaterials,
+    1,
+    'frogfish skin is tinted once across all parts',
+  );
   for (const view of VIEWS) {
     await page.evaluate(async (view) => {
       const THREE = await import('/node_modules/.vite/deps/three.js'),
@@ -176,6 +201,38 @@ try {
     });
     await page.screenshot({ path: path.join(output, `${view}.png`) });
     report.views.push({ view, ...metrics });
+  }
+  if (!only || only.includes('frogfish')) {
+    report.frogfishMouth = [];
+    for (const [name, time, angle] of [
+      ['closed', 0, 0],
+      ['yawn', 11.8, 0.42],
+    ]) {
+      const pose = await page.evaluate(async (time) => {
+        const THREE = await import('/node_modules/.vite/deps/three.js'),
+          { tropicalSnapshot } = await import('/validation/TropicalAudit.ts'),
+          w = window.__cozy.world,
+          f = w.aquarium.anchoredLife.hidden.frogfish;
+        f.pose(time);
+        w.scene.updateMatrixWorld(true);
+        w.camera.position.copy(
+          f.root.localToWorld(new THREE.Vector3(1.1, 0.7, 1.45)),
+        );
+        w.camera.lookAt(f.root.localToWorld(new THREE.Vector3(0, 0.3, 0.15)));
+        w.renderer.render(w.scene, w.camera);
+        return {
+          jaw: f.jaw.rotation.x,
+          attached: !!f.jaw.getObjectByName('FrogJaw'),
+          inventory: tropicalSnapshot(w.aquarium),
+        };
+      }, time);
+      assert(pose.attached, 'the animated pivot carries the authored jaw');
+      assert(Math.abs(pose.jaw - angle) < 1e-6);
+      await page.screenshot({
+        path: path.join(output, `frogfish-${name}.png`),
+      });
+      report.frogfishMouth.push({ name, time, ...pose });
+    }
   }
   report.webglErrors = await page.evaluate(() =>
     window.__cozy.world.renderer.getContext().getError(),
