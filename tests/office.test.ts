@@ -15,12 +15,17 @@ describe('Pass 020 office environment', () => {
     const office = new OfficeEnvironment();
     try {
       office.root.updateMatrixWorld(true);
-      const meshes: THREE.Mesh[] = [];
+      const meshes: THREE.Mesh[] = [],
+        beyond: THREE.Mesh[] = [];
       office.root.traverse((o) => {
-        if (o instanceof THREE.Mesh) meshes.push(o);
+        if (!(o instanceof THREE.Mesh)) return;
+        (o.parent?.name === 'Open-plan office' ? beyond : meshes).push(o);
       });
-      // 26 in Pass 020; Pass 022's contact shadows add exactly one merged mesh.
+      // 26 in Pass 020; Pass 022's contact shadows add exactly one merged mesh. Pass 027's glass
+      // office keeps the same budget for the room itself; the open-plan office seen through the
+      // glass adds 11 merged meshes of its own (measured).
       expect(meshes.length).toBeLessThanOrEqual(27);
+      expect(beyond.length).toBeLessThanOrEqual(11);
       const room = new THREE.Box3(
         new THREE.Vector3(
           OFFICE.room.min.x,
@@ -34,13 +39,26 @@ describe('Pass 020 office environment', () => {
         ),
       ).expandByScalar(0.001);
       for (const m of meshes) {
-        // The window recess, its glass and the garden lie beyond the back wall by design.
-        if (/Garden|Rainy window/.test(m.name)) continue;
+        // The window's glass and the street lie beyond the back wall by design.
+        if (/Street view|Frosted window|Rainy window/.test(m.name)) continue;
         const box = new THREE.Box3().setFromObject(m);
-        if (m.name === 'Office paint')
+        // The window recess reaches behind the back wall, and the glass front's black frame
+        // straddles the front plane.
+        if (m.name === 'Office paint' || m.name === 'Office trim') {
           box.min.z = Math.max(box.min.z, OFFICE.room.min.z);
+          expect(box.max.z, m.name).toBeLessThanOrEqual(
+            OFFICE.room.max.z + OFFICE.frame,
+          );
+          box.max.z = Math.min(box.max.z, OFFICE.room.max.z);
+        }
         expect(room.containsBox(box), m.name).toBe(true);
       }
+      // The open-plan office is seen only beyond the glass front, never inside the room.
+      for (const m of beyond)
+        expect(
+          new THREE.Box3().setFromObject(m).min.z,
+          m.name,
+        ).toBeGreaterThanOrEqual(OFFICE.room.max.z - 0.001);
       // Four glass panels enclose exactly the scaled aquarium volume on the stand.
       expect(office.tankGlass).toHaveLength(4);
       const glass = new THREE.Box3();
@@ -131,7 +149,7 @@ describe('Pass 020 miniature aquarium view', () => {
       tank.decompose(new THREE.Vector3(), rotation, new THREE.Vector3());
       const eye = new THREE.PerspectiveCamera(66, 16 / 10, 0.05, 30),
         mini = new THREE.PerspectiveCamera(66, 16 / 10, 0.05 / TANK_SCALE, 260);
-      eye.position.set(1.2, 1.5, 0.4);
+      eye.position.set(TANK.position.x - 1.35, 1.5, TANK.position.z + 0.4);
       eye.lookAt(TANK.position.x, TANK.position.y + 0.2, TANK.position.z);
       eye.updateMatrixWorld();
       miniatureView(

@@ -67,3 +67,29 @@ The aquarium keeps simulating at full scale in its own scene and renderer. Each 
 - **Frame-time readout** (`ui/frameMeter.ts`, Settings → Show frame time, off by default).
   - **Sampling:** real frame intervals go into a fixed 120-frame ring, with no per-frame allocation.
   - **Readout:** twice a second it shows the mean frame time, frame rate and 95th-percentile frame time. Pauses over 1 s are ignored.
+
+## The glass office (v0.4 Pass 027)
+
+The home office is remodelled as a small private office in a modern workplace, loosely based on the user's own. The details are generic: no logos, brand names or real screen content. The room table above describes v0.3; Pass 027 replaces the room itself, while the walking, dive, miniature tank and audio systems are unchanged.
+
+- **The room** (3.6 × 4.2 m, 2.7 m ceiling; `config/office.ts`).
+  - **Surfaces:** grey grasscloth side walls, a white back wall, black skirting, grey porcelain tiles and an acoustic tile ceiling with two LED panels.
+  - **Glass front:** the front (+z) is a black-framed glass partition with a closed glass door. You cannot leave the room.
+  - **Window:** a tall back window, frosted below and clear above, with rain and a brick building opposite.
+  - **Furniture:** a dark L-desk with two monitors (dim, generic panels), a keyboard, papers and a small succulent; an executive chair; two blue guest chairs facing the desk; boxes in the corner; and the aquarium on its charcoal cabinet against the right wall, facing into the room.
+  - **Small fixtures:** a clock, a light switch, a thermostat, an air-conditioning cassette and a camera dome.
+- **The open-plan office** beyond the glass (`buildOpenPlan`), seen but never entered.
+  - **Furnishings:** rows of white workstations with monitors and black task chairs, neighbouring glass offices, a filing cabinet with binders, a coat, a snake plant, LED rows and three framed posters (generic art).
+  - **Cost:** it is merged per material into 11 meshes under its own group, and a point light lights it.
+- **The office from inside the tank** (`rendering/TankOutlook.ts`).
+  - **Capture:** once the office has warmed up, `OfficeScene.captureFromTank` renders it into a 128 px cube map with mipmaps. The capture is taken from the tank's centre, with the tank hidden and the cube aligned with the aquarium's axes.
+  - **Display:** in the aquarium, a box just outside the glass samples that cube at a soft mip level (1.2), drawn towards the water colour and fogged like the rest of the tank. The office is blurred and watery, clearer through near glass than far glass.
+  - **Where it shows:** only in the swimmer's view. The room's miniature of the tank hides it. While crossing the glass during a dive or surfacing, the live reverse view of the office (Pass 021) is drawn at the glass in front of it.
+  - **Cost:** one draw call, one cube target (about 0.5 MB with mipmaps), and a single capture, not one per frame.
+- **Draw budget:** the room keeps its 27-mesh budget (tested), and the open-plan office adds at most 11.
+
+### Limits
+
+- **A still picture.** The view from the tank is a still capture: the clock's hands and the rain in it do not move. That is not noticeable through the blur.
+- **Distance.** The box sits at the glass, so the office has no parallax as you swim: it reads as far away rather than one to three metres off.
+- **Lighting.** The open-plan office is lit by one point light and the hemisphere fill, with no shadows.

@@ -8,7 +8,7 @@
  * 3. Escape pauses (overlay offers "Return to the Office" and "Enter the Water"); entering the
  *    water fades to swimming (Pass 022); pausing and "Enter the Office" fades back.
  * 4. Switching back and forth does not grow GPU geometry/texture counts (no leaks).
- * 5. Fixed-camera views of the room, desk, window, shelf and the live miniature tank, with draw
+ * 5. Fixed-camera views of the room, desk, window, glass front and the live miniature tank, with draw
  *    calls, triangles and CPU submit time for the office frame (miniature included).
  * Software-rendered timings are diagnostics only, not hardware FPS.
  */
@@ -147,11 +147,13 @@ try {
   await page.evaluate(() => cancelAnimationFrame(window.__cozy.frame));
   report.views = [];
   for (const [name, eye, at] of [
-    ['room', [1.8, 1.6, 2.1], [-1.5, 1.0, -1.8]],
-    ['tank', [0.9, 1.5, 0.2], [2.4, 0.95, 0]],
-    ['tank-close', [1.75, 1.05, 0.05], [2.6, 0.92, -0.05]],
-    ['desk-window', [-0.2, 1.55, -0.6], [-0.6, 0.95, -2.4]],
-    ['shelf', [-1.2, 1.5, 0.9], [-2.8, 1.0, -0.3]],
+    // Pass 027: the glass office (tank on the right wall, desk back-left, glass front at +z).
+    ['room', [1.2, 1.5, 1.9], [-1.5, 1.0, -1.8]],
+    ['tank', [0.2, 1.4, 0.6], [1.34, 0.95, 0.6]],
+    ['tank-close', [0.7, 1.05, 0.6], [1.6, 0.95, 0.6]],
+    ['desk', [0.6, 1.45, 0.9], [-0.7, 0.9, -0.8]],
+    ['window', [-0.2, 1.5, 0.6], [0.85, 1.4, -2.1]],
+    ['glass-front', [-0.5, 1.4, -0.2], [0.3, 1.2, 4]],
   ]) {
     const info = await page.evaluate(
       async ([eye, at]) => {

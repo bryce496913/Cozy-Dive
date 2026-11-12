@@ -230,3 +230,115 @@ export function gardenTexture(): THREE.DataTexture {
     { repeat: false },
   );
 }
+
+// --- v0.4 Pass 027: the glass office.
+
+/** Grey grasscloth wallcovering: fine horizontal fibres with slow tonal drift (1 m per repeat). */
+export function grassclothTexture(): THREE.DataTexture {
+  return texture(256, (u, v) => {
+    const fibre = fbm(u * 3, v * 90, 101, 3),
+      slub = fbm(u * 1.5, v * 22, 103, 2),
+      k = 0.86 + 0.045 * (fibre - 0.5) + 0.035 * (slub - 0.5);
+    return [0.7 * k, 0.67 * k, 0.62 * k];
+  });
+}
+/** Large light-grey porcelain tiles (0.6 x 1.2 m per repeat) with a soft cloud and thin grout. */
+export function tileTexture(): THREE.DataTexture {
+  return texture(512, (u, v) => {
+    const tile = Math.floor(v * 2),
+      cloud = fbm(u * 3 + tile * 5, v * 6, 107, 4),
+      across = (v * 2) % 1,
+      gu = Math.min(u, 1 - u) * 600,
+      gv = Math.min(across, 1 - across) * 1200,
+      grout = Math.min(1, Math.min(gu, gv)),
+      k = (0.7 + 0.06 * (cloud - 0.5)) * (0.75 + 0.25 * grout);
+    return [k, k * 0.995, k * 0.985];
+  });
+}
+/** White acoustic ceiling tile (0.6 m) with a perforation grid and a recessed edge. */
+export function ceilingTileTexture(): THREE.DataTexture {
+  return texture(256, (u, v) => {
+    const edge = Math.min(u, 1 - u, v, 1 - v),
+      bevel = Math.min(1, edge * 60),
+      hu = (u * 40) % 1,
+      hv = (v * 40) % 1,
+      hole = Math.hypot(hu - 0.5, hv - 0.5) < 0.17 && edge > 0.05 ? 0.78 : 1,
+      k = (0.86 + 0.08 * bevel) * hole;
+    return [k, k, k * 0.99];
+  });
+}
+/**
+ * Generic framed posters for the open-plan office (no text or logos): a bullseye, an ocean
+ * horizon, and stacked bars. `kind` 0-2.
+ */
+/**
+ * The open-plan office's three posters side by side in one texture (generic art, no text), so
+ * they draw as a single mesh: each poster spans a third of u.
+ */
+export function posterTexture(): THREE.DataTexture {
+  return texture(
+    384,
+    (atlasU, v) => {
+      const kind = Math.min(2, Math.floor(atlasU * 3)),
+        u = atlasU * 3 - kind;
+      const dark: [number, number, number] = [0.1, 0.1, 0.11];
+      if (kind === 0) {
+        const r = Math.hypot(u - 0.5, v - 0.45),
+          ring = Math.floor(r * 14) % 2;
+        if (r < 0.04) return [0.78, 0.62, 0.3];
+        return r < 0.36 ? (ring ? [0.82, 0.78, 0.68] : dark) : dark;
+      }
+      if (kind === 1) {
+        const horizon = 0.48 + 0.01 * Math.sin(u * 20);
+        return v > horizon
+          ? [mix(0.55, 0.78, v), mix(0.68, 0.84, v), mix(0.78, 0.9, v)]
+          : [0.08 + 0.18 * v, 0.24 + 0.3 * v, 0.36 + 0.3 * v];
+      }
+      const bar = Math.floor(v * 9),
+        width = 0.25 + 0.6 * hash(bar, 1, 113),
+        on = u > 0.12 && u < 0.12 + width * 0.76 && (v * 9) % 1 > 0.35;
+      return on ? [0.76, 0.72, 0.62] : dark;
+    },
+    { repeat: false },
+  );
+}
+/**
+ * The street outside the back window: a brick building opposite, blurred by the frosted film over
+ * the lower part of the glass (the film is drawn by the window material itself).
+ */
+export function streetTexture(): THREE.DataTexture {
+  return texture(
+    256,
+    (u, v) => {
+      const course = Math.floor(v * 40),
+        brick = Math.floor(u * 14 + (course % 2) * 0.5),
+        tone = 0.75 + 0.2 * hash(brick, course, 127),
+        mortar =
+          (v * 40) % 1 < 0.15 || (u * 14 + (course % 2) * 0.5) % 1 < 0.06,
+        windowCell =
+          (u * 4) % 1 > 0.2 && (u * 4) % 1 < 0.75 && (v * 3) % 1 > 0.35,
+        k = mortar ? 0.62 : tone;
+      if (windowCell) {
+        const g = 0.18 + 0.1 * fbm(u * 10, v * 10, 131);
+        return [g, g * 1.05, g * 1.12];
+      }
+      return [0.52 * k, 0.32 * k, 0.26 * k];
+    },
+    { repeat: false },
+  );
+}
+/** A generic monitor screen: a dim, soft dark-blue page with a few pale panels (no content). */
+export function screenTexture(): THREE.DataTexture {
+  return texture(
+    128,
+    (u, v) => {
+      const panel =
+          (u > 0.08 && u < 0.62 && v > 0.12 && v < 0.82) ||
+          (u > 0.68 && u < 0.92 && v > 0.12 && v < 0.5),
+        bar = v > 0.88;
+      const k = panel ? 0.36 : bar ? 0.2 : 0.12;
+      return [k * 0.8, k * 0.9, k * 1.15];
+    },
+    { repeat: false },
+  );
+}

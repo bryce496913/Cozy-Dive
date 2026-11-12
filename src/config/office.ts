@@ -4,12 +4,15 @@ import { AQUARIUM, type Vec3 } from './world';
 const EYE_HEIGHT = 1.28;
 
 /**
- * v0.3 Pass 020: the cosy home office that holds the aquarium. Metres, y up. The room spans
- * x -3..3, z -2.5..2.5; the window is on the back wall (z = -2.5), the aquarium against the
- * right wall (x = 3) facing into the room. Shared by the procedural office, walking and tests.
+ * v0.4 Pass 027: the glass office (it was a cosy home office in v0.3). A small private office with
+ * grey grasscloth walls, porcelain tiles and an acoustic ceiling. Its front (z = room.max.z) is a
+ * black-framed glass partition with a closed door, looking out over an open-plan office; the
+ * back wall has a tall window, frosted below. A dark L-desk fills the back-left corner, two guest
+ * chairs face it, and the aquarium stands against the right wall (x = room.max.x), facing into the
+ * room. Metres, y up. Shared by the procedural office, walking, the dive and tests.
  */
 export const OFFICE = {
-  room: { min: { x: -3, y: 0, z: -2.5 }, max: { x: 3, y: 2.8, z: 2.5 } },
+  room: { min: { x: -1.8, y: 0, z: -2.1 }, max: { x: 1.8, y: 2.7, z: 2.1 } },
   /** Walking: eye height, body radius, pace. */
   eyeHeight: EYE_HEIGHT,
   playerRadius: 0.3,
@@ -17,18 +20,38 @@ export const OFFICE = {
   /** Exponential response of walking velocity to input (1/s). */
   walkResponse: 7,
   maxFrameDelta: 0.1,
-  spawn: { x: -0.2, y: EYE_HEIGHT, z: 1.55 },
-  /** Initial look: towards the window and the aquarium. */
-  spawnYaw: -0.55,
-  window: { centerX: -0.6, width: 1.7, sill: 0.92, top: 2.25 },
-  desk: { center: { x: -0.6, z: -2.1 }, size: { x: 1.6, y: 0.75, z: 0.7 } },
-  chair: { center: { x: -0.55, z: -1.45 }, size: { x: 0.55, z: 0.55 } },
-  shelf: { center: { x: -2.81, z: -0.3 }, size: { x: 0.36, y: 2, z: 1.7 } },
-  stand: { center: { x: 2.55, z: 0 }, size: { x: 0.88, y: 0.75, z: 1.12 } },
-  plants: [
-    { x: -2.55, z: -2.05, radius: 0.24, height: 1.35 },
-    { x: 2.6, z: 1.9, radius: 0.2, height: 0.95 },
+  /** Just inside the glass door; looking at the aquarium, with the desk to the left. */
+  spawn: { x: 0.25, y: EYE_HEIGHT, z: 1.6 },
+  spawnYaw: -0.72,
+  /** The back window (on z = room.min.z): frosted from the sill up to `frost`, clear above. */
+  window: { centerX: 0.85, width: 1.3, sill: 0.25, top: 2.45, frost: 1.95 },
+  /** The L-desk: the main top facing the door, and its return along the left wall. */
+  desk: { center: { x: -0.7, z: -0.6 }, size: { x: 1.6, y: 0.75, z: 0.7 } },
+  deskReturn: {
+    center: { x: -1.48, z: -1.52 },
+    size: { x: 0.6, y: 0.75, z: 1.12 },
+  },
+  /** The desk chair (behind the desk) and two guest chairs facing it. */
+  chair: { center: { x: -0.6, z: -1.4 }, size: { x: 0.6, z: 0.6 } },
+  guestChairs: [
+    { x: -1.3, z: 0.05 },
+    { x: -0.72, z: 0.05 },
   ],
+  guestChairSize: { x: 0.5, z: 0.5 },
+  /** Boxes stacked in the back-right corner, under the window's edge. */
+  boxes: { center: { x: 1.52, z: -1.82 }, size: { x: 0.5, y: 0.6, z: 0.42 } },
+  stand: { center: { x: 1.34, z: 0.6 }, size: { x: 0.88, y: 0.75, z: 1.12 } },
+  plants: [] as readonly {
+    readonly x: number;
+    readonly z: number;
+    readonly radius: number;
+    readonly height: number;
+  }[],
+  /** The glass front: the door's span (x) within it, and the frame's profile (m). */
+  door: { from: 0.55, to: 1.5, height: 2.15 },
+  frame: 0.05,
+  /** The open-plan office beyond the glass (seen, never entered). */
+  openPlan: { min: { x: -6, z: 2.1 }, max: { x: 6.5, z: 10 }, height: 2.9 },
 } as const;
 
 /** The aquarium's world units shrink to a roughly one-metre tank (36 units -> 1 m long). */
@@ -60,12 +83,19 @@ const box = (
   min: { x: c.x - s.x / 2, z: c.z - s.z / 2 },
   max: { x: c.x + s.x / 2, z: c.z + s.z / 2 },
 });
+/** The aquarium cabinet's footprint (the dive approaches it; everything else stays clear). */
+export const STAND_FOOTPRINT: FootprintBox = box(
+  OFFICE.stand.center,
+  OFFICE.stand.size,
+);
 /** Floor footprints the walker cannot enter (furniture and pots). */
 export const OFFICE_FOOTPRINTS: readonly FootprintBox[] = [
   box(OFFICE.desk.center, OFFICE.desk.size),
+  box(OFFICE.deskReturn.center, OFFICE.deskReturn.size),
   box(OFFICE.chair.center, OFFICE.chair.size),
-  box(OFFICE.shelf.center, OFFICE.shelf.size),
-  box(OFFICE.stand.center, OFFICE.stand.size),
+  ...OFFICE.guestChairs.map((c) => box(c, OFFICE.guestChairSize)),
+  box(OFFICE.boxes.center, OFFICE.boxes.size),
+  STAND_FOOTPRINT,
   ...OFFICE.plants.map((p) => box(p, { x: p.radius * 2, z: p.radius * 2 })),
 ];
 export const OFFICE_SPAWN: Vec3 = { ...OFFICE.spawn };

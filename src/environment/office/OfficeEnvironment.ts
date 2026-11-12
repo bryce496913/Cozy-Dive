@@ -8,17 +8,19 @@ import {
 } from './ContactShadows';
 import { OFFICE, TANK } from '../../config/office';
 import {
-  artTexture,
+  ceilingTileTexture,
   clockTexture,
-  floorTexture,
-  gardenTexture,
-  plasterTexture,
-  rugTexture,
+  grassclothTexture,
+  posterTexture,
+  screenTexture,
+  streetTexture,
+  tileTexture,
   woodTexture,
 } from './OfficeTextures';
 
 /**
- * v0.3 Pass 020: the cosy home office, generated in code. Static parts are baked into one merged
+ * v0.3 Pass 020 / v0.4 Pass 027: the office, generated in code (Pass 027 remodelled it as a glass
+ * office, see config/office.ts). Static parts are baked into one merged
  * mesh per material (vertex colour carries per-object tint), so the whole room is about fifteen
  * draw calls. The environment owns its scene root, geometries, materials and textures and disposes
  * them once. The tank's glass panels are exposed so the renderer can show the real aquarium
@@ -42,6 +44,8 @@ const hex = (h: number): Color => {
   return [c.r, c.g, c.b];
 };
 
+/** The open-plan posters' centres along the far wall (m). */
+const POSTERS = [-2.4, 0, 2.4] as const;
 /** Deterministic pseudo-random sequence. */
 function rng(seed: number): () => number {
   let s = seed >>> 0;
@@ -85,7 +89,7 @@ class Batcher {
     ).applyMatrix4(matrix);
     if (source.index) source.dispose();
     g.deleteAttribute('uv1');
-    boxUV(g, key === 'wall' ? 0.6 : 1.4);
+    boxUV(g, key === 'wall' ? 1 : 1.4);
     const n = g.attributes.position.count,
       rgb = new Float32Array(n * 3);
     for (let i = 0; i < n; i++) rgb.set(color, i * 3);
@@ -210,10 +214,14 @@ export class OfficeEnvironment {
   readonly tankRoot = new THREE.Group();
   /** Glass panels the renderer fills with the live miniature aquarium. */
   readonly tankGlass: THREE.Mesh[] = [];
-  /** Where the desk lamp's bulb is (for the lamp light). */
+  /** Pass 027: the main ceiling light panel's centre (it was the desk lamp's bulb). */
   readonly lampBulb = new THREE.Vector3();
+  /** Pass 027: the second ceiling panel, nearer the glass. */
+  readonly panel = new THREE.Vector3();
   /** Window opening on the back wall (centre, size), for the daylight. */
   readonly window: { center: THREE.Vector3; width: number; height: number };
+  /** Pass 027: the open-plan office beyond the glass (seen, never entered). */
+  readonly openPlan = new THREE.Group();
   private readonly geometries: THREE.BufferGeometry[] = [];
   private readonly materials: THREE.Material[] = [];
   private readonly textures: THREE.Texture[] = [];
@@ -227,639 +235,557 @@ export class OfficeEnvironment {
   private disposed = false;
 
   constructor() {
-    this.root.name = 'Cosy home office';
+    this.root.name = 'Glass office';
+    this.openPlan.name = 'Open-plan office';
     const b = new Batcher(),
       r = OFFICE.room,
-      w = OFFICE.window;
+      w = OFFICE.window,
+      d = OFFICE.door,
+      H = r.max.y;
     const own = <T extends THREE.Texture>(t: T): T => {
       this.textures.push(t);
       return t;
     };
     const wood = own(woodTexture()),
-      plaster = own(plasterTexture());
+      grasscloth = own(grassclothTexture());
+    const white = hex(0xf2f2ef),
+      black = hex(0x18191b),
+      darkWood = hex(0x3b3530),
+      chrome = hex(0xc7cbcf);
 
-    // --- Room shell: walls (with the window opening), skirting, ceiling, door.
-    const wall = hex(0xf1e4cf),
-      paint = hex(0xf6f1e7),
-      wallPlane = (
-        cx: number,
-        cy: number,
-        width: number,
-        height: number,
-        z: number,
-        ry: number,
-        x = 0,
-      ) =>
-        b.add(
-          'wall',
-          new THREE.PlaneGeometry(width, height),
-          [x || cx, cy, z],
-          wall,
-          [0, ry, 0],
-        );
-    const wx0 = w.centerX - w.width / 2,
-      wx1 = w.centerX + w.width / 2;
-    // Back wall around the window (z = room.min.z, facing +z).
-    wallPlane(
-      (r.min.x + wx0) / 2,
-      r.max.y / 2,
-      wx0 - r.min.x,
-      r.max.y,
-      r.min.z,
-      0,
-    );
-    wallPlane(
-      (wx1 + r.max.x) / 2,
-      r.max.y / 2,
-      r.max.x - wx1,
-      r.max.y,
-      r.min.z,
-      0,
-    );
-    wallPlane(w.centerX, w.sill / 2, w.width, w.sill, r.min.z, 0);
-    wallPlane(
-      w.centerX,
-      (w.top + r.max.y) / 2,
-      w.width,
-      r.max.y - w.top,
-      r.min.z,
-      0,
-    );
-    // Front, left and right walls.
+    // --- Room shell: grasscloth side walls, a white back wall around the window, black skirting.
     b.add(
       'wall',
-      new THREE.PlaneGeometry(r.max.x - r.min.x, r.max.y),
-      [0, r.max.y / 2, r.max.z],
-      wall,
-      [0, Math.PI, 0],
-    );
-    b.add(
-      'wall',
-      new THREE.PlaneGeometry(r.max.z - r.min.z, r.max.y),
-      [r.min.x, r.max.y / 2, 0],
-      wall,
+      new THREE.PlaneGeometry(r.max.z - r.min.z, H),
+      [r.min.x, H / 2, 0],
+      [1, 1, 1],
       [0, Math.PI / 2, 0],
     );
     b.add(
       'wall',
-      new THREE.PlaneGeometry(r.max.z - r.min.z, r.max.y),
-      [r.max.x, r.max.y / 2, 0],
-      wall,
+      new THREE.PlaneGeometry(r.max.z - r.min.z, H),
+      [r.max.x, H / 2, 0],
+      [1, 1, 1],
       [0, -Math.PI / 2, 0],
     );
-    // Ceiling.
-    b.add(
-      'paint',
-      new THREE.PlaneGeometry(r.max.x - r.min.x, r.max.z - r.min.z),
-      [0, r.max.y, 0],
-      hex(0xfbf8f2),
-      [Math.PI / 2, 0, 0],
-    );
-    // Skirting boards.
-    const skirt = hex(0xf3ede2);
+    const wx0 = w.centerX - w.width / 2,
+      wx1 = w.centerX + w.width / 2,
+      back = (cx: number, cy: number, width: number, height: number) =>
+        b.add(
+          'paint',
+          new THREE.PlaneGeometry(width, height),
+          [cx, cy, r.min.z],
+          white,
+        );
+    back((r.min.x + wx0) / 2, H / 2, wx0 - r.min.x, H);
+    back((wx1 + r.max.x) / 2, H / 2, r.max.x - wx1, H);
+    back(w.centerX, w.sill / 2, w.width, w.sill);
+    back(w.centerX, (w.top + H) / 2, w.width, H - w.top);
     for (const [x, z, len, ry] of [
-      [0, r.min.z + 0.01, r.max.x - r.min.x, 0],
-      [0, r.max.z - 0.01, r.max.x - r.min.x, 0],
-      [r.min.x + 0.01, 0, r.max.z - r.min.z, Math.PI / 2],
-      [r.max.x - 0.01, 0, r.max.z - r.min.z, Math.PI / 2],
+      [0, r.min.z + 0.008, r.max.x - r.min.x, 0],
+      [r.min.x + 0.008, 0, r.max.z - r.min.z, Math.PI / 2],
+      [r.max.x - 0.008, 0, r.max.z - r.min.z, Math.PI / 2],
     ] as const)
-      b.add('paint', rounded(len, 0.09, 0.02, 0.005), [x, 0.045, z], skirt, [
+      b.add('trim', rounded(len, 0.1, 0.015, 0.004), [x, 0.05, z], black, [
         0,
         ry,
         0,
       ]);
-    // Window reveal, frame, mullions and sill.
-    const depth = 0.18,
-      frame = hex(0xf7f4ee),
-      wy = (w.sill + w.top) / 2,
-      wh = w.top - w.sill;
+
+    // --- The glass front: black frame, a fixed panel with two mullions, and the closed door.
+    const zf = r.max.z,
+      f = OFFICE.frame,
+      post = (x: number, y0: number, y1: number, depth = 0.07) =>
+        b.add(
+          'trim',
+          new THREE.BoxGeometry(f, y1 - y0, depth),
+          [x, (y0 + y1) / 2, zf],
+          black,
+        );
+    const rail = (
+      x0: number,
+      x1: number,
+      y: number,
+      h: number = f,
+      depth = 0.07,
+    ) =>
+      b.add(
+        'trim',
+        new THREE.BoxGeometry(x1 - x0, h, depth),
+        [(x0 + x1) / 2, y, zf],
+        black,
+      );
+    post(r.min.x + f / 2, 0, H);
+    post(d.from, 0, H);
+    post(d.to, 0, H);
+    post(r.max.x - f / 2, 0, H);
+    rail(r.min.x, r.max.x, H - f / 2);
+    rail(r.min.x, d.from, 0.03, 0.06);
+    rail(d.to, r.max.x, 0.03, 0.06);
+    rail(r.min.x, d.from, 0.8, 0.035, 0.045);
+    rail(r.min.x, d.from, 1.95, 0.035, 0.045);
+    rail(d.from, d.to, d.height + f / 2);
+    // The door leaf: its own slim frame, a lock body and lever on the inside.
+    const leaf = 0.045,
+      inner = zf - 0.03;
+    for (const x of [d.from + f / 2 + leaf / 2, d.to - f / 2 - leaf / 2])
+      b.add(
+        'trim',
+        new THREE.BoxGeometry(leaf, d.height - 0.02, 0.045),
+        [x, (d.height - 0.02) / 2, inner],
+        black,
+      );
+    for (const y of [0.05, d.height - 0.04])
+      b.add(
+        'trim',
+        new THREE.BoxGeometry(d.to - d.from - f, leaf, 0.045),
+        [(d.from + d.to) / 2, y, inner],
+        black,
+      );
+    const handleX = d.from + 0.13;
     b.add(
-      'paint',
-      new THREE.BoxGeometry(w.width, 0.02, depth),
-      [w.centerX, w.top, r.min.z - depth / 2],
-      paint,
+      'trim',
+      rounded(0.045, 0.24, 0.035, 0.006),
+      [handleX, 1.02, inner - 0.04],
+      black,
     );
     b.add(
-      'paint',
-      new THREE.BoxGeometry(0.02, wh, depth),
-      [wx0, wy, r.min.z - depth / 2],
-      paint,
+      'trim',
+      rounded(0.14, 0.022, 0.022, 0.006),
+      [handleX + 0.06, 0.98, inner - 0.07],
+      black,
     );
-    b.add(
-      'paint',
-      new THREE.BoxGeometry(0.02, wh, depth),
-      [wx1, wy, r.min.z - depth / 2],
-      paint,
-    );
-    b.add(
-      'paint',
-      rounded(w.width + 0.16, 0.035, 0.26, 0.008),
-      [w.centerX, w.sill, r.min.z - 0.05],
-      frame,
-    );
-    const glassZ = r.min.z - 0.12;
+    // Glass in every opening of the front (one transparent draw).
+    const glassPane = (
+      x0: number,
+      x1: number,
+      y0: number,
+      y1: number,
+      z: number = zf,
+    ) => {
+      const g = new THREE.PlaneGeometry(x1 - x0, y1 - y0);
+      g.translate((x0 + x1) / 2, (y0 + y1) / 2, z);
+      return g;
+    };
+    const fronts = [
+      glassPane(r.min.x + f, d.from - f / 2, 0.06, H - f),
+      glassPane(d.to + f / 2, r.max.x - f, 0.06, H - f),
+      glassPane(d.from + f / 2, d.to - f / 2, d.height + f, H - f),
+      glassPane(
+        d.from + f / 2 + leaf,
+        d.to - f / 2 - leaf,
+        0.07,
+        d.height - 0.06,
+        inner,
+      ),
+    ];
+
+    // --- The back window: black frame, frosted below, clear above, the street beyond.
+    const wy = (w.sill + w.top) / 2,
+      wh = w.top - w.sill,
+      wz = r.min.z - 0.05;
     for (const [x, y, sw, sh] of [
-      [w.centerX, w.top - 0.03, w.width, 0.06],
-      [w.centerX, w.sill + 0.04, w.width, 0.06],
-      [wx0 + 0.03, wy, 0.06, wh],
-      [wx1 - 0.03, wy, 0.06, wh],
-      [w.centerX, wy, 0.045, wh],
-      [w.centerX, w.sill + wh * 0.62, w.width, 0.045],
+      [w.centerX, w.top - 0.025, w.width, 0.05],
+      [w.centerX, w.sill + 0.025, w.width, 0.05],
+      [wx0 + 0.025, wy, 0.05, wh],
+      [wx1 - 0.025, wy, 0.05, wh],
+      [w.centerX, w.frost, w.width, 0.04],
     ] as const)
-      b.add('paint', rounded(sw, sh, 0.05, 0.006), [x, y, glassZ], frame);
+      b.add('trim', new THREE.BoxGeometry(sw, sh, 0.06), [x, y, wz], black);
+    for (const [x, sw] of [
+      [wx0 - 0.03, 0.06],
+      [wx1 + 0.03, 0.06],
+    ] as const)
+      b.add(
+        'paint',
+        new THREE.BoxGeometry(sw, wh, 0.1),
+        [x, wy, r.min.z - 0.05],
+        white,
+      );
+    b.add(
+      'paint',
+      rounded(w.width + 0.08, 0.03, 0.14, 0.006),
+      [w.centerX, w.sill, r.min.z - 0.02],
+      white,
+    );
     this.window = {
       center: new THREE.Vector3(w.centerX, wy, r.min.z - 0.02),
       width: w.width,
       height: wh,
     };
-    // Door on the front wall.
-    const doorX = -1.8,
-      doorZ = r.max.z - 0.02;
+
+    // --- Ceiling: two LED panels, an air-conditioning cassette, a small camera dome.
+    this.lampBulb.set(-0.6, H - 0.12, -0.7);
+    this.panel.set(0.6, H - 0.12, 1.05);
+    for (const p of [this.lampBulb, this.panel])
+      b.add(
+        'glow',
+        new THREE.BoxGeometry(0.6, 0.012, 1.2),
+        [p.x, H - 0.006, p.z],
+        [1, 1, 1],
+      );
     b.add(
       'paint',
-      rounded(0.96, 2.12, 0.04, 0.01),
-      [doorX, 1.06, doorZ],
-      frame,
+      new THREE.BoxGeometry(0.62, 0.035, 0.62),
+      [0.75, H - 0.017, -0.75],
+      white,
     );
     b.add(
-      'wood',
-      rounded(0.84, 2.02, 0.04, 0.008),
-      [doorX, 1.01, doorZ - 0.02],
-      hex(0xe8dcc6),
+      'trim',
+      new THREE.BoxGeometry(0.42, 0.004, 0.42),
+      [0.75, H - 0.036, -0.75],
+      hex(0x9a9d9f),
     );
-    for (const y of [0.55, 1.45])
-      b.add(
-        'wood',
-        rounded(0.62, 0.62, 0.012, 0.006),
-        [doorX, y, doorZ - 0.045],
-        hex(0xefe4cf),
-      );
     b.add(
-      'metal',
-      new THREE.SphereGeometry(0.028, 14, 10),
-      [doorX + 0.33, 1.02, doorZ - 0.07],
-      hex(0xb59a62),
+      'paint',
+      new THREE.SphereGeometry(0.05, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2),
+      [1.55, H - 0.0, -1.95],
+      white,
+      [Math.PI, 0, 0],
+    );
+    b.add(
+      'trim',
+      new THREE.SphereGeometry(0.03, 12, 8),
+      [1.55, H - 0.03, -1.95],
+      black,
+    );
+    // Light switch by the door and a thermostat on the left wall.
+    b.add(
+      'paint',
+      rounded(0.012, 0.12, 0.08, 0.003),
+      [r.max.x - 0.006, 1.15, 1.75],
+      white,
+    );
+    b.add(
+      'paint',
+      rounded(0.012, 0.1, 0.07, 0.003),
+      [r.min.x + 0.006, 1.4, 0.95],
+      white,
     );
 
-    // --- Desk under the window, with laptop, mug, notebooks, plant and lamp.
-    const d = OFFICE.desk,
-      deskWood = hex(0xb98a5c),
-      topY = d.size.y;
+    // --- The L-desk: dark wood tops on black square-tube legs, a pale modesty panel.
+    const top = OFFICE.desk.size.y,
+      dk = OFFICE.desk,
+      ret = OFFICE.deskReturn;
     b.add(
-      'wood',
-      rounded(d.size.x, 0.04, d.size.z, 0.01),
-      [d.center.x, topY - 0.02, d.center.z],
-      deskWood,
+      'darkWood',
+      rounded(dk.size.x, 0.032, dk.size.z, 0.004),
+      [dk.center.x, top - 0.016, dk.center.z],
+      darkWood,
     );
-    for (const sx of [-1, 1])
+    b.add(
+      'darkWood',
+      rounded(ret.size.x, 0.032, ret.size.z, 0.004),
+      [ret.center.x, top - 0.016, ret.center.z],
+      darkWood,
+    );
+    const leg = (x: number, z: number) =>
       b.add(
-        'wood',
-        rounded(0.04, topY - 0.04, d.size.z - 0.06, 0.008),
-        [
-          d.center.x + sx * (d.size.x / 2 - 0.04),
-          (topY - 0.04) / 2,
-          d.center.z,
-        ],
-        deskWood,
+        'trim',
+        new THREE.BoxGeometry(0.045, top - 0.032, 0.045),
+        [x, (top - 0.032) / 2, z],
+        black,
       );
+    const dx1 = dk.center.x + dk.size.x / 2 - 0.04,
+      dz0 = dk.center.z - dk.size.z / 2 + 0.05,
+      dz1 = dk.center.z + dk.size.z / 2 - 0.05;
+    leg(dx1, dz0);
+    leg(dx1, dz1);
     b.add(
-      'wood',
-      rounded(d.size.x - 0.12, 0.32, 0.02, 0.006),
-      [d.center.x, topY - 0.2, d.center.z - d.size.z / 2 + 0.04],
-      deskWood,
+      'trim',
+      new THREE.BoxGeometry(0.04, 0.04, dk.size.z - 0.1),
+      [dx1, 0.03, dk.center.z],
+      black,
     );
-    const pedX = d.center.x + d.size.x / 2 - 0.28;
+    const rx = ret.center.x,
+      rz0 = ret.center.z - ret.size.z / 2 + 0.05;
+    leg(rx - ret.size.x / 2 + 0.05, rz0);
+    leg(rx + ret.size.x / 2 - 0.05, rz0);
     b.add(
-      'wood',
-      rounded(0.4, 0.62, d.size.z - 0.08, 0.008),
-      [pedX, 0.33, d.center.z],
-      deskWood,
+      'trim',
+      new THREE.BoxGeometry(ret.size.x - 0.1, 0.04, 0.04),
+      [rx, 0.03, rz0],
+      black,
     );
-    for (const y of [0.18, 0.46]) {
+    b.add(
+      'paint',
+      new THREE.BoxGeometry(dk.size.x - 0.14, 0.42, 0.016),
+      [dk.center.x, top - 0.28, dz1 + 0.02],
+      hex(0xd9dbdb),
+    );
+    // Two monitors on arms, facing the desk chair (their screens glow softly; generic).
+    const screens: THREE.BufferGeometry[] = [];
+    for (const mx of [dk.center.x - 0.33, dk.center.x + 0.3]) {
+      const mz = dk.center.z + 0.18;
       b.add(
-        'wood',
-        rounded(0.37, 0.24, 0.015, 0.005),
-        [pedX, y, d.center.z + d.size.z / 2 - 0.03],
-        hex(0xc4966a),
+        'trim',
+        rounded(0.56, 0.34, 0.025, 0.006),
+        [mx, top + 0.33, mz],
+        black,
       );
       b.add(
         'metal',
-        cylinder(0.008, 0.008, 0.12, 10),
-        [pedX, y + 0.06, d.center.z + d.size.z / 2 - 0.005],
-        hex(0x8f8a80),
-        [0, 0, Math.PI / 2],
+        cylinder(0.012, 0.012, 0.18, 10),
+        [mx, top + 0.1, mz + 0.03],
+        chrome,
       );
+      b.add(
+        'metal',
+        rounded(0.16, 0.012, 0.12, 0.004),
+        [mx, top + 0.006, mz + 0.03],
+        chrome,
+      );
+      const s = new THREE.PlaneGeometry(0.53, 0.31);
+      s.rotateY(Math.PI);
+      s.translate(mx, top + 0.33, mz - 0.0135);
+      screens.push(s);
     }
-    // Laptop: base, hinged screen and a soft lit display.
-    const lx = d.center.x - 0.12,
-      lz = d.center.z + 0.05,
-      lyaw = 0.12;
+    // Keyboard, mouse on a plain mat, papers, an open notebook, sticky notes, a succulent, a laptop.
     b.add(
-      'metal',
-      rounded(0.34, 0.016, 0.24, 0.006),
-      [lx, topY + 0.008, lz],
-      hex(0xc9c9c6),
-      [0, lyaw, 0],
-    );
-    const screen = new THREE.Matrix4()
-      .makeTranslation(lx, topY + 0.016, lz)
-      .multiply(new THREE.Matrix4().makeRotationY(lyaw))
-      .multiply(new THREE.Matrix4().makeTranslation(0, 0, -0.118))
-      .multiply(new THREE.Matrix4().makeRotationX(-0.28))
-      .multiply(new THREE.Matrix4().makeTranslation(0, 0.11, 0));
-    b.addMatrix(
-      'metal',
-      rounded(0.34, 0.22, 0.01, 0.005),
-      screen,
-      hex(0xbdbdba),
-    );
-    b.addMatrix(
-      'glow',
-      new THREE.PlaneGeometry(0.31, 0.19),
-      screen
-        .clone()
-        .multiply(new THREE.Matrix4().makeTranslation(0, 0, 0.0055)),
-      [0.42, 0.5, 0.58],
-    );
-    // Mug with a handle.
-    const mug = new THREE.LatheGeometry(
-      [
-        new THREE.Vector2(0, 0),
-        new THREE.Vector2(0.038, 0),
-        new THREE.Vector2(0.041, 0.095),
-        new THREE.Vector2(0.036, 0.095),
-        new THREE.Vector2(0.033, 0.01),
-        new THREE.Vector2(0, 0.01),
-      ],
-      24,
+      'trim',
+      rounded(0.44, 0.018, 0.13, 0.005),
+      [dk.center.x, top + 0.009, dk.center.z - 0.12],
+      hex(0x232427),
     );
     b.add(
-      'ceramic',
-      mug,
-      [d.center.x + 0.34, topY, d.center.z + 0.12],
-      hex(0xd58c62),
+      'fabric',
+      rounded(0.26, 0.004, 0.22, 0.004),
+      [dk.center.x + 0.36, top + 0.002, dk.center.z - 0.13],
+      hex(0x34465e),
     );
     b.add(
-      'ceramic',
-      new THREE.TorusGeometry(0.026, 0.007, 8, 16, Math.PI),
-      [d.center.x + 0.38, topY + 0.05, d.center.z + 0.12],
-      hex(0xd58c62),
-      [0, 0, -Math.PI / 2],
+      'trim',
+      new THREE.SphereGeometry(0.03, 14, 10),
+      [dk.center.x + 0.36, top + 0.012, dk.center.z - 0.13],
+      black,
+      [0, 0, 0],
+      [1, 0.5, 1.4],
     );
-    // Notebooks and a pencil.
-    for (const [i, c] of [0x5e7a78, 0xd7c8a7, 0x8a4f3f].entries())
+    const paper = hex(0xf3f1ea);
+    for (const [px, pz, ry] of [
+      [dk.center.x - 0.6, dk.center.z - 0.05, 0.12],
+      [dk.center.x - 0.55, dk.center.z - 0.02, -0.08],
+    ] as const)
       b.add(
         'paper',
-        rounded(0.21, 0.015, 0.28, 0.003),
-        [d.center.x - 0.52, topY + 0.0075 + i * 0.016, d.center.z + 0.06],
+        new THREE.BoxGeometry(0.21, 0.002, 0.297),
+        [px, top + 0.002, pz],
+        paper,
+        [0, ry, 0],
+      );
+    b.add(
+      'paper',
+      new THREE.BoxGeometry(0.3, 0.012, 0.21),
+      [dk.center.x - 0.22, top + 0.006, dk.center.z + 0.02],
+      hex(0xebe3cf),
+      [0, -0.2, 0],
+    );
+    for (const [nx, nz, c] of [
+      [dk.center.x - 0.64, dk.center.z + 0.06, 0xf6c84c],
+      [dk.center.x + 0.62, dk.center.z + 0.2, 0xf7a3b5],
+      [dk.center.x + 0.68, dk.center.z + 0.12, 0xa8d8ea],
+      [dk.center.x - 0.2, dk.center.z + 0.25, 0xf6e27a],
+    ] as const)
+      b.add(
+        'paper',
+        new THREE.BoxGeometry(0.075, 0.004, 0.075),
+        [nx, top + 0.006, nz],
         hex(c),
-        [0, 0.2 - i * 0.12, 0],
       );
-    b.add(
-      'wood',
-      cylinder(0.004, 0.004, 0.17, 6),
-      [d.center.x - 0.46, topY + 0.052, d.center.z + 0.1],
-      hex(0xd9a441),
-      [0, 0.5, Math.PI / 2],
-    );
-    // Desk lamp: weighted base, two arms and a shade with a warm bulb.
-    const lampBase = new THREE.Vector3(
-        d.center.x - 0.62,
-        topY,
-        d.center.z - 0.18,
-      ),
-      lampDark = hex(0x3f4a48);
-    b.add(
-      'metal',
-      cylinder(0.075, 0.085, 0.022, 24),
-      [lampBase.x, topY + 0.011, lampBase.z],
-      lampDark,
-    );
-    const elbow = lampBase.clone().add(new THREE.Vector3(0.03, 0.36, 0.05)),
-      head = elbow.clone().add(new THREE.Vector3(0.18, 0.06, 0.16));
-    const arm = (from: THREE.Vector3, to: THREE.Vector3) => {
-      const mid = from.clone().add(to).multiplyScalar(0.5),
-        dir = to.clone().sub(from),
-        q = new THREE.Quaternion().setFromUnitVectors(
-          new THREE.Vector3(0, 1, 0),
-          dir.clone().normalize(),
-        );
-      b.addMatrix(
-        'metal',
-        cylinder(0.009, 0.009, dir.length(), 10),
-        new THREE.Matrix4().compose(mid, q, new THREE.Vector3(1, 1, 1)),
-        lampDark,
-      );
-    };
-    arm(new THREE.Vector3(lampBase.x, topY + 0.02, lampBase.z), elbow);
-    arm(elbow, head);
-    b.add(
-      'metal',
-      new THREE.SphereGeometry(0.017, 12, 8),
-      [elbow.x, elbow.y, elbow.z],
-      lampDark,
-    );
-    const shade = new THREE.LatheGeometry(
-      [
-        new THREE.Vector2(0.012, 0.07),
-        new THREE.Vector2(0.03, 0.065),
-        new THREE.Vector2(0.075, 0.0),
-        new THREE.Vector2(0.078, -0.004),
-      ],
-      24,
-    );
-    const shadeMatrix = new THREE.Matrix4().compose(
-      head,
-      new THREE.Quaternion().setFromEuler(new THREE.Euler(0.55, 0.7, 0, 'YXZ')),
-      new THREE.Vector3(1, 1, 1),
-    );
-    b.addMatrix('metal', shade, shadeMatrix, hex(0x5f7a73));
-    this.lampBulb.copy(head).add(new THREE.Vector3(0, -0.01, 0));
-    b.add(
-      'glow',
-      new THREE.SphereGeometry(0.022, 12, 8),
-      [this.lampBulb.x, this.lampBulb.y, this.lampBulb.z],
-      [1, 0.86, 0.62],
-    );
-    // Small succulent on the desk corner.
     this.potPlant(
       b,
-      d.center.x + 0.62,
-      topY,
-      d.center.z - 0.2,
-      0.05,
-      0.07,
-      hex(0xe9e3d8),
-      11,
+      dk.center.x + 0.05,
+      top,
+      dk.center.z + 0.25,
+      0.04,
+      0.06,
+      hex(0xe9e7e2),
+      31,
       'succulent',
     );
-
-    // --- Office chair facing the desk.
-    const c = OFFICE.chair,
-      fabric = hex(0x5d7471);
     b.add(
-      'fabric',
-      rounded(0.48, 0.08, 0.46, 0.03),
-      [c.center.x, 0.47, c.center.z],
-      fabric,
-    );
-    b.add(
-      'fabric',
-      rounded(0.46, 0.5, 0.06, 0.03),
-      [c.center.x, 0.8, c.center.z + 0.22],
-      fabric,
-      [-0.12, 0, 0],
+      'ceramic',
+      cylinder(0.025, 0.025, 0.08, 14),
+      [dk.center.x + 0.14, top + 0.04, dk.center.z + 0.27],
+      hex(0xd8e2e0),
     );
     b.add(
       'metal',
-      cylinder(0.024, 0.024, 0.3, 12),
-      [c.center.x, 0.28, c.center.z],
-      hex(0x2f3533),
+      rounded(0.3, 0.012, 0.21, 0.006),
+      [ret.center.x + 0.02, top + 0.006, ret.center.z + 0.2],
+      chrome,
+      [0, 0.3, 0],
+    );
+    b.add(
+      'metal',
+      rounded(0.3, 0.2, 0.008, 0.004),
+      [ret.center.x + 0.06, top + 0.11, ret.center.z + 0.11],
+      chrome,
+      [-0.25, 0.3 + Math.PI / 2, 0],
+    );
+
+    // --- The desk chair: black mesh back, grey seat, five-star base on casters.
+    const chair = OFFICE.chair.center;
+    b.add(
+      'fabric',
+      rounded(0.5, 0.08, 0.48, 0.03),
+      [chair.x, 0.48, chair.z],
+      hex(0x8f9293),
+    );
+    b.add(
+      'fabric',
+      rounded(0.48, 0.56, 0.05, 0.03),
+      [chair.x, 0.86, chair.z - 0.25],
+      hex(0x202225),
+      [-0.1, 0, 0],
+    );
+    for (const s of [-1, 1])
+      b.add(
+        'trim',
+        rounded(0.05, 0.03, 0.26, 0.01),
+        [chair.x + s * 0.27, 0.66, chair.z - 0.02],
+        black,
+      );
+    b.add(
+      'metal',
+      cylinder(0.025, 0.025, 0.3, 12),
+      [chair.x, 0.3, chair.z],
+      hex(0x2b2c2e),
     );
     for (let i = 0; i < 5; i++) {
       const a = (i / 5) * Math.PI * 2;
       b.add(
-        'metal',
-        rounded(0.27, 0.025, 0.04, 0.01),
-        [
-          c.center.x + Math.cos(a) * 0.13,
-          0.07,
-          c.center.z + Math.sin(a) * 0.13,
-        ],
-        hex(0x2f3533),
+        'trim',
+        new THREE.BoxGeometry(0.3, 0.025, 0.04),
+        [chair.x + Math.cos(a) * 0.15, 0.07, chair.z + Math.sin(a) * 0.15],
+        black,
         [0, -a, 0],
       );
       b.add(
-        'metal',
-        new THREE.SphereGeometry(0.022, 10, 8),
-        [
-          c.center.x + Math.cos(a) * 0.26,
-          0.025,
-          c.center.z + Math.sin(a) * 0.26,
-        ],
-        hex(0x1f2322),
+        'trim',
+        new THREE.SphereGeometry(0.025, 10, 8),
+        [chair.x + Math.cos(a) * 0.29, 0.03, chair.z + Math.sin(a) * 0.29],
+        black,
       );
     }
-
-    // --- Bookshelf on the left wall, books and keepsakes.
-    const s = OFFICE.shelf,
-      shelfWood = hex(0xa47750),
-      sx0 = s.center.x - s.size.x / 2,
-      sz0 = s.center.z - s.size.z / 2,
-      sz1 = s.center.z + s.size.z / 2;
-    for (const z of [sz0 + 0.015, sz1 - 0.015])
+    // --- Guest chairs facing the desk: blue seats, pale grey backs, chrome legs.
+    for (const c of OFFICE.guestChairs) {
       b.add(
-        'wood',
-        rounded(s.size.x, s.size.y, 0.03, 0.006),
-        [s.center.x, s.size.y / 2, z],
-        shelfWood,
+        'fabric',
+        rounded(0.46, 0.07, 0.44, 0.025),
+        [c.x, 0.46, c.z],
+        hex(0x24407e),
       );
+      b.add(
+        'paint',
+        rounded(0.44, 0.3, 0.035, 0.03),
+        [c.x, 0.8, c.z + 0.22],
+        hex(0xb9bcbd),
+        [0.12, 0, 0],
+      );
+      for (const sx of [-0.2, 0.2]) {
+        for (const sz of [-0.18, 0.18])
+          b.add(
+            'metal',
+            cylinder(0.011, 0.011, 0.43, 8),
+            [c.x + sx, 0.215, c.z + sz],
+            chrome,
+          );
+        b.add(
+          'trim',
+          new THREE.BoxGeometry(0.03, 0.42, 0.03),
+          [c.x + sx * 1.08, 0.7, c.z + 0.2],
+          black,
+        );
+        b.add(
+          'trim',
+          rounded(0.05, 0.03, 0.22, 0.01),
+          [c.x + sx * 1.12, 0.64, c.z + 0.05],
+          black,
+        );
+      }
+    }
+    // --- Boxes in the back-right corner.
+    const bx = OFFICE.boxes;
     b.add(
-      'wood',
-      new THREE.BoxGeometry(0.012, s.size.y, s.size.z - 0.04),
-      [sx0 + 0.006, s.size.y / 2, s.center.z],
-      hex(0x8d6644),
+      'paper',
+      new THREE.BoxGeometry(0.48, 0.32, 0.4),
+      [bx.center.x, 0.16, bx.center.z],
+      hex(0xa8865c),
     );
-    const shelfLevels = [0.06, 0.48, 0.9, 1.32, 1.74, s.size.y - 0.015];
-    for (const y of shelfLevels)
-      b.add(
-        'wood',
-        rounded(s.size.x - 0.01, 0.03, s.size.z - 0.05, 0.006),
-        [s.center.x, y, s.center.z],
-        shelfWood,
-      );
-    const books = [
-      0x7d3b34, 0x2f4a5f, 0xc49a47, 0x6f8a6c, 0xe5dcc5, 0x5a4033, 0x8a6a8f,
-      0x3e6b6b, 0xb5643e, 0xd9cfb3,
-    ];
-    const random = rng(2020);
-    shelfLevels.slice(0, 4).forEach((y, level) => {
-      let z = sz0 + 0.06;
-      const stop = sz1 - 0.06;
-      while (z < stop - 0.05) {
-        if (random() < 0.08 && z < stop - 0.3) {
-          z += 0.22 + random() * 0.1; // a gap for a keepsake
-          continue;
-        }
-        const t = 0.022 + random() * 0.03,
-          h = 0.24 + random() * 0.13,
-          dep = 0.2 + random() * 0.07,
-          lean = random() < 0.1 ? 0.18 : 0;
-        b.add(
-          'paper',
-          rounded(dep, h, t, 0.003),
-          [sx0 + 0.04 + dep / 2, y + 0.015 + h / 2, z + t / 2],
-          hex(books[Math.floor(random() * books.length)]),
-          [lean, 0, 0],
-        );
-        z += t + 0.003 + (lean ? 0.04 : 0);
-      }
-      // Keepsakes: a vase, a small framed photo, a plant.
-      if (level === 1) {
-        const vase = new THREE.LatheGeometry(
-          [
-            new THREE.Vector2(0, 0),
-            new THREE.Vector2(0.05, 0),
-            new THREE.Vector2(0.065, 0.08),
-            new THREE.Vector2(0.035, 0.17),
-            new THREE.Vector2(0.04, 0.2),
-            new THREE.Vector2(0, 0.2),
-          ],
-          20,
-        );
-        b.add(
-          'ceramic',
-          vase,
-          [s.center.x + 0.02, y + 0.015, sz1 - 0.2],
-          hex(0x9db8b0),
-        );
-      }
-      if (level === 2)
-        b.add(
-          'wood',
-          rounded(0.02, 0.16, 0.12, 0.004),
-          [sx0 + 0.08, y + 0.095, sz0 + 0.2],
-          hex(0x3b3530),
-          [0, 0, -0.12],
-        );
-    });
-    this.potPlant(
-      b,
-      s.center.x + 0.02,
-      shelfLevels[4] + 0.015,
-      s.center.z + 0.3,
-      0.07,
-      0.09,
-      hex(0xc96f4a),
-      7,
-      'trailing',
+    b.add(
+      'paper',
+      new THREE.BoxGeometry(0.4, 0.26, 0.34),
+      [bx.center.x - 0.02, 0.45, bx.center.z + 0.01],
+      hex(0xb39268),
+      [0, 0.12, 0],
     );
 
-    // --- Plants: a tall leafy plant by the window and a snake plant by the door.
-    const [tall, snake] = OFFICE.plants;
-    this.potPlant(
-      b,
-      tall.x,
-      0,
-      tall.z,
-      tall.radius,
-      0.36,
-      hex(0xe7ddd0),
-      3,
-      'fiddle',
-      tall.height,
-    );
-    this.potPlant(
-      b,
-      snake.x,
-      0,
-      snake.z,
-      snake.radius,
-      0.3,
-      hex(0x6c7f7c),
-      5,
-      'snake',
-      snake.height,
-    );
-
-    // --- Aquarium stand and tank.
-    const st = OFFICE.stand,
-      cabinet = hex(0x5b4636);
+    // --- Aquarium cabinet (charcoal) and the tank.
+    const st = OFFICE.stand;
     b.add(
       'darkWood',
-      rounded(st.size.x, st.size.y - 0.04, st.size.z, 0.012),
+      rounded(st.size.x, st.size.y - 0.04, st.size.z, 0.01),
       [st.center.x, (st.size.y - 0.04) / 2 + 0.04, st.center.z],
-      cabinet,
+      hex(0x2b2b2d),
     );
     b.add(
-      'darkWood',
-      rounded(st.size.x - 0.04, 0.05, st.size.z - 0.04, 0.008),
-      [st.center.x, 0.025, st.center.z],
-      hex(0x3f3128),
+      'trim',
+      new THREE.BoxGeometry(st.size.x - 0.04, 0.04, st.size.z - 0.04),
+      [st.center.x, 0.02, st.center.z],
+      black,
     );
-    const front = st.center.x - st.size.x / 2 - 0.004;
-    for (const z of [-0.27, 0.27]) {
-      b.add(
-        'darkWood',
-        rounded(0.012, st.size.y - 0.14, st.size.z / 2 - 0.05, 0.004),
-        [front, st.size.y / 2 + 0.02, st.center.z + z],
-        hex(0x6a5342),
-      );
+    const face = st.center.x - st.size.x / 2 - 0.002;
+    b.add(
+      'trim',
+      new THREE.BoxGeometry(0.004, st.size.y - 0.14, 0.006),
+      [face, st.size.y / 2 + 0.02, st.center.z],
+      hex(0x111213),
+    );
+    for (const s of [-1, 1])
       b.add(
         'metal',
-        cylinder(0.007, 0.007, 0.1, 10),
-        [
-          front - 0.014,
-          st.size.y / 2 + 0.05,
-          st.center.z + (z < 0 ? 0.04 : -0.04),
-        ],
-        hex(0xa89064),
+        rounded(0.014, 0.12, 0.014, 0.004),
+        [face - 0.01, st.size.y / 2 + 0.05, st.center.z + s * 0.05],
+        chrome,
       );
-    }
     this.buildTank(b);
 
-    // --- Rug, wall clock and a framed print.
+    // --- Clock on the back wall, left of the window.
     const built = b.build();
-    const material = (key: Key): THREE.Material => {
-      const vertexColors = true;
-      const m =
-        key === 'glow'
-          ? new THREE.MeshBasicMaterial({ vertexColors })
-          : new THREE.MeshStandardMaterial({
-              vertexColors,
-              map:
-                key === 'wood' || key === 'darkWood'
-                  ? wood
-                  : key === 'wall'
-                    ? plaster
-                    : null,
-              roughness:
-                key === 'metal'
-                  ? 0.38
-                  : key === 'ceramic'
-                    ? 0.32
-                    : key === 'fabric'
-                      ? 0.95
-                      : key === 'leaf'
-                        ? 0.62
-                        : key === 'trim'
-                          ? 0.4
-                          : 0.72,
-              metalness: key === 'metal' ? 0.45 : 0,
-              side:
-                key === 'leaf' || key === 'wall'
-                  ? THREE.DoubleSide
-                  : THREE.FrontSide,
-            });
-      m.name = `Office ${key}`;
-      this.materials.push(m);
-      return m;
-    };
     for (const [key, geometry] of built) {
       this.geometries.push(geometry);
-      const mesh = new THREE.Mesh(geometry, material(key));
+      const mesh = new THREE.Mesh(
+        geometry,
+        this.batchMaterial(key, wood, grasscloth),
+      );
       mesh.name = `Office ${key}`;
       this.root.add(mesh);
     }
+    const tiles = own(tileTexture());
+    tiles.repeat.set((r.max.x - r.min.x) / 0.6, (r.max.z - r.min.z) / 1.2);
     const floorGeometry = new THREE.PlaneGeometry(
       r.max.x - r.min.x,
       r.max.z - r.min.z,
     );
     floorGeometry.rotateX(-Math.PI / 2);
-    const floorMap = own(floorTexture());
-    floorMap.repeat.set(2.2, 2.2);
     this.plane(
       floorGeometry,
-      new THREE.MeshStandardMaterial({ map: floorMap, roughness: 0.55 }),
+      new THREE.MeshStandardMaterial({ map: tiles, roughness: 0.35 }),
       'Office floor',
     );
-    const rug = new THREE.PlaneGeometry(2.3, 1.6);
-    rug.rotateX(-Math.PI / 2);
-    rug.translate(0.15, 0.004, 0.25);
+    const ceilingMap = own(ceilingTileTexture());
+    ceilingMap.repeat.set((r.max.x - r.min.x) / 0.6, (r.max.z - r.min.z) / 0.6);
+    const ceiling = new THREE.PlaneGeometry(
+      r.max.x - r.min.x,
+      r.max.z - r.min.z,
+    );
+    ceiling.rotateX(Math.PI / 2);
+    ceiling.translate(0, H, 0);
     this.plane(
-      rug,
-      new THREE.MeshStandardMaterial({ map: own(rugTexture()), roughness: 1 }),
-      'Office rug',
+      ceiling,
+      new THREE.MeshStandardMaterial({ map: ceilingMap, roughness: 0.95 }),
+      'Office ceiling',
     );
     // Pass 022: soft baked contact shadows under the furniture and along the walls (one draw).
     this.plane(
@@ -867,13 +793,50 @@ export class OfficeEnvironment {
       contactShadowMaterial(),
       'Office contact shadows',
     );
-    // Garden beyond the window, lit by daylight rather than the room.
-    const garden = new THREE.PlaneGeometry(7, 4.4);
-    garden.translate(w.centerX, 1.9, r.min.z - 2.6);
+    const screenGeometry = mergeGeometries(screens, false);
+    screens.forEach((g) => g.dispose());
+    if (!screenGeometry) throw Error('Office screens could not merge');
     this.plane(
-      garden,
-      new THREE.MeshBasicMaterial({ map: own(gardenTexture()) }),
-      'Garden view',
+      screenGeometry,
+      new THREE.MeshBasicMaterial({ map: own(screenTexture()) }),
+      'Monitor screens',
+    );
+    const glassGeometry = mergeGeometries(fronts, false);
+    fronts.forEach((g) => g.dispose());
+    if (!glassGeometry) throw Error('Office glass could not merge');
+    const glass = new THREE.MeshStandardMaterial({
+      color: 0xdfece9,
+      roughness: 0.06,
+      metalness: 0,
+      transparent: true,
+      opacity: 0.12,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    });
+    glass.name = 'Office glass';
+    this.plane(glassGeometry, glass, 'Office glass front').renderOrder = 2;
+    // The street beyond the window, then frosted film below and rain on the clear pane above.
+    const street = new THREE.PlaneGeometry(6, 4);
+    street.translate(w.centerX, 1.6, r.min.z - 2.5);
+    this.plane(
+      street,
+      new THREE.MeshBasicMaterial({ map: own(streetTexture()) }),
+      'Street view',
+    );
+    const frosted = new THREE.PlaneGeometry(
+      w.width - 0.06,
+      w.frost - w.sill - 0.06,
+    );
+    frosted.translate(w.centerX, (w.sill + w.frost) / 2, wz - 0.01);
+    this.plane(
+      frosted,
+      new THREE.MeshStandardMaterial({
+        color: 0xe8eeef,
+        roughness: 0.9,
+        transparent: true,
+        opacity: 0.9,
+      }),
+      'Frosted window',
     );
     this.rain = new THREE.ShaderMaterial({
       uniforms: { time: { value: 0 } },
@@ -882,29 +845,31 @@ export class OfficeEnvironment {
       transparent: true,
       depthWrite: false,
     });
-    const pane = new THREE.PlaneGeometry(w.width - 0.06, wh - 0.06);
-    pane.translate(w.centerX, wy, glassZ - 0.006);
+    const pane = new THREE.PlaneGeometry(
+      w.width - 0.06,
+      w.top - w.frost - 0.06,
+    );
+    pane.translate(w.centerX, (w.frost + w.top) / 2, wz - 0.01);
     this.plane(pane, this.rain, 'Rainy window');
-    // Clock above the desk, right of the window.
     const clock = new THREE.Group();
-    clock.position.set(1.15, 2.02, r.min.z + 0.03);
+    clock.position.set(-0.7, 2.05, r.min.z + 0.03);
     clock.name = 'Wall clock';
-    const rim = new THREE.TorusGeometry(0.17, 0.017, 10, 40);
+    const rim = new THREE.TorusGeometry(0.15, 0.014, 10, 40);
     this.geometries.push(rim);
     const rimMaterial = new THREE.MeshStandardMaterial({
-      color: 0x4a3b31,
-      roughness: 0.5,
+      color: 0x1c1d1f,
+      roughness: 0.45,
     });
     this.materials.push(rimMaterial);
     clock.add(new THREE.Mesh(rim, rimMaterial));
-    const face = new THREE.CircleGeometry(0.168, 40);
-    this.geometries.push(face);
+    const faceGeometry = new THREE.CircleGeometry(0.148, 40);
+    this.geometries.push(faceGeometry);
     const faceMaterial = new THREE.MeshStandardMaterial({
       map: own(clockTexture()),
       roughness: 0.6,
     });
     this.materials.push(faceMaterial);
-    clock.add(new THREE.Mesh(face, faceMaterial));
+    clock.add(new THREE.Mesh(faceGeometry, faceMaterial));
     const handMaterial = new THREE.MeshStandardMaterial({
       color: 0x24211f,
       roughness: 0.5,
@@ -926,31 +891,280 @@ export class OfficeEnvironment {
       return pivot;
     };
     this.hands = {
-      hour: hand(0.09, 0.012, 0.006),
-      minute: hand(0.135, 0.008, 0.01),
-      second: hand(0.145, 0.003, 0.014, 0xa8442f),
+      hour: hand(0.08, 0.011, 0.006),
+      minute: hand(0.12, 0.007, 0.01),
+      second: hand(0.13, 0.003, 0.014, 0xa8442f),
     };
     this.root.add(clock);
-    // Framed ocean print above the aquarium.
-    const print = new THREE.PlaneGeometry(0.62, 0.42);
-    print.rotateY(-Math.PI / 2);
-    print.translate(r.max.x - 0.036, 1.78, 0); // just proud of its frame
-    this.plane(
-      print,
-      new THREE.MeshStandardMaterial({
-        map: own(artTexture()),
-        roughness: 0.8,
-      }),
-      'Ocean print',
-    );
-    const frameG = new THREE.BoxGeometry(0.03, 0.5, 0.7);
-    frameG.translate(r.max.x - 0.016, 1.78, 0);
-    this.plane(
-      frameG,
-      new THREE.MeshStandardMaterial({ color: 0xede6da, roughness: 0.6 }),
-      'Print frame',
-    );
+    this.buildOpenPlan(wood);
+    this.root.add(this.openPlan);
     this.update(0, false);
+  }
+
+  /** One material per batch key (vertex colour carries each part's tint). */
+  private batchMaterial(
+    key: Key,
+    wood: THREE.Texture,
+    grasscloth: THREE.Texture,
+  ): THREE.Material {
+    const vertexColors = true;
+    const m =
+      key === 'glow'
+        ? new THREE.MeshBasicMaterial({ vertexColors })
+        : new THREE.MeshStandardMaterial({
+            vertexColors,
+            map:
+              key === 'wood' || key === 'darkWood'
+                ? wood
+                : key === 'wall'
+                  ? grasscloth
+                  : null,
+            roughness:
+              key === 'metal'
+                ? 0.3
+                : key === 'ceramic'
+                  ? 0.32
+                  : key === 'fabric'
+                    ? 0.95
+                    : key === 'leaf'
+                      ? 0.62
+                      : key === 'trim'
+                        ? 0.45
+                        : key === 'darkWood'
+                          ? 0.55
+                          : 0.8,
+            metalness: key === 'metal' ? 0.6 : 0,
+            side:
+              key === 'leaf' || key === 'wall' || key === 'paint'
+                ? THREE.DoubleSide
+                : THREE.FrontSide,
+          });
+    m.name = `Office ${key}`;
+    this.materials.push(m);
+    return m;
+  }
+
+  /**
+   * Pass 027: the open-plan office seen through the glass. White walls, the same tiles and ceiling,
+   * rows of workstations with monitors and black task chairs, three framed posters (generic art,
+   * no text) on the far wall. Never entered, so it is simple, and built as its own few draws.
+   */
+  private buildOpenPlan(wood: THREE.Texture): void {
+    const b = new Batcher(),
+      p = OFFICE.openPlan,
+      H = p.height,
+      white = hex(0xf1f1ee),
+      black = hex(0x1b1c1e),
+      desk = hex(0xf2f2f0),
+      grey = hex(0x8d9194);
+    const width = p.max.x - p.min.x,
+      depth = p.max.z - p.min.z,
+      cx = (p.min.x + p.max.x) / 2,
+      cz = (p.min.z + p.max.z) / 2;
+    // Walls: far wall, both sides, and the fronts of the neighbouring rooms beside ours.
+    b.add(
+      'paint',
+      new THREE.PlaneGeometry(width, H),
+      [cx, H / 2, p.max.z],
+      white,
+      [0, Math.PI, 0],
+    );
+    b.add(
+      'paint',
+      new THREE.PlaneGeometry(depth, H),
+      [p.min.x, H / 2, cz],
+      white,
+      [0, Math.PI / 2, 0],
+    );
+    b.add(
+      'paint',
+      new THREE.PlaneGeometry(depth, H),
+      [p.max.x, H / 2, cz],
+      white,
+      [0, -Math.PI / 2, 0],
+    );
+    const room = OFFICE.room;
+    b.add(
+      'paint',
+      new THREE.PlaneGeometry(room.min.x - p.min.x, H),
+      [(p.min.x + room.min.x) / 2, H / 2, p.min.z],
+      hex(0xc9c6c0),
+    );
+    b.add(
+      'paint',
+      new THREE.PlaneGeometry(p.max.x - room.max.x, H),
+      [(p.max.x + room.max.x) / 2, H / 2, p.min.z],
+      hex(0xc9c6c0),
+    );
+    b.add(
+      'paint',
+      new THREE.PlaneGeometry(room.max.x - room.min.x, H - room.max.y),
+      [0, (H + room.max.y) / 2, p.min.z],
+      white,
+    );
+    // Ceiling light panels in rows.
+    for (const x of [-3.6, -1.2, 1.2, 3.6])
+      for (const z of [4.2, 7.6])
+        b.add(
+          'glow',
+          new THREE.BoxGeometry(0.6, 0.01, 1.2),
+          [x, H - 0.005, z],
+          [1, 1, 1],
+        );
+    // Workstations: facing pairs of white desks with monitors and black task chairs.
+    const workstation = (x: number, z: number, facing: number) => {
+      b.add('paint', rounded(1.4, 0.03, 0.7, 0.004), [x, 0.74, z], desk);
+      for (const sx of [-0.66, 0.66])
+        b.add(
+          'metal',
+          new THREE.BoxGeometry(0.04, 0.72, 0.6),
+          [x + sx, 0.36, z],
+          grey,
+        );
+      for (const mx of [-0.3, 0.3]) {
+        b.add(
+          'trim',
+          rounded(0.5, 0.3, 0.025, 0.005),
+          [x + mx, 1.08, z - facing * 0.22],
+          black,
+        );
+        b.add(
+          'metal',
+          cylinder(0.012, 0.012, 0.2, 8),
+          [x + mx, 0.86, z - facing * 0.24],
+          grey,
+        );
+      }
+      b.add(
+        'trim',
+        rounded(0.5, 0.08, 0.48, 0.03),
+        [x, 0.48, z + facing * 0.6],
+        black,
+      );
+      b.add(
+        'trim',
+        rounded(0.46, 0.55, 0.05, 0.03),
+        [x, 0.85, z + facing * 0.84],
+        black,
+      );
+      b.add(
+        'metal',
+        cylinder(0.025, 0.025, 0.4, 10),
+        [x, 0.24, z + facing * 0.6],
+        grey,
+      );
+    };
+    for (const z of [4.4, 7.8])
+      for (const x of [-3.2, -1.7, 1.7, 3.2]) {
+        workstation(x, z - 0.36, 1);
+        workstation(x, z + 0.36, -1);
+        b.add(
+          'paint',
+          new THREE.BoxGeometry(1.4, 0.32, 0.03),
+          [x, 0.92, z],
+          hex(0xe4e8e8),
+        );
+      }
+    // A coat over one chair, binders and a cabinet by the left wall, a plant.
+    b.add(
+      'fabric',
+      rounded(0.44, 0.5, 0.1, 0.04),
+      [-1.7, 0.85, 4.04 - 0.84 + 0.05],
+      hex(0x23252a),
+      [0.2, 0, 0],
+    );
+    b.add(
+      'trim',
+      rounded(0.5, 0.7, 1.2, 0.01),
+      [p.min.x + 0.3, 0.35, 5.2],
+      hex(0x2a2b2d),
+    );
+    for (let i = 0; i < 8; i++)
+      b.add(
+        'paper',
+        new THREE.BoxGeometry(0.05, 0.3, 0.24),
+        [p.min.x + 0.3, 0.86, 4.8 + i * 0.07],
+        hex(
+          [
+            0x3d6fb6, 0xd8d8d8, 0xb94a5a, 0x4a9a6a, 0xe0c25a, 0x7a6ab0,
+            0xd8d8d8, 0x3d6fb6,
+          ][i],
+        ),
+      );
+    this.potPlant(b, 5.8, 0, 9.5, 0.2, 0.4, hex(0xe6e3dc), 17, 'snake', 1.2);
+    // Black frames for the three posters on the far wall.
+    for (const x of POSTERS)
+      b.add(
+        'trim',
+        new THREE.BoxGeometry(0.8, 1.06, 0.03),
+        [x, 1.7, p.max.z - 0.02],
+        hex(0x18191b),
+      );
+    for (const [key, geometry] of b.build()) {
+      this.geometries.push(geometry);
+      const mesh = new THREE.Mesh(
+        geometry,
+        this.batchMaterial(key, wood, wood),
+      );
+      mesh.name = `Open-plan ${key}`;
+      this.openPlan.add(mesh);
+    }
+    // Floor and ceiling, as in the private office.
+    const tiles = this.ownTexture(tileTexture());
+    tiles.repeat.set(width / 0.6, depth / 1.2);
+    const floor = new THREE.PlaneGeometry(width, depth);
+    floor.rotateX(-Math.PI / 2);
+    floor.translate(cx, 0, cz);
+    this.openPlanPart(
+      floor,
+      new THREE.MeshStandardMaterial({ map: tiles, roughness: 0.35 }),
+      'Open-plan floor',
+    );
+    const ceilingMap = this.ownTexture(ceilingTileTexture());
+    ceilingMap.repeat.set(width / 0.6, depth / 0.6);
+    const ceiling = new THREE.PlaneGeometry(width, depth);
+    ceiling.rotateX(Math.PI / 2);
+    ceiling.translate(cx, H, cz);
+    this.openPlanPart(
+      ceiling,
+      new THREE.MeshStandardMaterial({ map: ceilingMap, roughness: 0.95 }),
+      'Open-plan ceiling',
+    );
+    // The posters' art: one mesh over one texture, each plane taking its third of it.
+    const art = POSTERS.map((x, i) => {
+      const plane = new THREE.PlaneGeometry(0.72, 0.98),
+        uv = plane.getAttribute('uv');
+      for (let v = 0; v < uv.count; v++) uv.setX(v, (i + uv.getX(v)) / 3);
+      plane.rotateY(Math.PI);
+      plane.translate(x, 1.7, p.max.z - 0.036);
+      return plane;
+    });
+    const posters = mergeGeometries(art, false);
+    art.forEach((g) => g.dispose());
+    this.openPlanPart(
+      posters,
+      new THREE.MeshStandardMaterial({
+        map: this.ownTexture(posterTexture()),
+        roughness: 0.7,
+      }),
+      'Open-plan posters',
+    );
+  }
+  private ownTexture<T extends THREE.Texture>(t: T): T {
+    this.textures.push(t);
+    return t;
+  }
+  private openPlanPart(
+    geometry: THREE.BufferGeometry,
+    material: THREE.Material,
+    name: string,
+  ): THREE.Mesh {
+    this.geometries.push(geometry);
+    if (!this.materials.includes(material)) this.materials.push(material);
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.name = name;
+    this.openPlan.add(mesh);
+    return mesh;
   }
 
   /** A potted plant of a given character, baked into the batch. */

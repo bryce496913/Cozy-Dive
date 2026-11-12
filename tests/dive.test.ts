@@ -3,6 +3,7 @@ import { AQUARIUM, SPAWN } from '../src/config/world';
 import {
   OFFICE,
   OFFICE_FOOTPRINTS,
+  STAND_FOOTPRINT,
   TANK,
   TANK_SCALE,
 } from '../src/config/office';
@@ -47,10 +48,11 @@ function sampleAll(path: DivePath) {
     frames.push(path.sample(t, frame()));
   return frames;
 }
+// About a metre in front of the tank's glass, a little off its middle (Pass 027: from the tank).
 const inFront: Pose = {
-  x: 1.2,
+  x: TANK.position.x - 1.35,
   y: OFFICE.eyeHeight,
-  z: 0.15,
+  z: TANK.position.z + 0.15,
   yaw: -Math.PI / 2 + 0.2,
   pitch: -0.1,
 };
@@ -124,7 +126,7 @@ describe('Pass 021 dive', () => {
     }
     for (const f of frames.filter((f) => f.space === 'office'))
       for (const box of OFFICE_FOOTPRINTS.filter(
-        (b) => b !== OFFICE_FOOTPRINTS[3],
+        (b) => b !== STAND_FOOTPRINT,
       )) {
         const cx = Math.max(box.min.x, Math.min(f.x, box.max.x)),
           cz = Math.max(box.min.z, Math.min(f.z, box.max.z));
@@ -296,11 +298,18 @@ describe('Pass 021 prompt region', () => {
       for (let along = -1.2; along <= 1.2; along += 0.1) {
         const from = at(ahead, along);
         if (!canDive(from)) continue;
+        // Pass 027: only where the player can stand (the glass office is snug around the tank).
+        const standable = OFFICE_FOOTPRINTS.every((box) => {
+          const cx = Math.max(box.min.x, Math.min(from.x, box.max.x)),
+            cz = Math.max(box.min.z, Math.min(from.z, box.max.z));
+          return Math.hypot(from.x - cx, from.z - cz) >= OFFICE.playerRadius;
+        });
+        if (!standable) continue;
         offered++;
         const frames = sampleAll(new DivePath('dive', from, false));
         for (const fr of frames.filter((fr) => fr.space === 'office'))
           for (const box of OFFICE_FOOTPRINTS.filter(
-            (b) => b !== OFFICE_FOOTPRINTS[3],
+            (b) => b !== STAND_FOOTPRINT,
           )) {
             const cx = Math.max(box.min.x, Math.min(fr.x, box.max.x)),
               cz = Math.max(box.min.z, Math.min(fr.z, box.max.z));

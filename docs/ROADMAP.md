@@ -59,7 +59,10 @@ v0.3 closes on the user's macOS acceptance of this candidate. v0.4 (Personalizat
   - **Edges:** swimming slows to almost nothing near the edges. You can drift a little way out over the blue and down the wall, then hover.
   - **Big creatures:** they pass by out in the blue, so you want to stop and watch.
   - **The tunnel:** it acts as the loading screen; the reef prepares while you swim through it.
-- **Pass 027, Polish and acceptance:** the v0.4 release candidate.
+- **Pass 027, The glass office (`0.4.0-alpha.6`; agreed after Pass 026):** the office remodelled as a small glass-walled private office with generic details.
+  - **The room:** the glass front and its closed door look out over an open-plan office.
+  - **From inside the tank:** the office is seen blurred through the aquarium glass.
+- **Pass 028, Polish and acceptance:** the v0.4 release candidate.
 
 **v0.5 Personalization.** The catalog is built from what you have seen in the outer waters. Big animals are added to the tank as babies or mini versions, so they suit its size.
 
