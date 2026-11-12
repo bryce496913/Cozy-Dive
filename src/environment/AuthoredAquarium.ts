@@ -195,6 +195,7 @@ export class AuthoredAquarium {
         ['HorseLeftFin', s.leftPectoral],
         ['HorseRightFin', s.rightPectoral],
         ['FrogBody', f.body],
+        ['FrogJaw', f.jaw],
         ['FrogLure', f.lure],
       ] as const) {
         const part = this.attach(animals, name, parent);
