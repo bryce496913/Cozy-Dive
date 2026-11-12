@@ -40,6 +40,43 @@ export function frogfishStep(time: number, out: FrogfishMotion): void {
   out.walking = phase >= 104;
   out.stride = t;
 }
+/** Lower-jaw hinge in body-local units: the axis (parallel to X) the mouth opens about. */
+export const FROGFISH_JAW_HINGE = { x: 0, y: 0.31, z: 0.16 } as const;
+/** Base of the illicium (fishing rod) on the snout, in body-local units. */
+export const FROGFISH_LURE_BASE = { x: 0, y: 0.455, z: 0.275 } as const;
+/** Gentle respiratory gulping: a slow, rhythmic part-opening of the mouth. */
+export const FROGFISH_GULP = { period: 3.2, gape: 0.11 } as const;
+/** Occasional wide yawn: once per cycle, open, hold briefly, then close slowly. */
+export const FROGFISH_YAWN = {
+  period: 19,
+  start: 11,
+  open: 0.8,
+  hold: 0.7,
+  close: 1.3,
+  gape: 0.42,
+} as const;
+const smooth = (t: number): number => {
+  const c = Math.max(0, Math.min(1, t));
+  return c * c * (3 - 2 * c);
+};
+/**
+ * Lower-jaw rotation (radians, positive opens) at a motion time in seconds. Continuous and
+ * periodic: rhythmic gulps that blend into an occasional yawn.
+ */
+export function frogfishGape(time: number): number {
+  const gulp =
+    FROGFISH_GULP.gape *
+    (0.5 - 0.5 * Math.cos((time / FROGFISH_GULP.period) * Math.PI * 2)) ** 1.5;
+  const y = FROGFISH_YAWN,
+    phase = (((time - y.start) % y.period) + y.period) % y.period,
+    yawn =
+      phase < y.open
+        ? smooth(phase / y.open)
+        : phase < y.open + y.hold
+          ? 1
+          : 1 - smooth((phase - y.open - y.hold) / y.close);
+  return gulp + (y.gape - gulp) * Math.max(0, yawn);
+}
 /**
  * Pass 019 playtest: the frogfish is half its former modelled size and perches on the top of a
  * reef rock, where its mottled skin blends in, rather than in the shipwreck. Geometry keeps its
@@ -48,13 +85,15 @@ export function frogfishStep(time: number, out: FrogfishMotion): void {
 export const FROGFISH_SCALE = 0.5;
 /** Rock tops only: the support face must be within about 32 degrees of level. */
 export const FROGFISH_MIN_UP = 0.85;
-/** Still, warty, limb-finned perch animal with rare small walking steps. */
+/** Still, warty, limb-finned perch animal with rare small walking steps and a breathing, yawning mouth. */
 export class Frogfish {
   readonly root = new THREE.Group();
   readonly body = new THREE.Group();
   readonly leftFoot: THREE.Mesh;
   readonly rightFoot: THREE.Mesh;
   readonly lure = new THREE.Group();
+  /** Lower-jaw pivot at FROGFISH_JAW_HINGE; the authored FrogJaw attaches here. */
+  readonly jaw = new THREE.Group();
   readonly material = new THREE.MeshStandardMaterial({
     vertexColors: true,
     roughness: 0.96,
@@ -110,10 +149,23 @@ export class Frogfish {
 
     parts.push(body, head);
     parts.push(ellipsoid(0, 0.25, 0.394, 0.164, 0.105, 0.012, 0x454d3d));
-    const lip = new THREE.TorusGeometry(0.16, 0.025, 7, 22);
+    const lip = new THREE.TorusGeometry(0.16, 0.025, 7, 22, Math.PI);
     lip.scale(1.1, 0.65, 1);
     lip.translate(0, 0.25, 0.414);
     parts.push(tint(lip, shade));
+    // The fallback's lower lip and chin swing on the same hinge as the authored jaw.
+    const hinge = FROGFISH_JAW_HINGE,
+      chinLip = new THREE.TorusGeometry(0.16, 0.025, 7, 22, Math.PI);
+    chinLip.rotateZ(Math.PI);
+    chinLip.scale(1.1, 0.65, 1);
+    chinLip.translate(0, 0.25, 0.414);
+    const jawGeometry = mergeParts([
+      tint(chinLip, shade),
+      ellipsoid(0, 0.2, 0.33, 0.17, 0.07, 0.075, skin),
+    ]);
+    jawGeometry.translate(-hinge.x, -hinge.y, -hinge.z);
+    this.jaw.position.set(hinge.x, hinge.y, hinge.z);
+    this.jaw.add(new THREE.Mesh(jawGeometry, this.material));
     for (const side of [-1, 1]) {
       parts.push(
         ellipsoid(side * 0.226, 0.43, 0.26, 0.027, 0.029, 0.026, 0xb59b63),
@@ -145,6 +197,7 @@ export class Frogfish {
     parts.push(tint(tail, shade));
     const bodyGeometry = mergeParts(parts);
     this.body.add(new THREE.Mesh(bodyGeometry, this.material));
+    this.body.add(this.jaw);
     this.root.add(this.body);
     const footParts = [
       tube(
@@ -215,10 +268,14 @@ export class Frogfish {
       ),
       ellipsoid(0, 0.11, 0.22, 0.024, 0.029, 0.023, 0xc0b797),
     ]);
-    this.lure.position.set(0, 0.54, 0.1);
+    this.lure.position.set(
+      FROGFISH_LURE_BASE.x,
+      FROGFISH_LURE_BASE.y,
+      FROGFISH_LURE_BASE.z,
+    );
     this.lure.add(new THREE.Mesh(lureGeometry, this.material));
     this.body.add(this.lure);
-    this.geometries = [bodyGeometry, footGeometry, lureGeometry];
+    this.geometries = [bodyGeometry, footGeometry, lureGeometry, jawGeometry];
     try {
       const k = FROGFISH_SCALE,
         reef = groups.find((g) => g.id === 'reef');
@@ -288,6 +345,7 @@ export class Frogfish {
     this.root.rotateY(Math.sin(time * 0.023) * 0.035 + this.awareness * 0.04);
     this.body.scale.y = 1 + Math.sin(time * 0.8) * 0.007;
     this.lure.rotation.z = Math.sin(time * 0.27) * 0.045;
+    this.jaw.rotation.x = frogfishGape(time);
     this.leftFoot.position.y = this.walking
       ? Math.max(0, Math.sin(phase.stride * Math.PI * 4)) * 0.018
       : 0;

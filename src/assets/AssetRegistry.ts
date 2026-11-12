@@ -36,6 +36,8 @@ export const ASSET_REGISTRY = {
       'HorseBody',
       'HorseTail',
       'FrogBody',
+      'FrogJaw',
+      'FrogLure',
       'FrogFoot',
       'MorayBody',
       'MorayHead',

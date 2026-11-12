@@ -20,7 +20,18 @@ It hovers vertically within a 0.12-unit root region beside its assigned vegetati
 
 The compact, irregular body has a broad lumpy head, mottled sandy coloration, a large lip-lined mouth, small eyes, limb-like webbed pectoral fins, a stubby caudal fin and a gently moving lure. These are dedicated anatomy, not a recolored free-swimming model.
 
-Most time is spent still. Breathing/posture and lure movement are restrained. Every 112 active motion seconds, an eight-second eased walking interval moves between nearby perch points, with alternating small pectoral lifts. Its root stays within 0.10 units of home and spends under 8% of time walking. It ignores distant activity; close proximity only adds a tiny posture response. There is no lunge, prey capture or damage.
+Most time is spent still. Breathing/posture and lure movement are restrained. The mouth opens and closes: a slow respiratory gulp every 3.2 motion seconds (up to 0.11 rad), and once every 19 seconds a yawn that opens to 0.42 rad over 0.8 s, holds for 0.7 s and closes over 1.3 s. `frogfishGape(time)` is pure and continuous, and `pose` writes it to the `jaw` pivot (a child of the breathing body at `FROGFISH_JAW_HINGE`). It runs on the discovery clock, so it freezes on pause and settles to a still pose with reduced motion like every other discovery motion. Every 112 active motion seconds, an eight-second eased walking interval moves between nearby perch points, with alternating small pectoral lifts. Its root stays within 0.10 units of home and spends under 8% of time walking. It ignores distant activity; close proximity only adds a tiny posture response. There is no lunge, prey capture or damage.
+
+### Lifelike re-author
+
+The authored frogfish was rebuilt from scratch by `tools/art/frogfish/frogfish.py` so it matches the authored fish. The earlier model was a smooth ball with stacked ring lips, a flat mouth disc and a translucent fin pane.
+
+- **Body.** The new body is a lumpy, laterally compressed shape sampled from a smooth union of ellipsoids. It has a steep face, a dorsal hump, fleshy second and third dorsal spines and a short caudal peduncle. Its sole is flat on the rock.
+- **Mouth.** The lower jaw is the same skin surface cut by two planes through the hinge axis. Closed, it is seamless with the head (the mouth corners coincide within 2 mm, which a test checks). Open, it rotates like a real jaw and reveals a recessed dark palate, a mouth floor with fine teeth, thick banded lips and a skin fold under the chin.
+- **Detail.** Small gold eyes with horizontal pupils sit in warty lids. The illicium (rod) has a tufted esca and grows from the snout. The soft-dorsal, anal and curled caudal fins are opaque and rayed. Elbowed pectoral arms end in webbed hands with fringed fingers, and finger-like pelvic fins sit under the throat. Warts and soft cirri cover the skin.
+- **Colour.** Vertex colour carries an ochre ground, rust saddles, pale patches, fine mottling, dark ocelli and a ringed eyespot below the dorsal fin. It sits over the shipped `FrogSkin15` micro-detail maps, and the existing reef-rock camouflage tint still applies.
+
+The procedural fallback (used only when the asset fails to load) splits its lower lip and chin onto the same hinge, so it also opens its mouth. Matched evidence: [perch view before/after](screenshots/frogfish/before-after-perch.png), [close-ups before](screenshots/frogfish/before-close.png) and [after](screenshots/frogfish/after-close.png), and [the mouth opening and closing](screenshots/frogfish/mouth-sequence.png).
 
 ## Five nudibranchs
 

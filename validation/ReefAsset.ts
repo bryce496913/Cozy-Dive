@@ -150,10 +150,18 @@ export class ReefAsset {
   has(name: string): boolean {
     return this.doc.nodes.some((n) => n.name === name);
   }
-  primitive(name: string): ReefPrimitive {
+  /** Every primitive of a node's mesh (one per material). */
+  primitives(name: string): ReefPrimitive[] {
     const node = this.node(name);
     if (node.mesh === undefined) throw Error(`${name} has no mesh`);
-    const p = this.doc.meshes[node.mesh].primitives[0],
+    return this.doc.meshes[node.mesh].primitives.map((_, i) =>
+      this.primitive(name, i),
+    );
+  }
+  primitive(name: string, index = 0): ReefPrimitive {
+    const node = this.node(name);
+    if (node.mesh === undefined) throw Error(`${name} has no mesh`);
+    const p = this.doc.meshes[node.mesh].primitives[index],
       material = this.doc.materials[p.material ?? 0],
       compressed = p.extensions?.KHR_draco_mesh_compression;
     if (compressed) {

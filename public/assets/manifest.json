@@ -163,15 +163,15 @@
   {
     "id": "anchored-life",
     "file": "assets/models/creatures/anchored-life.glb",
-    "sha256": "966fbf52c70cb508bfc544cda7005c20c621babcb89d2951421caa6c371d31d8",
+    "sha256": "5f27962bd5d7f8180824d337b6e3a6d9936a6c7003c6c1ce424d0dfd508a1d1d",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 2392920,
+    "bytes": 2353704,
     "visualPrimitives": 22,
-    "visualTriangles": 132354,
+    "visualTriangles": 154012,
     "collisionTriangles": 0,
-    "materials": 9,
+    "materials": 10,
     "images": [
       {
         "name": "bony-plate-normal",
@@ -220,30 +220,6 @@
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
         "encodedBytes": 50733
-      },
-      {
-        "name": "horse-normal",
-        "width": 512,
-        "height": 512,
-        "mode": "KTX2-UASTC+zstd",
-        "mipLevels": 10,
-        "encodedBytes": 92927
-      },
-      {
-        "name": "horse-base",
-        "width": 512,
-        "height": 512,
-        "mode": "KTX2-ETC1S",
-        "mipLevels": 10,
-        "encodedBytes": 33028
-      },
-      {
-        "name": "horse-orm",
-        "width": 512,
-        "height": 512,
-        "mode": "KTX2-ETC1S",
-        "mipLevels": 10,
-        "encodedBytes": 8813
       },
       {
         "name": "eel-skin-normal",

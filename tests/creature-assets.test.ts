@@ -2,6 +2,11 @@ import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { ASSET_REGISTRY } from '../src/assets/AssetRegistry';
 import { NUDIBRANCH_VARIANTS } from '../src/creatures/discoveries/Nudibranchs';
+import {
+  FROGFISH_JAW_HINGE,
+  FROGFISH_LURE_BASE,
+  FROGFISH_YAWN,
+} from '../src/creatures/discoveries/Frogfish';
 import { ReefAsset } from '../validation/ReefAsset';
 
 const anchored = new ReefAsset(
@@ -9,12 +14,11 @@ const anchored = new ReefAsset(
 );
 const accepted = new ReefAsset('tools/art/pass015/anchored-life.pass013.glb');
 const slugs = new ReefAsset('public/assets/models/creatures/nudibranchs.glb');
+// The frogfish was re-authored from scratch after Pass 015 (see its own suite below), so only the
+// other creatures are held to the Pass 015 "relief and colour only" contract.
 const SKINS = [
   'HorseBody',
   'HorseTail',
-  'FrogBody',
-  'FrogFoot',
-  'FrogLure',
   'MorayBody',
   'MorayDorsal',
   'MorayHead',
@@ -53,11 +57,6 @@ describe('Pass 015 re-authored anchored creatures', () => {
       expect(b.min.distanceTo(a.min), name).toBeLessThan(0.012 * Math.sqrt(3));
       expect(b.max.distanceTo(a.max), name).toBeLessThan(0.012 * Math.sqrt(3));
     }
-    // The seated frogfish keeps its sole on the deck: no relief below the accepted underside.
-    const frog = bounds(anchored.primitive('FrogBody').positions);
-    expect(frog.min.y).toBeGreaterThanOrEqual(
-      bounds(accepted.primitive('FrogBody').positions).min.y - 1e-4,
-    );
   });
   it('preserves the moray centreline parameter in UV.v for GPU unfolding', () => {
     const body = anchored.primitive('MorayBody');
@@ -71,6 +70,92 @@ describe('Pass 015 re-authored anchored creatures', () => {
     // Local z is the centreline parameter (glTF stores V flipped: z = 1 - v, exactly as in the
     // accepted Pass 013 export); relief only moves it by the skin-fold amplitude.
     expect(worst).toBeLessThan(0.01);
+  });
+});
+
+describe('re-authored frogfish with a hinged jaw', () => {
+  const PARTS = ['FrogBody', 'FrogJaw', 'FrogLure', 'FrogFoot'] as const;
+  const hinge = new THREE.Vector3(
+      FROGFISH_JAW_HINGE.x,
+      FROGFISH_JAW_HINGE.y,
+      FROGFISH_JAW_HINGE.z,
+    ),
+    lureBase = new THREE.Vector3(
+      FROGFISH_LURE_BASE.x,
+      FROGFISH_LURE_BASE.y,
+      FROGFISH_LURE_BASE.z,
+    );
+  /** Every vertex of a part in the frogfish body frame (jaw at a given gape, lure on its pivot). */
+  const bodyFrame = (
+    name: (typeof PARTS)[number],
+    gape = 0,
+  ): THREE.Vector3[] => {
+    const out: THREE.Vector3[] = [],
+      jaw = new THREE.Matrix4()
+        .makeTranslation(hinge.x, hinge.y, hinge.z)
+        .multiply(new THREE.Matrix4().makeRotationX(gape));
+    for (const p of anchored.primitives(name))
+      for (let i = 0; i < p.positions.length; i += 3) {
+        const v = new THREE.Vector3().fromArray(p.positions, i);
+        if (name === 'FrogJaw') v.applyMatrix4(jaw);
+        if (name === 'FrogLure') v.add(lureBase);
+        out.push(v);
+      }
+    return out;
+  };
+  it('ships the jaw, lure, body and foot as untransformed children of the frogfish root', () => {
+    const root = anchored.node('Frogfish'),
+      children = (root.children ?? []).map((i) => anchored.doc.nodes[i]);
+    expect(children.map((n) => n.name).sort()).toEqual([...PARTS].sort());
+    for (const node of children) {
+      expect(node.translation ?? [0, 0, 0], node.name).toEqual([0, 0, 0]);
+      expect(node.rotation, node.name).toBeUndefined();
+      expect(node.scale, node.name).toBeUndefined();
+      for (const p of anchored.primitives(node.name)) {
+        expect(p.attributes, node.name).toContain('COLOR_0');
+        expect(p.attributes, node.name).toContain('TEXCOORD_0');
+        expect(p.positions.every(Number.isFinite), node.name).toBe(true);
+      }
+    }
+    expect(
+      anchored
+        .primitives('FrogBody')
+        .map((p) => p.material)
+        .sort(),
+    ).toEqual(['FrogIris', 'FrogMouth', 'FrogSkin15']);
+    expect(
+      anchored
+        .primitives('FrogJaw')
+        .map((p) => p.material)
+        .sort(),
+    ).toEqual(['FrogMouth', 'FrogSkin15']);
+  });
+  it('stays inside the validated perch envelope, seated on its sole, at every gape', () => {
+    // Surface-home footprint used to choose the perch (Frogfish.ts: 0.53 x 0.56 x 0.78 local).
+    for (const gape of [0, FROGFISH_YAWN.gape])
+      for (const name of PARTS) {
+        const box = new THREE.Box3().setFromPoints(bodyFrame(name, gape));
+        expect(box.min.y, `${name} ${gape}`).toBeGreaterThanOrEqual(0);
+        expect(box.max.y, `${name} ${gape}`).toBeLessThanOrEqual(0.78);
+        expect(Math.max(-box.min.x, box.max.x), name).toBeLessThan(0.53);
+        expect(Math.max(-box.min.z, box.max.z), name).toBeLessThan(0.56);
+      }
+  });
+  it('closes the jaw flush with the head and grows the lure from the snout', () => {
+    const body = bodyFrame('FrogBody'),
+      jaw = bodyFrame('FrogJaw'),
+      nearest = (p: THREE.Vector3): number =>
+        Math.min(...body.map((b) => b.distanceTo(p)));
+    // The mouth corners (the jaw's lateral extremes) coincide with the head's surface.
+    const left = jaw.reduce((a, b) => (b.x < a.x ? b : a)),
+      right = jaw.reduce((a, b) => (b.x > a.x ? b : a));
+    expect(nearest(left)).toBeLessThan(0.002);
+    expect(nearest(right)).toBeLessThan(0.002);
+    // The closed jaw reaches as far forward as the snout above it (no gap or overbite).
+    const front = (v: THREE.Vector3[]): number =>
+      Math.max(...v.map((p) => p.z));
+    expect(Math.abs(front(jaw) - front(body))).toBeLessThan(0.04);
+    expect(nearest(lureBase)).toBeLessThan(0.03);
   });
 });
 

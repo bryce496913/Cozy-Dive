@@ -4,7 +4,13 @@ import { Aquarium } from '../src/environment/Aquarium';
 import { safeFishPosition, clearFishRoute } from '../src/fish/FishHabitat';
 import { spawnFish } from '../src/fish/FishSpawner';
 import { DiscoveryClock } from '../src/creatures/discoveries/DiscoveryClock';
-import { frogfishStep } from '../src/creatures/discoveries/Frogfish';
+import {
+  FROGFISH_GULP,
+  FROGFISH_JAW_HINGE,
+  FROGFISH_YAWN,
+  frogfishGape,
+  frogfishStep,
+} from '../src/creatures/discoveries/Frogfish';
 import { NUDIBRANCH_VARIANTS } from '../src/creatures/discoveries/Nudibranchs';
 
 describe('quiet hidden discoveries', () => {
@@ -137,6 +143,51 @@ describe('quiet hidden discoveries', () => {
     expect(f.home.sourceId).toMatch(/^reef\//);
     expect(f.home.orientation.y).toBeGreaterThan(0.85);
     expect(f.root.scale.x).toBe(0.5);
+  });
+  it('opens and closes the frogfish mouth with rhythmic gulps and an occasional yawn', () => {
+    const { period, gape: gulp } = FROGFISH_GULP;
+    let last = frogfishGape(0),
+      open = 0,
+      closed = 0,
+      wide = 0;
+    // Ten minutes at 30 Hz: continuous, bounded, and genuinely opening and closing.
+    for (let i = 1; i < 18000; i++) {
+      const g = frogfishGape(i / 30);
+      expect(Number.isFinite(g)).toBe(true);
+      expect(g).toBeGreaterThanOrEqual(0);
+      expect(g).toBeLessThanOrEqual(FROGFISH_YAWN.gape + 1e-9);
+      expect(Math.abs(g - last)).toBeLessThan(0.03);
+      if (g > gulp * 0.8) open++;
+      if (g < 0.005) closed++;
+      if (g > FROGFISH_YAWN.gape * 0.95) wide++;
+      last = g;
+    }
+    expect(open).toBeGreaterThan(3000);
+    expect(closed).toBeGreaterThan(1000);
+    // A held yawn once per cycle: rare, but every cycle.
+    expect(wide / 18000).toBeGreaterThan(0.02);
+    expect(wide / 18000).toBeLessThan(0.1);
+    expect(frogfishGape(0)).toBeCloseTo(0, 6);
+    expect(frogfishGape(period / 2)).toBeCloseTo(gulp, 6);
+    expect(frogfishGape(FROGFISH_YAWN.start + FROGFISH_YAWN.open)).toBeCloseTo(
+      FROGFISH_YAWN.gape,
+      6,
+    );
+    // The pose drives the jaw pivot at the shared hinge, under the breathing body.
+    const f = a.anchoredLife.hidden.frogfish;
+    expect(f.jaw.parent).toBe(f.body);
+    expect(f.jaw.position.toArray()).toEqual([
+      FROGFISH_JAW_HINGE.x,
+      FROGFISH_JAW_HINGE.y,
+      FROGFISH_JAW_HINGE.z,
+    ]);
+    for (const t of [0, 1.6, 11.8, 41]) {
+      f.pose(t);
+      expect(f.jaw.rotation.x).toBe(frogfishGape(t));
+      expect(f.jaw.rotation.y).toBe(0);
+      expect(f.jaw.rotation.z).toBe(0);
+    }
+    f.pose(0);
   });
   it('makes only bounded gentle personal-space responses and ignores distant activity', () => {
     const s = a.anchoredLife.hidden.seahorse,

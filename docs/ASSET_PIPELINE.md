@@ -163,3 +163,18 @@ python3 tools/art/inspect_assets.py
 - **Pruning:** keeps every vertex attribute, since asset validation requires UVs.
 - **Compression:** writes with the pinned 16-bit Draco settings.
 - **Source:** the authoring source for the new wreck is the script; `reef-props.blend` remains the Pass 013 library.
+
+## Frogfish re-author
+
+The frogfish is rebuilt from scratch rather than re-touched, and only its subtree in the shipped library is replaced (as for the Pass 019 wreck):
+
+```bash
+python3 tools/art/frogfish/frogfish.py /tmp/frogfish.raw.glb   # Blender 5.1.2 Python module
+node tools/art/frogfish/splice_frogfish.mjs /tmp/frogfish.raw.glb
+python3 tools/art/inspect_assets.py
+```
+
+- **Authoring.** `frogfish.py` builds the `Frogfish` root with `FrogBody`, `FrogJaw`, `FrogLure` and `FrogFoot`. It reuses the Pass 015 noise, colour and material helpers and the `frog-skin` micro-detail maps, and smart-projects UVs at a constant texel density. It saves `tools/art/frogfish/frogfish.blend`.
+- **Controller contract.** Child nodes carry no transform. `FrogJaw` vertices are local to `JAW_HINGE` and `FrogLure` vertices to `LURE_BASE`; they must equal `FROGFISH_JAW_HINGE` and `FROGFISH_LURE_BASE` in `Frogfish.ts`. `FrogFoot` is the +X pectoral limb, mirrored at runtime.
+- **Splice.** `splice_frogfish.mjs` merges the new root into the old one's slot and transform. It reuses the shipped KTX2 `FrogSkin15` material by name, keeps the new untextured `FrogMouth` and `FrogIris`, prunes the old frog (and its now-unused `HorseSkin` lure material and textures), and writes with the pinned Pass 017 Draco settings. The seahorse, moray and anemone are not re-authored.
+- **Size.** The frogfish draws about 44.3k triangles (body 32.6k, jaw 8.0k, lure 1.1k, foot 1.3k drawn twice). `anchored-life.glb` is 2.35 MB (was 2.39 MB).
