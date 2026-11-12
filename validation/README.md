@@ -13,6 +13,8 @@ npm run test -- --maxWorkers=2
 npm run test:stress
 ```
 
+Routine tests use Vitest's 5-second default. Any test that takes more than about a second on its own (long simulations, full-scene collision checks) carries its own explicit budget of 20 s or more, so a busy machine cannot trip it. A new heavy test should do the same rather than raise the default (Pass 028).
+
 The opt-in stress configuration includes only `validation/ecosystem.test.ts`, uses one worker and a 120-second per-scenario budget. It does not change routine tests or their timeouts. It runs five minutes with 60 fish, fifteen and thirty minutes with 40 fish, plus a 30/60/120 FPS determinism comparison. Simulated time is accelerated. Real generated hulls, swimming/buoyancy, fish intentions/reactions, plant clocks and pure audio scheduling participate. It records sampled step/collision times, travel, corrections and activities in `/tmp/cozy-ecosystem-stress.json` (override with `COZY_REPORT`). Timing values are observations, never pass/fail budgets.
 
 ## Browser setup

@@ -204,7 +204,7 @@ describe('rest, exploration and foraging intentions', () => {
     } finally {
       aquarium.dispose();
     }
-  });
+  }, 20000);
   it('reaches a suitable region through normal locomotion rather than target snapping', () => {
     const f = fixture();
     force(f, 'exploring', 24);

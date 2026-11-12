@@ -121,7 +121,7 @@ describe('AuthoredReef presentation lifecycle', () => {
     expect(colliders).toEqual(original);
     expect(disposed).toHaveBeenCalledTimes(geometries.length);
     q.dispose();
-  });
+  }, 20000);
   it('keeps the procedural reef untouched when the library fails or is disposed early', async () => {
     const q = new Aquarium();
     const original = q.collision.colliders.slice();

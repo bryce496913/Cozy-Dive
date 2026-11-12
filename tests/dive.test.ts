@@ -318,7 +318,7 @@ describe('Pass 021 prompt region', () => {
           }
       }
     expect(offered).toBeGreaterThan(50);
-  });
+  }, 20000);
 });
 
 describe('Pass 022 surfacing where you are', () => {

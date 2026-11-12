@@ -94,7 +94,7 @@ describe('sculpted convex rock templates', () => {
     } finally {
       aquarium.dispose();
     }
-  });
+  }, 20000);
   it('reuses a modest geometry pool and disposes each rock resource once', () => {
     const aquarium = new Aquarium();
     const rocks = aquarium.root.children.filter(

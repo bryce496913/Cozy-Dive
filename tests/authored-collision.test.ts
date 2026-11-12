@@ -42,7 +42,7 @@ it('preserves passable log/arch openings and accepted creature homes with author
   } finally {
     q.dispose();
   }
-});
+}, 20000);
 it('keeps every discovery approach, arch passage and wreck circuit clear with authored structural hulls', () => {
   const procedural = new Aquarium(),
     q = new Aquarium();
@@ -59,7 +59,7 @@ it('keeps every discovery approach, arch passage and wreck circuit clear with au
     q.dispose();
     procedural.dispose();
   }
-});
+}, 20000);
 it('keeps every authored lid vertex inside the existing occupant sweep guard', () => {
   const lid = inventory.Chest.find((r) => r.name.startsWith('DYNAMIC_'))!;
   for (const [x, y, z] of lid.points)

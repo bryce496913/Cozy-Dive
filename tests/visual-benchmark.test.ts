@@ -74,7 +74,7 @@ it('replaces only benchmark collision components and restores the original share
   } finally {
     q.dispose();
   }
-});
+}, 20000);
 
 it('builds outward runtime hulls from decoded collider points regardless of exported face winding', async () => {
   const THREE = await import('three'),

@@ -264,7 +264,7 @@ describe('authored reef rock collision', () => {
     } finally {
       world.dispose();
     }
-  });
+  }, 20000);
   it('physically swims spawn, channel, arch, wreck, every discovery, anemone and moray routes', async () => {
     const { integrationRoutes, swimRoute } =
       await import('../validation/SwimRoutes');

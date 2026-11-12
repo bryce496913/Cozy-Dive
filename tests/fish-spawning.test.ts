@@ -73,7 +73,7 @@ describe('species and seeded spawning', () => {
     } finally {
       aquarium.dispose();
     }
-  });
+  }, 20000);
   it('supports the temporary 32-fish stress population and rejects invalid/impossible populations', () => {
     expect(
       spawnFish(

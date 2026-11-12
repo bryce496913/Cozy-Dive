@@ -162,7 +162,7 @@ describe('anchored marine inhabitants', () => {
       ).toBeGreaterThan(0.1);
       expect(f.corrections).toBe(0);
     });
-  });
+  }, 20000);
   it('retreats locally from a diver and naturally returns without pursuit or teleportation', () => {
     const h = a.fish.simulation.habitat,
       sim = new FishSimulation(spawnFish(h), h),
