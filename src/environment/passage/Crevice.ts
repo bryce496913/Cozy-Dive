@@ -7,9 +7,10 @@ import { rockCollider } from '../rockCollider';
 /**
  * v0.4 Pass 023: the hidden crevice. A rock outcrop against the tank's back glass, built from
  * convex boulders fitted around an open channel. The channel opens on the outcrop's +x side,
- * towards the right bank (out of view from the usual swim start), and runs into darkness: a dark
- * liner inside it fades from the rock's colour at the mouth to black at the threshold, where the
- * swimmer passes into the outer waters. Every boulder is a real convex collider, so the channel is
+ * towards the right bank (out of view from the usual swim start), and runs into darkness: an
+ * irregular rock tube inside it (Pass 026 playtest; it was a dark box) flares into the boulders at
+ * the mouth and fades from the rock's colour to black at the threshold, where the swimmer passes
+ * into the outer waters. Every boulder is a real convex collider, so the channel is
  * the only way in. The crevice owns and disposes its geometry and materials.
  */
 interface BoulderSpec {
@@ -34,7 +35,7 @@ export const CREVICE_BOULDERS: readonly BoulderSpec[] = [
   // (Kept clear of the seagrass that grows at the mouth, x 5.0, z -11.0.)
   { min: [4.3, -0.2, -10.95], max: [4.85, 1.3, -10.1], seed: 7107 },
 ];
-/** The liner starts this far inside the mouth and ends at the channel's end. */
+/** The tube is fully lit this far inside the mouth, fading to black towards the threshold. */
 const LINER_INSET = 0.9;
 
 export class Crevice {
@@ -85,13 +86,13 @@ export class Crevice {
       rocks.push(mesh);
       this.root.add(mesh);
     });
-    // Rounded boulders leave gaps where they meet; thin plates just behind the dark liner seal
+    // Rounded boulders leave gaps where they meet; thin plates just behind the rock tube seal
     // the channel, so its mouth is the only way in or out.
     colliders.push(...channelSeals());
     this.colliders = colliders;
     this.rocks = rocks;
-    const liner = new THREE.Mesh(channelLiner(), channelMaterial());
-    liner.name = 'Crevice darkness';
+    const liner = new THREE.Mesh(channelTube(), channelMaterial());
+    liner.name = 'Crevice rock tube';
     this.geometries.push(liner.geometry);
     this.materials.push(liner.material);
     this.root.add(liner);
@@ -146,73 +147,115 @@ function channelSeals(): ConvexCollider[] {
 
 /** Darkness of the liner at x (1 = the rock's shade at the mouth, 0 = black). */
 export function linerShade(x: number): number {
-  const mouth = CREVICE.mouthX - LINER_INSET,
+  // Already half in shadow where the tube begins, black by the threshold.
+  const mouth = CREVICE.mouthX - LINER_INSET + 0.9,
     dark = CREVICE_FRAME.origin.x + 0.4,
     t = Math.max(0, Math.min(1, (x - dark) / (mouth - dark)));
   return t * t;
 }
 
+/** Deterministic, smooth value noise in [0, 1] for the tube's rock. */
+function noise(x: number, y: number): number {
+  const h = (i: number, j: number) => {
+    const v = Math.sin(i * 127.1 + j * 311.7) * 43758.5453;
+    return v - Math.floor(v);
+  };
+  const ix = Math.floor(x),
+    iy = Math.floor(y),
+    fx = x - ix,
+    fy = y - iy,
+    sx = fx * fx * (3 - 2 * fx),
+    sy = fy * fy * (3 - 2 * fy),
+    a = h(ix, iy),
+    b = h(ix + 1, iy),
+    c = h(ix, iy + 1),
+    d = h(ix + 1, iy + 1);
+  return a + (b - a) * sx + (c - a) * sy + (a - b - c + d) * sx * sy;
+}
+/** The tube's rock colour where light reaches it (it fades to black deeper in). */
+// Linear values: shadowed green-grey rock, like the boulders' undersides.
+const TUBE_ROCK = [0.085, 0.105, 0.09] as const;
 /**
- * The channel's inside, open at the mouth: floor, roof, both side walls and the far end, facing
- * inwards, with vertex colours fading to black towards the threshold.
+ * Pass 026 playtest: the channel's inside as an irregular rock tube instead of a dark box. Its
+ * section is a lumpy oval that only ever bulges outward from the channel (never into the space the
+ * swimmer can reach); towards the mouth it flares out so its rim tucks behind the boulders, and
+ * it is lit like rock there, fading gradually to black towards the threshold and the far end.
  */
-function channelLiner(): THREE.BufferGeometry {
+export const TUBE = {
+  steps: 40,
+  around: 36,
+  inset: 1.25,
+  flare: 0.3,
+  bump: 0.26,
+} as const;
+export function tubeRadius(x: number, angle: number): number {
+  const start = CREVICE.mouthX - TUBE.inset,
+    flare = Math.max(0, Math.min(1, (x - (start - 0.5)) / 0.5));
+  return (
+    1 +
+    0.03 +
+    TUBE.bump *
+      (0.65 * noise(x * 2.3, angle * 1.9 + 3.1) +
+        0.35 * noise(x * 6.1, angle * 5.3 + 7.7)) +
+    TUBE.flare * flare * flare
+  );
+}
+function channelTube(): THREE.BufferGeometry {
   const x0 = CREVICE.endX,
-    x1 = CREVICE.mouthX - LINER_INSET,
-    y0 = CREVICE.centre.y - CREVICE.halfHeight,
-    y1 = CREVICE.centre.y + CREVICE.halfHeight,
-    z0 = CREVICE.centre.z - CREVICE.halfDepth,
-    z1 = CREVICE.centre.z + CREVICE.halfDepth,
-    steps = 12;
+    // It starts in the shadow well inside: the boulders themselves form the mouth and the first
+    // metre or so of the passage, so the eye meets rock, then darkness, never an outline.
+    x1 = CREVICE.mouthX - TUBE.inset,
+    { steps, around } = TUBE,
+    cy = CREVICE.centre.y,
+    cz = CREVICE.centre.z;
   const positions: number[] = [],
     colors: number[] = [],
     indices: number[] = [];
-  // Already in deep shadow at its start, so the opening reads as a dark crack, not a box.
-  const shade = [0.035, 0.042, 0.04] as const;
-  const vertex = (x: number, y: number, z: number): number => {
-    positions.push(x, y, z);
-    const k = linerShade(x);
-    colors.push(shade[0] * k, shade[1] * k, shade[2] * k);
-    return positions.length / 3 - 1;
-  };
-  // Four long walls, subdivided along x so the fade is smooth.
-  const walls: [number, number, number, number][] = [
-    [y0, z0, y0, z1], // floor
-    [y1, z1, y1, z0], // roof
-    [y0, z1, y1, z1], // room side
-    [y1, z0, y0, z0], // glass side
-  ];
-  for (const [ya, za, yb, zb] of walls) {
-    const first = positions.length / 3;
-    for (let i = 0; i <= steps; i++) {
-      const x = x0 + ((x1 - x0) * i) / steps;
-      vertex(x, ya, za);
-      vertex(x, yb, zb);
-    }
-    for (let i = 0; i < steps; i++) {
-      const a = first + i * 2;
-      indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+  for (let i = 0; i <= steps; i++) {
+    const x = x0 + ((x1 - x0) * i) / steps,
+      k = linerShade(x);
+    for (let j = 0; j <= around; j++) {
+      const a = (j / around) * Math.PI * 2,
+        r = tubeRadius(x, ((j % around) / around) * Math.PI * 2);
+      positions.push(
+        x,
+        cy + Math.sin(a) * CREVICE.halfHeight * r,
+        cz + Math.cos(a) * CREVICE.halfDepth * r,
+      );
+      const tone = (0.6 + 0.8 * noise(x * 4.1, a * 3.3)) * k;
+      colors.push(
+        TUBE_ROCK[0] * tone,
+        TUBE_ROCK[1] * tone,
+        TUBE_ROCK[2] * tone,
+      );
     }
   }
-  const e = [
-    vertex(x0, y0, z0),
-    vertex(x0, y0, z1),
-    vertex(x0, y1, z1),
-    vertex(x0, y1, z0),
-  ];
-  indices.push(e[0], e[1], e[2], e[0], e[2], e[3]);
+  for (let i = 0; i < steps; i++)
+    for (let j = 0; j < around; j++) {
+      const a = i * (around + 1) + j,
+        b = a + around + 1;
+      indices.push(a, b, a + 1, a + 1, b, b + 1);
+    }
+  // A dark cap closes the far end.
+  const centre = positions.length / 3;
+  positions.push(x0, cy, cz);
+  colors.push(0, 0, 0);
+  for (let j = 0; j < around; j++) indices.push(centre, j + 1, j);
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   g.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
   g.setIndex(indices);
+  g.computeVertexNormals();
   g.computeBoundingSphere();
   return g;
 }
-function channelMaterial(): THREE.MeshBasicMaterial {
-  const m = new THREE.MeshBasicMaterial({
+function channelMaterial(): THREE.MeshStandardMaterial {
+  const m = new THREE.MeshStandardMaterial({
     vertexColors: true,
+    roughness: 0.97,
+    metalness: 0,
     side: THREE.DoubleSide,
   });
-  m.name = 'Crevice darkness';
+  m.name = 'Crevice rock tube';
   return m;
 }

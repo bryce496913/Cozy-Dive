@@ -9,6 +9,11 @@ import {
 } from '../src/config/passage';
 import { AQUARIUM, type Vec3 } from '../src/config/world';
 import { Aquarium } from '../src/environment/Aquarium';
+import {
+  TUBE,
+  linerShade,
+  tubeRadius,
+} from '../src/environment/passage/Crevice';
 import { OuterEnvironment } from '../src/environment/outer/OuterEnvironment';
 import { CollisionWorld } from '../src/player/collision';
 import {
@@ -225,6 +230,30 @@ describe('Pass 023 hidden crevice', () => {
     } finally {
       outer.dispose();
     }
+  });
+});
+
+describe('Pass 026 playtest: a natural crevice', () => {
+  it('lines the channel with a rock tube that never bulges into reachable space', () => {
+    // The tube's section is the channel's oval scaled by tubeRadius, so >= 1 keeps every wall at
+    // or beyond the channel's own bounds (where the collision plates are).
+    for (let x = CREVICE.endX; x <= CREVICE.mouthX; x += 0.05)
+      for (let a = 0; a < Math.PI * 2; a += 0.05)
+        expect(tubeRadius(x, a)).toBeGreaterThanOrEqual(1);
+    // Lumpy rock, not a smooth pipe.
+    const radii: number[] = [];
+    for (let a = 0; a < Math.PI * 2; a += 0.1) radii.push(tubeRadius(3, a));
+    expect(Math.max(...radii) - Math.min(...radii)).toBeGreaterThan(
+      TUBE.bump * 0.3,
+    );
+  });
+  it('starts the tube in shadow well inside the mouth, and is black by the threshold', () => {
+    const start = CREVICE.mouthX - TUBE.inset;
+    expect(TUBE.inset).toBeGreaterThan(1);
+    expect(linerShade(start)).toBeLessThanOrEqual(1);
+    expect(linerShade(CREVICE_FRAME.origin.x + 0.4)).toBe(0);
+    for (let x = CREVICE.endX; x < start; x += 0.1)
+      expect(linerShade(x + 0.1)).toBeGreaterThanOrEqual(linerShade(x));
   });
 });
 
