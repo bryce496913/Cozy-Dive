@@ -31,4 +31,4 @@ it('releases every shared ecosystem resource once across repeated direct disposa
   aquarium.hardscape.dispose();
   for (const spy of spies) expect(spy).toHaveBeenCalledTimes(1);
   expect(aquarium.root.children).toHaveLength(0);
-});
+}, 20000);

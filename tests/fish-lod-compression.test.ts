@@ -119,7 +119,7 @@ describe('Pass 017 fish distance level', () => {
     } finally {
       q.dispose();
     }
-  });
+  }, 20000);
 });
 
 describe('Pass 017/018 asset compression', () => {

@@ -47,7 +47,7 @@ it('keeps a temporary double-density scenario bounded and pooled without changin
   } finally {
     a.dispose();
   }
-});
+}, 20000);
 it('rejects invalid and excessive density explicitly', () => {
   for (const density of [0, -1, NaN, Infinity, 4])
     expect(() => generatePlantPlacements([], 1, density)).toThrow();

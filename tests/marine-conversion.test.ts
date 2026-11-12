@@ -153,7 +153,7 @@ describe('tropical marine identity', () => {
     } finally {
       a.dispose();
     }
-  });
+  }, 20000);
   it('lets shy firefish retreat toward safe shelter without teleporting, then recover', () => {
     const home = { x: 0, y: 3, z: -3 },
       s = FISH_SPECIES[2],

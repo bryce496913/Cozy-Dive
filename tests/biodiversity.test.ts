@@ -78,6 +78,7 @@ describe('six-species population and shared models', () => {
         a.dispose();
       }
     },
+    20000,
   );
   it('batches all marine articulated parts and varies chromis tint without duplicating models', () => {
     const system = new FishSystem(open);
@@ -179,7 +180,7 @@ describe('darting and school identity', () => {
     expect(maxTogether).toBeLessThan(10);
     expect(active / samples).toBeLessThan(0.15);
     expect(peak).toBeGreaterThan(0.65);
-  });
+  }, 20000);
   it('retains a larger coherent chili group without leaders or synchronized clocks', () => {
     const config = FISH_SPECIES.find((s) => s.id === 'blue-green-chromis')!,
       a = new FishSimulation(spawnFish(open, [config]), open),

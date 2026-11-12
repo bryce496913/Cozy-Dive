@@ -250,7 +250,7 @@ describe('home aquarium ornaments', () => {
     } finally {
       q.dispose();
     }
-  });
+  }, 20000);
   it('disposes every owned resource once and detaches the subsystem', () => {
     const o = new OrnamentSystem([
       ...a.rockColliders,

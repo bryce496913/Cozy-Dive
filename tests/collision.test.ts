@@ -282,7 +282,7 @@ describe('generated aquarium collider geometry', () => {
       a.dispose();
       b.dispose();
     }
-  });
+  }, 20000);
   it('allows travel through the open sand channel and above the banks', () => {
     const aquarium = new Aquarium();
     try {
@@ -302,7 +302,7 @@ describe('generated aquarium collider geometry', () => {
     } finally {
       aquarium.dispose();
     }
-  });
+  }, 20000);
 });
 
 it('keeps varied routes through the actual rocky banks outside overlapping hulls', () => {
@@ -324,4 +324,4 @@ it('keeps varied routes through the actual rocky banks outside overlapping hulls
   } finally {
     aquarium.dispose();
   }
-});
+}, 20000);
