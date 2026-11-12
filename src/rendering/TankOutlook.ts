@@ -18,6 +18,8 @@ export const OUTLOOK = {
   water: 0x2b6f83,
   /** Just outside the glass (aquarium units). */
   margin: 0.04,
+  /** Below the sand's lowest reference height (-0.06), so the box cannot cut through ripples. */
+  floorMargin: 0.1,
 } as const;
 
 const VERTEX = /* glsl */ `
@@ -60,12 +62,12 @@ export class TankOutlook {
       m = OUTLOOK.margin,
       geometry = new THREE.BoxGeometry(
         b.max.x - b.min.x + 2 * m,
-        b.max.y - b.min.y + 2 * m,
+        b.max.y - b.min.y + m + OUTLOOK.floorMargin,
         b.max.z - b.min.z + 2 * m,
       );
     geometry.translate(
       (b.min.x + b.max.x) / 2,
-      (b.min.y + b.max.y) / 2,
+      (b.min.y + b.max.y + m - OUTLOOK.floorMargin) / 2,
       (b.min.z + b.max.z) / 2,
     );
     const material = new THREE.ShaderMaterial({

@@ -540,7 +540,7 @@ export class OfficeEnvironment {
       s.translate(mx, top + 0.33, mz - 0.0135);
       screens.push(s);
     }
-    // Keyboard, mouse on a plain mat, papers, an open notebook, sticky notes, a succulent, a laptop.
+    // Keyboard, mouse on a plain mat, papers, an open notebook, sticky notes and a succulent.
     b.add(
       'trim',
       rounded(0.44, 0.018, 0.13, 0.005),
@@ -608,20 +608,6 @@ export class OfficeEnvironment {
       cylinder(0.025, 0.025, 0.08, 14),
       [dk.center.x + 0.14, top + 0.04, dk.center.z + 0.27],
       hex(0xd8e2e0),
-    );
-    b.add(
-      'metal',
-      rounded(0.3, 0.012, 0.21, 0.006),
-      [ret.center.x + 0.02, top + 0.006, ret.center.z + 0.2],
-      chrome,
-      [0, 0.3, 0],
-    );
-    b.add(
-      'metal',
-      rounded(0.3, 0.2, 0.008, 0.004),
-      [ret.center.x + 0.06, top + 0.11, ret.center.z + 0.11],
-      chrome,
-      [-0.25, 0.3 + Math.PI / 2, 0],
     );
 
     // --- The desk chair: black mesh back, grey seat, five-star base on casters.
