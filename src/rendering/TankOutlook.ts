@@ -7,7 +7,7 @@ import { AQUARIUM } from '../config/world';
  * `OfficeScene.captureFromTank`). Here a box just outside the glass shows it, sampled from a
  * blurred mip level, tinted towards the water and fogged like everything else in the tank, so the
  * office is soft and watery, and nearer glass shows it more clearly than far glass. Only the
- * swimmer's view shows it: the room's miniature of the tank and the surfacing view hide it.
+ * swimmer's view shows it: the room's miniature of the tank hides it (see `renderView`).
  */
 export const OUTLOOK = {
   /** Mip level sampled (the capture is 128 px per face: level 1.2 is roughly 55 px). */

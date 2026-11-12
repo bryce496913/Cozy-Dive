@@ -155,11 +155,13 @@ try {
     await page.evaluate((kind) => {
       const a = window.__cozy;
       if (kind === 'dive') {
-        Object.assign(a.walk.position, { x: 1.3, z: -0.15 });
+        Object.assign(a.walk.position, { x: 0.25, z: 0.45 });
         a.controls.yaw = -Math.PI / 2 - 0.1;
         a.controls.pitch = -0.12;
       } else {
-        Object.assign(a.state.position, { x: 4, y: 12.6, z: -2 });
+        // Well away from the crevice (20 m from its mouth, beyond PASSAGE.preload), so surfacing
+        // never starts loading the outer waters, which would skew the GPU resource snapshots.
+        Object.assign(a.state.position, { x: -4, y: 12.6, z: 2 });
         a.state.neutralDepth = 12.6;
         a.controls.yaw = 0.7;
         a.controls.pitch = 0.05;

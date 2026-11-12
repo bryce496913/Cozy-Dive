@@ -66,7 +66,7 @@ try {
   // Stand in front of the tank, looking at it.
   await page.evaluate(() => {
     const a = window.__cozy;
-    Object.assign(a.walk.position, { x: 1.25, z: 0.1 });
+    Object.assign(a.walk.position, { x: 0.2, z: 0.7 });
     a.controls.yaw = -Math.PI / 2 + 0.15;
     a.controls.pitch = -0.15;
     a.controls.clear();
@@ -213,7 +213,7 @@ try {
   await page.evaluate(() => {
     const a = window.__cozy;
     a.settings = { ...a.settings, reducedMotion: true };
-    Object.assign(a.walk.position, { x: 1.25, z: 0.1 });
+    Object.assign(a.walk.position, { x: 0.2, z: 0.7 });
     a.controls.yaw = -Math.PI / 2;
     a.controls.pitch = -0.1;
     a.controls.clear();
