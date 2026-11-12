@@ -53,7 +53,7 @@ v0.3 closes on the user's macOS acceptance of this candidate. v0.4 (Personalizat
   - a placeholder open-water area beyond the tunnel.
 - **Pass 024, The outer reef:** the larger tropical reef, with sand channels, coral heads, a drop-off, soft boundaries, new reef-fish schools, open-water sound and performance budgets.
 - **Pass 025, Big creatures (`0.4.0-alpha.3`):** reef sharks, eagle rays and a sea turtle with calm behaviour, plus "seen" detection, a quiet "New sighting" note and a "Seen" page. New reef-fish species were not added; the reef's fish are still the tank's species.
-- **Pass 026, The wall and the blue (agreed after Pass 025):** the outer reef reshaped as a wall dive.
+- **Pass 026, The wall and the blue (`0.4.0-alpha.4`; agreed after Pass 025):** the outer reef reshaped as a wall dive.
   - **The reef top:** compact, dense and breathtaking, with coral and rock, little bare sand and big schools of fish. Its edge is close to the tunnel.
   - **The blue:** distance and depth fade from blue to dark, forward and out past the edge.
   - **Edges:** swimming slows to almost nothing near the edges. You can drift a little way out over the blue and down the wall, then hover.
