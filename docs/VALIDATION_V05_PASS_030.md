@@ -21,3 +21,7 @@ The first warmed rerun stopped before writing its final result when the test pro
 [Office report](screenshots/v0.5-pass030/baseline-office-report.json)
 
 The first `outer-reef` attempt was interrupted by an environment reconnection after its return-at-the-wall screenshot. Its browser and local servers were no longer running. Completed passage, integration, production and office results were preserved; the sequential runner resumed from `outer-reef`. The partial outer-reef attempt is not counted as a pass.
+
+The completed `outer-reef` rerun passed in **3,030.3 seconds**. All **235 fish moved**, with none below the floor. Native W input settled the swimmer at the measured seabed (-0.172 m), reached -11.57 m down the wall, eased to a hover 5.58 m beyond the lip and at x = 28.11 m in the side band. Six rendered views measured 47–77 calls and 1,061,343–1,841,579 triangles. Both return/release cycles matched the initial **432 geometries / 113 textures**; no console/page errors. Preparation and CPU-submit timings in the raw report are software-renderer diagnostics only.
+
+[Outer-reef report](screenshots/v0.5-pass030/baseline-outer-reef-report.json)
