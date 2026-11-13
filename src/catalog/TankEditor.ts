@@ -262,6 +262,7 @@ export class TankEditor {
     }
   }
   locked(locked: boolean) {
+    this.lastProbe = -Infinity;
     if (!locked) {
       if (this.current) this.current.active = false;
       this.selected = undefined;
