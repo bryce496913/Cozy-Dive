@@ -1,3 +1,4 @@
+import { browserScale, recordBrowserScale } from './browser-scale.mjs';
 /* v0.4 Pass 023: the hidden passage, with real input.
  *
  *   COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy023-passage node validation/passage.mjs
@@ -29,6 +30,7 @@ const base = process.env.COZY_URL || 'http://127.0.0.1:5173';
 const report = { base, errors: [] };
 try {
   const page = await browser.newPage({
+    ...browserScale(),
     viewport: { width: 1000, height: 640 },
   });
   page.setDefaultTimeout(Number(process.env.COZY_ACTION_TIMEOUT || 240000));
@@ -44,6 +46,7 @@ try {
     if (m.type() === 'error') report.errors.push(m.text());
   });
   await page.goto(base);
+  await recordBrowserScale(page);
   await page.waitForFunction(() => window.__cozy?.office);
   await page.evaluate(() => window.__cozy.world.prepared);
   const locked = () =>

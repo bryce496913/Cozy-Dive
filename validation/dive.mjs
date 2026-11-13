@@ -1,3 +1,4 @@
+import { browserScale, recordBrowserScale } from './browser-scale.mjs';
 /* v0.3 Pass 021: the dive from the office into the tank and back, with real input.
  *
  *   COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy021-dive node validation/dive.mjs
@@ -30,6 +31,7 @@ const base = process.env.COZY_URL || 'http://127.0.0.1:5173';
 const report = { base, errors: [], dive: {}, surface: {}, reduced: {} };
 try {
   const page = await browser.newPage({
+    ...browserScale(),
     viewport: { width: 1100, height: 720 },
   });
   page.setDefaultTimeout(Number(process.env.COZY_ACTION_TIMEOUT || 240000));
@@ -45,6 +47,7 @@ try {
     if (m.type() === 'error') report.errors.push(m.text());
   });
   await page.goto(base);
+  await recordBrowserScale(page);
   await page.waitForFunction(() => window.__cozy?.office);
   await page.evaluate(() =>
     Promise.all([window.__cozy.world.prepared, window.__cozy.office.prepared]),
@@ -83,6 +86,7 @@ try {
     page.evaluate(async (count) => {
       const a = window.__cozy;
       cancelAnimationFrame(a.frame);
+      a.__t = Math.max(a.__t ?? 0, a.previous || 0);
       for (let i = 0; i < count; i++) {
         // Yield a real frame first: frames rendered back to back in one task are never
         // presented, and SwiftShader's buffers then grow without bound until the tab crashes.
@@ -162,28 +166,20 @@ try {
     1,
   );
   await page.screenshot({ path: path.join(output, 'dive-3-arrived.png') });
-  // Hand control back to the real loop and swim with W.
-  await page.evaluate(() => {
-    const a = window.__cozy;
-    a.previous = 0;
-    a.frame = requestAnimationFrame(a.tick);
-  });
+  // Real W input with a bounded number of rendered frames: SwiftShader may draw
+  // too few frames in a short wall-clock timeout to finish the swim-speed ramp.
   const before = await page.evaluate(() => ({
     ...window.__cozy.state.position,
   }));
-  // Hold W until the diver has moved (software rendering runs at a few frames a second, and
-  // swimming eases in), for at most 10 s.
   await page.keyboard.down('w');
-  await page
-    .waitForFunction(
-      (b) => {
-        const p = window.__cozy.state.position;
-        return Math.hypot(p.x - b.x, p.y - b.y, p.z - b.z) > 0.3;
-      },
-      before,
-      { timeout: 10000 },
-    )
-    .catch(() => {});
+  for (let frame = 0; frame < 120; frame++) {
+    await step(1);
+    const distance = await page.evaluate((b) => {
+      const p = window.__cozy.state.position;
+      return Math.hypot(p.x - b.x, p.y - b.y, p.z - b.z);
+    }, before);
+    if (distance > 0.4) break;
+  }
   await page.keyboard.up('w');
   const after = await page.evaluate(() => ({
     ...window.__cozy.state.position,
@@ -194,6 +190,13 @@ try {
     after.z - before.z,
   ).toFixed(2);
   assert(report.dive.swamAfter > 0.3, 'swimming must work after the dive');
+  // Resume native rendering for the surfacing prompt. The manual helper resynchronizes
+  // its synthetic clock before taking over again.
+  await page.evaluate(() => {
+    const a = window.__cozy;
+    a.previous = 0;
+    a.frame = requestAnimationFrame(a.tick);
+  });
 
   // Surface: rise near the surface and press E.
   await page.evaluate(() => {

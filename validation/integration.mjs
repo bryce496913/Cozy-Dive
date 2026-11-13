@@ -1,3 +1,4 @@
+import { browserScale, recordBrowserScale } from './browser-scale.mjs';
 /* Pass 011 physical route witnesses and explicit failure regression. No debug code ships. */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -20,7 +21,7 @@ const browser = await chromium.launch({
 // no assertion or measured budget changes. Override with COZY_ACTION_TIMEOUT.
 const openPage = browser.newPage.bind(browser);
 browser.newPage = async (options) => {
-  const page = await openPage(options);
+  const page = await openPage({ ...browserScale(), ...options });
   page.setDefaultTimeout(Number(process.env.COZY_ACTION_TIMEOUT || 240000));
   return page;
 };
@@ -47,6 +48,7 @@ try {
   });
   await instrument(page);
   await page.goto(url);
+  await recordBrowserScale(page);
   await page.waitForFunction(
     () => window.__cozy?.world?.renderer.info.render.calls > 0,
   );

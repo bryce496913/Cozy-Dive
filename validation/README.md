@@ -258,3 +258,7 @@ COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy025-creatures node validatio
 - the pause screen's "Seen" list names everything seen, with no counts, and Escape closes it.
 
 It then makes two visits, each ending with Return to the tank and release, and checks that GPU memory does not grow. Finally it reloads the page and checks that the list is still offered.
+
+## Pass 029 browser scale
+
+The six long regression harnesses (`dive`, `dive-interrupt`, `lifecycle`, `passage`, `integration`, `production`) accept `COZY_DPR=0.5` to lower the raster buffer size while retaining the original CSS viewport, real scene, controls, geometry and behavioral assertions. Default remains DPR 1. They print `COZY_BROWSER_SCALE` and verify the browser reports the requested pixel ratio. This is useful for slow SwiftShader checks, not for target-device FPS measurement. Catalog screenshots use DPR 1. The dive swimming check is bounded by rendered input frames instead of a short wall-clock deadline; its minimum movement assertion remains unchanged.
