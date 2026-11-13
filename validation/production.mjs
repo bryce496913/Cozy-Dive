@@ -1,3 +1,4 @@
+import { browserScale, recordBrowserScale } from './browser-scale.mjs';
 /* Production-build smoke check. Uses public DOM/input only; no source injection. */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -20,7 +21,7 @@ const browser = await chromium.launch({
 // no assertion or measured budget changes. Override with COZY_ACTION_TIMEOUT.
 const openPage = browser.newPage.bind(browser);
 browser.newPage = async (options) => {
-  const page = await openPage(options);
+  const page = await openPage({ ...browserScale(), ...options });
   page.setDefaultTimeout(Number(process.env.COZY_ACTION_TIMEOUT || 240000));
   return page;
 };
@@ -38,6 +39,7 @@ try {
     if (r.url().includes('.glb')) modelResponses.set(r.url(), r.status());
   });
   await page.goto(process.env.COZY_URL || 'http://127.0.0.1:5175');
+  await recordBrowserScale(page);
   await page.waitForFunction(() => !!document.querySelector('canvas'));
   await page.screenshot({ path: path.join(output, 'preview.png') });
   await page.waitForFunction(

@@ -1,3 +1,4 @@
+import { browserScale, recordBrowserScale } from './browser-scale.mjs';
 /* v0.3 Pass 021: interrupted, hidden, repeated and reduced-motion dives, with real input.
  *
  *   COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy021-interrupt node validation/dive-interrupt.mjs
@@ -44,7 +45,10 @@ const near = (a, b, eps = 1e-6) =>
   Math.abs(a.y - b.y) < eps &&
   Math.abs(a.z - b.z) < eps;
 try {
-  const page = await browser.newPage({ viewport: { width: 480, height: 320 } });
+  const page = await browser.newPage({
+    ...browserScale(),
+    viewport: { width: 480, height: 320 },
+  });
   page.setDefaultTimeout(Number(process.env.COZY_ACTION_TIMEOUT || 240000));
   await page.route('**/src/main.ts*', async (route) => {
     const r = await route.fetch();
@@ -58,6 +62,7 @@ try {
     if (m.type() === 'error') report.errors.push(m.text());
   });
   await page.goto(base);
+  await recordBrowserScale(page);
   await page.waitForFunction(() => window.__cozy?.office);
   await page.evaluate(() => cancelAnimationFrame(window.__cozy.frame));
   await page.evaluate(() =>

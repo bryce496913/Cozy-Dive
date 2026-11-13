@@ -77,3 +77,9 @@ v0.4 closes on the user's macOS acceptance of this candidate, after a full play-
 - nothing to lose or miss.
 
 **Outer reef life (`0.4.0-rc.3`, requested after Pass 028):** add smaller shoals along the entrance and reef wall, more cruising animals and larger adults. Reuse existing local assets and species, retain calm behaviour and scale physical clearance with each animal. This candidate still awaits the user’s macOS play-through; v0.5 remains Personalization.
+
+**v0.5 starts alongside v0.4 by user request (Pass 029).** v0.4 remains open at `0.4.0-rc.3`, awaiting the macOS play-through.
+
+- **Pass 029 — The tank catalog (`0.5.0-alpha.1`):** discovered corals and seagrass, quiet tank-only placement, movement/removal, local saving and confirmed reset.
+- **Pass 030 — Baby animals:** discovered large animals in tank-sized baby forms.
+- **Pass 031 — Polish and acceptance:** integrate personalization and validate comfort, persistence, lifecycle and target-device performance.

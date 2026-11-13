@@ -1,3 +1,4 @@
+import type { TankDecoration } from '../environment/TankDecoration';
 import { AuthoredAquarium } from '../environment/AuthoredAquarium';
 import { AuthoredReef } from '../environment/AuthoredReef';
 import { TankOutlook } from './TankOutlook';
@@ -48,6 +49,7 @@ export class UnderwaterScene implements WaterWorld {
   readonly aquarium: Aquarium;
   readonly authored: AuthoredAquarium;
   readonly reef: AuthoredReef;
+  decoration?: TankDecoration;
   /** v0.4 Pass 024: the reef library's loader (the outer reef leases from the same cache). */
   readonly reefLoader: AssetLoader;
   /** Resolves once authored libraries settle and their programs are compiled. */
@@ -293,6 +295,7 @@ export class UnderwaterScene implements WaterWorld {
   ): void {
     this.aquarium.update(time, reducedMotion, dt, active, player);
     this.authored.update(camera);
+    this.decoration?.update(camera);
     this.presentation?.update();
   }
   /**

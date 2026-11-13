@@ -1,3 +1,4 @@
+import { TankEditor } from '../catalog/TankEditor';
 import { AudioSystem } from '../audio/AudioSystem';
 import { AQUARIUM, SPAWN, SWIMMING, type Vec3 } from '../config/world';
 import { SwimControls } from '../controls/SwimControls';
@@ -158,6 +159,7 @@ export class Application {
   private previous = 0;
   private elapsed = 0;
   private disposed = false;
+  readonly tankEditor?: TankEditor;
   private readonly abort = new AbortController();
   constructor(
     root: HTMLElement,
@@ -208,6 +210,12 @@ export class Application {
         );
       });
       configureWorld?.(this.world, this.state);
+      this.tankEditor = new TankEditor(
+        root,
+        this.world,
+        () => this.sightings,
+        () => this.enter('aquarium'),
+      );
       this.tankSoundSpots = [
         ...this.world.aquarium.hardscape.formations.map((f) => ({
           x: f.position.x,
@@ -236,6 +244,7 @@ export class Application {
           stopWalking(this.walk);
           this.previous = 0;
           this.ui.setLocked(locked, this.entered);
+          this.tankEditor?.locked(locked);
         },
       );
       this.controls.yaw = this.looks[this.mode].yaw;
@@ -289,6 +298,7 @@ export class Application {
       this.officeAudio?.dispose();
       this.office?.dispose();
       this.office = undefined;
+      this.tankEditor?.dispose();
       this.world?.dispose();
       this.world = undefined;
       this.ui.showError(
@@ -306,6 +316,7 @@ export class Application {
     const resuming =
       !!this.dive && interruptedChoice(this.dive.path, mode) === 'resume';
     if (this.dive && !resuming) this.cancelDive();
+    if (mode !== this.mode) this.tankEditor?.suspend();
     if (!resuming && mode !== this.mode && !this.entered) {
       // The first entry from the start screen (whose overlay covers the view) is a plain cut.
       this.cut(mode);
@@ -444,6 +455,7 @@ export class Application {
           ? 'surface'
           : undefined;
     if (!kind) return;
+    this.tankEditor?.suspend();
     event.preventDefault();
     // The key press is a user gesture: unlock the destination's audio now.
     if (kind === 'dive') this.audio?.unlockFromGesture();
@@ -770,6 +782,17 @@ export class Application {
       this.crossPassage();
     }
     const water = this.water();
+    this.tankEditor?.update({
+      time: this.elapsed,
+      eligible:
+        this.mode === 'aquarium' &&
+        this.waterWorld === 'aquarium' &&
+        !this.dive,
+      active: this.controls.locked && !document.hidden,
+      eye: this.state.position,
+      yaw: this.controls.yaw,
+      pitch: this.controls.pitch,
+    });
     water.camera.position.set(
       this.state.position.x,
       this.state.position.y,
@@ -805,6 +828,14 @@ export class Application {
   };
   /** Walk the office and draw it with the live miniature aquarium. */
   private tickOffice(dt: number): void {
+    this.tankEditor?.update({
+      time: this.elapsed,
+      eligible: false,
+      active: false,
+      eye: this.state.position,
+      yaw: 0,
+      pitch: 0,
+    });
     const controls = this.controls!,
       office = this.office!,
       running = controls.locked && !document.hidden;
@@ -846,6 +877,7 @@ export class Application {
     this.office?.dispose();
     this.outer?.dispose();
     this.outer = undefined;
+    this.tankEditor?.dispose();
     this.world?.dispose();
     this.ui.dispose();
   };

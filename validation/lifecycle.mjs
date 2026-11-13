@@ -1,3 +1,4 @@
+import { browserScale, recordBrowserScale } from './browser-scale.mjs';
 const { chromium } = await import(process.env.COZY_PLAYWRIGHT || 'playwright');
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -21,7 +22,7 @@ import fs from 'node:fs';
   // no assertion or measured budget changes. Override with COZY_ACTION_TIMEOUT.
   const openPage = browser.newPage.bind(browser);
   browser.newPage = async (options) => {
-    const page = await openPage(options);
+    const page = await openPage({ ...browserScale(), ...options });
     page.setDefaultTimeout(Number(process.env.COZY_ACTION_TIMEOUT || 240000));
     return page;
   };
@@ -63,6 +64,7 @@ import fs from 'node:fs';
       });
     });
     await page.goto(process.env.COZY_URL || 'http://127.0.0.1:5173');
+    await recordBrowserScale(page);
     await page.waitForFunction(
       () => window.__cozy?.world?.renderer.info.render.calls > 0,
     );

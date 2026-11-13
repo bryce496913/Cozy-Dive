@@ -693,3 +693,24 @@ kbd {
   color: #a6c2b8;
   white-space: nowrap;
 }
+
+.tank-catalog > button {
+  display: block;
+  margin: 0.75rem 0;
+  padding: 0.65rem 1rem;
+  width: 100%;
+  text-align: left;
+}
+.tank-catalog {
+  overflow-y: auto;
+  max-height: 80vh;
+}
+.tank-catalog > button {
+  color: #e4eee1;
+  background: rgba(164, 208, 190, 0.08);
+  border: 1px solid rgba(196, 222, 198, 0.28);
+  border-radius: 5px;
+}
+.tank-catalog > button:hover {
+  background: rgba(164, 208, 190, 0.18);
+}
