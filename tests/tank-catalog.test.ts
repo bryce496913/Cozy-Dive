@@ -143,7 +143,8 @@ describe('gentle tank catalog', () => {
     expect(loadTank(s, seen, context)).toEqual([item]);
     s.setItem(TANK_KEY, '{');
     expect(loadTank(s, seen, context)).toEqual([]);
-    s.setItem(TANK_KEY, JSON.stringify({ version: 2, items: [item] }));
+    // Version 2 now migrates decorations and adds animals; 99 remains unsupported.
+    s.setItem(TANK_KEY, JSON.stringify({ version: 99, items: [item] }));
     expect(loadTank(s, seen, context)).toEqual([]);
   });
   it('survives unavailable storage and restores the original without erasing sightings', () => {
