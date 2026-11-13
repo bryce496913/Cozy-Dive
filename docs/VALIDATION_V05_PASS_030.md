@@ -25,3 +25,21 @@ The first `outer-reef` attempt was interrupted by an environment reconnection af
 The completed `outer-reef` rerun passed in **3,030.3 seconds**. All **235 fish moved**, with none below the floor. Native W input settled the swimmer at the measured seabed (-0.172 m), reached -11.57 m down the wall, eased to a hover 5.58 m beyond the lip and at x = 28.11 m in the side band. Six rendered views measured 47–77 calls and 1,061,343–1,841,579 triangles. Both return/release cycles matched the initial **432 geometries / 113 textures**; no console/page errors. Preparation and CPU-submit timings in the raw report are software-renderer diagnostics only.
 
 [Outer-reef report](screenshots/v0.5-pass030/baseline-outer-reef-report.json)
+
+The first `big-creatures` attempt was stopped after finding that its direct `browser.newContext()` bypassed the external DPR wrapper. It is not counted as evidence. The wrapper now applies and logs DPR 0.5 for both direct pages and contexts, and the harness restarts with its original viewport and unchanged assertions. The earlier completed harnesses used direct pages and logged DPR 0.5.
+
+The verified-DPR `big-creatures` rerun passed in **1,279.5 seconds**: nine models moved and animated; **21,600 clearance samples / zero hits**; all three sightings appeared, were listed and persisted after reload; the waiting swimmer's closest shark pass was **5.59 m**. The shark/ray/turtle views measured 40/51/45 calls and 431,382/1,227,940/835,449 triangles. Both release/revisit comparisons matched **432 geometries / 113 textures**, with no page or console errors.
+
+[Big-creatures report](screenshots/v0.5-pass030/baseline-big-creatures-report.json)
+
+A further environment reconnection ended `runtime-fixes` shortly after it began, along with the local server. Its partial attempt is not counted. The runner resumes there, preserving the six completed passes.
+
+`runtime-fixes` passed in **63.8 seconds**: office fish/plant/creature clocks froze on pause, the real AudioContext suspended on pause and controlled visibility loss, the visible paused office stayed silent, and explicit entry resumed it. Native E in the outer waters neither surfaced the player nor started a transition. No page errors were recorded (this harness does not collect console errors). Visibility is controlled rather than a physical browser-window switch; audio evidence is functional, not listening.
+
+[Runtime-fixes report](screenshots/v0.5-pass030/baseline-runtime-fixes-report.json)
+
+`reef-life` passed in **53.3 seconds**: 235 fish / nine large creatures; **205,560 creature-clearance samples / zero hits**, zero unsafe fish over 2,700 simulation steps, six rendered views, native pause/resume and W movement. Uploaded resources matched at **362 geometries / 112 textures** (a different warmed view set from office/dive harnesses). No page/console errors. Its CPU comparisons are simulation diagnostics on this machine, not hardware FPS.
+
+[Reef-life report](screenshots/v0.5-pass030/baseline-reef-life-report.json)
+
+**Part 1 is complete: all eight required baseline harnesses passed before introducing baby-animal implementation.** Interrupted attempts above were resumed; none was substituted for a completed pass. No production application change was needed for these baseline results.

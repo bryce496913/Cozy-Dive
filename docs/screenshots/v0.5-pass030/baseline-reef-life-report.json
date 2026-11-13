@@ -1,0 +1,138 @@
+{
+  "errors": [],
+  "views": [
+    {
+      "name": "entrance",
+      "calls": 73,
+      "triangles": 1065938,
+      "nearAnimals": 0
+    },
+    {
+      "name": "reef-top",
+      "calls": 73,
+      "triangles": 1639079,
+      "nearAnimals": 1
+    },
+    {
+      "name": "wall-shoal",
+      "calls": 43,
+      "triangles": 985638,
+      "nearAnimals": 6
+    },
+    {
+      "name": "adult-shark",
+      "calls": 27,
+      "triangles": 467156,
+      "nearAnimals": 8
+    },
+    {
+      "name": "ray-flight",
+      "calls": 25,
+      "triangles": 436332,
+      "nearAnimals": 9
+    },
+    {
+      "name": "turtle",
+      "calls": 34,
+      "triangles": 830602,
+      "nearAnimals": 7
+    }
+  ],
+  "before": {
+    "geometries": 362,
+    "textures": 112
+  },
+  "population": {
+    "fish": 235,
+    "creatures": 9,
+    "scales": [
+      1.1,
+      1.15,
+      1.2,
+      1.15,
+      1.15,
+      1.15,
+      1.15,
+      1.2,
+      1.05
+    ],
+    "species": [
+      {
+        "id": "blacktip-reef-shark",
+        "scale": 1.1,
+        "radius": 1.6500000000000001
+      },
+      {
+        "id": "blacktip-reef-shark",
+        "scale": 1.15,
+        "radius": 1.7249999999999999
+      },
+      {
+        "id": "blacktip-reef-shark",
+        "scale": 1.2,
+        "radius": 1.7999999999999998
+      },
+      {
+        "id": "spotted-eagle-ray",
+        "scale": 1.15,
+        "radius": 1.7249999999999999
+      },
+      {
+        "id": "spotted-eagle-ray",
+        "scale": 1.15,
+        "radius": 1.7249999999999999
+      },
+      {
+        "id": "spotted-eagle-ray",
+        "scale": 1.15,
+        "radius": 1.7249999999999999
+      },
+      {
+        "id": "spotted-eagle-ray",
+        "scale": 1.15,
+        "radius": 1.7249999999999999
+      },
+      {
+        "id": "green-sea-turtle",
+        "scale": 1.2,
+        "radius": 0.84
+      },
+      {
+        "id": "green-sea-turtle",
+        "scale": 1.05,
+        "radius": 0.735
+      }
+    ]
+  },
+  "clearance": {
+    "samples": 205560,
+    "hits": 0,
+    "lowest": 26.903886695111314
+  },
+  "fish": {
+    "unsafe": 0,
+    "lowest": 4.063995071680427,
+    "steps": 2700
+  },
+  "cpu": {
+    "baselineFish": 169,
+    "currentFish": 235,
+    "baselineMsPerStep": [
+      3.2550000001986823,
+      3.3691666667660076,
+      3.307500000298023
+    ],
+    "enrichedMsPerStep": [
+      4.880833333233992,
+      4.576666666567325,
+      6.172499999900659
+    ],
+    "limit": "CPU simulation diagnostics on this machine, not hardware FPS"
+  },
+  "pauseResume": true,
+  "swam": 0.10594873949179635,
+  "after": {
+    "geometries": 362,
+    "textures": 112
+  }
+}
