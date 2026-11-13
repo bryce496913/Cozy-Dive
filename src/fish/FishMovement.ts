@@ -6,6 +6,7 @@ import { angleDifference, randomFish, type FishEntity } from './FishEntity';
 import { FISH_STEERING, FISH_TIMING, SCHOOLING_SAFETY } from './FishSpecies';
 import {
   clearFishRoute,
+  clearResidentStep,
   safeFishPosition,
   type FishHabitat,
 } from './FishHabitat';
@@ -272,6 +273,21 @@ export function stepFish(
     tx += -nz * weight * 0.32 * side;
     tz += nx * weight * 0.32 * side;
   }
+  if (habitat.residents)
+    for (const resident of habitat.residents) {
+      const dx = p.x - resident.position.x,
+        dy = p.y - resident.position.y,
+        dz = p.z - resident.position.z;
+      const distance = Math.max(0.05, Math.hypot(dx, dy, dz)),
+        comfort = fish.radius + resident.radius + 1;
+      if (distance >= comfort) continue;
+      const influence = 1 - distance / comfort,
+        weight = influence * influence * wallWeight * 2;
+      tx += (dx / distance) * weight;
+      ty += (dy / distance) * weight;
+      tz += (dz / distance) * weight;
+      danger = Math.max(danger, influence);
+    }
   const obstacleX = tx - wanderX,
     obstacleY = ty - wanderY,
     obstacleZ = tz - wanderZ;
@@ -465,7 +481,10 @@ export function stepFish(
   fish.velocity.x = p.x + vx * dt;
   fish.velocity.y = p.y + vy * dt;
   fish.velocity.z = p.z + vz * dt;
-  if (safeFishPosition(fish.velocity, fish.radius, habitat)) {
+  if (
+    safeFishPosition(fish.velocity, fish.radius, habitat) &&
+    clearResidentStep(p, fish.velocity, fish.radius, habitat)
+  ) {
     p.x = fish.velocity.x;
     p.y = fish.velocity.y;
     p.z = fish.velocity.z;

@@ -118,3 +118,25 @@ it('evicts a library: frees it after its last lease, and decodes it afresh when 
   expect(reads).toBe(3);
   loader.dispose();
 });
+it('keeps a transient model cached while another world still holds it', async () => {
+  const asset = assetFixture(),
+    read = vi.fn(async () => asset),
+    loader = new AssetLoader(read);
+  const a = await loader.acquire('chromis'),
+    b = await loader.acquire('chromis');
+  a.release();
+  loader.evictUnused('chromis');
+  const c = await loader.acquire('chromis');
+  expect(read).toHaveBeenCalledTimes(1);
+  const mesh = asset.scene.getObjectByName('Body');
+  if (!(mesh instanceof THREE.Mesh)) throw Error('Fixture');
+  const dispose = vi.spyOn(mesh.geometry, 'dispose');
+  b.release();
+  loader.evictUnused('chromis');
+  expect(dispose).not.toHaveBeenCalled();
+  c.release();
+  loader.evictUnused('chromis');
+  expect(dispose).toHaveBeenCalledTimes(1);
+  loader.dispose();
+  expect(dispose).toHaveBeenCalledTimes(1);
+});

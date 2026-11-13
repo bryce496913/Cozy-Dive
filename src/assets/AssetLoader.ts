@@ -177,6 +177,11 @@ export class AssetLoader {
     entry.retired = true;
     this.free(entry);
   }
+  /** Shared transient users retain one cache entry until the last owner leaves. */
+  evictUnused(id: AssetId): void {
+    const entry = this.entries.get(id);
+    if (entry && entry.refs === 0) this.evict(id);
+  }
   private free(entry: Entry): void {
     if (!entry.retired || entry.refs || !entry.asset || entry.freed) return;
     entry.freed = true;

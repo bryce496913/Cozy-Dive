@@ -1,3 +1,4 @@
+import { creatureStroke } from '../creatureStroke';
 import * as THREE from 'three';
 import type { AssetLease, AssetLoader } from '../../assets/AssetLoader';
 import {
@@ -213,17 +214,6 @@ interface Rig {
   readonly right: number;
   isNear: boolean;
 }
-/** Blend the authored stroke: Stroke_Left for positive effort, Stroke_Right for negative. */
-function stroke(
-  mesh: THREE.Mesh,
-  keys: { readonly left: number; readonly right: number },
-  effort: number,
-): void {
-  const w = mesh.morphTargetInfluences;
-  if (!w) return;
-  w[keys.left] = Math.max(0, effort);
-  w[keys.right] = Math.max(0, -effort);
-}
 /** Draws the cruisers with their authored models (leased from the shared fish loader). */
 export class OuterCreatures {
   readonly root = new THREE.Group();
@@ -303,8 +293,8 @@ export class OuterCreatures {
       const c = r.cruiser;
       r.root.position.set(c.position.x, c.position.y, c.position.z);
       r.root.rotation.set(c.bank, c.yaw, c.pitch);
-      stroke(r.near, r, c.effort);
-      stroke(r.far, r, c.effort);
+      creatureStroke(r.near, r, c.effort);
+      creatureStroke(r.far, r, c.effort);
     }
   }
   update(
@@ -336,9 +326,9 @@ export class OuterCreatures {
   private release(): void {
     this.leases.forEach((l) => l.release());
     this.leases = [];
-    // Only the outer reef uses these models: free them rather than keep them cached.
+    // Tank babies may share these leases. Retain their cache entry until the last user leaves.
     for (const id of new Set(this.cruisers.map((c) => c.species.asset)))
-      this.loader.evict(id);
+      this.loader.evictUnused(id);
   }
   dispose(): void {
     if (this.disposed) return;

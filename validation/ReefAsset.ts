@@ -19,7 +19,12 @@ interface GltfNode {
   extras?: Record<string, unknown>;
 }
 interface Accessor {
-  bufferView: number;
+  bufferView?: number;
+  sparse?: {
+    count: number;
+    indices: { bufferView: number; byteOffset?: number; componentType: number };
+    values: { bufferView: number; byteOffset?: number };
+  };
   byteOffset?: number;
   componentType: number;
   count: number;
@@ -128,19 +133,51 @@ export class ReefAsset {
   }
   private read(index: number): Float32Array | Uint32Array {
     const a = this.doc.accessors[index],
-      view = this.doc.bufferViews[a.bufferView],
-      start = (view.byteOffset ?? 0) + (a.byteOffset ?? 0),
-      n = a.count * SIZE[a.type];
-    const slice = this.bin.subarray(start, start + view.byteLength);
-    const buffer = slice.buffer.slice(
-      slice.byteOffset,
-      slice.byteOffset + slice.byteLength,
-    );
-    if (a.componentType === 5126) return new Float32Array(buffer, 0, n);
-    if (a.componentType === 5125) return new Uint32Array(buffer, 0, n);
-    if (a.componentType === 5123)
-      return Uint32Array.from(new Uint16Array(buffer, 0, n));
-    return Uint32Array.from(new Uint8Array(buffer, 0, n));
+      size = SIZE[a.type],
+      n = a.count * size;
+    const out =
+      a.componentType === 5126 ? new Float32Array(n) : new Uint32Array(n);
+    const bytes = (type: number) =>
+      type === 5126 || type === 5125 ? 4 : type === 5123 ? 2 : 1;
+    const component = (offset: number, type: number) =>
+      type === 5126
+        ? this.bin.readFloatLE(offset)
+        : type === 5125
+          ? this.bin.readUInt32LE(offset)
+          : type === 5123
+            ? this.bin.readUInt16LE(offset)
+            : this.bin.readUInt8(offset);
+    if (a.bufferView !== undefined) {
+      const view = this.doc.bufferViews[a.bufferView],
+        start = (view.byteOffset ?? 0) + (a.byteOffset ?? 0),
+        stride = view.byteStride ?? bytes(a.componentType) * size;
+      for (let i = 0; i < a.count; i++)
+        for (let k = 0; k < size; k++)
+          out[i * size + k] = component(
+            start + i * stride + k * bytes(a.componentType),
+            a.componentType,
+          );
+    }
+    if (a.sparse) {
+      const sparse = a.sparse,
+        indices = this.doc.bufferViews[sparse.indices.bufferView],
+        values = this.doc.bufferViews[sparse.values.bufferView];
+      const start =
+          (indices.byteOffset ?? 0) + (sparse.indices.byteOffset ?? 0),
+        data = (values.byteOffset ?? 0) + (sparse.values.byteOffset ?? 0);
+      for (let i = 0; i < sparse.count; i++) {
+        const id = component(
+          start + i * bytes(sparse.indices.componentType),
+          sparse.indices.componentType,
+        );
+        for (let k = 0; k < size; k++)
+          out[id * size + k] = component(
+            data + (i * size + k) * bytes(a.componentType),
+            a.componentType,
+          );
+      }
+    }
+    return out;
   }
   node(name: string): GltfNode {
     const node = this.doc.nodes.find((n) => n.name === name);
@@ -198,6 +235,14 @@ export class ReefAsset {
       material: material?.name ?? '',
       doubleSided: material?.doubleSided ?? false,
     };
+  }
+  /** Relative authored morph positions, in the same decoded vertex order as the primitive. */
+  morphPositions(name: string): Float32Array[] {
+    const node = this.node(name);
+    if (node.mesh === undefined) return [];
+    return (this.doc.meshes[node.mesh].primitives[0].targets ?? []).map(
+      (target) => this.read(target.POSITION) as Float32Array,
+    );
   }
   /** Children of an asset root, local to that root (exported children carry no transforms). */
   children(root: string): GltfNode[] {
