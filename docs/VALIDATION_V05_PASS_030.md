@@ -43,3 +43,39 @@ A further environment reconnection ended `runtime-fixes` shortly after it began,
 [Reef-life report](screenshots/v0.5-pass030/baseline-reef-life-report.json)
 
 **Part 1 is complete: all eight required baseline harnesses passed before introducing baby-animal implementation.** Interrupted attempts above were resumed; none was substituted for a completed pass. No production application change was needed for these baseline results.
+
+## Part 2: small tank visitors
+
+Candidate: `0.5.0-alpha.2`; no release tag. The three animal sightings unlock a Blacktip pup, Baby eagle ray and Turtle hatchling, one of each independently of the twenty decoration places. Native catalog actions add/fade in near clear water around the swimmer or return/fade out. Version 2 of the same local save migrates Pass 029 decorations, validates animal ids independently, tolerates unavailable storage and resets both after confirmation.
+
+The models and strokes are the existing local outer-reef assets, borrowed through the same loader. Neutral dimensions in aquarium coordinates are approximately 0.54 m pup length, 0.50 m ray disc (0.72 m including its long tail) and 0.25 m turtle shell (0.31 m whole-body length). These are miniature adult forms; no new models or juvenile mesh edits. Both detail levels and full authored morph endpoints are tested against their conservative collision envelopes; the flat ray rest has a separate verified neutral envelope.
+
+Pure fixed-30-Hz movement uses reused navigation/search buffers and swept body checks. Routes protect production hulls, small pebbles, placed additions, homes, crevice/return alley, glass margins, the actual rippled sand and the animated chest lid's whole sweep. Later edits invalidate paths, and placement rejects the resident's present volume. The ray rests flat before taking off and resuming strokes. Fish see stable resident positions for steering and swept personal space. Pause freezes simulation and fades; reduced motion reduces strokes and speed. The office uses the same residents on far detail levels.
+
+An original tank has no resident owner or model requests. The owner borrows geometry/textures, owns opacity materials and simulation, handles late leases and repeated disposal, and is removed after the final return. Outer-reef cache eviction now waits until no world retains a lease, preserving shared resources across visits.
+
+## Feature checks
+
+| Check | Result |
+| --- | --- |
+| `npm run build` | Passed, 8.52 s after the lid-sweep correction |
+| `npm run test -- --maxWorkers=1` | **513 tests / 57 files passed**, 132.09 s Vitest duration |
+| `npm run typecheck` | Passed, 8.84 s |
+| `npm run lint` | Passed, 24.00 s |
+| `npm run test:stress` | **10 scenarios passed**, 208.85 s Vitest duration |
+
+Coverage includes unlocks, independent limits, version 1 migration, partial/corrupt/unavailable saves, reset, valid spawning around existing swimmers, swept detours and re-planning without relocation, giving way, smaller reduced-motion strokes, pause/fade clocks, both model detail levels/morphs, flat ray clearance, shared cache ownership, late loads, fade reversal and one-time disposal. The production habitat with twenty additions runs for thirty simulated minutes at each of 30/60/120 FPS, checks every fixed step, and ends with identical state. Heavy new tests use explicit 20-second timeouts; the global timeout is unchanged.
+
+The first complete feature suite passed 512 tests. A follow-up after the lid guard and additional test hit five-second timeouts in two unchanged discovery tests; the other 511 passed. Both discovery tests then passed unchanged in an isolated 14-test run (5.02 s total), and the final complete 513-test suite passed. No timeout or assertion was relaxed. CPU/stress and browser jobs ran separately. The first feature-browser attempt found its local server stopped before navigation; it was restarted rather than counted as evidence.
+
+## macOS acceptance checklist
+
+- Discover each large animal outside, return, and check that only seen animals appear under **For your tank**.
+- Add each visitor and check the sizes and miniature forms read as charming, calm and natural. Watch the pup's loops, low ray glides/rests, and hatchling's paddling/lightward rises.
+- Swim close; visitors should ease aside and fish should leave room. Check the ray's long tail, all strokes, rocks, additions, ornaments, chest lid, homes, glass and the crevice for clipping.
+- Place a later addition near a route; the visitor should continue around it without pushing or getting stuck.
+- Pause/resume, switch reduced motion, return one visitor, reload, and test both reset confirmation choices. Sightings must remain.
+- Inspect the office miniature and repeat dive, surface and passage trips with zero and three visitors.
+- Compare frame time against `0.5.0-alpha.1` with twenty additions plus three visitors, and play for 20–30 minutes to check smoothness and comfort.
+
+All browser evidence is cloud Chromium/SwiftShader only. macOS performance, Safari behavior, subjective charm/size and long-session comfort remain pending. v0.4 remains open at `0.4.0-rc.3`; this pass does not close either milestone.

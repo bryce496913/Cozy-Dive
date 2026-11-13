@@ -4,66 +4,39 @@
   "creatures": {
     "blacktip-reef-shark-0": {
       "moved": 6.55,
-      "effort": [
-        -0.8,
-        0.8
-      ]
+      "effort": [-0.8, 0.8]
     },
     "blacktip-reef-shark-1": {
       "moved": 6.58,
-      "effort": [
-        -0.78,
-        0.78
-      ]
+      "effort": [-0.78, 0.78]
     },
     "blacktip-reef-shark-2": {
       "moved": 6.59,
-      "effort": [
-        -0.77,
-        0.76
-      ]
+      "effort": [-0.77, 0.76]
     },
     "spotted-eagle-ray-3": {
       "moved": 4.74,
-      "effort": [
-        -0.9,
-        0.89
-      ]
+      "effort": [-0.9, 0.89]
     },
     "spotted-eagle-ray-4": {
       "moved": 5.27,
-      "effort": [
-        -0.84,
-        0.81
-      ]
+      "effort": [-0.84, 0.81]
     },
     "spotted-eagle-ray-5": {
       "moved": 4.66,
-      "effort": [
-        -0.9,
-        0.9
-      ]
+      "effort": [-0.9, 0.9]
     },
     "spotted-eagle-ray-6": {
       "moved": 4.83,
-      "effort": [
-        -0.9,
-        0.89
-      ]
+      "effort": [-0.9, 0.89]
     },
     "green-sea-turtle-7": {
       "moved": 2.68,
-      "effort": [
-        -0.9,
-        0.88
-      ]
+      "effort": [-0.9, 0.88]
     },
     "green-sea-turtle-8": {
       "moved": 2.69,
-      "effort": [
-        -0.9,
-        0.88
-      ]
+      "effort": [-0.9, 0.88]
     }
   },
   "views": {
@@ -118,11 +91,7 @@
   "giveWay": {
     "closest": 5.59
   },
-  "seenList": [
-    "Blacktip reef shark",
-    "Spotted eagle ray",
-    "Green sea turtle"
-  ],
+  "seenList": ["Blacktip reef shark", "Spotted eagle ray", "Green sea turtle"],
   "memoryAfterFirst": {
     "geometries": 432,
     "textures": 113
