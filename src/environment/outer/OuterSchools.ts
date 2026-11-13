@@ -14,7 +14,7 @@ import type { ReefLayout } from './OuterReefLayout';
 
 /**
  * v0.4 Pass 024/026: reef fish in the outer waters. Big schools of the tank's own species over
- * the reef top (Pass 026: about 170 fish, the chromis in two clouds of 55-70), swim with the same simulation and authored rigs
+ * the reef top and wall (235 fish, including smaller entrance and wall shoals), swim with the same simulation and authored rigs
  * as in the tank (leased from the tank's fish libraries, so each decodes once). If the rigs
  * cannot load, the simulation's simple fish are shown instead.
  */
@@ -37,6 +37,8 @@ export const OUTER_SCHOOLS: readonly {
   readonly at: { readonly x: number; readonly z: number };
   readonly count: number;
   readonly above: number;
+  /** Optional water-column centre for wall shoals, lifted if reef clearance requires it. */
+  readonly waterLevel?: number;
   readonly spread: {
     readonly x: number;
     readonly y: number;
@@ -93,6 +95,34 @@ export const OUTER_SCHOOLS: readonly {
     spread: { x: 3.5, y: 0.7, z: 3 },
     depth: [0.6, 3.5],
   },
+  {
+    // A small welcoming cloud beside the gully, clear of the tunnel opening.
+    species: 'blue-green-chromis',
+    at: { x: -7, z: -37 },
+    count: 18,
+    above: 3.5,
+    spread: { x: 3, y: 1, z: 2 },
+    depth: [2, 6],
+  },
+  {
+    // Mid-water life beyond the left wall, rather than more fish crowded onto the reef top.
+    species: 'blue-green-chromis',
+    at: { x: -16, z: -65 },
+    count: 24,
+    above: 2.5,
+    waterLevel: -3,
+    spread: { x: 4, y: 1.2, z: 2 },
+    depth: [1, 6],
+  },
+  {
+    species: 'blue-green-chromis',
+    at: { x: 16, z: -64 },
+    count: 24,
+    above: 2.5,
+    waterLevel: -1,
+    spread: { x: 4, y: 1.2, z: 2 },
+    depth: [1, 6],
+  },
 ];
 
 /**
@@ -105,13 +135,15 @@ export function outerSpecies(
 ): FishSpecies[] {
   return OUTER_SCHOOLS.map((s) => {
     const base = FISH_SPECIES.find((f) => f.id === s.species)!,
-      ground = top(s.at.x, s.at.z, Math.max(s.spread.x, s.spread.z));
+      ground = top(s.at.x, s.at.z, Math.max(s.spread.x, s.spread.z)),
+      centre = Math.max(ground + s.above, s.waterLevel ?? -Infinity),
+      floor = centre - s.above;
     return {
       ...base,
       count: s.count,
-      region: { x: s.at.x, y: ground + s.above, z: s.at.z },
+      region: { x: s.at.x, y: centre, z: s.at.z },
       spread: s.spread,
-      depth: [ground + s.depth[0], ground + s.depth[1]],
+      depth: [floor + s.depth[0], floor + s.depth[1]],
       individualScale: undefined,
     };
   });

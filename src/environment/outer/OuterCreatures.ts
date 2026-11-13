@@ -3,6 +3,7 @@ import type { AssetLease, AssetLoader } from '../../assets/AssetLoader';
 import {
   CRUISE_SPECIES,
   CRUISING,
+  cruiseSize,
   type BigCreatureId,
 } from '../../config/creatures';
 import { OUTER } from '../../config/passage';
@@ -22,9 +23,9 @@ import { ROCK_HALF, type ReefPlacement } from './OuterReefLayout';
 import { seabedHeight } from './OuterTerrain';
 
 /**
- * v0.4 Pass 025/026: the outer reef's big creatures, out in the blue off the wall (Pass 026): two
- * blacktip reef sharks at two depths, three spotted eagle rays along the wall below the lip, and
- * a green sea turtle along its face. Their routes are lifted over everything
+ * The outer reef's big creatures: three sharks on distinct patrol depths, four eagle rays
+ * and two turtles along the wall. Larger adults and broad, gently rising routes make the
+ * blue feel inhabited. Their routes are lifted over everything
  * beneath them (`reefObstacles`), and they give the swimmer room (see `Cruiser`).
  */
 
@@ -99,6 +100,7 @@ export function reefObstacles(placements: readonly ReefPlacement[]): Obstacles {
 
 export interface CruiseGroup {
   readonly species: BigCreatureId;
+  readonly scale?: number;
   /** Loop waypoints; their heights are minimums (the route is lifted over the reef). */
   readonly waypoints: readonly Vec3[];
   readonly members: readonly CruiserPlacement[];
@@ -122,36 +124,62 @@ function oval(
 /**
  * Pass 026: they live in the blue just off the wall, on long loops parallel to it, so a swimmer
  * hovering past the lip sees something pass every half-minute or so. Loop lengths at their
- * speeds: sharks about 2 minutes, rays about 2.5, the turtle about 2.
+ * speeds: sharks about 2 minutes, rays about 2.5, turtles about 2. Distinct depth bands
+ * and wider turns leave room for the larger bodies.
  */
 export const OUTER_CRUISERS: readonly CruiseGroup[] = [
   {
     // Mid-water, a little way out.
     species: 'blacktip-reef-shark',
-    waypoints: oval(0, -70, 30, 6, () => -4),
+    scale: 1.1,
+    waypoints: oval(0, -75, 30, 8, (x) => -5 + 0.3 * Math.sin(x * 0.09)),
     members: [{ start: 0, side: 0, up: 0, phase: 0 }],
   },
   {
     // Deeper and further out, fading into the dark.
     species: 'blacktip-reef-shark',
-    waypoints: oval(6, -76, 26, 7, () => -11),
+    scale: 1.15,
+    waypoints: oval(6, -78, 26, 8, (x) => -15 + 0.5 * Math.sin(x * 0.08 + 1)),
     members: [{ start: 60, side: 0, up: 0, phase: 1.7 }],
+  },
+  {
+    // A larger adult passes near the wall, above the deeper patrols: visible from the lip.
+    species: 'blacktip-reef-shark',
+    scale: 1.2,
+    waypoints: oval(-6, -73, 24, 7, (x) => 5 + 0.5 * Math.sin(x * 0.1)),
+    members: [{ start: 35, side: 0, up: 0, phase: 3.4 }],
   },
   {
     // A loose line gliding along the wall just below the lip.
     species: 'spotted-eagle-ray',
-    waypoints: oval(-4, -66, 28, 3.5, () => -2.5),
+    scale: 1.15,
+    waypoints: oval(-4, -73, 26, 9, () => -2.5),
     members: [
       { start: 0, side: 0, up: 0, phase: 0 },
-      { start: -7, side: 1.4, up: 0.6, phase: 2.1 },
-      { start: -14, side: -1.2, up: 1.1, phase: 4.2 },
+      { start: -8.5, side: 1, up: 0.6, phase: 2.1 },
+      { start: -17, side: -1, up: 1.1, phase: 4.2 },
+      { start: -25.5, side: 0.5, up: 1.6, phase: 5.6 },
     ],
   },
   {
     // Along the wall's face below the lip.
     species: 'green-sea-turtle',
-    waypoints: oval(-10, -62.5, 15, 2.5, () => -4),
+    scale: 1.2,
+    waypoints: oval(-10, -67.5, 14, 3.5, (x) => -7.5 + 0.3 * Math.sin(x * 0.1)),
     members: [{ start: 0, side: 0, up: 0, phase: 0.8 }],
+  },
+  {
+    // A second turtle follows a separate, deeper loop, with an independent glide rhythm.
+    species: 'green-sea-turtle',
+    scale: 1.05,
+    waypoints: oval(
+      8,
+      -68,
+      12,
+      3.5,
+      (x) => -10.5 + 0.3 * Math.sin(x * 0.1 + 1),
+    ),
+    members: [{ start: 20, side: 0, up: 0, phase: 3.7 }],
   },
 ];
 
@@ -161,7 +189,7 @@ export function outerCruisers(
   groups: readonly CruiseGroup[] = OUTER_CRUISERS,
 ): Cruiser[] {
   return groups.flatMap((g) => {
-    const species = CRUISE_SPECIES[g.species],
+    const species = cruiseSize(CRUISE_SPECIES[g.species], g.scale ?? 1),
       lane = Math.max(...g.members.map((m) => Math.abs(m.side))),
       route = new CruiseRoute(
         liftRoute(
@@ -243,6 +271,7 @@ export class OuterCreatures {
       const keys = near.morphTargetDictionary ?? {},
         root = new THREE.Group();
       root.name = cruiser.species.name;
+      root.scale.setScalar(cruiser.species.scale);
       root.rotation.order = 'YZX';
       root.add(model);
       this.root.add(root);

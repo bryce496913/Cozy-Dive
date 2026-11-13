@@ -199,11 +199,18 @@ export function stepFish(
     fish.speed * FISH_STEERING.lookAheadSeconds;
   const nearXMin = clamp(1 - (p.x - b.min.x - fish.radius) / range, 0, 1);
   const nearXMax = clamp(1 - (b.max.x - p.x - fish.radius) / range, 0, 1);
-  const nearYMin = clamp(1 - (p.y - b.min.y - fish.radius) / range, 0, 1);
+  const floor = Math.max(b.min.y, habitat.floorHeight?.(p.x, p.z) ?? b.min.y),
+    aheadFloor =
+      habitat.floorHeight?.(p.x + hx * range, p.z + hz * range) ?? floor,
+    terrainDanger = habitat.floorHeight
+      ? clamp(1 - (p.y - aheadFloor - fish.radius) / range, 0, 1)
+      : 0;
+  const nearYMin = clamp(1 - (p.y - floor - fish.radius) / range, 0, 1);
   const nearYMax = clamp(1 - (b.max.y - p.y - fish.radius) / range, 0, 1);
   const nearZMin = clamp(1 - (p.z - b.min.z - fish.radius) / range, 0, 1);
   const nearZMax = clamp(1 - (b.max.z - p.z - fish.radius) / range, 0, 1);
   let danger = Math.max(
+    terrainDanger,
     nearXMin,
     nearXMax,
     nearYMin,
@@ -214,6 +221,12 @@ export function stepFish(
   const wallWeight = FISH_STEERING.avoidanceWeight;
   tx += (nearXMin ** 2 - nearXMax ** 2) * wallWeight;
   ty += (nearYMin ** 2 - nearYMax ** 2) * wallWeight;
+  // A wall shoal may swim below the reef top. Turn away before the rising seabed,
+  // rather than chasing an absolute depth band into the slope. The final guard still
+  // holds an unsafe step; it never snaps a fish up through the terrain.
+  tx -= hx * terrainDanger ** 2 * wallWeight;
+  tz -= hz * terrainDanger ** 2 * wallWeight;
+  ty += terrainDanger ** 2 * wallWeight;
   tz += (nearZMin ** 2 - nearZMax ** 2) * wallWeight;
   for (const rock of habitat.rocks) {
     if (

@@ -75,3 +75,5 @@ v0.4 closes on the user's macOS acceptance of this candidate, after a full play-
 
 - no counters to complete, currency, timers or scores;
 - nothing to lose or miss.
+
+**Outer reef life (`0.4.0-rc.3`, requested after Pass 028):** add smaller shoals along the entrance and reef wall, more cruising animals and larger adults. Reuse existing local assets and species, retain calm behaviour and scale physical clearance with each animal. This candidate still awaits the user’s macOS play-through; v0.5 remains Personalization.

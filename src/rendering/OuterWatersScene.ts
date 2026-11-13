@@ -206,6 +206,7 @@ export class OuterWatersScene implements WaterWorld {
         heads: this.reef.heads,
       }),
       substrateHeight: seabedHeight,
+      floorHeight: seabedHeight,
     };
     this.schools = new OuterSchools(
       habitat,

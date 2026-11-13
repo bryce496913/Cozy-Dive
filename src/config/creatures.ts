@@ -13,6 +13,8 @@ export interface CruiseSpecies {
   /** Shown when first seen. */
   readonly name: string;
   readonly asset: AssetId;
+  /** Uniform model scale; clearance and personal space follow this size. */
+  readonly scale: number;
   /** Rough radius of its body (m): sighting size and the route's clearance sideways. */
   readonly radius: number;
   /** Cruising speed (m/s). */
@@ -38,6 +40,7 @@ export const CRUISE_SPECIES: Readonly<Record<BigCreatureId, CruiseSpecies>> = {
     id: 'blacktip-reef-shark',
     name: 'Blacktip reef shark',
     asset: 'reefShark',
+    scale: 1,
     radius: 1.5,
     speed: 1.1,
     strokeHz: 0.55,
@@ -52,6 +55,7 @@ export const CRUISE_SPECIES: Readonly<Record<BigCreatureId, CruiseSpecies>> = {
     id: 'spotted-eagle-ray',
     name: 'Spotted eagle ray',
     asset: 'eagleRay',
+    scale: 1,
     radius: 1.5,
     speed: 0.8,
     strokeHz: 0.32,
@@ -67,6 +71,7 @@ export const CRUISE_SPECIES: Readonly<Record<BigCreatureId, CruiseSpecies>> = {
     id: 'green-sea-turtle',
     name: 'Green sea turtle',
     asset: 'seaTurtle',
+    scale: 1,
     radius: 0.7,
     speed: 0.45,
     strokeHz: 0.26,
@@ -79,6 +84,23 @@ export const CRUISE_SPECIES: Readonly<Record<BigCreatureId, CruiseSpecies>> = {
     bank: 0.5,
   },
 };
+
+/** Larger adults keep proportionate reef clearance and give the swimmer more room. */
+export function cruiseSize(
+  species: CruiseSpecies,
+  scale: number,
+): CruiseSpecies {
+  if (!Number.isFinite(scale) || scale < 0.5 || scale > 1.5)
+    throw Error('Cruising creature scale must be between 0.5 and 1.5');
+  return {
+    ...species,
+    scale,
+    radius: (species.radius * scale) / species.scale,
+    clearance: (species.clearance * scale) / species.scale,
+    comfort: (species.comfort * scale) / species.scale,
+    giveWay: (species.giveWay * scale) / species.scale,
+  };
+}
 
 /** Shared cruising tuning (s⁻¹ rates of the gentle smoothing filters). */
 export const CRUISING = {
