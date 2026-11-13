@@ -179,8 +179,8 @@ try {
     };
   });
   report.loaded = loaded;
-  assert.equal(loaded.cruisers, 6);
-  assert.equal(loaded.models, 6, 'every creature has its model');
+  assert.equal(loaded.cruisers, 9);
+  assert.equal(loaded.models, 9, 'every creature has its model');
   // Look away from everything (so nothing is seen yet) while they cruise.
   await place(0, 7, -36, Math.PI, 0.6);
   const before = await creatures();

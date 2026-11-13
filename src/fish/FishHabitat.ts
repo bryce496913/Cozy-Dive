@@ -41,6 +41,8 @@ export interface FishHabitat {
   readonly rocks: readonly ConvexCollider[];
   readonly interests?: readonly HabitatInterest[];
   readonly substrateHeight?: (x: number, z: number) => number;
+  /** Optional collision floor for sloping worlds; habitat reference sand need not be a floor. */
+  readonly floorHeight?: (x: number, z: number) => number;
 }
 export function insideRock(
   p: Vec3,
@@ -78,7 +80,8 @@ export function safeFishPosition(
   if (
     p.x < b.min.x + radius ||
     p.x > b.max.x - radius ||
-    p.y < b.min.y + radius ||
+    p.y <
+      Math.max(b.min.y, habitat.floorHeight?.(p.x, p.z) ?? b.min.y) + radius ||
     p.y > b.max.y - radius ||
     p.z < b.min.z + radius ||
     p.z > b.max.z - radius

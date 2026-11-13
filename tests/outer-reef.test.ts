@@ -31,6 +31,8 @@ import {
 import { reefObstacles } from '../src/environment/outer/OuterCreatures';
 import { WATER_LIGHT, depthShade } from '../src/environment/outer/WaterDome';
 import { spawnFish } from '../src/fish/FishSpawner';
+import { FishSimulation } from '../src/fish/FishMovement';
+import { safeFishPosition } from '../src/fish/FishHabitat';
 import type { ConvexCollider } from '../src/player/collision';
 import { createSwimState, integrateSwimming } from '../src/player/swimming';
 import {
@@ -359,6 +361,7 @@ describe('Pass 024 outer fish', () => {
         rocks,
         interests: outerInterests(layout),
         substrateHeight: seabedHeight,
+        floorHeight: seabedHeight,
       },
       species,
       24024,
@@ -371,4 +374,61 @@ describe('Pass 024 outer fish', () => {
       expect(f.position.z).toBeLessThan(OUTER.cliffZ);
     }
   });
+});
+
+it('adds bounded entrance and wall shoals at reachable swimming depths', () => {
+  const species = outerSpecies(() => -35);
+  expect(species.reduce((sum, s) => sum + s.count, 0)).toBe(235);
+  const wall = OUTER_SCHOOLS.map((s, i) => ({
+    layout: s,
+    species: species[i],
+  })).filter((s) => s.layout.waterLevel !== undefined);
+  expect(wall).toHaveLength(2);
+  for (const s of wall) {
+    expect(s.layout.at.z).toBeLessThan(OUTER.dropOff.start);
+    expect(s.species.region.y).toBe(s.layout.waterLevel);
+    expect(s.species.depth[0]).toBeGreaterThan(OUTER.reach.down);
+    expect(s.species.depth[1]).toBeLessThan(OUTER.reach.up);
+  }
+  for (const s of outerSpecies(() => 8)) {
+    expect(s.region.y).toBeGreaterThan(8);
+    expect(s.depth[0]).toBeGreaterThan(8);
+  }
+});
+
+it('keeps mid-water shoals above rising terrain without teleporting them', () => {
+  const habitat = {
+    bounds: OUTER.bounds,
+    rocks: [],
+    floorHeight: (x: number) => Math.max(-12, Math.min(3, x * 2)),
+  };
+  const species = outerSpecies(() => -35)
+    .filter((_, i) => OUTER_SCHOOLS[i].waterLevel !== undefined)
+    .map((s) => ({
+      ...s,
+      count: 6,
+      region: { x: -4, y: -3, z: -65 },
+      spread: { x: 1, y: 0.5, z: 2 },
+    }));
+  const fish = spawnFish(habitat, species, 24024);
+  const simulation = new FishSimulation(fish, habitat);
+  let unsafe = false,
+    largestStep = 0;
+  for (let frame = 0; frame < 30 * 90; frame++) {
+    const previous = fish.map((f) => ({ ...f.position }));
+    simulation.advance(1 / 30, true);
+    fish.forEach((f, i) => {
+      unsafe ||= !safeFishPosition(f.position, f.radius, habitat);
+      largestStep = Math.max(
+        largestStep,
+        Math.hypot(
+          f.position.x - previous[i].x,
+          f.position.y - previous[i].y,
+          f.position.z - previous[i].z,
+        ),
+      );
+    });
+  }
+  expect(unsafe).toBe(false);
+  expect(largestStep).toBeLessThan(0.1);
 });
