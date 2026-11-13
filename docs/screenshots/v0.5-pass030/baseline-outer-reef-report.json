@@ -1,0 +1,98 @@
+{
+  "base": "http://127.0.0.1:5200",
+  "errors": [],
+  "views": {
+    "from-the-cliff": {
+      "calls": 77,
+      "triangles": 1061343,
+      "submitMs": 28.3,
+      "reef": {
+        "pieces": 326,
+        "draws": 44
+      }
+    },
+    "coral-head": {
+      "calls": 55,
+      "triangles": 1572985,
+      "submitMs": 34.3,
+      "reef": {
+        "pieces": 359,
+        "draws": 49
+      }
+    },
+    "reef-top": {
+      "calls": 72,
+      "triangles": 1514469,
+      "submitMs": 24.8,
+      "reef": {
+        "pieces": 465,
+        "draws": 47
+      }
+    },
+    "at-the-lip": {
+      "calls": 71,
+      "triangles": 1841579,
+      "submitMs": 29.7,
+      "reef": {
+        "pieces": 492,
+        "draws": 46
+      }
+    },
+    "into-the-blue": {
+      "calls": 47,
+      "triangles": 1184149,
+      "submitMs": 20.2,
+      "reef": {
+        "pieces": 399,
+        "draws": 45
+      }
+    },
+    "back-at-the-wall": {
+      "calls": 67,
+      "triangles": 1087698,
+      "submitMs": 16.1,
+      "reef": {
+        "pieces": 278,
+        "draws": 38
+      }
+    }
+  },
+  "memoryTank": {
+    "geometries": 432,
+    "textures": 113
+  },
+  "programsTank": 123,
+  "reefPreparedAfterCrossingMs": 4311,
+  "programsOuter": 129,
+  "longTasks": {
+    "longestMs": 3653,
+    "over250ms": 3
+  },
+  "fish": {
+    "count": 235,
+    "moved": 235,
+    "below": 0
+  },
+  "floor": {
+    "y": -0.172,
+    "floor": -0.172
+  },
+  "downTheWall": {
+    "y": -11.57,
+    "z": -60.37
+  },
+  "outOverTheBlue": {
+    "pastTheLip": 5.58
+  },
+  "edge": {
+    "furthestX": 28.11
+  },
+  "memoryAfterFirst": {
+    "geometries": 432,
+    "textures": 113
+  },
+  "memoryAfterSecond": {
+    "geometries": 432,
+    "textures": 113
+  }
+}

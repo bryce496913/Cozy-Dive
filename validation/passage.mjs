@@ -38,7 +38,9 @@ try {
     const r = await route.fetch();
     await route.fulfill({
       response: r,
-      body: (await r.text()) + '\nwindow.__cozy=app;',
+      body:
+        (await r.text()) +
+        '\nwindow.__cozy=app;cancelAnimationFrame(app.frame);',
     });
   });
   page.on('pageerror', (e) => report.errors.push(e.message));
@@ -49,6 +51,64 @@ try {
   await recordBrowserScale(page);
   await page.waitForFunction(() => window.__cozy?.office);
   await page.evaluate(() => window.__cozy.world.prepared);
+  await page.evaluate(() => window.__cozy.tankEditor.ready);
+  // Pass 030 regression: persist five real, validated additions close to the alley.
+  report.seededAdditions = await page.evaluate(async () => {
+    const { validPlacement, saveTank, TANK_ITEMS } =
+      await import('/src/catalog/catalog.ts');
+    const context = window.__cozy.tankEditor.model.context,
+      candidates = [],
+      items = [];
+    for (let x = 3.5; x < 16.5; x += 0.7)
+      for (let z = -12.5; z < -3; z += 0.7)
+        candidates.push({ x, y: context.surface(x, z), z });
+    candidates.sort(
+      (a, b) =>
+        Math.hypot(a.x - 6.4, a.z + 12.1) - Math.hypot(b.x - 6.4, b.z + 12.1),
+    );
+    for (const position of candidates) {
+      const item = {
+        id: `tank-passage-${items.length}`,
+        kind: 'seagrass',
+        position,
+        rotation: 0,
+      };
+      if (validPlacement(item, items, context)) items.push(item);
+      if (items.length === 5) break;
+    }
+    if (items.length !== 5)
+      throw Error('Five valid additions near the crevice could not be found');
+    localStorage.setItem(
+      'cozy-diver.journal.v1',
+      JSON.stringify({
+        version: 1,
+        seen: TANK_ITEMS.map((i) => ({
+          id: i.sighting,
+          first: new Date().toISOString(),
+        })),
+      }),
+    );
+    if (!saveTank(localStorage, items))
+      throw Error('Could not seed passage additions');
+    return items;
+  });
+  await page.reload();
+  await page.waitForFunction(() => window.__cozy?.tankEditor);
+  await page.evaluate(() =>
+    Promise.all([
+      window.__cozy.world.prepared,
+      window.__cozy.office.prepared,
+      window.__cozy.tankEditor.ready,
+    ]),
+  );
+  assert.equal(
+    await page.evaluate(() => window.__cozy.tankEditor.model.items.length),
+    5,
+  );
+  // The first office view owns one persistent miniature render-target texture (+1).
+  // Warm it before the baseline so later office trips are compared like for like.
+  await page.evaluate(() => window.__cozy.tickOffice(0));
+
   const locked = () =>
     page.waitForFunction(
       () =>

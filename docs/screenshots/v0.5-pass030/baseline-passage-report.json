@@ -1,0 +1,110 @@
+{
+  "base": "http://127.0.0.1:5200",
+  "errors": [],
+  "seededAdditions": [
+    {
+      "id": "tank-passage-0",
+      "kind": "seagrass",
+      "position": {
+        "x": 9.799999999999999,
+        "y": 0.011724641476876789,
+        "z": -11.8
+      },
+      "rotation": 0
+    },
+    {
+      "id": "tank-passage-1",
+      "kind": "seagrass",
+      "position": {
+        "x": 7.700000000000001,
+        "y": 2.921221660445381,
+        "z": -8.300000000000004
+      },
+      "rotation": 0
+    },
+    {
+      "id": "tank-passage-2",
+      "kind": "seagrass",
+      "position": {
+        "x": 4.9,
+        "y": 0.04612987912489139,
+        "z": -8.300000000000004
+      },
+      "rotation": 0
+    },
+    {
+      "id": "tank-passage-3",
+      "kind": "seagrass",
+      "position": {
+        "x": 4.9,
+        "y": 0.05661380972668641,
+        "z": -6.900000000000004
+      },
+      "rotation": 0
+    },
+    {
+      "id": "tank-passage-4",
+      "kind": "seagrass",
+      "position": {
+        "x": 9.1,
+        "y": 0.0727917049458329,
+        "z": -6.200000000000004
+      },
+      "rotation": 0
+    }
+  ],
+  "before": {
+    "geometries": 363,
+    "textures": 113,
+    "programs": 113
+  },
+  "preloaded": true,
+  "buildMs": 89,
+  "crevice": {
+    "x": 6.4
+  },
+  "swap": {
+    "before": {
+      "x": 2.574508941203168,
+      "y": 1.5840006060874618,
+      "z": -12.1,
+      "dark": 0.94
+    },
+    "after": {
+      "x": -4.989802603825354e-18,
+      "y": 8.982555476745109,
+      "z": -0.08148966064826935,
+      "dark": 0.94
+    }
+  },
+  "reefReadyAtCrossing": true,
+  "openWater": {
+    "x": -0.12521224042958823,
+    "y": 7.004286580678658,
+    "z": -34.73956597408127
+  },
+  "returnButton": true,
+  "officeRoundTrip": {
+    "world": "outer",
+    "mode": "aquarium"
+  },
+  "backInTank": {
+    "world": "aquarium",
+    "x": 2.6624733446363438,
+    "y": 1.582866205142477,
+    "z": -12.151464608065135
+  },
+  "returned": {
+    "world": "aquarium",
+    "x": 6.4,
+    "y": 1.6,
+    "z": -12.1,
+    "dark": 1
+  },
+  "released": true,
+  "after": {
+    "geometries": 363,
+    "textures": 113,
+    "programs": 113
+  }
+}

@@ -42,9 +42,9 @@ The filled tank stayed at **365 uploaded geometries / 113 textures** before and 
 | Fixed tank view, no additions       |        179 | 1,007,618 |
 | Same camera, twenty mixed additions |        186 | 1,196,139 |
 | Preview close view                  |         20 |    56,658 |
-| Placed coral close view             |         77 |   708,331 |
-| Grass close view                    |         79 |   651,969 |
-| Office miniature render             |         28 |    59,558 |
+| Placed coral close view             |         42 |   418,492 |
+| Grass close view                    |         46 |   473,278 |
+| Final office render                 |         28 |    59,558 |
 
 The fixed-camera comparison includes changing fish poses and distance levels; its 7-call difference is the observed scene difference, not an isolated per-item cost. Items are instanced by kind and available detail level. The office number is the final office pass. The miniature renders in a separate earlier pass, so this is not their combined cost. No hardware FPS is inferred.
 

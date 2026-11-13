@@ -1,3 +1,5 @@
+import { TANK_BABIES, BABY_CAP } from '../config/babies';
+import type { BigCreatureId } from '../config/creatures';
 import type { Sighting, JournalStore } from '../discovery/journal';
 import { AQUARIUM, type Vec3 } from '../config/world';
 import type { ConvexCollider } from '../player/collision';
@@ -189,7 +191,7 @@ export function itemCollider(item: TankItem): ConvexCollider {
     ],
   };
 }
-export function loadTank(
+function loadItems(
   store: JournalStore,
   seen: readonly Sighting[],
   c: PlacementContext,
@@ -200,7 +202,7 @@ export function loadTank(
       !data ||
       typeof data !== 'object' ||
       !('version' in data) ||
-      data.version !== 1 ||
+      (data.version !== 1 && data.version !== 2) ||
       !('items' in data) ||
       !Array.isArray(data.items)
     )
@@ -240,12 +242,60 @@ export function loadTank(
     return [];
   }
 }
+export function unlockedBabies(seen: readonly Sighting[]) {
+  return TANK_BABIES.filter((b) => seen.some((s) => s.id === b.sighting));
+}
+export interface TankSave {
+  readonly items: TankItem[];
+  readonly babies: BigCreatureId[];
+}
+/** Version 1 decorations migrate independently; malformed animal data cannot erase them. */
+export function loadTankState(
+  store: JournalStore,
+  seen: readonly Sighting[],
+  c: PlacementContext,
+): TankSave {
+  const items = loadItems(store, seen, c),
+    babies: BigCreatureId[] = [];
+  try {
+    const data: unknown = JSON.parse(store.getItem(TANK_KEY) ?? 'null');
+    if (
+      data &&
+      typeof data === 'object' &&
+      'version' in data &&
+      data.version === 2 &&
+      'babies' in data &&
+      Array.isArray(data.babies)
+    ) {
+      for (const raw of data.babies.slice(0, 1000)) {
+        const definition = unlockedBabies(seen).find((b) => b.id === raw);
+        if (
+          definition &&
+          !babies.includes(definition.id) &&
+          babies.length < BABY_CAP
+        )
+          babies.push(definition.id);
+      }
+    }
+  } catch {
+    /* unavailable or corrupt storage */
+  }
+  return { items, babies };
+}
+export function loadTank(
+  store: JournalStore,
+  seen: readonly Sighting[],
+  c: PlacementContext,
+): TankItem[] {
+  return loadTankState(store, seen, c).items;
+}
 export function saveTank(
   store: JournalStore,
   items: readonly TankItem[],
+  babies: readonly BigCreatureId[] = [],
 ): boolean {
   try {
-    store.setItem(TANK_KEY, JSON.stringify({ version: 1, items }));
+    store.setItem(TANK_KEY, JSON.stringify({ version: 2, items, babies }));
     return true;
   } catch {
     return false;
@@ -254,15 +304,36 @@ export function saveTank(
 /** Transactions retain the original item while moving; cancellation never loses it. */
 export class TankCatalog {
   private list: readonly TankItem[];
+  private animals: readonly BigCreatureId[];
   preview: TankItem | null = null;
   constructor(
     items: readonly TankItem[],
     readonly context: PlacementContext,
+    babies: readonly BigCreatureId[] = [],
   ) {
     this.list = items;
+    this.animals = [...new Set(babies)]
+      .filter((id) => TANK_BABIES.some((b) => b.id === id))
+      .slice(0, BABY_CAP);
   }
   get items() {
     return this.list;
+  }
+  get babies() {
+    return this.animals;
+  }
+  addBaby(id: BigCreatureId, seen: readonly Sighting[]): boolean {
+    if (
+      this.animals.includes(id) ||
+      this.animals.length >= BABY_CAP ||
+      !unlockedBabies(seen).some((b) => b.id === id)
+    )
+      return false;
+    this.animals = [...this.animals, id];
+    return true;
+  }
+  removeBaby(id: BigCreatureId) {
+    this.animals = this.animals.filter((b) => b !== id);
   }
   begin(kind: TankKind, id = `tank-${crypto.randomUUID()}`): boolean {
     if (this.list.length >= TANK_CAP) return false;
@@ -308,6 +379,7 @@ export class TankCatalog {
     if (this.preview?.id === id) this.cancel();
   }
   reset() {
+    this.animals = [];
     this.list = [];
     this.cancel();
   }

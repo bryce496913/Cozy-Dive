@@ -359,4 +359,4 @@ Fish beyond 14 body lengths switch to a morphing distance level (about 1.8k inst
 
 ### v0.5 Pass 029 — The tank catalog
 
-Discover corals and seagrass beyond the tank, then pause inside the aquarium and choose **For your tank**. Aim a preview at sand or rock, **R** turns, **F** places, and **Escape** cancels. Look at an addition to **G** move or **X** remove it. Additions save on this device and appear in the office miniature. Settings can restore the original tank after confirmation.
+Discover corals and seagrass beyond the tank, then pause inside the aquarium and choose **For your tank**. Aim a preview at sand or rock, **R** turns, **F** places, and **Escape** cancels. Look at an addition to **G** move or **X** remove it. Additions save on this device and appear in the office miniature. Seeing the outer reef’s shark, eagle ray or turtle also unlocks one small visitor of that kind: choose **Add to the tank**, or **Return it to the sea**. They swim calmly around the scenery, with room for the swimmer and fish. Settings can restore the original tank, including returning visitors, after confirmation.

@@ -81,5 +81,5 @@ v0.4 closes on the user's macOS acceptance of this candidate, after a full play-
 **v0.5 starts alongside v0.4 by user request (Pass 029).** v0.4 remains open at `0.4.0-rc.3`, awaiting the macOS play-through.
 
 - **Pass 029 — The tank catalog (`0.5.0-alpha.1`):** discovered corals and seagrass, quiet tank-only placement, movement/removal, local saving and confirmed reset.
-- **Pass 030 — Baby animals:** discovered large animals in tank-sized baby forms.
+- **Pass 030 — Baby animals (`0.5.0-alpha.2`):** discovered shark, ray and turtle in tank-sized miniature forms; shared models, independent one-of-each saving, calm body-aware routes and the office miniature. Cloud validation is recorded in `VALIDATION_V05_PASS_030.md`; macOS play-through remains pending.
 - **Pass 031 — Polish and acceptance:** integrate personalization and validate comfort, persistence, lifecycle and target-device performance.

@@ -1,3 +1,4 @@
+import type { TankBabies } from '../environment/TankBabies';
 import type { TankDecoration } from '../environment/TankDecoration';
 import { AuthoredAquarium } from '../environment/AuthoredAquarium';
 import { AuthoredReef } from '../environment/AuthoredReef';
@@ -50,6 +51,7 @@ export class UnderwaterScene implements WaterWorld {
   readonly authored: AuthoredAquarium;
   readonly reef: AuthoredReef;
   decoration?: TankDecoration;
+  babies?: TankBabies;
   /** v0.4 Pass 024: the reef library's loader (the outer reef leases from the same cache). */
   readonly reefLoader: AssetLoader;
   /** Resolves once authored libraries settle and their programs are compiled. */
@@ -293,6 +295,13 @@ export class UnderwaterScene implements WaterWorld {
     player: PlayerPresence | undefined,
     camera: THREE.Camera,
   ): void {
+    if (this.babies) {
+      this.babies.update(dt, active, reducedMotion, player, camera);
+      if (this.babies.empty) {
+        this.babies.dispose();
+        this.babies = undefined;
+      }
+    }
     this.aquarium.update(time, reducedMotion, dt, active, player);
     this.authored.update(camera);
     this.decoration?.update(camera);
@@ -346,6 +355,8 @@ export class UnderwaterScene implements WaterWorld {
     this.outside?.geometry.dispose();
     this.outsideMaterial.dispose();
     this.outlook.dispose();
+    this.babies?.dispose();
+    this.babies = undefined;
     this.reef.dispose();
     this.authored.dispose();
     this.aquarium.dispose();

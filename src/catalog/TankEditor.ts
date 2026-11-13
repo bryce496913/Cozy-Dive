@@ -1,9 +1,13 @@
+import { TankBabies } from '../environment/TankBabies';
+import { TankBabyHabitat } from '../environment/TankBabyHabitat';
+import type { BigCreatureId } from '../config/creatures';
 import * as THREE from 'three';
 import type { UnderwaterScene } from '../rendering/UnderwaterScene';
 import type { Sighting } from '../discovery/journal';
 import {
   TankCatalog,
-  loadTank,
+  loadTankState,
+  unlockedBabies,
   saveTank,
   unlockedItems,
   itemCollider,
@@ -73,7 +77,7 @@ export class TankEditor {
     this.reset.disabled = true;
     this.confirmation.hidden = true;
     this.confirmation.innerHTML =
-      '<p>Remove your added corals and plants? Your sightings stay.</p><button type="button" data-confirm>Restore tank</button><button type="button" data-cancel>Keep my tank</button>';
+      '<p>Remove your added corals and plants, and return the little visitors to the sea? Your sightings stay.</p><button type="button" data-confirm>Restore tank</button><button type="button" data-cancel>Keep my tank</button>';
     root
       .querySelector('#settings-panel')!
       .append(this.reset, this.confirmation);
@@ -109,6 +113,8 @@ export class TankEditor {
       'click',
       () => {
         this.model?.reset();
+        this.world.babies?.dispose();
+        this.world.babies = undefined;
         this.changed();
         this.confirmation.hidden = true;
         this.reset.focus();
@@ -141,14 +147,14 @@ export class TankEditor {
           return d === undefined ? base(x, z) : 13 - d;
         };
         const actual = { ...context, surface };
-        let items: ReturnType<typeof loadTank> = [];
+        let saved: ReturnType<typeof loadTankState> = { items: [], babies: [] };
         try {
-          items = loadTank(localStorage, this.seen(), actual);
+          saved = loadTankState(localStorage, this.seen(), actual);
         } catch {
           /* unavailable storage */
         }
         if (this.disposed) return;
-        this.model = new TankCatalog(items, actual);
+        this.model = new TankCatalog(saved.items, actual, saved.babies);
         this.reset.disabled = false;
         this.artReady = await this.decoration.prepare();
         if (this.disposed) return;
@@ -156,6 +162,7 @@ export class TankEditor {
         else
           this.notice.textContent =
             'Tank details could not load. You can keep exploring and your saved additions are unchanged.';
+        this.babiesChanged(false);
       })
       .catch((error) => {
         if (!this.disposed) {
@@ -176,8 +183,9 @@ export class TankEditor {
     close.textContent = 'Close';
     close.onclick = () => this.close();
     this.panel.append(h, close);
-    const items = unlockedItems(this.seen());
-    if (!items.length) {
+    const items = unlockedItems(this.seen()),
+      animals = unlockedBabies(this.seen());
+    if (!items.length && !animals.length) {
       const p = document.createElement('p');
       p.textContent = 'Things you see beyond the tank can find a home here.';
       this.panel.append(p);
@@ -189,6 +197,20 @@ export class TankEditor {
       b.disabled = !this.artReady;
       b.onclick = () => this.choose(item.kind);
       this.panel.append(b);
+    }
+    for (const animal of animals) {
+      const row = document.createElement('section'),
+        name = document.createElement('h3'),
+        button = document.createElement('button');
+      row.setAttribute('aria-label', animal.label);
+      name.textContent = animal.label;
+      button.type = 'button';
+      button.textContent = this.model.babies.includes(animal.id)
+        ? 'Return it to the sea'
+        : 'Add to the tank';
+      button.onclick = () => this.chooseBaby(animal.id);
+      row.append(name, button);
+      this.panel.append(row);
     }
     this.panel.hidden = false;
     this.toggle.setAttribute('aria-expanded', 'true');
@@ -214,6 +236,47 @@ export class TankEditor {
     this.notice.textContent = '';
     this.close();
     this.resume();
+  }
+  private chooseBaby(id: BigCreatureId) {
+    if (!this.current?.eligible || this.current.active || !this.model) return;
+    if (this.model.babies.includes(id)) this.model.removeBaby(id);
+    else if (!this.model.addBaby(id, this.seen())) return;
+    this.babiesChanged();
+    this.close();
+    this.resume();
+  }
+  private babiesChanged(persist = true) {
+    if (!this.model) return;
+    if (this.model.babies.length && !this.world.babies) {
+      const babies = new TankBabies(
+        this.world.authored.loader,
+        new TankBabyHabitat(this.world.aquarium, this.model.context),
+        this.world.aquarium.fish.simulation.habitat,
+        (message) => {
+          if (!this.disposed) this.notice.textContent = message;
+        },
+        this.world.aquarium.fish.simulation.fish,
+      );
+      this.world.babies = babies;
+      this.world.aquarium.root.add(babies.root);
+    }
+    this.world.babies?.set(
+      this.model.babies,
+      this.current?.eye ?? this.world.camera.position,
+    );
+    if (persist) this.persist();
+  }
+  private persist() {
+    if (!this.model) return;
+    let saved = false;
+    try {
+      saved = saveTank(localStorage, this.model.items, this.model.babies);
+    } catch {
+      /* unavailable storage */
+    }
+    this.notice.textContent = saved
+      ? ''
+      : 'Storage unavailable. Your tank changes last for this visit.';
   }
   private changed(persist = true) {
     if (!this.model) return;
@@ -249,18 +312,10 @@ export class TankEditor {
         }
     }
 
-    if (persist) {
-      let saved = false;
-      try {
-        saved = saveTank(localStorage, this.model.items);
-      } catch {
-        /* unavailable storage */
-      }
-      this.notice.textContent = saved
-        ? ''
-        : 'Storage unavailable. Your tank changes last for this visit.';
-    }
+    this.world.babies?.replan();
+    if (persist) this.persist();
   }
+
   locked(locked: boolean) {
     this.lastProbe = -Infinity;
     if (!locked) {
@@ -336,6 +391,7 @@ export class TankEditor {
     if (!m?.preview || !m.valid) return false;
     const collider = itemCollider(m.preview),
       q = this.world.aquarium;
+    if (this.world.babies?.intersects(collider)) return false;
     if (this.current && insideRock(this.current.eye, 0.65, collider))
       return false;
     return !q.fish.simulation.fish.some((f) =>
