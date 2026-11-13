@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.4 / Pass 028 — First Passage release candidate (`0.4.0-rc.1`)** is a first-person, browser-based aquarium prototype. Start in a small glass-walled office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15` and v0.3 (Office & Dive Transition) at `0.3.0-rc.1`. No scores, timers, combat, accounts, or external asset services.
+A quiet little world beneath the surface. **v0.4 / Pass 028 — First Passage release candidate (`0.4.0-rc.2`)** is a first-person, browser-based aquarium prototype. Start in a small glass-walled office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15` and v0.3 (Office & Dive Transition) at `0.3.0-rc.1`. No scores, timers, combat, accounts, or external asset services.
 
 ## Stack and requirements
 
@@ -45,7 +45,7 @@ In the office, W A S D walk and the mouse looks around.
 
 Click **Return to the Water** to resume. Look up or down and use W/S to change depth; A/D always strafe horizontally. Space and Shift have no swimming action. Pausing or losing browser focus clears held input and propulsion momentum while retaining a resting breath’s phase and small vertical velocity. Diagonal input is normalized. Subtle stroke-related pitch feedback stays below 0.07 degrees, with no roll or visual position offsets. Looking straight up/down is limited.
 
-This is the v0.4 release candidate, awaiting macOS acceptance. See [Pass 028 release-candidate validation](docs/VALIDATION_V04_PASS_028.md), [Pass 027 validation](docs/VALIDATION_V04_PASS_027.md), [Pass 026 playtest round](docs/VALIDATION_V04_PASS_026_PLAYTEST.md), [Pass 026 validation](docs/VALIDATION_V04_PASS_026.md), [Pass 025 validation](docs/VALIDATION_V04_PASS_025.md), [Pass 024 validation](docs/VALIDATION_V04_PASS_024.md), [Pass 023 validation](docs/VALIDATION_V04_PASS_023.md), [Pass 022 validation](docs/VALIDATION_V03_PASS_022.md), [Pass 021 validation](docs/VALIDATION_V03_PASS_021.md), [Pass 020 validation](docs/VALIDATION_V03_PASS_020.md), [Pass 019 validation](docs/VALIDATION_V02_PASS_019.md), [Pass 018 validation](docs/VALIDATION_V02_PASS_018.md), [Pass 017 validation](docs/VALIDATION_V02_PASS_017.md), [Pass 016 validation](docs/VALIDATION_V02_PASS_016.md), [Pass 015 validation](docs/VALIDATION_V02_PASS_015.md), [Pass 014 validation](docs/VALIDATION_V02_PASS_014.md), [Pass 013 validation](docs/VALIDATION_V02_PASS_013.md) and [repeatable benchmarks](validation/README.md).
+This is the v0.4 release candidate, awaiting macOS acceptance. See [Pass 028 playtest round](docs/VALIDATION_V04_PASS_028_PLAYTEST.md), [Pass 028 release-candidate validation](docs/VALIDATION_V04_PASS_028.md), [Pass 027 validation](docs/VALIDATION_V04_PASS_027.md), [Pass 026 playtest round](docs/VALIDATION_V04_PASS_026_PLAYTEST.md), [Pass 026 validation](docs/VALIDATION_V04_PASS_026.md), [Pass 025 validation](docs/VALIDATION_V04_PASS_025.md), [Pass 024 validation](docs/VALIDATION_V04_PASS_024.md), [Pass 023 validation](docs/VALIDATION_V04_PASS_023.md), [Pass 022 validation](docs/VALIDATION_V03_PASS_022.md), [Pass 021 validation](docs/VALIDATION_V03_PASS_021.md), [Pass 020 validation](docs/VALIDATION_V03_PASS_020.md), [Pass 019 validation](docs/VALIDATION_V02_PASS_019.md), [Pass 018 validation](docs/VALIDATION_V02_PASS_018.md), [Pass 017 validation](docs/VALIDATION_V02_PASS_017.md), [Pass 016 validation](docs/VALIDATION_V02_PASS_016.md), [Pass 015 validation](docs/VALIDATION_V02_PASS_015.md), [Pass 014 validation](docs/VALIDATION_V02_PASS_014.md), [Pass 013 validation](docs/VALIDATION_V02_PASS_013.md) and [repeatable benchmarks](validation/README.md).
 
 ## Current features
 
@@ -218,6 +218,15 @@ Behaviour, homes, collision and animation contracts are unchanged; clownfish and
 ### v0.2 Pass 016 candidate
 
 All 40 fish now swim as authored morph rigs: the accepted chromis, plus new pajama cardinalfish, firefish, yellow assessors and royal grammas built on the same rig and morph contract, alongside the Pass 013 clownfish. Simulation, behaviour, pause and reduced motion are unchanged, and the procedural fish remain as the fallback. See [validation and matched captures](docs/VALIDATION_V02_PASS_016.md). This pass awaits user review and MacBook Air acceptance.
+
+### v0.4 Pass 028 playtest round (`0.4.0-rc.2`)
+
+Fixes from playing `0.4.0-rc.1`:
+
+- **Chairs:** one complete task chair, at your desk and at every open-plan desk. Its armrests stand on posts, and the backrest is joined to the seat. The open-plan chairs no longer sit through the partition, and each faces its own desk.
+- **The crevice:** the overhang above the mouth now rests on the rocks either side, instead of floating over them.
+
+See [the playtest round](docs/VALIDATION_V04_PASS_028_PLAYTEST.md).
 
 ### v0.4 Pass 028 release candidate — polish and acceptance
 

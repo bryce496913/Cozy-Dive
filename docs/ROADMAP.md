@@ -62,7 +62,7 @@ v0.3 closes on the user's macOS acceptance of this candidate. v0.4 (Personalizat
 - **Pass 027, The glass office (`0.4.0-alpha.6`; agreed after Pass 026):** the office remodelled as a small glass-walled private office with generic details.
   - **The room:** the glass front and its closed door look out over an open-plan office.
   - **From inside the tank:** the office is seen blurred through the aquarium glass.
-- **Pass 028, Polish and acceptance (`0.4.0-rc.1`):** the v0.4 release candidate.
+- **Pass 028, Polish and acceptance (`0.4.0-rc.1`; playtest round `0.4.0-rc.2`):** the v0.4 release candidate.
   - **Regression:** a full browser regression across every area of the app.
   - **Tests:** unit tests made reliable under machine load.
   - **Acceptance:** a macOS checklist for the whole of v0.4.
