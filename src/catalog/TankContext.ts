@@ -21,7 +21,7 @@ export function tankContext(q: Aquarium): PlacementContext {
     ...life.hidden.homes,
   ]) {
     const p = home.position,
-      r = 2;
+      r = Math.max(2, home.homeRadius);
     keepOut.push({
       name: home.id,
       min: { x: p.x - r, y: p.y - r, z: p.z - r },

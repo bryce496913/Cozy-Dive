@@ -198,6 +198,21 @@ it('protects the actual aquarium routes after adding valid colonies', async () =
       }
     expect(items).toHaveLength(20);
     expect(c.routes).toHaveLength(12);
+    for (const home of [
+      q.anchoredLife.anemone.host,
+      q.anchoredLife.moray.anchor,
+      ...q.anchoredLife.hidden.homes,
+    ]) {
+      const area = c.keepOut.find((k) => k.name === home.id)!;
+      for (const axis of ['x', 'y', 'z'] as const) {
+        expect(area.min[axis]).toBeLessThanOrEqual(
+          home.position[axis] - home.homeRadius,
+        );
+        expect(area.max[axis]).toBeGreaterThanOrEqual(
+          home.position[axis] + home.homeRadius,
+        );
+      }
+    }
     q.replacePresentationColliders([], items.map(itemCollider));
     for (const points of c.routes)
       expect(swimRoute(q, points).maximumError).toBeLessThan(0.075);
