@@ -31,17 +31,22 @@ export const CREVICE_BOULDERS: readonly BoulderSpec[] = [
   { min: [0.75, -0.3, -13.8], max: [c.endX - 0.05, 3.0, -10.4], seed: 7104 },
   // Shoulders that make it read as one outcrop and keep the crack in shadow.
   { min: [1.2, 3.8, -12.9], max: [4.4, 4.9, -10.6], seed: 7105 },
-  { min: [4.9, 2.7, -13.8], max: [5.7, 4.0, -11.4], seed: 7106 },
+  // Pass 028 playtest: larger and lower, so it merges with the outcrop behind the overhang rather
+  // than perching on it.
+  { min: [4.6, 2.6, -13.9], max: [5.9, 4.4, -10.9], seed: 7106 },
   // (Kept clear of the seagrass that grows at the mouth, x 5.0, z -11.0.)
   { min: [4.3, -0.2, -10.95], max: [4.85, 1.3, -10.1], seed: 7107 },
   // Pass 026 playtest: more rock around the mouth, so it reads as a gap in a jumble of boulders.
   // None reaches into the channel's space (y 0.6-2.6, z -13.05 to -11.15 beyond the mouth) or
   // the "Return to the tank" spot (x 6.4, y 1.6, z -12.1).
-  // A low overhang just above the swimmer's way in, casting the mouth into shadow.
-  { min: [5.0, 2.75, -13.5], max: [6.4, 3.7, -10.8], seed: 7108 },
-  // Buttresses either side of the opening (the room side clear of the seagrass at x 5, z -11).
-  { min: [5.1, -0.3, -14.1], max: [6.5, 2.5, -13.2], seed: 7109 },
-  { min: [5.3, -0.3, -10.95], max: [6.3, 2.0, -10.0], seed: 7110 },
+  // A low overhang just above the swimmer's way in, casting the mouth into shadow. Pass 028
+  // playtest: it read as floating, touching the buttresses only at its tips. It is now longer and
+  // a little lower, and each end rests about 0.7 m deep on a buttress that rises into it.
+  { min: [5.0, 2.65, -13.9], max: [6.4, 3.6, -10.4], seed: 7108 },
+  // Buttresses either side of the opening (the room side clear of the seagrass at x 5, z -11),
+  // carrying the overhang.
+  { min: [5.1, -0.3, -14.1], max: [6.5, 3.3, -13.15], seed: 7109 },
+  { min: [5.3, -0.3, -11.05], max: [6.3, 3.2, -10.0], seed: 7110 },
   // Low rocks in front, swum over, hiding the bottom of the opening.
   { min: [6.1, -0.3, -12.7], max: [7.0, 0.5, -11.8], seed: 7111 },
   { min: [5.6, -0.3, -11.5], max: [6.4, 0.75, -10.9], seed: 7112 },

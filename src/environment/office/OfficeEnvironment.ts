@@ -138,6 +138,99 @@ const rounded = (w: number, h: number, d: number, r = 0.012) =>
 const cylinder = (rt: number, rb: number, h: number, s = 20) =>
   new THREE.CylinderGeometry(rt, rb, h, s);
 
+/** Task chair colours: grey seat, black back, dark metal. One chair for every desk. */
+const CHAIR = {
+  seat: 0x8f9293,
+  back: 0x202225,
+  frame: 0x18191b,
+  metal: 0x2b2c2e,
+};
+/**
+ * v0.4 Pass 028 playtest: one complete office task chair, used at the private desk and every
+ * open-plan desk. Every part touches the next: casters under a five-star base, a gas lift to a
+ * plate under the seat, a spine from that plate up into the backrest, and armrests on posts
+ * rising from brackets under the seat. Built in chair space (the sitter faces -z, seat centred
+ * at the origin on the floor), then turned by `yaw` about y and placed at (`x`, `z`).
+ */
+function taskChair(b: Batcher, x: number, z: number, yaw: number): void {
+  const cos = Math.cos(yaw),
+    sin = Math.sin(yaw),
+    seat = hex(CHAIR.seat),
+    back = hex(CHAIR.back),
+    frame = hex(CHAIR.frame),
+    metal = hex(CHAIR.metal),
+    part = (
+      key: Key,
+      geometry: THREE.BufferGeometry,
+      [lx, y, lz]: readonly [number, number, number],
+      color: Color,
+      [rx, ry]: readonly [number, number] = [0, 0],
+    ) =>
+      b.add(
+        key,
+        geometry,
+        [x + lx * cos + lz * sin, y, z - lx * sin + lz * cos],
+        color,
+        [rx, yaw + ry, 0],
+      );
+  // Five-star base on casters, with a hub.
+  part('metal', cylinder(0.045, 0.05, 0.06, 16), [0, 0.075, 0], metal);
+  for (let i = 0; i < 5; i++) {
+    const a = (i / 5) * Math.PI * 2 + Math.PI / 2;
+    part(
+      'trim',
+      new THREE.BoxGeometry(0.29, 0.03, 0.045),
+      [Math.cos(a) * 0.15, 0.07, Math.sin(a) * 0.15],
+      frame,
+      [0, -a],
+    );
+    part(
+      'trim',
+      new THREE.SphereGeometry(0.03, 8, 5),
+      [Math.cos(a) * 0.29, 0.03, Math.sin(a) * 0.29],
+      frame,
+    );
+  }
+  // Gas lift and the mechanism plate under the seat.
+  part('metal', cylinder(0.024, 0.024, 0.34, 12), [0, 0.27, 0], metal);
+  part('trim', new THREE.BoxGeometry(0.2, 0.04, 0.22), [0, 0.43, 0], frame);
+  // Seat.
+  part('fabric', rounded(0.5, 0.08, 0.48, 0.03), [0, 0.48, 0], seat);
+  // Spine: from the plate back under the seat, then up into the backrest.
+  part('trim', new THREE.BoxGeometry(0.07, 0.03, 0.27), [0, 0.43, 0.15], frame);
+  part(
+    'trim',
+    new THREE.BoxGeometry(0.07, 0.36, 0.03),
+    [0, 0.6, 0.28],
+    frame,
+    [0.1, 0],
+  );
+  // Backrest, leaning back a little.
+  part(
+    'fabric',
+    rounded(0.48, 0.52, 0.05, 0.03),
+    [0, 0.9, 0.31],
+    back,
+    [0.1, 0],
+  );
+  // Armrests: a bracket under each side of the seat, a post, and the pad on top.
+  for (const s of [-1, 1]) {
+    part(
+      'trim',
+      new THREE.BoxGeometry(0.1, 0.03, 0.06),
+      [s * 0.24, 0.44, 0.06],
+      frame,
+    );
+    part(
+      'trim',
+      new THREE.BoxGeometry(0.035, 0.26, 0.05),
+      [s * 0.28, 0.56, 0.06],
+      frame,
+    );
+    part('trim', rounded(0.06, 0.03, 0.26, 0.01), [s * 0.28, 0.7, 0.03], frame);
+  }
+}
+
 /** A leaf blade: a tapered, gently cupped and arched strip (base at origin, tip along +y). */
 function leafGeometry(
   length: number,
@@ -610,50 +703,8 @@ export class OfficeEnvironment {
       hex(0xd8e2e0),
     );
 
-    // --- The desk chair: black mesh back, grey seat, five-star base on casters.
-    const chair = OFFICE.chair.center;
-    b.add(
-      'fabric',
-      rounded(0.5, 0.08, 0.48, 0.03),
-      [chair.x, 0.48, chair.z],
-      hex(0x8f9293),
-    );
-    b.add(
-      'fabric',
-      rounded(0.48, 0.56, 0.05, 0.03),
-      [chair.x, 0.86, chair.z - 0.25],
-      hex(0x202225),
-      [-0.1, 0, 0],
-    );
-    for (const s of [-1, 1])
-      b.add(
-        'trim',
-        rounded(0.05, 0.03, 0.26, 0.01),
-        [chair.x + s * 0.27, 0.66, chair.z - 0.02],
-        black,
-      );
-    b.add(
-      'metal',
-      cylinder(0.025, 0.025, 0.3, 12),
-      [chair.x, 0.3, chair.z],
-      hex(0x2b2c2e),
-    );
-    for (let i = 0; i < 5; i++) {
-      const a = (i / 5) * Math.PI * 2;
-      b.add(
-        'trim',
-        new THREE.BoxGeometry(0.3, 0.025, 0.04),
-        [chair.x + Math.cos(a) * 0.15, 0.07, chair.z + Math.sin(a) * 0.15],
-        black,
-        [0, -a, 0],
-      );
-      b.add(
-        'trim',
-        new THREE.SphereGeometry(0.025, 10, 8),
-        [chair.x + Math.cos(a) * 0.29, 0.03, chair.z + Math.sin(a) * 0.29],
-        black,
-      );
-    }
+    // --- The desk chair, facing the desk (+z).
+    taskChair(b, OFFICE.chair.center.x, OFFICE.chair.center.z, Math.PI);
     // --- Guest chairs facing the desk: blue seats, pale grey backs, chrome legs.
     for (const c of OFFICE.guestChairs) {
       b.add(
@@ -997,8 +1048,11 @@ export class OfficeEnvironment {
           [x, H - 0.005, z],
           [1, 1, 1],
         );
-    // Workstations: facing pairs of white desks with monitors and black task chairs.
-    const workstation = (x: number, z: number, facing: number) => {
+    // Workstations: facing pairs of white desks, each with its monitors along the shared
+    // partition and a task chair on the open side. `toward` is +1 when the partition is at +z.
+    // (Pass 028 playtest: the chairs had been placed through the partition, inside the opposite
+    // desk, with the monitors at the open edge.)
+    const workstation = (x: number, z: number, toward: number) => {
       b.add('paint', rounded(1.4, 0.03, 0.7, 0.004), [x, 0.74, z], desk);
       for (const sx of [-0.66, 0.66])
         b.add(
@@ -1011,34 +1065,24 @@ export class OfficeEnvironment {
         b.add(
           'trim',
           rounded(0.5, 0.3, 0.025, 0.005),
-          [x + mx, 1.08, z - facing * 0.22],
+          [x + mx, 1.08, z + toward * 0.2],
           black,
         );
         b.add(
           'metal',
           cylinder(0.012, 0.012, 0.2, 8),
-          [x + mx, 0.86, z - facing * 0.24],
+          [x + mx, 0.86, z + toward * 0.22],
+          grey,
+        );
+        b.add(
+          'metal',
+          new THREE.BoxGeometry(0.18, 0.012, 0.12),
+          [x + mx, 0.761, z + toward * 0.22],
           grey,
         );
       }
-      b.add(
-        'trim',
-        rounded(0.5, 0.08, 0.48, 0.03),
-        [x, 0.48, z + facing * 0.6],
-        black,
-      );
-      b.add(
-        'trim',
-        rounded(0.46, 0.55, 0.05, 0.03),
-        [x, 0.85, z + facing * 0.84],
-        black,
-      );
-      b.add(
-        'metal',
-        cylinder(0.025, 0.025, 0.4, 10),
-        [x, 0.24, z + facing * 0.6],
-        grey,
-      );
+      // The sitter faces the desk: -z at yaw 0, +z at yaw pi.
+      taskChair(b, x, z - toward * 0.62, toward > 0 ? Math.PI : 0);
     };
     for (const z of [4.4, 7.8])
       for (const x of [-3.2, -1.7, 1.7, 3.2]) {
@@ -1055,9 +1099,10 @@ export class OfficeEnvironment {
     b.add(
       'fabric',
       rounded(0.44, 0.5, 0.1, 0.04),
-      [-1.7, 0.85, 4.04 - 0.84 + 0.05],
+      // Over the backrest of the chair at (-1.7, 4.04 - 0.62), which faces +z.
+      [-1.7, 0.86, 4.04 - 0.62 - 0.34],
       hex(0x23252a),
-      [0.2, 0, 0],
+      [-0.1, 0, 0],
     );
     b.add(
       'trim',
