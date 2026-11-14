@@ -37,6 +37,12 @@ export class BabyNavigation {
   private readonly priority = new Float64Array(COUNT);
   private heapLength = 0;
   private epoch = 0;
+  /** Pass 031: a search in progress, advanced a bounded number of nodes per fixed step. */
+  planning = false;
+  private goalId = -1;
+  private gx = 0;
+  private gy = 0;
+  private gz = 0;
   private readonly a = point();
   private readonly b = point();
   constructor(
@@ -49,6 +55,7 @@ export class BabyNavigation {
     this.grid = new ColliderGrid(this.habitat.solids, 2);
     this.free.fill(0);
     this.length = 0;
+    this.planning = false;
   }
   safe(
     x: number,
@@ -156,12 +163,14 @@ export class BabyNavigation {
     }
     return true;
   }
-  private at(id: number, out: Vec3) {
+  /** Grid size and cell centres, for tests. */
+  static readonly cells = COUNT;
+  at(id: number, out: Vec3) {
     out.x = X0 + (id % NX) * STEP;
     out.y = Y0 + (Math.floor(id / NX) % NY) * STEP;
     out.z = Z0 + Math.floor(id / (NX * NY)) * STEP;
   }
-  private isFree(id: number): boolean {
+  isFree(id: number): boolean {
     if (!this.free[id]) {
       this.at(id, this.a);
       this.free[id] = this.safe(this.a.x, this.a.y, this.a.z) ? 1 : 2;
@@ -217,21 +226,58 @@ export class BabyNavigation {
     this.at(best, out);
     return true;
   }
-  private nearestId(p: Readonly<Vec3>, requireConnection: boolean): number {
+  /**
+   * The free cell nearest `p` (and in clear reach of it when `requireConnection`). Pass 031: a
+   * scan of every cell cost up to 20 ms before each route; this searches outward from the
+   * cell around `p`, shell by shell, and stops once no further shell could be nearer. Ties go to
+   * the lowest cell index, as in the full scan, so results are identical. Public for tests.
+   */
+  nearestId(p: Readonly<Vec3>, requireConnection: boolean): number {
+    const cx = Math.min(NX - 1, Math.max(0, Math.round((p.x - X0) / STEP))),
+      cy = Math.min(NY - 1, Math.max(0, Math.round((p.y - Y0) / STEP))),
+      cz = Math.min(NZ - 1, Math.max(0, Math.round((p.z - Z0) / STEP))),
+      // How far `p` lies outside its centre cell (when outside the grid): later shells are at
+      // least this much nearer than their index suggests.
+      off = Math.hypot(
+        Math.max(0, Math.abs(p.x - (X0 + cx * STEP)) - STEP / 2),
+        Math.max(0, Math.abs(p.y - (Y0 + cy * STEP)) - STEP / 2),
+        Math.max(0, Math.abs(p.z - (Z0 + cz * STEP)) - STEP / 2),
+      ),
+      shells = Math.max(NX, NY, NZ);
     let best = -1,
       distance = Infinity;
-    for (let id = 0; id < COUNT; id++) {
-      this.at(id, this.b);
-      const d =
-        (this.b.x - p.x) ** 2 + (this.b.y - p.y) ** 2 + (this.b.z - p.z) ** 2;
-      if (
-        d >= distance ||
-        !this.isFree(id) ||
-        (requireConnection && !this.clear(p, this.b))
-      )
-        continue;
-      best = id;
-      distance = d;
+    for (let r = 0; r < shells; r++) {
+      for (let z = Math.max(0, cz - r); z <= Math.min(NZ - 1, cz + r); z++)
+        for (let y = Math.max(0, cy - r); y <= Math.min(NY - 1, cy + r); y++)
+          for (
+            let x = Math.max(0, cx - r);
+            x <= Math.min(NX - 1, cx + r);
+            x++
+          ) {
+            // Only the shell's surface: cells at exactly Chebyshev distance r.
+            if (
+              Math.max(Math.abs(x - cx), Math.abs(y - cy), Math.abs(z - cz)) !==
+              r
+            )
+              continue;
+            const id = x + y * NX + z * NX * NY;
+            this.at(id, this.b);
+            const d = Math.sqrt(
+              (this.b.x - p.x) ** 2 +
+                (this.b.y - p.y) ** 2 +
+                (this.b.z - p.z) ** 2,
+            );
+            if (d > distance || (d === distance && id > best)) continue;
+            if (
+              !this.isFree(id) ||
+              (requireConnection && !this.clear(p, this.b))
+            )
+              continue;
+            best = id;
+            distance = d;
+          }
+      // Every cell in the next shell is at least this far from `p`.
+      if (best >= 0 && distance < (r + 0.5) * STEP - off) break;
     }
     return best;
   }
@@ -281,7 +327,16 @@ export class BabyNavigation {
   }
   /** Write a connected path into the retained path buffer. No allocations on re-planning. */
   route(from: Readonly<Vec3>, target: Readonly<Vec3>): boolean {
+    return this.begin(from, target) && this.advance(Infinity) === 'found';
+  }
+  /**
+   * Pass 031: start a search without running it. A full search could take several milliseconds,
+   * a visible hitch on the main thread, so `advance` spreads it over fixed steps. The budget
+   * counts expanded nodes, not time, so results are identical at any frame rate.
+   */
+  begin(from: Readonly<Vec3>, target: Readonly<Vec3>): boolean {
     this.length = 0;
+    this.planning = false;
     const start = this.nearestId(from, true),
       goal = this.nearestId(target, false);
     if (start < 0 || goal < 0) return false;
@@ -297,10 +352,24 @@ export class BabyNavigation {
     this.parent[start] = -1;
     this.priority[start] = 0;
     this.push(start);
-    const gx = goal % NX,
-      gy = Math.floor(goal / NX) % NY,
-      gz = Math.floor(goal / (NX * NY));
+    this.goalId = goal;
+    this.gx = goal % NX;
+    this.gy = Math.floor(goal / NX) % NY;
+    this.gz = Math.floor(goal / (NX * NY));
+    this.planning = true;
+    return true;
+  }
+  /** Expand up to `budget` nodes of the current search. */
+  advance(budget: number): 'found' | 'failed' | 'pending' {
+    if (!this.planning) return this.length ? 'found' : 'failed';
+    const epoch = this.epoch,
+      goal = this.goalId,
+      gx = this.gx,
+      gy = this.gy,
+      gz = this.gz;
+    let expanded = 0;
     while (this.heapLength) {
+      if (expanded++ >= budget) return 'pending';
       const id = this.pop();
       this.closed[id] = epoch;
       if (id === goal) {
@@ -323,7 +392,8 @@ export class BabyNavigation {
           this.path[i * 3 + 2] = this.a.z;
         }
         this.length = n;
-        return true;
+        this.planning = false;
+        return 'found';
       }
       const x = id % NX,
         y = Math.floor(id / NX) % NY,
@@ -359,6 +429,7 @@ export class BabyNavigation {
             else this.up(this.heapIndex[next]);
           }
     }
-    return false;
+    this.planning = false;
+    return 'failed';
   }
 }

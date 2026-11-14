@@ -7,6 +7,14 @@ import {
   type BabyHabitat,
 } from './BabyNavigation';
 const DT = 1 / 30;
+/**
+ * Pass 031: nodes of route search per fixed step. A whole search could take several
+ * milliseconds on the main thread (a visible hitch every few seconds), so it is spread over
+ * steps. Counted in nodes, not time, so behaviour is identical at any frame rate.
+ */
+export const PLAN_BUDGET = 60;
+/** While a route is being found, the current velocity eases off at this rate (1/s). */
+const COAST = 1.5;
 const v = (): Vec3 => ({ x: 0, y: 0, z: 0 });
 /** A small, fixed-step resident. Rendering, wall clocks, random sources and DOM stay outside. */
 export class TankBaby {
@@ -77,7 +85,23 @@ export class TankBaby {
     this.replans++;
     this.cursor = 0;
     this.retry = 1;
-    return this.navigation.route(this.position, this.goal);
+    this.navigation.begin(this.position, this.goal);
+  }
+  /** Ease off along the current heading while a route is found, never into anything. */
+  private coast() {
+    const p = this.position,
+      keep = Math.exp(-COAST * DT);
+    this.velocity.x *= keep;
+    this.velocity.y *= keep;
+    this.velocity.z *= keep;
+    this.next.x = p.x + this.velocity.x * DT;
+    this.next.y = p.y + this.velocity.y * DT;
+    this.next.z = p.z + this.velocity.z * DT;
+    if (this.navigation.clear(p, this.next)) {
+      p.x = this.next.x;
+      p.y = this.next.y;
+      p.z = this.next.z;
+    } else this.velocity.x = this.velocity.y = this.velocity.z = 0;
   }
   replan() {
     this.navigation.invalidate();
@@ -164,6 +188,10 @@ export class TankBaby {
       : Math.sin(this.time * Math.PI * 2 * d.strokeHz) * (reduced ? 0.3 : 0.75);
     this.retry -= DT;
     const nav = this.navigation;
+    if (nav.planning && nav.advance(PLAN_BUDGET) === 'pending') {
+      this.coast();
+      return;
+    }
     if (!nav.length) {
       if (this.retry <= 0) {
         this.goalIndex++;
@@ -213,9 +241,13 @@ export class TankBaby {
         comfort = 2.1 + d.radius;
       if (r < comfort) {
         const weight = (1 - r / comfort) * 3,
-          side = d.id === 'spotted-eagle-ray' ? -1 : 1;
-        dx += (ax / Math.max(0.1, r)) * weight - dz * weight * side * 0.5;
-        dz += (az / Math.max(0.1, r)) * weight + dx * weight * side * 0.5;
+          side = d.id === 'spotted-eagle-ray' ? -1 : 1,
+          // Pass 031: turn the original heading to the side (the second line used the
+          // already-updated x, skewing the turn).
+          hx = dx,
+          hz = dz;
+        dx += (ax / Math.max(0.1, r)) * weight - hz * weight * side * 0.5;
+        dz += (az / Math.max(0.1, r)) * weight + hx * weight * side * 0.5;
         dy += Math.max(0.25, ay / Math.max(0.1, r)) * weight;
       }
     }
