@@ -6,7 +6,11 @@ import type { AssetId } from '../assets/AssetRegistry';
  * never towards them, and drift back once the swimmer has gone.
  */
 export type BigCreatureId =
-  'blacktip-reef-shark' | 'spotted-eagle-ray' | 'green-sea-turtle';
+  | 'blacktip-reef-shark'
+  | 'spotted-eagle-ray'
+  | 'green-sea-turtle'
+  /** v0.6 Pass 032: the kelp forest's rays (the eagle ray's model, tinted dark). */
+  | 'bat-ray';
 
 export interface CruiseSpecies {
   readonly id: BigCreatureId;
@@ -66,6 +70,22 @@ export const CRUISE_SPECIES: Readonly<Record<BigCreatureId, CruiseSpecies>> = {
     clearance: 1.3,
     detailDistance: 30,
     bank: 1.1,
+  },
+  'bat-ray': {
+    id: 'bat-ray',
+    name: 'Bat ray',
+    asset: 'eagleRay',
+    scale: 0.9,
+    radius: 1.35,
+    speed: 0.55,
+    strokeHz: 0.28,
+    stroke: 0.85,
+    glide: { period: 9, share: 0.5 },
+    comfort: 4.5,
+    giveWay: 3,
+    clearance: 1.1,
+    detailDistance: 22,
+    bank: 0.9,
   },
   'green-sea-turtle': {
     id: 'green-sea-turtle',

@@ -22,17 +22,18 @@ import {
   type Pose,
 } from '../player/dive';
 import { OfficeScene } from '../rendering/OfficeScene';
+import { KelpForestScene } from '../rendering/KelpForestScene';
 import { OuterWatersScene } from '../rendering/OuterWatersScene';
 import type { WaterWorld } from '../rendering/WaterWorld';
-import { PASSAGE } from '../config/passage';
+import { CLEFT, PASSAGE } from '../config/passage';
 import {
+  cleftDistance,
+  crossing,
   frameTurn,
   mapPoint,
   mapVector,
   mouthDistance,
   passageDarkness,
-  passageFrame,
-  passageTarget,
   returnPose,
   type WaterWorldId,
 } from '../player/passage';
@@ -90,6 +91,9 @@ export class Application {
   private office?: OfficeScene;
   /** v0.4 Pass 023: the outer waters, while they might be needed. */
   private outer?: OuterWatersScene;
+  /** v0.6 Pass 032: the kelp forest, while it might be needed (reached through the outer reef). */
+  private kelp?: KelpForestScene;
+  private kelpIdle = 0;
   /** Which water world the swimmer is in. */
   private waterWorld: WaterWorldId = 'aquarium';
   /** Seconds the outer waters have been out of range (released after a delay). */
@@ -591,18 +595,22 @@ export class Application {
   }
   /** v0.4 Pass 023: the water world the swimmer is in (the tank unless in the outer waters). */
   private water(): WaterWorld {
+    if (this.waterWorld === 'kelp' && this.kelp) return this.kelp;
     return this.waterWorld === 'outer' && this.outer ? this.outer : this.world!;
   }
   private setWaterWorld(id: WaterWorldId): void {
     // Pass 026: entering the outer waters (the tunnel) starts preparing the reef beyond it.
     if (id === 'outer') this.outer?.begin();
     this.waterWorld = id;
-    this.ui.setOuter(id === 'outer');
+    // Return to the tank is offered from either of the waters beyond it.
+    this.ui.setOuter(id !== 'aquarium');
     // Pass 024: the soundscape's small sounds come from the current world's places.
     this.audio?.setLocations(
-      id === 'outer' && this.outer
-        ? this.outer.soundSpots
-        : this.tankSoundSpots,
+      id === 'kelp' && this.kelp
+        ? this.kelp.soundSpots
+        : id === 'outer' && this.outer
+          ? this.outer.soundSpots
+          : this.tankSoundSpots,
     );
   }
   /**
@@ -634,18 +642,44 @@ export class Application {
     }
   }
   /**
+   * v0.6 Pass 032: load the kelp forest as the swimmer nears the cleft in the outer reef, and
+   * release it once well away (after a delay); it stays while the swimmer is in it. The outer
+   * waters stay loaded while the swimmer is in the kelp forest, so the way back is seamless.
+   */
+  private manageKelp(dt: number): void {
+    const swimming = this.mode === 'aquarium',
+      inOuter = this.waterWorld === 'outer',
+      distance = inOuter ? cleftDistance(this.state.position) : Infinity;
+    if (!this.kelp) {
+      if (swimming && inOuter && distance < CLEFT.preload && this.outer)
+        this.kelp = new KelpForestScene(this.world!.renderer, {
+          fish: this.world!.authored.loader,
+          soundSpots: this.tankSoundSpots.length,
+        });
+      this.kelpIdle = 0;
+      return;
+    }
+    const keep =
+      this.waterWorld === 'kelp' ||
+      (swimming && inOuter && distance < CLEFT.release);
+    this.kelpIdle = keep ? 0 : this.kelpIdle + dt;
+    if (this.kelpIdle > PASSAGE.releaseDelay) {
+      this.kelp.dispose();
+      this.kelp = undefined;
+      this.kelpIdle = 0;
+    }
+  }
+  /**
    * Past the threshold in the crevice (or back out of the tunnel's start), continue in the other
    * world from the identical relative pose: position, velocity, thrust and look all carry across.
    */
   private crossPassage(): void {
-    const target = passageTarget(
-      this.waterWorld,
-      this.state.position,
-      !!this.outer?.isReady,
-    );
-    if (target === this.waterWorld) return;
-    const from = passageFrame(this.waterWorld),
-      to = passageFrame(target),
+    const c = crossing(this.waterWorld, this.state.position, {
+      outer: !!this.outer?.isReady,
+      kelp: !!this.kelp?.isReady,
+    });
+    if (!c) return;
+    const { from, to, target } = c,
       s = this.state;
     mapPoint(s.position, from, to, this.mapped);
     s.position.x = this.mapped.x;
@@ -659,7 +693,7 @@ export class Application {
   }
   /** "Return to the tank" from the pause screen: back outside the crevice, out of darkness. */
   private returnToTank = (): void => {
-    if (this.waterWorld !== 'outer' || !this.controls) return;
+    if (this.waterWorld === 'aquarium' || !this.controls) return;
     if (this.dive) this.cancelDive();
     const pose = returnPose();
     Object.assign(this.state.position, { x: pose.x, y: pose.y, z: pose.z });
@@ -746,6 +780,7 @@ export class Application {
             : null,
     );
     this.manageOuter(dt);
+    this.manageKelp(dt);
     if (this.mode === 'office' && this.office) {
       this.tickOffice(dt);
       this.frame = requestAnimationFrame(this.tick);
@@ -875,6 +910,8 @@ export class Application {
     this.officeAudio?.dispose();
     this.controls?.dispose();
     this.office?.dispose();
+    this.kelp?.dispose();
+    this.kelp = undefined;
     this.outer?.dispose();
     this.outer = undefined;
     this.tankEditor?.dispose();

@@ -7,7 +7,9 @@ export type SpeciesId =
   | 'royal-gramma'
   | 'yellow-assessor'
   | 'firefish-goby'
-  | 'ocellaris-clownfish';
+  | 'ocellaris-clownfish'
+  /** v0.6 Pass 032: the kelp forest's bright orange damselfish (never in the tank's population). */
+  | 'garibaldi';
 export interface SchoolingTuning {
   readonly enabled: boolean;
   readonly spacing: number;

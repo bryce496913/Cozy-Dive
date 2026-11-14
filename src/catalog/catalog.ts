@@ -61,6 +61,16 @@ export const TANK_ITEMS = [
     depth: 0.8,
     height: 0.65,
   },
+  {
+    // v0.6 Pass 032: seen in the kelp forest. A small stand of kelp, built in code (no library node).
+    kind: 'kelp',
+    sighting: 'plant:giant-kelp',
+    label: 'Kelp',
+    node: '',
+    width: 1.1,
+    depth: 1.1,
+    height: 2.4,
+  },
 ] as const;
 export type TankKind = (typeof TANK_ITEMS)[number]['kind'];
 export interface TankItem {

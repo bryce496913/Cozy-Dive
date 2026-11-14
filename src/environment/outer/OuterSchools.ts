@@ -24,6 +24,11 @@ const LIBRARY: Readonly<Partial<Record<SpeciesId, AssetId>>> = {
   'firefish-goby': 'firefish',
   'yellow-assessor': 'assessor',
   'royal-gramma': 'gramma',
+  garibaldi: 'chromis',
+};
+/** v0.6 Pass 032: species drawn on another's rig in a colour of their own. */
+const RECOLOR: Readonly<Partial<Record<SpeciesId, number>>> = {
+  garibaldi: 0xff6a12,
 };
 /** Outer schools switch to their light rigs at this many body lengths. */
 export const OUTER_FISH_DETAIL = 8;
@@ -246,6 +251,7 @@ export class OuterSchools {
         OUTER_FISH_DETAIL,
         // At distance the eyes are sub-pixel: about 0.35k triangles saved per far fish.
         /^Eyes_Gills_Mouth/,
+        RECOLOR[id],
       );
       next += counts[i];
       this.schools.push(school);
