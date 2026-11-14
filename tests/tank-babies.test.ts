@@ -12,7 +12,7 @@ import {
   validPlacement,
   type TankItem,
 } from '../src/catalog/catalog';
-import { TankBaby } from '../src/creatures/babies/TankBaby';
+import { PLAN_BUDGET, TankBaby } from '../src/creatures/babies/TankBaby';
 import { BabyNavigation } from '../src/creatures/babies/BabyNavigation';
 import { boxCollider } from '../src/environment/passage/Crevice';
 import { Aquarium } from '../src/environment/Aquarium';
@@ -158,6 +158,70 @@ describe('pure body-aware navigation', () => {
         ).toBeGreaterThan(1.3 + d.radius);
       }
     }
+  }, 20000);
+  it('finds the same nearest cell as a full scan, without scanning the grid (Pass 031)', () => {
+    const solids = [
+        boxCollider([-1, 0, -2], [1, 10, 2]),
+        boxCollider([6, 0, 3], [9, 6, 7]),
+        boxCollider([-12, 2, -9], [-7, 9, -4]),
+      ],
+      floor = (x: number, z: number) => 0.4 + 0.2 * Math.sin(x * 0.7 + z),
+      fast = new BabyNavigation(TANK_BABIES[1], { solids, floor }),
+      reference = new BabyNavigation(TANK_BABIES[1], { solids, floor }),
+      cell = { x: 0, y: 0, z: 0 };
+    // The full scan this replaces: every cell, nearest first, lowest index on ties.
+    const scan = (p: Vec3, connected: boolean) => {
+      let best = -1,
+        distance = Infinity;
+      for (let id = 0; id < BabyNavigation.cells; id++) {
+        reference.at(id, cell);
+        const d = Math.hypot(cell.x - p.x, cell.y - p.y, cell.z - p.z);
+        if (d >= distance || !reference.isFree(id)) continue;
+        if (connected && !reference.clear(p, cell)) continue;
+        best = id;
+        distance = d;
+      }
+      return best;
+    };
+    let seed = 7;
+    const random = () =>
+      ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+    for (let i = 0; i < 300; i++) {
+      // Inside the tank and well beyond the grid on every side.
+      const p = {
+        x: -24 + random() * 48,
+        y: -3 + random() * 20,
+        z: -18 + random() * 36,
+      };
+      for (const connected of [false, true])
+        expect(fast.nearestId(p, connected), JSON.stringify(p)).toBe(
+          scan(p, connected),
+        );
+    }
+  }, 20000);
+  it('spreads route planning over steps, so no step pays for a whole route (Pass 031)', () => {
+    const solids = [boxCollider([-1, 0, -6], [1, 10, 6])],
+      eye = { x: -9, y: 4.6, z: 0 },
+      b = new TankBaby(TANK_BABIES[0], { solids, floor: () => 0 }, eye),
+      nav = b.navigation,
+      advance = nav.advance.bind(nav);
+    let calls = 0,
+      largest = 0;
+    nav.advance = (budget: number) => {
+      calls++;
+      largest = Math.max(largest, budget);
+      return advance(budget);
+    };
+    const start = { ...b.position };
+    for (let i = 0; i < 30 * 60; i++) b.update(1 / 30, true, false);
+    // Routes were found a slice at a time, never with an unbounded budget, and the pup kept
+    // swimming its loops.
+    expect(calls).toBeGreaterThan(0);
+    expect(largest).toBe(PLAN_BUDGET);
+    expect(b.replans).toBeGreaterThanOrEqual(2);
+    expect(
+      Math.hypot(b.position.x - start.x, b.position.z - start.z),
+    ).toBeGreaterThan(1);
   }, 20000);
   it('plans a swept detour and re-plans when a later addition blocks the path', () => {
     const solids = [boxCollider([-1, 0, -2], [1, 10, 2])],
