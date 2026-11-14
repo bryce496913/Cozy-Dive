@@ -73,7 +73,15 @@ The new tests cover:
 - **Sightings:** looking at them records `species:garibaldi`, `species:bat-ray` and `plant:giant-kelp` in the journal.
 - **Return to the tank:** it works from the forest. Both outer worlds are then released, and GPU memory returns exactly to its first counts (362 geometries, 113 textures).
 
-### Cost of the kelp forest (development views, SwiftShader)
+#### Merged with main's outer-reef hotfixes
+
+`main` gained Codex's outer-reef hotfixes during the run: denser haze, a 25 m camera range, cruisers 4 m closer, and a viewing edge 3 m past the lip (#57–#59). They were merged in.
+
+- **One stale test:** `outer-reef.test.ts` still required the old 5–8 m easing band, and failed on `main` itself after #59. It now checks the agreed viewing edge (1 m ease, then the 2 m stop). Every behavioural check is unchanged.
+- **Re-checked:** all 531 unit tests pass, and `kelp-forest.mjs` passes again on the merged code (the full route, all life moving, three sightings, memory back to 362 / 113).
+- **No conflict with the cleft:** the viewing edge only limits the swimmer beyond the lip (z < −60). The cleft is at z −32.
+
+## Cost of the kelp forest (development views, SwiftShader)
 
 | View                        | Draw calls | Triangles |
 | --------------------------- | ---------: | --------: |
