@@ -40,36 +40,43 @@ try {
   page.on('console', (m) => {
     if (m.type() === 'error') report.errors.push(m.text());
   });
-  await page.addInitScript((items) => {
-    localStorage.setItem(
-      'cozy-diver.settings.v3',
-      JSON.stringify({ reducedMotion: true }),
-    );
-    if (!localStorage.getItem('babies-harness-seeded')) {
+  await page.addInitScript(
+    ({ items, travelOnly, ids }) => {
       localStorage.setItem(
-        'cozy-diver.journal.v1',
-        JSON.stringify({
-          version: 1,
-          seen: [
-            'coral:boulder',
-            'coral:branching',
-            'coral:plate',
-            'coral:soft',
-            'coral:sea-fan',
-            'plant:seagrass',
-            'species:blacktip-reef-shark',
-            'species:spotted-eagle-ray',
-            'species:green-sea-turtle',
-          ].map((id) => ({ id, first: '2026-11-13T00:00:00Z' })),
-        }),
+        'cozy-diver.settings.v3',
+        JSON.stringify({ reducedMotion: true }),
       );
-      localStorage.setItem(
-        'cozy-diver.tank.v1',
-        JSON.stringify({ version: 1, items }),
-      );
-      localStorage.setItem('babies-harness-seeded', 'yes');
-    }
-  }, items);
+      if (!localStorage.getItem('babies-harness-seeded')) {
+        localStorage.setItem(
+          'cozy-diver.journal.v1',
+          JSON.stringify({
+            version: 1,
+            seen: [
+              'coral:boulder',
+              'coral:branching',
+              'coral:plate',
+              'coral:soft',
+              'coral:sea-fan',
+              'plant:seagrass',
+              'species:blacktip-reef-shark',
+              'species:spotted-eagle-ray',
+              'species:green-sea-turtle',
+            ].map((id) => ({ id, first: '2026-11-13T00:00:00Z' })),
+          }),
+        );
+        localStorage.setItem(
+          'cozy-diver.tank.v1',
+          JSON.stringify({
+            version: travelOnly ? 2 : 1,
+            items,
+            babies: travelOnly ? ids : [],
+          }),
+        );
+        localStorage.setItem('babies-harness-seeded', 'yes');
+      }
+    },
+    { items, travelOnly: process.env.COZY_TRAVEL_ONLY === '1', ids },
+  );
   await page.route('**/src/main.ts*', async (route) => {
     const r = await route.fetch();
     await route.fulfill({
@@ -253,202 +260,254 @@ try {
       },
       [target, distance],
     );
+  const finishTravel = async () => {
+    // Reload gives a fresh GPU view set. A far miniature does not upload an off-screen
+    // near mesh or its morph texture. Warm both levels before strict cycle equality.
+    for (const b of await snapshot()) {
+      const eye = await viewingEye(b.p, 1.4);
+      await page.evaluate(
+        ([p, t]) => {
+          const a = window.__cozy,
+            w = a.world;
+          w.camera.position.set(p.x, p.y, p.z);
+          w.camera.lookAt(t.x, t.y, t.z);
+          w.render(a.elapsed, true, 0, false, {
+            ...a.playerPresence,
+            active: false,
+          });
+        },
+        [eye, b.p],
+      );
+      await shot(b.id);
+    }
+    report.warmedResidentLevels = 3;
+    // Surface, inspect cheap levels in the live miniature, and repeat full office/tank cycles.
+    await pause();
+    await office();
+    await shot('office-miniature');
+    report.miniature = await page.evaluate(() => ({
+      animals: window.__cozy.world.babies.animals.length,
+      near: window.__cozy.world.babies.nearCount,
+      decorations: window.__cozy.tankEditor.model.items.length,
+    }));
+    assert.deepEqual(report.miniature, {
+      animals: 3,
+      near: 0,
+      decorations: 20,
+    });
+    report.threeBefore = await memory();
+    for (let i = 0; i < 2; i++) {
+      await pause();
+      await enter();
+      await pause();
+      await office();
+    }
+    report.threeAfter = await memory();
+    assert.deepEqual(report.threeAfter, report.threeBefore);
+    await pause();
+    await enter();
+    const passage = async () => {
+      await pose({ x: 6.4, y: 1.6, z: -12.1 }, { x: 1.5, y: 1.6, z: -12.1 });
+      let state = await step();
+      for (let i = 0; i < 200 && !state.ready; i++) state = await step();
+      assert(state.ready, 'outer reef prepared');
+      await page.keyboard.down('w');
+      for (let i = 0; i < 200 && state.world === 'aquarium'; i++)
+        state = await step();
+      await page.keyboard.up('w');
+      assert.equal(state.world, 'outer');
+      await pause();
+      await page.getByRole('button', { name: /Return to the tank/ }).click();
+      await locked();
+      await step(20);
+      await pose({ x: -8, y: 6, z: 8 }, { x: 0, y: 5, z: 0 });
+      state = await step();
+      for (let i = 0; i < 200 && state.outer; i++) state = await step();
+      assert.equal(state.outer, false, 'outer released');
+      await step(2);
+      return memory();
+    };
+    report.passageFirst = await passage();
+    report.passageSecond = await passage();
+    assert.deepEqual(report.passageSecond, report.passageFirst);
+    assert.equal((await snapshot()).length, 3);
+    assert.equal(
+      await page.evaluate(() => window.__cozy.tankEditor.model.items.length),
+      20,
+    );
+    // Both reset choices use the actual confirmation UI; sightings survive the confirmed reset.
+    await pause();
+    await page
+      .getByRole('button', { name: 'For your tank', exact: true })
+      .click();
+    await page
+      .getByRole('region', { name: labels[2], exact: true })
+      .scrollIntoViewIfNeeded();
+    await shot('catalog-animals');
+    await page.getByRole('button', { name: 'Close', exact: true }).click();
+    await page.getByRole('button', { name: 'Settings', exact: true }).click();
+    await page
+      .getByRole('button', { name: 'Restore the original tank', exact: true })
+      .click();
+    await page
+      .getByRole('button', { name: 'Keep my tank', exact: true })
+      .click();
+    assert.equal((await snapshot()).length, 3);
+    await page
+      .getByRole('button', { name: 'Restore the original tank', exact: true })
+      .click();
+    await page
+      .getByRole('button', { name: 'Restore tank', exact: true })
+      .click();
+    report.reset = await page.evaluate(() => ({
+      items: window.__cozy.tankEditor.model.items.length,
+      animals: window.__cozy.tankEditor.model.babies.length,
+      owner: !!window.__cozy.world.babies,
+      seen: JSON.parse(localStorage.getItem('cozy-diver.journal.v1')).seen
+        .length,
+    }));
+    assert.deepEqual(report.reset, {
+      items: 0,
+      animals: 0,
+      owner: false,
+      seen: 9,
+    });
+    assert.deepEqual(report.errors, []);
+  };
   await page.goto(process.env.COZY_URL || 'http://127.0.0.1:5200');
   await recordBrowserScale(page);
   await ready();
-  report.cold = await page.evaluate(() => ({
-    babies: !!window.__cozy.world.babies,
-    decorations: window.__cozy.tankEditor.model.items.length,
-    creatureDownloads: performance
-      .getEntriesByType('resource')
-      .map((e) => e.name)
-      .filter((n) => /\/(reef-shark|eagle-ray|sea-turtle)\.glb/.test(n)),
-  }));
-  assert.equal(report.cold.babies, false);
-  assert.equal(report.cold.decorations, 20);
-  assert.deepEqual(report.cold.creatureDownloads, []);
-  await enter();
-  await pose({ x: 0, y: 4.6, z: 9 }, { x: 0, y: 4.3, z: 0 });
-  await shot('cold-twenty-additions');
-  // Two no-baby office cycles establish zero-resident ownership at the same warmed view set.
-  await pause();
-  await office();
-  report.zeroBefore = await memory();
-  for (let i = 0; i < 2; i++) {
+  if (process.env.COZY_TRAVEL_ONLY === '1') {
+    report.travelOnly = true;
+    await enter();
+    await finishTravel();
+  } else {
+    report.cold = await page.evaluate(() => ({
+      babies: !!window.__cozy.world.babies,
+      decorations: window.__cozy.tankEditor.model.items.length,
+      creatureDownloads: performance
+        .getEntriesByType('resource')
+        .map((e) => e.name)
+        .filter((n) => /\/(reef-shark|eagle-ray|sea-turtle)\.glb/.test(n)),
+    }));
+    assert.equal(report.cold.babies, false);
+    assert.equal(report.cold.decorations, 20);
+    assert.deepEqual(report.cold.creatureDownloads, []);
+    await enter();
+    await pose({ x: 0, y: 4.6, z: 9 }, { x: 0, y: 4.3, z: 0 });
+    await shot('cold-twenty-additions');
+    // Two no-baby office cycles establish zero-resident ownership at the same warmed view set.
+    await pause();
+    await office();
+    report.zeroBefore = await memory();
+    for (let i = 0; i < 2; i++) {
+      await pause();
+      await enter();
+      await pause();
+      await office();
+    }
+    report.zeroAfter = await memory();
+    assert.deepEqual(report.zeroAfter, report.zeroBefore);
     await pause();
     await enter();
     await pause();
-    await office();
-  }
-  report.zeroAfter = await memory();
-  assert.deepEqual(report.zeroAfter, report.zeroBefore);
-  await pause();
-  await enter();
-  await pause();
-  for (let i = 0; i < 3; i++) {
-    await choose(i);
-    assert.equal((await snapshot()).length, i + 1);
+    for (let i = 0; i < 3; i++) {
+      await choose(i);
+      assert.equal((await snapshot()).length, i + 1);
+      await pause();
+    }
+    await page
+      .getByRole('button', { name: 'For your tank', exact: true })
+      .click();
+    const text = await page
+      .getByRole('complementary', { name: 'For your tank', exact: true })
+      .innerText();
+    for (const label of labels) assert(text.includes(label));
+    assert(!/\b\d+\s*(of|\/)\s*\d+\b/.test(text));
+    await page
+      .getByRole('region', { name: labels[0], exact: true })
+      .scrollIntoViewIfNeeded();
+    await shot('catalog-animals');
+    await page.getByRole('button', { name: 'Close', exact: true }).click();
+    await enter();
+    const before = await snapshot();
+    await step(40);
+    const after = await snapshot();
+    report.minimumFishGap = await page.evaluate(
+      () => window.__cozy.__babyFishGap,
+    );
+    report.movement = after.map((b, i) => ({
+      id: b.id,
+      distance: Math.hypot(
+        b.p.x - before[i].p.x,
+        b.p.y - before[i].p.y,
+        b.p.z - before[i].p.z,
+      ),
+    }));
+    assert(report.movement.every((b) => b.distance > 0.05));
+    for (let i = 0; i < 3; i++) {
+      const b = (await snapshot()).find((b) => b.id === ids[i]);
+      await pose(await viewingEye(b.p), b.p);
+      await shot(ids[i]);
+    }
+    await pose({ x: 0, y: 4.6, z: 9 }, { x: 0, y: 4.3, z: 0 });
+    await shot('three-with-corals');
+    const group = await snapshot();
+    const center = { x: 0, y: 0, z: 0 };
+    for (const b of group) {
+      center.x += b.p.x / group.length;
+      center.y += b.p.y / group.length;
+      center.z += b.p.z / group.length;
+    }
+    await pose(await viewingEye(center, 3.5), center);
+    // Same paused simulation and camera, with only baby visibility changed, isolates draw cost.
     await pause();
-  }
-  await page
-    .getByRole('button', { name: 'For your tank', exact: true })
-    .click();
-  const text = await page
-    .getByRole('complementary', { name: 'For your tank', exact: true })
-    .innerText();
-  for (const label of labels) assert(text.includes(label));
-  assert(!/\b\d+\s*(of|\/)\s*\d+\b/.test(text));
-  await page
-    .getByRole('region', { name: labels[0], exact: true })
-    .scrollIntoViewIfNeeded();
-  await shot('catalog-animals');
-  await page.getByRole('button', { name: 'Close', exact: true }).click();
-  await enter();
-  const before = await snapshot();
-  await step(40);
-  const after = await snapshot();
-  report.minimumFishGap = await page.evaluate(
-    () => window.__cozy.__babyFishGap,
-  );
-  report.movement = after.map((b, i) => ({
-    id: b.id,
-    distance: Math.hypot(
-      b.p.x - before[i].p.x,
-      b.p.y - before[i].p.y,
-      b.p.z - before[i].p.z,
-    ),
-  }));
-  assert(report.movement.every((b) => b.distance > 0.05));
-  for (let i = 0; i < 3; i++) {
-    const b = (await snapshot()).find((b) => b.id === ids[i]);
-    await pose(await viewingEye(b.p), b.p);
-    await shot(ids[i]);
-  }
-  await pose({ x: 0, y: 4.6, z: 9 }, { x: 0, y: 4.3, z: 0 });
-  await shot('three-with-corals');
-  const group = await snapshot();
-  const center = { x: 0, y: 0, z: 0 };
-  for (const b of group) {
-    center.x += b.p.x / group.length;
-    center.y += b.p.y / group.length;
-    center.z += b.p.z / group.length;
-  }
-  await pose(await viewingEye(center, 3.5), center);
-  // Same paused simulation and camera, with only baby visibility changed, isolates draw cost.
-  await pause();
-  const freeze = await snapshot();
-  await step(5);
-  assert.deepEqual(await snapshot(), freeze);
-  report.fixedFrame = await page.evaluate(() => {
-    const a = window.__cozy,
-      w = a.world;
-    const render = () => {
-      w.render(a.elapsed, a.settings.reducedMotion, 0, false, a.playerPresence);
-      return {
-        calls: w.renderer.info.render.calls,
-        triangles: w.renderer.info.render.triangles,
+    const freeze = await snapshot();
+    await step(5);
+    assert.deepEqual(await snapshot(), freeze);
+    report.fixedFrame = await page.evaluate(() => {
+      const a = window.__cozy,
+        w = a.world;
+      const render = () => {
+        w.render(
+          a.elapsed,
+          a.settings.reducedMotion,
+          0,
+          false,
+          a.playerPresence,
+        );
+        return {
+          calls: w.renderer.info.render.calls,
+          triangles: w.renderer.info.render.triangles,
+        };
       };
-    };
-    w.babies.root.visible = false;
-    const zero = render();
-    w.babies.root.visible = true;
-    const three = render();
-    return { zero, three, decorations: a.tankEditor.model.items.length };
-  });
-  assert.equal(report.fixedFrame.decorations, 20);
-  assert(report.fixedFrame.three.calls > report.fixedFrame.zero.calls);
-  // Remove one through its native row, let the fade finish, then reload the remaining two.
-  await choose(1, true);
-  assert.equal((await snapshot()).length, 2);
-  await pause();
-  report.saved = await page.evaluate(() =>
-    JSON.parse(localStorage.getItem('cozy-diver.tank.v1')),
-  );
-  assert.equal(report.saved.version, 2);
-  assert.deepEqual(report.saved.babies, [ids[0], ids[2]]);
-  assert.equal(report.saved.items.length, 20);
-  await page.reload();
-  await ready();
-  assert.equal((await snapshot()).length, 2);
-  await enter();
-  await pause();
-  await choose(1);
-  assert.equal((await snapshot()).length, 3);
-  // Surface, inspect cheap levels in the live miniature, and repeat full office/tank cycles.
-  await pause();
-  await office();
-  await shot('office-miniature');
-  report.miniature = await page.evaluate(() => ({
-    animals: window.__cozy.world.babies.animals.length,
-    near: window.__cozy.world.babies.nearCount,
-    decorations: window.__cozy.tankEditor.model.items.length,
-  }));
-  assert.deepEqual(report.miniature, { animals: 3, near: 0, decorations: 20 });
-  report.threeBefore = await memory();
-  for (let i = 0; i < 2; i++) {
+      w.babies.root.visible = false;
+      const zero = render();
+      w.babies.root.visible = true;
+      const three = render();
+      return { zero, three, decorations: a.tankEditor.model.items.length };
+    });
+    assert.equal(report.fixedFrame.decorations, 20);
+    assert(report.fixedFrame.three.calls > report.fixedFrame.zero.calls);
+    // Remove one through its native row, let the fade finish, then reload the remaining two.
+    await choose(1, true);
+    assert.equal((await snapshot()).length, 2);
     await pause();
+    report.saved = await page.evaluate(() =>
+      JSON.parse(localStorage.getItem('cozy-diver.tank.v1')),
+    );
+    assert.equal(report.saved.version, 2);
+    assert.deepEqual(report.saved.babies, [ids[0], ids[2]]);
+    assert.equal(report.saved.items.length, 20);
+    await page.reload();
+    await ready();
+    assert.equal((await snapshot()).length, 2);
     await enter();
     await pause();
-    await office();
+    await choose(1);
+    assert.equal((await snapshot()).length, 3);
+    await finishTravel();
   }
-  report.threeAfter = await memory();
-  assert.deepEqual(report.threeAfter, report.threeBefore);
-  await pause();
-  await enter();
-  const passage = async () => {
-    await pose({ x: 6.4, y: 1.6, z: -12.1 }, { x: 1.5, y: 1.6, z: -12.1 });
-    let state = await step();
-    for (let i = 0; i < 200 && !state.ready; i++) state = await step();
-    assert(state.ready, 'outer reef prepared');
-    await page.keyboard.down('w');
-    for (let i = 0; i < 200 && state.world === 'aquarium'; i++)
-      state = await step();
-    await page.keyboard.up('w');
-    assert.equal(state.world, 'outer');
-    await pause();
-    await page.getByRole('button', { name: /Return to the tank/ }).click();
-    await locked();
-    await step(20);
-    await pose({ x: -8, y: 6, z: 8 }, { x: 0, y: 5, z: 0 });
-    state = await step();
-    for (let i = 0; i < 200 && state.outer; i++) state = await step();
-    assert.equal(state.outer, false, 'outer released');
-    await step(2);
-    return memory();
-  };
-  report.passageFirst = await passage();
-  report.passageSecond = await passage();
-  assert.deepEqual(report.passageSecond, report.passageFirst);
-  assert.equal((await snapshot()).length, 3);
-  assert.equal(
-    await page.evaluate(() => window.__cozy.tankEditor.model.items.length),
-    20,
-  );
-  // Both reset choices use the actual confirmation UI; sightings survive the confirmed reset.
-  await pause();
-  await page.getByRole('button', { name: 'Settings', exact: true }).click();
-  await page
-    .getByRole('button', { name: 'Restore the original tank', exact: true })
-    .click();
-  await page.getByRole('button', { name: 'Keep my tank', exact: true }).click();
-  assert.equal((await snapshot()).length, 3);
-  await page
-    .getByRole('button', { name: 'Restore the original tank', exact: true })
-    .click();
-  await page.getByRole('button', { name: 'Restore tank', exact: true }).click();
-  report.reset = await page.evaluate(() => ({
-    items: window.__cozy.tankEditor.model.items.length,
-    animals: window.__cozy.tankEditor.model.babies.length,
-    owner: !!window.__cozy.world.babies,
-    seen: JSON.parse(localStorage.getItem('cozy-diver.journal.v1')).seen.length,
-  }));
-  assert.deepEqual(report.reset, {
-    items: 0,
-    animals: 0,
-    owner: false,
-    seen: 9,
-  });
-  assert.deepEqual(report.errors, []);
 } finally {
   fs.writeFileSync(
     path.join(output, 'report.json'),

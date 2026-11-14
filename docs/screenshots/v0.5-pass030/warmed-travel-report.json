@@ -1,0 +1,67 @@
+{
+  "errors": [],
+  "views": [
+    {
+      "name": "spotted-eagle-ray",
+      "calls": 108,
+      "triangles": 893770
+    },
+    {
+      "name": "blacktip-reef-shark",
+      "calls": 127,
+      "triangles": 1013926
+    },
+    {
+      "name": "green-sea-turtle",
+      "calls": 113,
+      "triangles": 954254
+    },
+    {
+      "name": "office-miniature",
+      "calls": 28,
+      "triangles": 59558
+    },
+    {
+      "name": "catalog-animals",
+      "calls": 191,
+      "triangles": 1182901
+    }
+  ],
+  "limits": [
+    "SwiftShader only; staged camera/swimmer poses; catalog buttons, pointer lock and travel keys are native.",
+    "Fixed-frame hidden-body comparison retains loaded assets; a separate cold check proves no baby downloads before adding."
+  ],
+  "travelOnly": true,
+  "warmedResidentLevels": 3,
+  "miniature": {
+    "animals": 3,
+    "near": 0,
+    "decorations": 20
+  },
+  "threeBefore": {
+    "geometries": 371,
+    "textures": 128,
+    "programs": 117
+  },
+  "threeAfter": {
+    "geometries": 371,
+    "textures": 128,
+    "programs": 117
+  },
+  "passageFirst": {
+    "geometries": 371,
+    "textures": 128,
+    "programs": 119
+  },
+  "passageSecond": {
+    "geometries": 371,
+    "textures": 128,
+    "programs": 119
+  },
+  "reset": {
+    "items": 0,
+    "animals": 0,
+    "owner": false,
+    "seen": 9
+  }
+}
