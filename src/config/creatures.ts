@@ -10,7 +10,13 @@ export type BigCreatureId =
   | 'spotted-eagle-ray'
   | 'green-sea-turtle'
   /** v0.6 Pass 032: the kelp forest's rays (the eagle ray's model, tinted dark). */
-  | 'bat-ray';
+  | 'bat-ray'
+  /** v0.6 Pass 033: visitors passing along the outer reef's wall (see `WALL_VISITORS`). */
+  | 'manta-ray'
+  | 'whale-shark'
+  | 'humpback-whale'
+  | 'great-hammerhead'
+  | 'scalloped-hammerhead';
 
 export interface CruiseSpecies {
   readonly id: BigCreatureId;
@@ -102,6 +108,89 @@ export const CRUISE_SPECIES: Readonly<Record<BigCreatureId, CruiseSpecies>> = {
     clearance: 1.0,
     detailDistance: 20,
     bank: 0.5,
+  },
+  /*
+   * v0.6 Pass 033: the wall's visitors. Their models are authored about 3 m long (the manta 4.4 m
+   * across), so `scale` here is their size: a 4.4 m manta, an 8 m whale shark, a 12.5 m humpback,
+   * a 4.5 m great hammerhead and 2.7 m scalloped hammerheads. They pass in the blue past the lip,
+   * where the swimmer cannot follow, so they rarely need to give way.
+   */
+  'manta-ray': {
+    id: 'manta-ray',
+    name: 'Reef manta ray',
+    asset: 'mantaRay',
+    scale: 1,
+    radius: 2.2,
+    speed: 0.9,
+    strokeHz: 0.2,
+    stroke: 0.85,
+    glide: { period: 12, share: 0.45 },
+    comfort: 6,
+    giveWay: 4,
+    clearance: 2,
+    detailDistance: 18,
+    bank: 1.0,
+  },
+  'whale-shark': {
+    id: 'whale-shark',
+    name: 'Whale shark',
+    asset: 'whaleShark',
+    scale: 2.7,
+    radius: 3.4,
+    speed: 0.95,
+    strokeHz: 0.17,
+    stroke: 0.8,
+    comfort: 9,
+    giveWay: 5.5,
+    clearance: 3,
+    detailDistance: 20,
+    bank: 0.25,
+  },
+  'humpback-whale': {
+    id: 'humpback-whale',
+    name: 'Humpback whale',
+    asset: 'humpbackWhale',
+    scale: 4.2,
+    radius: 5,
+    speed: 1.4,
+    strokeHz: 0.11,
+    stroke: 0.85,
+    glide: { period: 16, share: 0.35 },
+    comfort: 12,
+    giveWay: 7.5,
+    clearance: 4,
+    detailDistance: 22,
+    bank: 0.2,
+  },
+  'great-hammerhead': {
+    id: 'great-hammerhead',
+    name: 'Great hammerhead',
+    asset: 'hammerhead',
+    scale: 1.5,
+    radius: 2.2,
+    speed: 1.1,
+    strokeHz: 0.45,
+    stroke: 0.8,
+    comfort: 6,
+    giveWay: 3.5,
+    clearance: 2.5,
+    detailDistance: 18,
+    bank: 0.6,
+  },
+  'scalloped-hammerhead': {
+    id: 'scalloped-hammerhead',
+    name: 'Scalloped hammerhead',
+    asset: 'hammerhead',
+    scale: 0.9,
+    radius: 1.3,
+    speed: 0.95,
+    strokeHz: 0.55,
+    stroke: 0.8,
+    comfort: 5,
+    giveWay: 3,
+    clearance: 2,
+    detailDistance: 14,
+    bank: 0.6,
   },
 };
 

@@ -906,5 +906,177 @@
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Outer reef big creatures (Pass 025)"
+  },
+  {
+    "id": "hammerhead",
+    "file": "assets/models/creatures/hammerhead.glb",
+    "sha256": "75cfff6d871dc639ee5d5d33c1c78353709cc9aafbae53032d6dbaffc18716c4",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 556736,
+    "visualPrimitives": 2,
+    "visualTriangles": 13066,
+    "collisionTriangles": 0,
+    "materials": 1,
+    "images": [
+      {
+        "name": "creature_hammerhead_normal",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 90935
+      },
+      {
+        "name": "creature_hammerhead_base",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 15721
+      },
+      {
+        "name": "creature_hammerhead_orm",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 1221
+      }
+    ],
+    "geometryAccessorBytes": 319152,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium hero asset"
+  },
+  {
+    "id": "manta-ray",
+    "file": "assets/models/creatures/manta-ray.glb",
+    "sha256": "50881d14eaee3e803e6201435115bffb89f5687e43d456dde51d0ad70827f67b",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 384128,
+    "visualPrimitives": 2,
+    "visualTriangles": 7274,
+    "collisionTriangles": 0,
+    "materials": 1,
+    "images": [
+      {
+        "name": "creature_manta_normal",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 141735
+      },
+      {
+        "name": "creature_manta_base",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 11698
+      },
+      {
+        "name": "creature_manta_orm",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 4830
+      }
+    ],
+    "geometryAccessorBytes": 91992,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium hero asset"
+  },
+  {
+    "id": "whale-shark",
+    "file": "assets/models/creatures/whale-shark.glb",
+    "sha256": "5be00739cae305e5b52a6d7cc3e6abcaf3d3e665b58378b148743ff0ce27be21",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 555892,
+    "visualPrimitives": 2,
+    "visualTriangles": 12054,
+    "collisionTriangles": 0,
+    "materials": 1,
+    "images": [
+      {
+        "name": "creature_whaleshark_normal",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 99897
+      },
+      {
+        "name": "creature_whaleshark_base",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 39592
+      },
+      {
+        "name": "creature_whaleshark_orm",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 1221
+      }
+    ],
+    "geometryAccessorBytes": 294768,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium hero asset"
+  },
+  {
+    "id": "humpback-whale",
+    "file": "assets/models/creatures/humpback-whale.glb",
+    "sha256": "36164eba31686f4a08382016b785734ff886da3eb8166ff70fcb4e5c42680be7",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 398324,
+    "visualPrimitives": 2,
+    "visualTriangles": 7952,
+    "collisionTriangles": 0,
+    "materials": 1,
+    "images": [
+      {
+        "name": "creature_humpback_normal",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 102283
+      },
+      {
+        "name": "creature_humpback_base",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 17929
+      },
+      {
+        "name": "creature_humpback_orm",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 1246
+      }
+    ],
+    "geometryAccessorBytes": 181776,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium hero asset"
   }
 ]

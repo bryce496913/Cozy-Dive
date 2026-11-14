@@ -109,7 +109,7 @@ export interface CruiseGroup {
   readonly tint?: number;
 }
 /** An oval of `n` waypoints at height `y(x, z)`, travelled anticlockwise seen from above. */
-function oval(
+export function oval(
   cx: number,
   cz: number,
   rx: number,
@@ -193,7 +193,9 @@ export function outerCruisers(
   groups: readonly CruiseGroup[] = OUTER_CRUISERS,
 ): Cruiser[] {
   return groups.flatMap((g) => {
-    const species = cruiseSize(CRUISE_SPECIES[g.species], g.scale ?? 1),
+    // Without a group scale, the species' own size (Pass 033: whales are far beyond 1.5).
+    const base = CRUISE_SPECIES[g.species],
+      species = g.scale === undefined ? base : cruiseSize(base, g.scale),
       lane = Math.max(...g.members.map((m) => Math.abs(m.side))),
       route = new CruiseRoute(
         liftRoute(
@@ -224,6 +226,8 @@ export class OuterCreatures {
   /** One per creature, following it; empty until the models have loaded. */
   readonly sightings: SightCandidate[] = [];
   readonly ready: Promise<boolean>;
+  /** v0.6 Pass 033: which group each cruiser belongs to (by index into the groups given). */
+  readonly groupOf: readonly number[];
   private rigs: Rig[] = [];
   private leases: AssetLease[] = [];
   private readonly eye = new THREE.Vector3();
@@ -241,6 +245,7 @@ export class OuterCreatures {
     this.root.name = name;
     this.cruisers = outerCruisers(obstacles, groups);
     this.tints = groups.flatMap((g) => g.members.map(() => g.tint));
+    this.groupOf = groups.flatMap((g, i) => g.members.map(() => i));
     this.ready = this.load();
   }
   private async load(): Promise<boolean> {
@@ -327,6 +332,8 @@ export class OuterCreatures {
     if (this.disposed || !this.rigs.length) return;
     camera.getWorldPosition(this.eye);
     for (const r of this.rigs) {
+      // v0.6 Pass 033: a hidden creature waits where it is (the wall's visitors come and go).
+      if (!r.root.visible) continue;
       if (active) r.cruiser.update(dt, player, reducedMotion);
       const p = r.cruiser.position,
         limit = r.cruiser.species.detailDistance,
@@ -337,10 +344,30 @@ export class OuterCreatures {
     }
     this.place();
   }
+  /** v0.6 Pass 033: show or hide every creature of group `group`. */
+  showGroup(group: number, visible: boolean): void {
+    this.rigs.forEach((r, i) => {
+      if (this.groupOf[i] === group) r.root.visible = visible;
+    });
+    if (visible) this.place();
+  }
+  /** Whether group `group`'s creatures are drawn (false until their models have loaded). */
+  isGroupShown(group: number): boolean {
+    for (let i = 0; i < this.rigs.length; i++)
+      if (this.groupOf[i] === group) return this.rigs[i].root.visible;
+    return false;
+  }
+  /** v0.6 Pass 033: start group `group` again `distance` m along its route (see `Cruiser`). */
+  restartGroup(group: number, distance: number): void {
+    this.cruisers.forEach((c, i) => {
+      if (this.groupOf[i] === group) c.restart(distance);
+    });
+    if (this.rigs.length) this.place();
+  }
   /** Creatures currently drawn at full detail. */
   get nearCount(): number {
     let n = 0;
-    for (const r of this.rigs) if (r.isNear) n++;
+    for (const r of this.rigs) if (r.isNear && r.root.visible) n++;
     return n;
   }
   private release(): void {

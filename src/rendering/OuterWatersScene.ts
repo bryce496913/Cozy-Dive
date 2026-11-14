@@ -22,6 +22,7 @@ import {
   seabedHeight,
 } from '../environment/outer/OuterTerrain';
 import { reefSightings } from '../environment/outer/outerSightings';
+import { WallVisitors } from '../environment/outer/WallVisitors';
 import { WATER_LIGHT, WaterDome } from '../environment/outer/WaterDome';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
 import type { FishHabitat } from '../fish/FishHabitat';
@@ -73,6 +74,10 @@ export class OuterWatersScene implements WaterWorld {
   schools?: OuterSchools;
   /** v0.4 Pass 025: sharks, eagle rays and a turtle (absent if their models cannot load). */
   creatures?: OuterCreatures;
+  /** v0.6 Pass 033: big animals passing along the wall, more the longer you stay at the edge. */
+  visitors?: WallVisitors;
+  /** This visit's number (see `arrive`), kept until the visitors exist. */
+  private visit = 0;
   /** What can be seen here: the reef's corals and seagrass, and its big creatures. */
   readonly sightings: SightCandidate[] = [];
   /** Where the soundscape's small sounds come from here (at the coral heads). */
@@ -243,10 +248,21 @@ export class OuterWatersScene implements WaterWorld {
     );
     const creatures = new OuterCreatures(obstacles, fishLoader);
     this.creatures = creatures;
-    const [, loaded] = await Promise.all([this.schools.ready, creatures.ready]);
+    const visitors = new WallVisitors(obstacles, fishLoader, this.sightings);
+    this.visitors = visitors;
+    const [, loaded, visiting] = await Promise.all([
+      this.schools.ready,
+      creatures.ready,
+      visitors.ready,
+    ]);
     if (this.disposed) return false;
     this.scene.add(this.schools.root);
     if (loaded) this.scene.add(creatures.root);
+    if (visiting) {
+      // Nobody has come yet; they are hidden from the first frame after the warm-up below.
+      visitors.arrive(this.visit);
+      this.scene.add(visitors.root);
+    }
     this.sightings.push(...reefSightings(drawn), ...creatures.sightings);
     this.reef.update(this.camera.position, 0, false);
     await warmUpScene(this.renderer, this.scene, this.camera);
@@ -254,6 +270,14 @@ export class OuterWatersScene implements WaterWorld {
     this.reefReady = true;
     this.reefPrepareMs = performance.now() - this.begunAt;
     return true;
+  }
+  /**
+   * v0.6 Pass 033: the swimmer has entered the outer reef again (visit number `visit`): the wall's
+   * visitors start over, in this visit's order. Call on crossing in, far from the wall.
+   */
+  arrive(visit: number): void {
+    this.visit = visit;
+    this.visitors?.arrive(visit);
   }
   get bounds(): Bounds {
     return OUTER.bounds;
@@ -301,6 +325,14 @@ export class OuterWatersScene implements WaterWorld {
     this.reef.update(this.camera.position, dt, reducedMotion);
     this.schools?.update(dt, active, reducedMotion, player, this.camera);
     this.creatures?.update(dt, active, reducedMotion, player, this.camera);
+    this.visitors?.update(
+      dt,
+      active && this.reefReady,
+      reducedMotion,
+      player,
+      this.camera,
+      player.position,
+    );
     this.renderer.render(this.scene, this.camera);
   }
   dispose(): void {
@@ -311,6 +343,7 @@ export class OuterWatersScene implements WaterWorld {
     this.cleft.dispose();
     this.schools?.dispose();
     this.creatures?.dispose();
+    this.visitors?.dispose();
     this.sightings.length = 0;
     this.reef.dispose();
     this.environment.dispose();

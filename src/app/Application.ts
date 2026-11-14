@@ -59,6 +59,7 @@ import {
 } from '../player/walking';
 import { Interface, type ExperienceMode } from '../ui/Interface';
 import { installDeepFog } from '../rendering/deepFog';
+import { loadVisits, saveVisits } from '../creatures/wallVisitors';
 import {
   DEFAULT_SETTINGS,
   loadDived,
@@ -112,6 +113,8 @@ export class Application {
   private officeTime = 0;
   /** Pass 022: whether the player has ever dived (hides the first-visit hint for good). */
   private dived = false;
+  /** v0.6 Pass 033: the number of the next visit to the outer reef. */
+  private visits = 0;
   /** Seconds walked in the office this visit, before the first-visit hint appears. */
   private officeVisit = 0;
   private readonly frameMeter = new FrameMeter();
@@ -196,6 +199,12 @@ export class Application {
       this.changeSettings,
       this.returnToTank,
     );
+    // v0.6 Pass 033: the number of the next visit to the outer reef (0 without storage).
+    try {
+      this.visits = loadVisits(localStorage);
+    } catch {
+      this.visits = 0;
+    }
     try {
       this.sightings = loadJournal(localStorage);
     } catch {
@@ -601,6 +610,16 @@ export class Application {
   private setWaterWorld(id: WaterWorldId): void {
     // Pass 026: entering the outer waters (the tunnel) starts preparing the reef beyond it.
     if (id === 'outer') this.outer?.begin();
+    // v0.6 Pass 033: each entry to the outer reef is a new visit for the wall's visitors.
+    if (id === 'outer' && this.waterWorld !== 'outer' && this.outer) {
+      this.outer.arrive(this.visits);
+      this.visits++;
+      try {
+        saveVisits(localStorage, this.visits);
+      } catch {
+        /* Unavailable storage: visits still change within this session. */
+      }
+    }
     this.waterWorld = id;
     // Return to the tank is offered from either of the waters beyond it.
     this.ui.setOuter(id !== 'aquarium');
