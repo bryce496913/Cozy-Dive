@@ -88,3 +88,16 @@ v0.4 closes on the user's macOS acceptance of this candidate, after a full play-
   - **Acceptance:** a macOS checklist for v0.5.
 
 v0.5 closes on the user's macOS acceptance of this candidate; v0.4 (`0.4.0-rc.3`) can be accepted in the same play-through.
+
+**v0.6 Expanding Oceans starts (Pass 032, by user request).** v0.4 (`0.4.0-rc.3`) and v0.5 (`0.5.0-rc.1`) remain open, awaiting the macOS play-through. The first new environment, chosen by the user, is a kelp forest.
+
+- **Pass 032 — The kelp forest (`0.6.0-alpha.1`):** a third water world beyond the outer reef.
+  - **The way in:** a second hidden crevice at the cliff's foot leads through a dark tunnel into a giant kelp forest.
+  - **The forest:** swaying golden kelp, dark boulders and a sandy lane.
+  - **Life:** garibaldi around the rocks and bat rays gliding along the lane.
+  - **Passages:** they become links between worlds, and Return to the tank works from either.
+  - **Discovery:** new sightings, and the kelp unlocks a kelp stand for the tank. See [the kelp forest](KELP_FOREST.md).
+- **Provisional, to agree after the user plays Pass 032:**
+  - the kelp forest's life for the tank (garibaldi, a bat ray pup);
+  - more kelp-forest character (light shafts, a sea lion);
+  - then polish and acceptance for v0.6.
