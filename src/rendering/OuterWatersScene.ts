@@ -4,6 +4,7 @@ import { OUTER } from '../config/passage';
 import type { Bounds, Vec3 } from '../config/world';
 import type { SightCandidate } from '../discovery/journal';
 import { boxCollider } from '../environment/passage/Crevice';
+import { OuterCleft } from '../environment/outer/OuterCleft';
 import {
   OuterCreatures,
   reefObstacles,
@@ -62,6 +63,8 @@ export class OuterWatersScene implements WaterWorld {
   readonly camera = new THREE.PerspectiveCamera(64, 1, 0.08, 150);
   readonly environment = new OuterEnvironment();
   readonly reef: OuterReef;
+  /** v0.6 Pass 032: the cleft at the cliff's foot, the way on to the kelp forest. */
+  readonly cleft = new OuterCleft();
   schools?: OuterSchools;
   /** v0.4 Pass 025: sharks, eagle rays and a turtle (absent if their models cannot load). */
   creatures?: OuterCreatures;
@@ -105,7 +108,7 @@ export class OuterWatersScene implements WaterWorld {
     this.fog = new THREE.FogExp2(WATER, OUTER.fog);
     this.scene.background = this.background;
     this.scene.fog = this.fog;
-    this.scene.add(this.dome.mesh, this.environment.root);
+    this.scene.add(this.dome.mesh, this.environment.root, this.cleft.root);
     // The same kinds and number of lights as the tank, so most shader programs are shared with
     // it and need no new compilation (programs are keyed by light counts).
     // Pass 026: a softer sky light, so the reef's lit tops sink into the blue instead of glowing.
@@ -119,7 +122,10 @@ export class OuterWatersScene implements WaterWorld {
     this.scene.add(sky, sun, fill);
     this.reef = new OuterReef(libraries.reef, libraries.plants);
     this.scene.add(this.reef.root);
-    this.world = this.collisionFor(this.environment.colliders);
+    this.world = this.collisionFor([
+      ...this.environment.colliders,
+      ...this.cleft.colliders,
+    ]);
     for (let i = 0; i < libraries.soundSpots; i++) {
       const h = this.reef.heads[i % this.reef.heads.length];
       this.soundSpots.push({ x: h.x, y: h.y + 1.4, z: h.z });
@@ -180,8 +186,12 @@ export class OuterWatersScene implements WaterWorld {
     await this.reef.ready;
     if (this.disposed) return false;
     this.environment.dress(this.reef.sand, this.reef.rock);
+    // The cleft wears the reef's rock too (triplanar, so its boulders need no UVs).
+    if (this.reef.rock)
+      for (const mesh of this.cleft.rocks) mesh.material = this.reef.rock;
     this.world = this.collisionFor([
       ...this.environment.colliders,
+      ...this.cleft.colliders,
       ...this.reef.colliders,
     ]);
     // Pass 026: one map of the reef's tops places the schools and lifts the creatures' routes.
@@ -192,6 +202,7 @@ export class OuterWatersScene implements WaterWorld {
       // Coarse boxes keep the fish cheap; one more keeps them off the cliff.
       rocks: [
         ...this.reef.fishObstacles,
+        ...this.cleft.colliders,
         boxCollider(
           [OUTER.bounds.min.x - 1, OUTER.bounds.min.y - 1, OUTER.cliffZ - 1],
           [
@@ -280,6 +291,7 @@ export class OuterWatersScene implements WaterWorld {
     this.disposed = true;
     this.ready = false;
     this.environment.undress();
+    this.cleft.dispose();
     this.schools?.dispose();
     this.creatures?.dispose();
     this.sightings.length = 0;

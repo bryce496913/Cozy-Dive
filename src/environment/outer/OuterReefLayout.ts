@@ -79,6 +79,24 @@ function random(seed: number): () => number {
 const nearMouth = (x: number, z: number): boolean =>
   Math.abs(x) < OUTER_REEF.mouthClear.halfWidth &&
   z > OUTER.cliffZ - OUTER_REEF.mouthClear.depth;
+/**
+ * v0.6 Pass 032: the cleft to the kelp forest stands at the cliff's foot here, with its approach
+ * from the west. Pieces that would stand in it are dropped after the reef is generated, so the
+ * rest of the reef (every other piece, and the bommie that screens the cleft) is unchanged.
+ */
+export const CLEFT_CLEAR = {
+  minX: -20.5,
+  maxX: -9,
+  z: OUTER.cliffZ - 4.6,
+} as const;
+/** Whether a piece at (x, z) reaching `reach` m would intrude on the cleft's area. */
+export function inCleftClear(x: number, z: number, reach: number): boolean {
+  return (
+    x > CLEFT_CLEAR.minX - reach &&
+    x < CLEFT_CLEAR.maxX + reach &&
+    z > CLEFT_CLEAR.z - reach
+  );
+}
 /** Where reef structure may stand: inside the comfortable reef, off the channel and the mouth. */
 export function buildable(x: number, z: number, margin = 0): boolean {
   const r = OUTER.reef;
@@ -336,7 +354,17 @@ export function outerReefLayout(seed = OUTER_REEF.seed): ReefLayout {
       });
     }
   return {
-    placements: out,
+    placements: out.filter(
+      (p) =>
+        !inCleftClear(
+          p.position.x,
+          p.position.z,
+          // Loose debris is small; rounded rock and coral fill about 60% of their box.
+          p.family === 'rubble' || p.family === 'shell' || p.family === 'blade'
+            ? 0.3
+            : 0.6 * ROCK_HALF * Math.max(p.scale.x, p.scale.z),
+        ),
+    ),
     heads: heads.map((h) => ({ x: h.x, y: seabedHeight(h.x, h.z), z: h.z })),
   };
 }
