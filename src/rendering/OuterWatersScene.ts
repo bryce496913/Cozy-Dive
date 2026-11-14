@@ -59,7 +59,12 @@ export interface SharedLibraries {
 export class OuterWatersScene implements WaterWorld {
   readonly id = 'outer' as const;
   readonly scene = new THREE.Scene();
-  readonly camera = new THREE.PerspectiveCamera(64, 1, 0.08, 150);
+  readonly camera = new THREE.PerspectiveCamera(
+    64,
+    1,
+    0.08,
+    OUTER.viewDistance,
+  );
   readonly environment = new OuterEnvironment();
   readonly reef: OuterReef;
   schools?: OuterSchools;
