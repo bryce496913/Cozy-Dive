@@ -36,7 +36,7 @@ export const CREVICE_FRAME: PassageFrame = {
 };
 
 export const OUTER = {
-  /** The outer waters' swimmable volume (hard limits, well beyond where swimming eases off). */
+  /** Full ocean volume for terrain and wildlife; the swimmer also has a viewing-edge limit. */
   bounds: {
     // Pass 026: deep enough for the wall below the reef's lip.
     min: { x: -60, y: -42, z: -140 },
@@ -77,7 +77,8 @@ export const OUTER = {
   reach: {
     halfWidth: 24,
     side: 7,
-    past: 7,
+    // Ease over the first metre, then settle through the 2 m stop band at the viewing edge.
+    past: 1,
     down: -6,
     depth: 7,
     up: 12,
