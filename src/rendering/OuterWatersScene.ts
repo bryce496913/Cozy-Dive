@@ -60,7 +60,12 @@ export interface SharedLibraries {
 export class OuterWatersScene implements WaterWorld {
   readonly id = 'outer' as const;
   readonly scene = new THREE.Scene();
-  readonly camera = new THREE.PerspectiveCamera(64, 1, 0.08, 150);
+  readonly camera = new THREE.PerspectiveCamera(
+    64,
+    1,
+    0.08,
+    OUTER.viewDistance,
+  );
   readonly environment = new OuterEnvironment();
   readonly reef: OuterReef;
   /** v0.6 Pass 032: the cleft at the cliff's foot, the way on to the kelp forest. */
@@ -170,7 +175,19 @@ export class OuterWatersScene implements WaterWorld {
   ): TerrainCollisionWorld {
     return new TerrainCollisionWorld(
       new ColliderGrid(colliders),
-      OUTER.bounds,
+      {
+        ...OUTER.bounds,
+        min: {
+          ...OUTER.bounds.min,
+          // Swimmer-only wall at the end of the gentle outward stop, 3 m beyond the lip.
+          // The fish and cruising animals retain the full ocean bounds.
+          z:
+            OUTER.dropOff.start -
+            OUTER.reach.past -
+            OUTER.reach.stop -
+            OUTER.bounds.clearance,
+        },
+      },
       seabedHeight,
     );
   }

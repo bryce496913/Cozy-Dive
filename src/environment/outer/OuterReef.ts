@@ -34,15 +34,16 @@ import {
  * soft corals and fans 7-13k. Beyond the last distance a piece is not drawn (fog hides it).
  */
 export const OUTER_DETAIL = {
-  // Pass 026 playtest: the water is less clear (fog 0.06), so nothing is drawn past 32 m and the
-  // far changes happen deep in the haze; the near ones are pushed out a little to pop less.
-  rock: [4.5, 12, 32],
+  // Visibility hotfix: retain close detail and retire distant pieces inside the denser haze.
+  rock: [4.5, 12, 24],
+  /** Large backdrop silhouettes get extra room for their footprint before disappearing. */
+  backdrop: 32,
   /** Massive colonies: full, far level, then a 1.3k-triangle mound in their own colour. */
-  massive: [3, 14, 32],
+  massive: [3, 14, 24],
   branching: [4, 14],
-  plate: 16,
-  plant: 16,
-  debris: 12,
+  plate: 14,
+  plant: 14,
+  debris: 10,
   /** Re-sort when the eye has moved this far, or this often (s). */
   resortDistance: 1.5,
   resortInterval: 0.4,
@@ -320,7 +321,10 @@ export class OuterReef {
     for (const [t, matrices] of this.groups('backdrop')) {
       this.add(
         `Outer backdrop ${t}`,
-        [{ geometry: this.part(`Rock_${t}_LOD2`).geometry, until: Infinity }],
+        [
+          { geometry: this.part(`Rock_${t}_LOD2`).geometry, until: D.backdrop },
+          { geometry: null, until: Infinity },
+        ],
         backdrop,
         matrices,
       );

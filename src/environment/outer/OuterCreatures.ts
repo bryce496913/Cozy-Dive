@@ -128,35 +128,36 @@ function oval(
  * Pass 026: they live in the blue just off the wall, on long loops parallel to it, so a swimmer
  * hovering past the lip sees something pass every half-minute or so. Loop lengths at their
  * speeds: sharks about 2 minutes, rays about 2.5, turtles about 2. Distinct depth bands
- * and wider turns leave room for the larger bodies.
+ * and wider turns leave room for the larger bodies. The viewing-edge adjustment brings each
+ * loop 4 m shoreward so creatures pass closer to a swimmer resting at the lip.
  */
 export const OUTER_CRUISERS: readonly CruiseGroup[] = [
   {
     // Mid-water, a little way out.
     species: 'blacktip-reef-shark',
     scale: 1.1,
-    waypoints: oval(0, -75, 30, 8, (x) => -5 + 0.3 * Math.sin(x * 0.09)),
+    waypoints: oval(0, -71, 30, 8, (x) => -5 + 0.3 * Math.sin(x * 0.09)),
     members: [{ start: 0, side: 0, up: 0, phase: 0 }],
   },
   {
     // Deeper and further out, fading into the dark.
     species: 'blacktip-reef-shark',
     scale: 1.15,
-    waypoints: oval(6, -78, 26, 8, (x) => -15 + 0.5 * Math.sin(x * 0.08 + 1)),
+    waypoints: oval(6, -74, 26, 8, (x) => -15 + 0.5 * Math.sin(x * 0.08 + 1)),
     members: [{ start: 60, side: 0, up: 0, phase: 1.7 }],
   },
   {
     // A larger adult passes near the wall, above the deeper patrols: visible from the lip.
     species: 'blacktip-reef-shark',
     scale: 1.2,
-    waypoints: oval(-6, -73, 24, 7, (x) => 5 + 0.5 * Math.sin(x * 0.1)),
+    waypoints: oval(-6, -69, 24, 7, (x) => 5 + 0.5 * Math.sin(x * 0.1)),
     members: [{ start: 35, side: 0, up: 0, phase: 3.4 }],
   },
   {
     // A loose line gliding along the wall just below the lip.
     species: 'spotted-eagle-ray',
     scale: 1.15,
-    waypoints: oval(-4, -73, 26, 9, () => -2.5),
+    waypoints: oval(-4, -69, 26, 9, () => -2.5),
     members: [
       { start: 0, side: 0, up: 0, phase: 0 },
       { start: -8.5, side: 1, up: 0.6, phase: 2.1 },
@@ -168,7 +169,7 @@ export const OUTER_CRUISERS: readonly CruiseGroup[] = [
     // Along the wall's face below the lip.
     species: 'green-sea-turtle',
     scale: 1.2,
-    waypoints: oval(-10, -67.5, 14, 3.5, (x) => -7.5 + 0.3 * Math.sin(x * 0.1)),
+    waypoints: oval(-10, -63.5, 14, 3.5, (x) => -7.5 + 0.3 * Math.sin(x * 0.1)),
     members: [{ start: 0, side: 0, up: 0, phase: 0.8 }],
   },
   {
@@ -177,7 +178,7 @@ export const OUTER_CRUISERS: readonly CruiseGroup[] = [
     scale: 1.05,
     waypoints: oval(
       8,
-      -68,
+      -64,
       12,
       3.5,
       (x) => -10.5 + 0.3 * Math.sin(x * 0.1 + 1),
