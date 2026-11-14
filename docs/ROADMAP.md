@@ -82,4 +82,9 @@ v0.4 closes on the user's macOS acceptance of this candidate, after a full play-
 
 - **Pass 029 — The tank catalog (`0.5.0-alpha.1`):** discovered corals and seagrass, quiet tank-only placement, movement/removal, local saving and confirmed reset.
 - **Pass 030 — Baby animals (`0.5.0-alpha.2`):** discovered shark, ray and turtle in tank-sized miniature forms; shared models, independent one-of-each saving, calm body-aware routes and the office miniature. Cloud validation is recorded in `VALIDATION_V05_PASS_030.md`; macOS play-through remains pending.
-- **Pass 031 — Polish and acceptance:** integrate personalization and validate comfort, persistence, lifecycle and target-device performance.
+- **Pass 031 — Polish and acceptance (`0.5.0-rc.1`):** the v0.5 release candidate.
+  - **Review:** a code review of Passes 029–030. Baby route planning is spread over frames, removing a periodic stutter, and give-way steering is fixed.
+  - **Regression:** a full browser regression.
+  - **Acceptance:** a macOS checklist for v0.5.
+
+v0.5 closes on the user's macOS acceptance of this candidate; v0.4 (`0.4.0-rc.3`) can be accepted in the same play-through.
