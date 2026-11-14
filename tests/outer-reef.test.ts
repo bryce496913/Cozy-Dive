@@ -116,9 +116,10 @@ describe('Pass 026 outer seabed and edges', () => {
       expect(eased(v(x, 3, -45), v(side, 0, 0)).x).toBeCloseTo(0, 9);
       expect(eased(v(x, 3, -45), v(-side, 0, 0)).x).toBe(-side);
     }
-    // A little way out over the blue (5-8 m past the lip) before it all but stops.
-    expect(r.past).toBeGreaterThanOrEqual(5);
-    expect(r.past).toBeLessThanOrEqual(8);
+    // The viewing-edge hotfix (PR #59, agreed by the user): a 1 m ease and the 2 m stop, so the
+    // swimmer settles about 3 m out over the blue, at a viewing edge (it was 5-8 m before).
+    expect(r.past).toBeGreaterThanOrEqual(0.5);
+    expect(r.past + r.stop).toBeLessThanOrEqual(3.5);
     expect(easeFactor(-1, 3)).toBe(1);
   });
   it('fades into darker blue with depth', () => {
