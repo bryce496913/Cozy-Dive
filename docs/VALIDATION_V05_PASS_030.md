@@ -56,17 +56,53 @@ An original tank has no resident owner or model requests. The owner borrows geom
 
 ## Feature checks
 
-| Check | Result |
-| --- | --- |
-| `npm run build` | Passed, 8.52 s after the lid-sweep correction |
+| Check                            | Result                                                    |
+| -------------------------------- | --------------------------------------------------------- |
+| `npm run build`                  | Passed, 8.52 s after the lid-sweep correction             |
 | `npm run test -- --maxWorkers=1` | **513 tests / 57 files passed**, 132.09 s Vitest duration |
-| `npm run typecheck` | Passed, 8.84 s |
-| `npm run lint` | Passed, 24.00 s |
-| `npm run test:stress` | **10 scenarios passed**, 208.85 s Vitest duration |
+| `npm run typecheck`              | Passed, 8.84 s                                            |
+| `npm run lint`                   | Passed, 24.00 s                                           |
+| `npm run test:stress`            | **10 scenarios passed**, 208.85 s Vitest duration         |
 
 Coverage includes unlocks, independent limits, version 1 migration, partial/corrupt/unavailable saves, reset, valid spawning around existing swimmers, swept detours and re-planning without relocation, giving way, smaller reduced-motion strokes, pause/fade clocks, both model detail levels/morphs, flat ray clearance, shared cache ownership, late loads, fade reversal and one-time disposal. The production habitat with twenty additions runs for thirty simulated minutes at each of 30/60/120 FPS, checks every fixed step, and ends with identical state. Heavy new tests use explicit 20-second timeouts; the global timeout is unchanged.
 
 The first complete feature suite passed 512 tests. A follow-up after the lid guard and additional test hit five-second timeouts in two unchanged discovery tests; the other 511 passed. Both discovery tests then passed unchanged in an isolated 14-test run (5.02 s total), and the final complete 513-test suite passed. No timeout or assertion was relaxed. CPU/stress and browser jobs ran separately. The first feature-browser attempt found its local server stopped before navigation; it was restarted rather than counted as evidence.
+
+## Native browser results
+
+`validation/tank-babies.mjs` ran at verified DPR 0.5, 1000×700 CSS / 500×350 buffer, sequentially after CPU checks. The catalog/movement/persistence section completed first. Its later resource comparison exposed an unwarmed near-detail level after reload: **368 geometries / 125 textures → 369 / 126**, with 117 programs unchanged. The miniature had uploaded far levels, while a near mesh and its morph texture first entered the tank camera during a subsequent cycle. This attempt is **not** reported as a complete harness pass.
+
+The fixture now visibly renders every near level and then the far miniature before the strict equality baseline; the assertion remains unchanged. `COZY_TRAVEL_ONLY=1` resumed the travel/reset section with three saved visitors and the same twenty additions. That warmed run passed. Together these two invocations complete all requested feature stages; the resumed run does not repeat the earlier native add/remove/movement/persistence witnesses. Both raw reports retain the distinction. No page or console errors occurred in either.
+
+The first section verified an absent resident owner and **zero baby GLB requests** before adding, twenty restored additions, all three native additions, pause freezing, native ray removal with a completed fade, a version-2 save containing twenty decorations and the other two animals, reload and re-add. Over four simulation seconds the pup/ray/hatchling moved **1.019 / 0.746 / 0.535 m**. Every sampled frame checked scenery clearance and fish spacing. Two zero-resident office/tank cycles matched **365 geometries / 113 textures / 113 programs**.
+
+The warmed travel section verified all three in the office miniature with **zero near-detail residents**, two office/tank cycles, two native W crevice crossings followed by pause-screen return and outer release, both reset choices and preserved sightings. It held **371 geometries / 128 textures / 117 programs** across office/tank cycles. Both completed passage visits matched **371 / 128 / 119**; the first visit warmed the additional outer render paths. Confirmed reset left zero decorations, zero animals, no resident owner, and all nine sightings.
+
+| Same paused camera and fish poses, twenty additions | Calls | Triangles |
+| --------------------------------------------------- | ----: | --------: |
+| Baby group hidden, assets retained                  |   190 | 1,192,693 |
+| Three babies visible                                |   196 | 1,222,849 |
+| Observed difference, including renderer passes      |     6 |    30,156 |
+
+This isolates the rendered difference at that frame, not hardware FPS. The cold no-download check is separate from the hidden-group comparison. The final office render measured 28 calls / 59,558 triangles; its earlier miniature pass is not included in that final-pass number. Close views use staged valid cameras without advancing simulation. The three use unchanged adult proportions at miniature scale; the target macOS size/charm decision remains open.
+
+The final style, harness and evidence follow-up passed `npm run build` in **7.32 s** and `npm run lint` in **22.28 s**, after the browser run completed. [Follow-up check results](screenshots/v0.5-pass030/polish-checks.json).
+
+Visual inspection also caught browser-default styling on the new nested animal buttons. They now share the existing catalog colors, borders, spacing and hover treatment; the final catalog screenshot shows all three rows. PR #54 was externally merged while this validation was still running. Its remaining style, fixture warm-up and evidence are supplied in the follow-up PR; no automatic merge was performed.
+
+[Catalog/movement report, including the initial warm-up finding](screenshots/v0.5-pass030/catalog-and-movement-report.json) · [Passed warmed travel/reset report](screenshots/v0.5-pass030/warmed-travel-report.json) · [CPU check history](screenshots/v0.5-pass030/cpu-checks.json)
+
+![Animal catalog with matching action buttons](screenshots/v0.5-pass030/catalog-animals.png)
+
+![Blacktip pup; the other two visitors are also in view](screenshots/v0.5-pass030/blacktip-pup.png)
+
+![Baby eagle ray including its protected tail](screenshots/v0.5-pass030/baby-eagle-ray.png)
+
+![Turtle hatchling](screenshots/v0.5-pass030/turtle-hatchling.png)
+
+![Tank overview with three visitors and twenty saved additions](screenshots/v0.5-pass030/three-with-corals.png)
+
+![Office miniature with additions and far-detail visitors](screenshots/v0.5-pass030/office-miniature.png)
 
 ## macOS acceptance checklist
 

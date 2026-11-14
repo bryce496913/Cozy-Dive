@@ -262,3 +262,13 @@ It then makes two visits, each ending with Return to the tank and release, and c
 ## Pass 029 browser scale
 
 The six long regression harnesses (`dive`, `dive-interrupt`, `lifecycle`, `passage`, `integration`, `production`) accept `COZY_DPR=0.5` to lower the raster buffer size while retaining the original CSS viewport, real scene, controls, geometry and behavioral assertions. Default remains DPR 1. They print `COZY_BROWSER_SCALE` and verify the browser reports the requested pixel ratio. This is useful for slow SwiftShader checks, not for target-device FPS measurement. Catalog screenshots use DPR 1. The dive swimming check is bounded by rendered input frames instead of a short wall-clock deadline; its minimum movement assertion remains unchanged.
+
+## Pass 030 tank babies
+
+```bash
+COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy030-babies COZY_DPR=0.5 node validation/tank-babies.mjs
+```
+
+Run alone, after CPU checks. The harness restores twenty valid decorations from the committed Pass 029 fixture and seeds all nine sightings. It uses native catalog buttons, pointer lock and keys to add three babies, watch movement and clearance, remove/reload one, inspect the miniature, repeat office/tank and passage cycles, and test both reset choices. Fixed-frame draw comparisons retain loaded assets while hiding only the baby group; a separate cold check proves there are no baby downloads before adding. Near and far detail levels are rendered before strict resource comparisons, including each level's morph texture.
+
+`COZY_TRAVEL_ONLY=1` seeds the same twenty decorations and three saved visitors and runs the warmed travel/reset section, for resuming after the catalog/movement/persistence section has completed. Reports identify the resumed mode. Every sampled frame checks body/scenery clearance and fish spacing. All evidence remains SwiftShader-only; camera/swimmer poses are staged, not a human play-through.

@@ -1,0 +1,306 @@
+{
+  "errors": [],
+  "views": [
+    {
+      "name": "cold-twenty-additions",
+      "calls": 197,
+      "triangles": 1213810
+    },
+    {
+      "name": "catalog-animals",
+      "calls": 197,
+      "triangles": 1213810
+    },
+    {
+      "name": "blacktip-reef-shark",
+      "calls": 190,
+      "triangles": 1227517
+    },
+    {
+      "name": "spotted-eagle-ray",
+      "calls": 190,
+      "triangles": 1232313
+    },
+    {
+      "name": "green-sea-turtle",
+      "calls": 194,
+      "triangles": 1235109
+    },
+    {
+      "name": "three-with-corals",
+      "calls": 199,
+      "triangles": 1234498
+    },
+    {
+      "name": "office-miniature",
+      "calls": 28,
+      "triangles": 59558
+    }
+  ],
+  "limits": [
+    "SwiftShader only; staged camera/swimmer poses; catalog buttons, pointer lock and travel keys are native.",
+    "Fixed-frame hidden-body comparison retains loaded assets; a separate cold check proves no baby downloads before adding."
+  ],
+  "cold": {
+    "babies": false,
+    "decorations": 20,
+    "creatureDownloads": []
+  },
+  "zeroBefore": {
+    "geometries": 365,
+    "textures": 113,
+    "programs": 113
+  },
+  "zeroAfter": {
+    "geometries": 365,
+    "textures": 113,
+    "programs": 113
+  },
+  "minimumFishGap": 4.388496535386338,
+  "movement": [
+    {
+      "id": "blacktip-reef-shark",
+      "distance": 1.0193530206709804
+    },
+    {
+      "id": "spotted-eagle-ray",
+      "distance": 0.745554015143851
+    },
+    {
+      "id": "green-sea-turtle",
+      "distance": 0.5351827025837534
+    }
+  ],
+  "fixedFrame": {
+    "zero": {
+      "calls": 190,
+      "triangles": 1192693
+    },
+    "three": {
+      "calls": 196,
+      "triangles": 1222849
+    },
+    "decorations": 20
+  },
+  "saved": {
+    "version": 2,
+    "items": [
+      {
+        "id": "tank-c60821d8-b9ff-4107-90c2-7462e6bc18d9",
+        "kind": "boulder",
+        "position": {
+          "x": 15.799999999999997,
+          "y": 0.09585204277135792,
+          "z": -12.050609665440989
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-403c38ef-f382-4788-ac55-4c05d5bb101c",
+        "kind": "seagrass",
+        "position": {
+          "x": 14.199999999999998,
+          "y": 0.018706088329119304,
+          "z": -10.85060966544099
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-89aafbd0-4b70-4842-8b5c-e68bba1eaee9",
+        "kind": "branching",
+        "position": {
+          "x": 15.799999999999997,
+          "y": 0.011720187766916301,
+          "z": -9.65060966544099
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-8c4225c1-dcfd-4821-bf20-fbdefb736670",
+        "kind": "plate",
+        "position": {
+          "x": 4.599999999999999,
+          "y": 0.08538654381817357,
+          "z": -7.25060966544099
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-b19cb8b1-de78-4811-9059-4dc76b33ebda",
+        "kind": "soft",
+        "position": {
+          "x": -8.200000000000001,
+          "y": 0.05235784180291565,
+          "z": -3.65060966544099
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-dd593cfd-ece1-44ea-af97-a2d087c9ab63",
+        "kind": "sea-fan",
+        "position": {
+          "x": -6.600000000000001,
+          "y": -0.004441033138069268,
+          "z": -3.65060966544099
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-12c72d36-1355-4bd5-bda7-afd9380ec3d4",
+        "kind": "boulder",
+        "position": {
+          "x": -16.2,
+          "y": 0.009665104070796106,
+          "z": 4.74939033455901
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-c7692623-dc23-4c99-a722-2a9b3b706e51",
+        "kind": "seagrass",
+        "position": {
+          "x": 12.599999999999998,
+          "y": 0.010061446670132548,
+          "z": 4.74939033455901
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-1f15cdf3-f816-4882-8469-9be268b17792",
+        "kind": "branching",
+        "position": {
+          "x": -9.8,
+          "y": 0.0027653439684111117,
+          "z": 5.949390334559011
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-4105f564-7388-48b4-87e4-20939b307015",
+        "kind": "plate",
+        "position": {
+          "x": -5.000000000000002,
+          "y": 0.005619315552006808,
+          "z": 5.949390334559011
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-c34b4bb6-98c9-420d-b9f5-19c7410d852f",
+        "kind": "soft",
+        "position": {
+          "x": 9.399999999999999,
+          "y": 0.014543995442810112,
+          "z": 5.949390334559011
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-e81d00b9-da93-4225-994c-9bdf07bd17ca",
+        "kind": "sea-fan",
+        "position": {
+          "x": 10.999999999999998,
+          "y": 0.04607102686429086,
+          "z": 5.949390334559011
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-5d08b548-8ad0-4352-a91d-8c78758bc3eb",
+        "kind": "boulder",
+        "position": {
+          "x": -16.2,
+          "y": 0.03990947582820767,
+          "z": 7.14939033455901
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-c69ace1b-d4ca-488f-a37a-f7483cb1d075",
+        "kind": "seagrass",
+        "position": {
+          "x": 14.199999999999998,
+          "y": 0.008812912869500162,
+          "z": 7.14939033455901
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-f68ba999-6ec0-4589-919a-5aee49405310",
+        "kind": "branching",
+        "position": {
+          "x": -14.6,
+          "y": 0.031462493986800434,
+          "z": 8.34939033455901
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-25448857-8819-435d-b464-be26bb029455",
+        "kind": "plate",
+        "position": {
+          "x": -8.200000000000001,
+          "y": 0.0693554810827904,
+          "z": 8.34939033455901
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-dfa86149-262a-47c5-a0e0-cd01751b0d23",
+        "kind": "soft",
+        "position": {
+          "x": 4.599999999999999,
+          "y": 0.028124878896774168,
+          "z": 8.34939033455901
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-3fda74d5-9c77-4b55-8453-78646f7ac0e0",
+        "kind": "sea-fan",
+        "position": {
+          "x": 9.399999999999999,
+          "y": 0.02792810618114616,
+          "z": 8.34939033455901
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-5d185941-a200-4ce4-b066-86514b78e781",
+        "kind": "boulder",
+        "position": {
+          "x": 15.799999999999997,
+          "y": 0.08316423192810586,
+          "z": 8.34939033455901
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-df3e9fb6-270b-44ae-963d-7ac25c1dafe8",
+        "kind": "seagrass",
+        "position": {
+          "x": -16.2,
+          "y": 0.08614264697827981,
+          "z": 9.549390334559009
+        },
+        "rotation": 0
+      }
+    ],
+    "babies": ["blacktip-reef-shark", "green-sea-turtle"]
+  },
+  "miniature": {
+    "animals": 3,
+    "near": 0,
+    "decorations": 20
+  },
+  "threeBefore": {
+    "geometries": 368,
+    "textures": 125,
+    "programs": 117
+  },
+  "threeAfter": {
+    "geometries": 369,
+    "textures": 126,
+    "programs": 117
+  }
+}

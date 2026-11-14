@@ -1,0 +1,73 @@
+{
+  "first": [
+    {
+      "name": "format",
+      "exit": 0,
+      "seconds": 15.68
+    },
+    {
+      "name": "build",
+      "exit": 0,
+      "seconds": 7.54
+    },
+    {
+      "name": "test",
+      "exit": 0,
+      "seconds": 127.42
+    },
+    {
+      "name": "typecheck",
+      "exit": 0,
+      "seconds": 6.85
+    },
+    {
+      "name": "lint",
+      "exit": 0,
+      "seconds": 21.64
+    },
+    {
+      "name": "stress",
+      "exit": 0,
+      "seconds": 209.43
+    }
+  ],
+  "after_lid_guard": [
+    {
+      "name": "format",
+      "exit": 0,
+      "seconds": 17.59
+    },
+    {
+      "name": "build",
+      "exit": 0,
+      "seconds": 8.52
+    },
+    {
+      "name": "test",
+      "exit": 1,
+      "seconds": 154.93
+    }
+  ],
+  "final_full_suite": [
+    {
+      "name": "format",
+      "exit": 0,
+      "seconds": 17.57
+    },
+    {
+      "name": "test",
+      "exit": 0,
+      "seconds": 132.75
+    },
+    {
+      "name": "typecheck",
+      "exit": 0,
+      "seconds": 8.84
+    },
+    {
+      "name": "lint",
+      "exit": 0,
+      "seconds": 24.0
+    }
+  ]
+}
