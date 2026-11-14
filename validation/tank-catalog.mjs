@@ -186,7 +186,8 @@ try {
   await page
     .getByRole('button', { name: 'For your tank', exact: true })
     .click();
-  assert.equal(await page.locator('.tank-catalog button').count(), 7);
+  // Seven items (Pass 032 adds the kelp stand) and the Close button.
+  assert.equal(await page.locator('.tank-catalog button').count(), 8);
   await shot('catalog');
   await page.getByRole('button', { name: 'Close', exact: true }).click();
   const spots = await page.evaluate(async () => {
