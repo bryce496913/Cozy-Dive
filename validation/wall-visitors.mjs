@@ -210,7 +210,7 @@ try {
     let nearest = Infinity,
       when = 0,
       shot = false;
-    for (let f = 0; f < 30 * 120; f++) {
+    for (let f = 0; f < 10 * 120; f++) {
       const d = await page.evaluate((id) => {
         const a = window.__cozy,
           w = a.outer.visitors,
@@ -224,7 +224,8 @@ try {
         a.controls.clear();
         return Math.hypot(dx, dy, dz);
       }, id);
-      s = await step(1);
+      // Three frames per look keep the follow quick; the look is re-aimed after each.
+      s = await step(3);
       if (d < nearest) {
         nearest = d;
         when = f;
@@ -233,7 +234,7 @@ try {
         shot = true;
         await page.screenshot({ path: path.join(output, `${n}-${id}.png`) });
       }
-      if (shot && f - when > 30) break;
+      if (shot && f - when > 10) break;
     }
     if (!shot)
       await page.screenshot({ path: path.join(output, `${n}-${id}.png`) });
