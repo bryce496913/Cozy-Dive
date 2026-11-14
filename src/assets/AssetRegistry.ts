@@ -192,8 +192,9 @@ export const ASSET_REGISTRY = {
   mantaRay: {
     path: 'assets/models/creatures/manta-ray.glb',
     requiredNodes: ['Manta_Root', 'Body', 'Body_LOD1'],
+    // Bounds include the wing-beat morphs: the 4.4 m span measures 5.2 m with both strokes.
     minDimension: 4.0,
-    maxDimension: 4.8,
+    maxDimension: 5.5,
     requireMorphs: true,
   },
   whaleShark: {
