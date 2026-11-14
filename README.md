@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.5 / Pass 030 — Babies in the tank (`0.5.0-alpha.2`)** is a first-person, browser-based aquarium prototype. Start in a small glass-walled office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15` and v0.3 (Office & Dive Transition) at `0.3.0-rc.1`. No scores, timers, combat, accounts, or external asset services.
+A quiet little world beneath the surface. **v0.5 / Pass 031 — Personalization release candidate (`0.5.0-rc.1`)** is a first-person, browser-based aquarium prototype. Start in a small glass-walled office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15` and v0.3 (Office & Dive Transition) at `0.3.0-rc.1`. No scores, timers, combat, accounts, or external asset services.
 
 ## Stack and requirements
 
@@ -45,7 +45,7 @@ In the office, W A S D walk and the mouse looks around.
 
 Click **Return to the Water** to resume. Look up or down and use W/S to change depth; A/D always strafe horizontally. Space and Shift have no swimming action. Pausing or losing browser focus clears held input and propulsion momentum while retaining a resting breath’s phase and small vertical velocity. Diagonal input is normalized. Subtle stroke-related pitch feedback stays below 0.07 degrees, with no roll or visual position offsets. Looking straight up/down is limited.
 
-v0.5 Personalization has started alongside the v0.4 candidate, which still awaits macOS acceptance. See [tank catalog design](docs/TANK_CATALOG.md) and [Pass 030 validation](docs/VALIDATION_V05_PASS_030.md), including the completed Pass 029 regressions. See [outer reef life validation](docs/VALIDATION_OUTER_REEF_LIFE.md), [Pass 028 playtest round](docs/VALIDATION_V04_PASS_028_PLAYTEST.md), [Pass 028 release-candidate validation](docs/VALIDATION_V04_PASS_028.md), [Pass 027 validation](docs/VALIDATION_V04_PASS_027.md), [Pass 026 playtest round](docs/VALIDATION_V04_PASS_026_PLAYTEST.md), [Pass 026 validation](docs/VALIDATION_V04_PASS_026.md), [Pass 025 validation](docs/VALIDATION_V04_PASS_025.md), [Pass 024 validation](docs/VALIDATION_V04_PASS_024.md), [Pass 023 validation](docs/VALIDATION_V04_PASS_023.md), [Pass 022 validation](docs/VALIDATION_V03_PASS_022.md), [Pass 021 validation](docs/VALIDATION_V03_PASS_021.md), [Pass 020 validation](docs/VALIDATION_V03_PASS_020.md), [Pass 019 validation](docs/VALIDATION_V02_PASS_019.md), [Pass 018 validation](docs/VALIDATION_V02_PASS_018.md), [Pass 017 validation](docs/VALIDATION_V02_PASS_017.md), [Pass 016 validation](docs/VALIDATION_V02_PASS_016.md), [Pass 015 validation](docs/VALIDATION_V02_PASS_015.md), [Pass 014 validation](docs/VALIDATION_V02_PASS_014.md), [Pass 013 validation](docs/VALIDATION_V02_PASS_013.md) and [repeatable benchmarks](validation/README.md).
+This is the v0.5 release candidate, awaiting macOS acceptance alongside the v0.4 candidate. See [Pass 031 release-candidate validation](docs/VALIDATION_V05_PASS_031.md), [tank catalog design](docs/TANK_CATALOG.md) and [Pass 030 validation](docs/VALIDATION_V05_PASS_030.md), including the completed Pass 029 regressions. See [outer reef life validation](docs/VALIDATION_OUTER_REEF_LIFE.md), [Pass 028 playtest round](docs/VALIDATION_V04_PASS_028_PLAYTEST.md), [Pass 028 release-candidate validation](docs/VALIDATION_V04_PASS_028.md), [Pass 027 validation](docs/VALIDATION_V04_PASS_027.md), [Pass 026 playtest round](docs/VALIDATION_V04_PASS_026_PLAYTEST.md), [Pass 026 validation](docs/VALIDATION_V04_PASS_026.md), [Pass 025 validation](docs/VALIDATION_V04_PASS_025.md), [Pass 024 validation](docs/VALIDATION_V04_PASS_024.md), [Pass 023 validation](docs/VALIDATION_V04_PASS_023.md), [Pass 022 validation](docs/VALIDATION_V03_PASS_022.md), [Pass 021 validation](docs/VALIDATION_V03_PASS_021.md), [Pass 020 validation](docs/VALIDATION_V03_PASS_020.md), [Pass 019 validation](docs/VALIDATION_V02_PASS_019.md), [Pass 018 validation](docs/VALIDATION_V02_PASS_018.md), [Pass 017 validation](docs/VALIDATION_V02_PASS_017.md), [Pass 016 validation](docs/VALIDATION_V02_PASS_016.md), [Pass 015 validation](docs/VALIDATION_V02_PASS_015.md), [Pass 014 validation](docs/VALIDATION_V02_PASS_014.md), [Pass 013 validation](docs/VALIDATION_V02_PASS_013.md) and [repeatable benchmarks](validation/README.md).
 
 ## Current features
 
@@ -356,6 +356,16 @@ Every embedded texture is now KTX2/Basis with a full mip chain, re-encoded from 
 ### v0.2 Pass 017 candidate
 
 Fish beyond 14 body lengths switch to a morphing distance level (about 1.8k instead of 12.7k triangles), cutting the spawn view by 28%. Every shipped model is Draco-compressed with WebP textures, so the production startup download falls from about 53 MB to about 17 MB, with no visible change. The Draco decoder is served locally. See [validation](docs/VALIDATION_V02_PASS_017.md).
+
+### v0.5 Pass 031 release candidate — polish and acceptance
+
+`0.5.0-rc.1` gathers v0.5 for acceptance: corals, sea fans and seagrass you have seen, placed anywhere they fit in the tank, and a blacktip pup, baby eagle ray and turtle hatchling that live there, all saved.
+
+- **Smoother babies:** a review found that each time a baby planned a new route, one frame took 8–12 ms, a small stutter every few seconds. Route planning is now spread over frames (worst warm step 1.3 ms), and the babies give way to you evenly.
+- **Full regression:** every browser harness, including the catalog and the babies.
+- **Acceptance:** a macOS checklist for v0.5, which can share a play-through with v0.4.
+
+See [release-candidate validation](docs/VALIDATION_V05_PASS_031.md).
 
 ### v0.5 Passes 029–030 — The tank catalog and little visitors
 
