@@ -81,10 +81,11 @@ try {
         valid: window.__cozy.tankEditor.model.valid,
         clear: window.__cozy.tankEditor.canPlace(),
         preview: window.__cozy.tankEditor.model.preview,
+        swimmer: { ...window.__cozy.state.position },
       }));
       assert(
         state.valid,
-        `Fixture aim must be a valid spot: ${JSON.stringify(state.preview)}`,
+        `Fixture aim must be a valid spot: ${JSON.stringify(state.preview)}; swimmer at ${JSON.stringify(state.swimmer)}; posed for ${JSON.stringify(lastPose)}`,
       );
       if (state.clear) {
         await page.keyboard.press('f');
@@ -110,23 +111,39 @@ try {
       ),
     );
   };
+  let lastPose;
+  // Pass 031: resuming from the pause screen restores the previous look on a later frame, which
+  // could overwrite a pose set straight after resuming (the preview then aimed elsewhere, so the
+  // validity check failed at varying spots). Re-apply the pose until the controls hold it.
   const pose = async (p, preview = true) => {
-    await page.evaluate(
-      ([p, preview]) => {
-        const a = window.__cozy;
-        Object.assign(a.state.position, {
-          x: p.x,
-          y: p.y + (preview ? 2 : 0.7),
-          z: p.z + 2,
-        });
-        a.state.neutralDepth = a.state.position.y;
-        a.controls.yaw = 0;
-        a.controls.pitch = preview ? -Math.PI / 4 : 0;
-        a.controls.clear();
-      },
-      [p, preview],
-    );
-    await step();
+    lastPose = p;
+    const pitch = preview ? -Math.PI / 4 : 0;
+    for (let attempt = 0; attempt < 10; attempt++) {
+      await page.evaluate(
+        ([p, preview, pitch]) => {
+          const a = window.__cozy;
+          Object.assign(a.state.position, {
+            x: p.x,
+            y: p.y + (preview ? 2 : 0.7),
+            z: p.z + 2,
+          });
+          a.state.neutralDepth = a.state.position.y;
+          a.controls.yaw = 0;
+          a.controls.pitch = pitch;
+          a.controls.clear();
+        },
+        [p, preview, pitch],
+      );
+      await step();
+      const held = await page.evaluate(
+        (pitch) =>
+          Math.abs(window.__cozy.controls.yaw) < 1e-6 &&
+          Math.abs(window.__cozy.controls.pitch - pitch) < 1e-6,
+        pitch,
+      );
+      if (held) return;
+    }
+    assert.fail('The fixture pose did not hold after resuming');
   };
   const enter = async () => {
     await page
