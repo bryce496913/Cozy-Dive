@@ -169,7 +169,19 @@ export class OuterWatersScene implements WaterWorld {
   ): TerrainCollisionWorld {
     return new TerrainCollisionWorld(
       new ColliderGrid(colliders),
-      OUTER.bounds,
+      {
+        ...OUTER.bounds,
+        min: {
+          ...OUTER.bounds.min,
+          // Swimmer-only wall at the end of the gentle outward stop, 3 m beyond the lip.
+          // The fish and cruising animals retain the full ocean bounds.
+          z:
+            OUTER.dropOff.start -
+            OUTER.reach.past -
+            OUTER.reach.stop -
+            OUTER.bounds.clearance,
+        },
+      },
       seabedHeight,
     );
   }
