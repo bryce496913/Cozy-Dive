@@ -66,7 +66,7 @@ export const OUTER = {
   // Visibility hotfix: about 96% haze by 14 m, concealing distant detail changes.
   fog: 0.13,
   /** Render range ends deep in the haze; the ocean background stays continuous. */
-  viewDistance: 48,
+  viewDistance: 25,
   /** Pass 026: the reef top is built this wide (m); it reaches further than you can swim. */
   reef: { minX: -44, maxX: 44 },
   /**
