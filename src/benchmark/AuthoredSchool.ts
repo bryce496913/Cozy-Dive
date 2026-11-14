@@ -81,6 +81,12 @@ export class AuthoredSchool {
     private readonly detailLengths: number = FISH_LOD.bodyLengths,
     /** v0.4 Pass 026: distance-level parts to leave out (e.g. sub-pixel eyes in big schools). */
     farOmit?: RegExp,
+    /**
+     * v0.6 Pass 032: one solid colour in place of the authored colour texture (relief and
+     * roughness maps kept; eyes, gills and mouth keep their own look). The garibaldi uses the
+     * chromis rig, in its own vivid orange.
+     */
+    recolor?: number,
   ) {
     this.root.name = `Authored ${speciesId} school`;
     this.indices = fish.simulation.fish.flatMap((f, i) =>
@@ -135,6 +141,13 @@ export class AuthoredSchool {
             // Biological sheen is restrained; glTF maps retain local scale/roughness detail.
             material.metalness = 0;
             material.envMapIntensity = 0.35;
+            if (
+              recolor !== undefined &&
+              !/Eye|Gill|Mouth/i.test(material.name)
+            ) {
+              material.map = null;
+              material.color.setHex(recolor);
+            }
             if (sharedTextures) shareTextures(material, sharedTextures);
           }
           materials.set(part.material, material);

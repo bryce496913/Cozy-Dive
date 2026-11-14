@@ -117,3 +117,86 @@ export const PASSAGE = {
   returnGap: 1.4,
   arrivalFade: 0.6,
 } as const;
+
+/**
+ * v0.6 Pass 032: the second passage. A copy of the tank's crevice stands at the foot of the outer
+ * reef's cliff, turned half round so the side that lies against the tank's back glass lies against
+ * the cliff, and its mouth faces west, away from the tunnel. Past its threshold the swimmer
+ * continues in the kelp forest's tunnel. Tank coordinates map to the outer waters as
+ * x' = offset.x - x, y' = y + offset.y, z' = offset.z - z (a half turn about y, then a shift).
+ */
+export const CLEFT = {
+  offset: { x: -9, y: -0.3, z: -44.1 },
+  /** Load the kelp forest within this distance of the cleft's mouth; release it beyond the second. */
+  preload: 15,
+  release: 22,
+} as const;
+/** A point from the tank's crevice coordinates into the outer waters (in place into `out`). */
+export function cleftFromTank(p: Vec3, out: Vec3): Vec3 {
+  const x = p.x,
+    z = p.z;
+  out.x = CLEFT.offset.x - x;
+  out.y = p.y + CLEFT.offset.y;
+  out.z = CLEFT.offset.z - z;
+  return out;
+}
+/** A point from the outer waters back into the tank's crevice coordinates (the same half turn). */
+export function cleftToTank(p: Vec3, out: Vec3): Vec3 {
+  const x = p.x,
+    z = p.z;
+  out.x = CLEFT.offset.x - x;
+  out.y = p.y - CLEFT.offset.y;
+  out.z = CLEFT.offset.z - z;
+  return out;
+}
+/** The cleft's threshold in the outer waters: the crevice threshold, turned with it. */
+export const CLEFT_FRAME: PassageFrame = {
+  origin: {
+    x: CLEFT.offset.x - CREVICE_FRAME.origin.x,
+    y: CREVICE_FRAME.origin.y + CLEFT.offset.y,
+    z: CLEFT.offset.z - CREVICE_FRAME.origin.z,
+  },
+  forward: { x: -CREVICE_FRAME.forward.x, z: -CREVICE_FRAME.forward.z },
+};
+
+/**
+ * v0.6 Pass 032: the kelp forest. Its tunnel starts at the cleft's threshold (the same cross-section
+ * and more) and runs south through a rock wall at `wallZ` into the forest. Metres, y up; the
+ * forest floor is near y 0 and the surface far above.
+ */
+export const KELP = {
+  bounds: {
+    min: { x: -48, y: -3, z: -100 },
+    max: { x: 48, y: 26, z: 4 },
+    clearance: 0.65,
+  } satisfies Bounds,
+  /** The tunnel: start (capped behind), axis height, radius and the wall it opens through. */
+  tunnel: { startZ: 1.6, y: 5, radius: 1.45, wallZ: -8 },
+  /** The sunlit surface, where the kelp spreads its canopy. */
+  surfaceY: 22,
+  /** Greener, thicker water than the reef: about 15 m of visibility. */
+  fog: 0.055,
+  water: 0x3a6f62,
+  /** Where swimming eases to a hover (as in the outer waters). */
+  reach: {
+    halfWidth: 30,
+    side: 7,
+    far: -78,
+    past: 7,
+    up: 17,
+    rise: 4,
+    down: 0.6,
+  },
+  /** The kelp grows over rock from the wall to the far edge, leaving a sandy lane for the rays. */
+  forest: {
+    minZ: -86,
+    maxZ: -11,
+    halfWidth: 40,
+    lane: { x: 8, halfWidth: 4.5 },
+  },
+} as const;
+/** The kelp tunnel's start, matching the cleft's threshold. */
+export const KELP_FRAME: PassageFrame = {
+  origin: { x: 0, y: KELP.tunnel.y, z: 0 },
+  forward: { x: 0, z: -1 },
+};

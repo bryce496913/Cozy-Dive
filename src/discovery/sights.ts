@@ -22,6 +22,12 @@ export const REEF_SIGHTS = {
   blade: { id: 'plant:seagrass', label: 'Seagrass' },
 } as const satisfies Record<string, Sight>;
 
+/** v0.6 Pass 032: what the kelp forest shows (its bat rays are listed with the big creatures). */
+export const KELP_SIGHTS = {
+  kelp: { id: 'plant:giant-kelp', label: 'Giant kelp' },
+  garibaldi: { id: 'species:garibaldi', label: 'Garibaldi' },
+} as const satisfies Record<string, Sight>;
+
 const REEF: Readonly<Record<string, Sight | undefined>> = REEF_SIGHTS;
 /** The sight a kind of reef piece shows, if any (by the layout's family name). */
 export function reefSight(family: string): Sight | undefined {
@@ -37,6 +43,7 @@ export const SIGHTS: readonly Sight[] = [
   ...Object.values(REEF_SIGHTS).filter(
     (s, i, all) => all.findIndex((o) => o.id === s.id) === i,
   ),
+  ...Object.values(KELP_SIGHTS),
 ];
 /** A sight's name, or null for an id this version does not know (kept, but not listed). */
 export function sightLabel(id: string): string | null {

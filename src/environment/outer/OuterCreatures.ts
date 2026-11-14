@@ -105,6 +105,8 @@ export interface CruiseGroup {
   /** Loop waypoints; their heights are minimums (the route is lifted over the reef). */
   readonly waypoints: readonly Vec3[];
   readonly members: readonly CruiserPlacement[];
+  /** v0.6 Pass 032: a colour multiplied into the model's own (e.g. the bat ray's dark back). */
+  readonly tint?: number;
 }
 /** An oval of `n` waypoints at height `y(x, z)`, travelled anticlockwise seen from above. */
 function oval(
@@ -225,13 +227,20 @@ export class OuterCreatures {
   private rigs: Rig[] = [];
   private leases: AssetLease[] = [];
   private readonly eye = new THREE.Vector3();
+  /** Tinted copies of the models' materials (owned here; the originals stay shared). */
+  private readonly tinted: THREE.Material[] = [];
+  private readonly tints: readonly (number | undefined)[];
   private disposed = false;
   constructor(
     obstacles: Obstacles,
     private readonly loader: AssetLoader,
+    /** v0.6 Pass 032: other waters bring their own creatures and routes. */
+    groups: readonly CruiseGroup[] = OUTER_CRUISERS,
+    name = 'Outer reef big creatures',
   ) {
-    this.root.name = 'Outer reef big creatures';
-    this.cruisers = outerCruisers(obstacles);
+    this.root.name = name;
+    this.cruisers = outerCruisers(obstacles, groups);
+    this.tints = groups.flatMap((g) => g.members.map(() => g.tint));
     this.ready = this.load();
   }
   private async load(): Promise<boolean> {
@@ -259,6 +268,16 @@ export class OuterCreatures {
         throw Error(
           `${cruiser.species.asset}: Body and Body_LOD1 must be meshes`,
         );
+      const tint = this.tints[i];
+      if (tint !== undefined)
+        for (const mesh of [near, far]) {
+          if (Array.isArray(mesh.material)) continue;
+          const own = mesh.material.clone();
+          if ('color' in own && own.color instanceof THREE.Color)
+            own.color.multiply(new THREE.Color(tint));
+          this.tinted.push(own);
+          mesh.material = own;
+        }
       const keys = near.morphTargetDictionary ?? {},
         root = new THREE.Group();
       root.name = cruiser.species.name;
@@ -337,6 +356,8 @@ export class OuterCreatures {
     this.sightings.length = 0;
     this.rigs = [];
     this.release();
+    this.tinted.forEach((m) => m.dispose());
+    this.tinted.length = 0;
     this.root.removeFromParent();
     this.root.clear();
   }

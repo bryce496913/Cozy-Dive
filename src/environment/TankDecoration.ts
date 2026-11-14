@@ -8,6 +8,7 @@ import {
   type TankKind,
 } from '../catalog/catalog';
 import { authoredPlantGeometry } from './AuthoredReef';
+import { kelpPatchGeometry } from './kelp/KelpStalks';
 import { LevelInstances } from './outer/LevelInstances';
 
 interface Piece {
@@ -65,8 +66,14 @@ export class TankDecoration {
         for (const d of TANK_ITEMS) {
           const pieces: Piece[] = [],
             box = new THREE.Box3();
-          for (const suffix of ['', '_Tips']) {
-            const node = lease.model.getObjectByName(d.node + suffix);
+          // v0.6 Pass 032: kelp has no library node; it is built in code, in unit height.
+          const procedural =
+            d.kind === 'kelp' ? kelpPatchGeometry() : undefined;
+          if (procedural) this.ownedGeometry.add(procedural);
+          for (const suffix of procedural ? [''] : ['', '_Tips']) {
+            const node = procedural
+              ? new THREE.Mesh(procedural, this.plants)
+              : lease.model.getObjectByName(d.node + suffix);
             if (!(node instanceof THREE.Mesh)) continue;
             let geometry = node.geometry,
               material = Array.isArray(node.material)
@@ -75,7 +82,8 @@ export class TankDecoration {
             if (
               d.kind === 'soft' ||
               d.kind === 'sea-fan' ||
-              d.kind === 'seagrass'
+              d.kind === 'seagrass' ||
+              d.kind === 'kelp'
             ) {
               geometry = authoredPlantGeometry(geometry, {
                 sway: 0.04,
@@ -94,7 +102,9 @@ export class TankDecoration {
             }
             geometry.computeBoundingBox();
             box.union(geometry.boundingBox!);
-            const far = lease.model.getObjectByName(d.node + suffix + '_LOD1');
+            const far = procedural
+              ? undefined
+              : lease.model.getObjectByName(d.node + suffix + '_LOD1');
             const preview = new THREE.MeshBasicMaterial({
               color: 0xa9dbcd,
               transparent: true,

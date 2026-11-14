@@ -1,8 +1,13 @@
 import {
+  CLEFT,
+  CLEFT_FRAME,
   CREVICE,
   CREVICE_FRAME,
+  KELP,
+  KELP_FRAME,
   PASSAGE,
   TUNNEL_FRAME,
+  cleftToTank,
   type PassageFrame,
 } from '../config/passage';
 import type { Vec3 } from '../config/world';
@@ -16,7 +21,7 @@ import type { Vec3 } from '../config/world';
  * stops and nothing jumps; the darkness, which peaks at the threshold on both sides, hides the
  * change of world. Pure (no allocation in the per-frame paths).
  */
-export type WaterWorldId = 'aquarium' | 'outer';
+export type WaterWorldId = 'aquarium' | 'outer' | 'kelp';
 
 /** Heading (camera yaw) that looks along a horizontal direction: forward = (-sin, -cos). */
 export const headingOf = (d: { x: number; z: number }): number =>
@@ -73,9 +78,13 @@ export function mapVector(
   return rotate(v, frameTurn(from, to), out);
 }
 
-/** The frame a world's end of the passage uses. */
+/** The frame a world's end of the tank passage uses (the kelp forest's is its own tunnel). */
 export const passageFrame = (world: WaterWorldId): PassageFrame =>
-  world === 'aquarium' ? CREVICE_FRAME : TUNNEL_FRAME;
+  world === 'aquarium'
+    ? CREVICE_FRAME
+    : world === 'kelp'
+      ? KELP_FRAME
+      : TUNNEL_FRAME;
 
 /** Whether `p` is inside the crevice channel's cross-section (for the darkness and the swap). */
 export function inChannel(p: Vec3): boolean {
@@ -114,14 +123,97 @@ export function passageTarget(
  * past it, identically on both sides, so the world change happens at its darkest.
  */
 export function passageDarkness(world: WaterWorldId, p: Vec3): number {
-  if (world === 'aquarium' && !inChannel(p)) {
-    // Outside the channel only its mouth area darkens slightly as it fills the view.
-    return 0;
-  }
-  const frame = passageFrame(world),
-    d = Math.abs(depthPast(frame, p)),
+  if (world === 'aquarium')
+    return inChannel(p) ? darkness(CREVICE_FRAME, p) : 0;
+  if (world === 'kelp') return inKelpTunnel(p) ? darkness(KELP_FRAME, p) : 0;
+  // The outer waters have two: the tunnel from the tank, and the cleft to the kelp forest.
+  return Math.max(
+    darkness(TUNNEL_FRAME, p),
+    inCleft(p) ? darkness(CLEFT_FRAME, p) : 0,
+  );
+}
+function darkness(frame: PassageFrame, p: Vec3): number {
+  const d = Math.abs(depthPast(frame, p)),
     t = Math.max(0, 1 - d / PASSAGE.darkReach);
   return PASSAGE.darkPeak * t * t * (3 - 2 * t);
+}
+
+const local: Vec3 = { x: 0, y: 0, z: 0 };
+/** v0.6 Pass 032: whether `p` (outer waters) is inside the cleft's channel. */
+export function inCleft(p: Vec3): boolean {
+  return inChannel(cleftToTank(p, local));
+}
+/** v0.6 Pass 032: whether `p` (kelp forest) is in its tunnel, from its start to the wall. */
+export function inKelpTunnel(p: Vec3): boolean {
+  const t = KELP.tunnel;
+  return (
+    p.z <= t.startZ &&
+    p.z >= t.wallZ - 0.5 &&
+    Math.abs(p.x - KELP_FRAME.origin.x) <= t.radius + 0.3 &&
+    Math.abs(p.y - t.y) <= t.radius + 0.3
+  );
+}
+/** Distance from the cleft's mouth in the outer waters (for loading and releasing the kelp forest). */
+export function cleftDistance(p: Vec3): number {
+  return Math.hypot(
+    p.x - (CLEFT.offset.x - CREVICE.mouthX),
+    p.y - (CREVICE.centre.y + CLEFT.offset.y),
+    p.z - (CLEFT.offset.z - CREVICE.centre.z),
+  );
+}
+
+/** A change of world: the target, and the frames to map position, velocity and look between. */
+export interface Crossing {
+  readonly target: WaterWorldId;
+  readonly from: PassageFrame;
+  readonly to: PassageFrame;
+}
+const TANK_TO_OUTER: Crossing = {
+    target: 'outer',
+    from: CREVICE_FRAME,
+    to: TUNNEL_FRAME,
+  },
+  OUTER_TO_TANK: Crossing = {
+    target: 'aquarium',
+    from: TUNNEL_FRAME,
+    to: CREVICE_FRAME,
+  },
+  OUTER_TO_KELP: Crossing = {
+    target: 'kelp',
+    from: CLEFT_FRAME,
+    to: KELP_FRAME,
+  },
+  KELP_TO_OUTER: Crossing = {
+    target: 'outer',
+    from: KELP_FRAME,
+    to: CLEFT_FRAME,
+  };
+/**
+ * v0.6 Pass 032: whether to change world this frame, and how. The tank and the outer waters are
+ * linked by the crevice and tunnel (as before); the outer waters and the kelp forest by the cleft
+ * and the kelp tunnel. A world is entered only when it is ready; hysteresis applies both ways.
+ */
+export function crossing(
+  world: WaterWorldId,
+  p: Vec3,
+  ready: { readonly outer: boolean; readonly kelp: boolean },
+): Crossing | null {
+  if (world === 'aquarium')
+    return passageTarget('aquarium', p, ready.outer) === 'outer'
+      ? TANK_TO_OUTER
+      : null;
+  if (world === 'outer') {
+    if (passageTarget('outer', p, true) === 'aquarium') return OUTER_TO_TANK;
+    return ready.kelp &&
+      inCleft(p) &&
+      depthPast(CLEFT_FRAME, p) > PASSAGE.hysteresis
+      ? OUTER_TO_KELP
+      : null;
+  }
+  return depthPast(KELP_FRAME, p) < -PASSAGE.hysteresis &&
+    Math.abs(p.y - KELP_FRAME.origin.y) < 3
+    ? KELP_TO_OUTER
+    : null;
 }
 
 /**
