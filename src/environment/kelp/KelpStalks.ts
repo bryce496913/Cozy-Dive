@@ -75,93 +75,69 @@ export function stalkPlacements(
   return out;
 }
 
-/** One stalk template: stipe, blades and canopy, with a height channel for the sway (pure). */
+/**
+ * One kelp plant template: a holdfast sending up several stipes that lean apart a little, each
+ * hung with long, wavy golden-brown blades all the way up and spreading into a canopy at the top.
+ * Positions and colours only; normals are computed once after merging (pure).
+ */
 export function stalkTemplate(
   height: number,
   seed: number,
 ): THREE.BufferGeometry {
   const rand = random(seed),
-    parts: THREE.BufferGeometry[] = [],
-    lean = (y: number) => 0.35 * Math.sin(y * 0.21 + seed) * (y / height);
-  // The stipe: a thin wandering tube, thinner towards the top.
-  const segments = Math.ceil(height / 0.9),
-    path: THREE.Vector3[] = [];
-  for (let i = 0; i <= segments; i++) {
-    const y = (i / segments) * height;
-    path.push(
-      new THREE.Vector3(
-        lean(y),
+    parts: THREE.BufferGeometry[] = [];
+  const stipes = 3;
+  for (let k = 0; k < stipes; k++) {
+    const tall = height * (k === 0 ? 1 : 0.72 + rand() * 0.22),
+      lean = rand() * Math.PI * 2,
+      spread = 0.25 + rand() * 0.35,
+      phase = rand() * 6;
+    // A gently wandering centreline that leans out from the holdfast.
+    const at = (y: number) => {
+      const t = y / tall;
+      return new THREE.Vector3(
+        Math.cos(lean) * spread * t + 0.3 * Math.sin(y * 0.21 + phase) * t,
         y,
-        0.25 * Math.sin(y * 0.17 + seed * 0.5) * (y / height),
+        Math.sin(lean) * spread * t + 0.25 * Math.cos(y * 0.17 + phase) * t,
+      );
+    };
+    const segments = Math.ceil(tall / 0.9),
+      path: THREE.Vector3[] = [];
+    for (let i = 0; i <= segments; i++) path.push(at((i / segments) * tall));
+    parts.push(
+      new THREE.TubeGeometry(
+        new THREE.CatmullRomCurve3(path),
+        segments,
+        0.04,
+        4,
+        false,
       ),
     );
+    // Blades every 30-45 cm, each hanging from the stipe on its own side, trailing up and out.
+    for (let y = 0.7; y < tall - 0.6; y += 0.3 + rand() * 0.15)
+      parts.push(
+        blade(
+          at(y),
+          rand() * Math.PI * 2,
+          1.1 + rand() * 0.7,
+          0.24 + rand() * 0.1,
+          0.2,
+          rand,
+        ),
+      );
+    // The canopy: long blades fanning out where the stipe reaches the top.
+    for (let i = 0; i < 6; i++)
+      parts.push(
+        blade(
+          at(tall - 0.3),
+          (i / 6) * Math.PI * 2 + rand() * 0.6,
+          2 + rand() * 1.6,
+          0.32,
+          -0.9,
+          rand,
+        ),
+      );
   }
-  const stipe = new THREE.TubeGeometry(
-    new THREE.CatmullRomCurve3(path),
-    segments,
-    0.045,
-    5,
-    false,
-  );
-  parts.push(stipe);
-  // Blades: alternating up the stipe, each a long, narrow, gently curved strip.
-  const blade = (
-    y: number,
-    angle: number,
-    length: number,
-    width: number,
-    droop: number,
-  ) => {
-    const steps = 4,
-      positions: number[] = [],
-      indices: number[] = [],
-      dx = Math.cos(angle),
-      dz = Math.sin(angle),
-      bx = lean(y),
-      bz = 0.25 * Math.sin(y * 0.17 + seed * 0.5) * (y / height);
-    for (let i = 0; i <= steps; i++) {
-      const t = i / steps,
-        r = t * length,
-        w = width * Math.sin(Math.PI * Math.min(1, t * 1.15 + 0.05)),
-        // Up first, then out and drooping (or lifting, for the canopy).
-        lift = r * (0.9 - t * 0.9) + droop * t * t;
-      for (const side of [-1, 1])
-        positions.push(
-          bx + dx * r * 0.7 - dz * w * side * 0.5,
-          y + lift,
-          bz + dz * r * 0.7 + dx * w * side * 0.5,
-        );
-    }
-    for (let i = 0; i < steps; i++) {
-      const a = i * 2;
-      indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
-    }
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    g.setIndex(indices);
-    return g;
-  };
-  for (let y = 1.1; y < height - 0.8; y += 0.75 + rand() * 0.35)
-    parts.push(
-      blade(
-        y,
-        rand() * Math.PI * 2,
-        0.9 + rand() * 0.5,
-        0.2 + rand() * 0.08,
-        -0.3,
-      ),
-    );
-  // The canopy: long blades spreading at the top, floating near the surface.
-  for (let i = 0; i < 7; i++)
-    parts.push(
-      blade(
-        height - 0.4,
-        (i / 7) * Math.PI * 2 + rand() * 0.5,
-        2.2 + rand() * 1.4,
-        0.3,
-        0.6,
-      ),
-    );
   // Positions only (normals are computed once, after merging), so every part has the same layout.
   const flat = parts.map((p) => {
     const g = p.index ? p.toNonIndexed() : p.clone();
@@ -169,24 +145,68 @@ export function stalkTemplate(
       if (name !== 'position') g.deleteAttribute(name);
     return g;
   });
+  parts.forEach((p) => p.dispose());
   const merged = mergeGeometries(flat, false);
   flat.forEach((g) => g.dispose());
-  parts.forEach((p) => p.dispose());
   if (!merged) throw Error('Kelp template could not be built');
-  // Colour: golden olive, deeper towards the holdfast, lighter where the sun reaches the canopy.
+  // Golden brown, deeper towards the holdfast, amber where the sun reaches the canopy.
   const pos = merged.getAttribute('position'),
     colors = new Float32Array(pos.count * 3);
   for (let i = 0; i < pos.count; i++) {
     const t = Math.max(0, Math.min(1, pos.getY(i) / height)),
-      k = 0.55 + 0.45 * t + 0.06 * Math.sin(i * 12.9898);
-    colors[i * 3] = 0.62 * k;
-    colors[i * 3 + 1] = 0.52 * k;
-    colors[i * 3 + 2] = 0.2 * k;
+      k = 0.62 + 0.38 * t,
+      n = 0.9 + 0.1 * Math.sin(i * 0.731);
+    colors[i * 3] = 0.66 * k * n;
+    colors[i * 3 + 1] = 0.47 * k * n;
+    colors[i * 3 + 2] = 0.14 * k * n;
   }
   merged.setAttribute('color', new THREE.BufferAttribute(colors, 3));
   merged.computeVertexNormals();
   merged.computeBoundingSphere();
   return merged;
+}
+/**
+ * A kelp blade: a long, narrow strip with a wavy edge, rising from `base` towards `angle`, then
+ * trailing out; `lift` bends its tip up (positive) or lets it hang flat (negative, the canopy).
+ */
+function blade(
+  base: THREE.Vector3,
+  angle: number,
+  length: number,
+  width: number,
+  lift: number,
+  rand: () => number,
+): THREE.BufferGeometry {
+  const steps = 5,
+    positions: number[] = [],
+    indices: number[] = [],
+    dx = Math.cos(angle),
+    dz = Math.sin(angle),
+    rise = 0.55 + rand() * 0.3,
+    ripple = rand() * 6;
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps,
+      r = t * length,
+      w =
+        width *
+        Math.sin(Math.PI * Math.min(1, t * 1.05 + 0.08)) *
+        (1 + 0.15 * Math.sin(t * 9 + ripple)),
+      up = r * rise * (1 - t * 0.6) + lift * t * t;
+    for (const side of [-1, 1])
+      positions.push(
+        base.x + dx * r * 0.75 - dz * w * side * 0.5,
+        base.y + up + side * w * 0.12 * Math.sin(t * 7 + ripple),
+        base.z + dz * r * 0.75 + dx * w * side * 0.5,
+      );
+  }
+  for (let i = 0; i < steps; i++) {
+    const a = i * 2;
+    indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  g.setIndex(indices);
+  return g;
 }
 
 /**
@@ -248,8 +268,11 @@ export class KelpStalks {
     this.material = new THREE.MeshStandardMaterial({
       name: 'Kelp',
       vertexColors: true,
-      roughness: 0.78,
+      roughness: 0.7,
       metalness: 0,
+      // A little light seems to come through the blades, as it does in sunlit kelp.
+      emissive: 0x3a2306,
+      emissiveIntensity: 0.45,
       side: THREE.DoubleSide,
     });
     this.material.onBeforeCompile = (shader) => {

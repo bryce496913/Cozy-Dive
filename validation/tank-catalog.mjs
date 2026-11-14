@@ -39,6 +39,8 @@ try {
             'coral:soft',
             'coral:sea-fan',
             'plant:seagrass',
+            // v0.6 Pass 032: the kelp forest's giant kelp unlocks a kelp stand.
+            'plant:giant-kelp',
           ].map((id) => ({ id, first: '2026-11-13T00:00:00Z' })),
         }),
       );
@@ -173,7 +175,7 @@ try {
       parts: t.pieces.length,
     })),
   );
-  assert.equal(report.templates.length, 6);
+  assert.equal(report.templates.length, 7);
   assert(
     report.templates.every((t) =>
       t.size.every((v) => Number.isFinite(v) && v > 0),
@@ -225,7 +227,8 @@ try {
             'plate',
             'soft',
             'sea-fan',
-          ][list.length % 6],
+            'kelp',
+          ][list.length % 7],
           position: { x, y: m.context.surface(x, z), z },
           rotation: 0,
         };
@@ -340,7 +343,8 @@ try {
         'Plate coral',
         'Soft coral',
         'Sea fan',
-      ][i % 6],
+        'Kelp',
+      ][i % 7],
     );
     await pose(spots[i].position);
     await place();
@@ -446,7 +450,7 @@ try {
       () =>
         JSON.parse(localStorage.getItem('cozy-diver.journal.v1')).seen.length,
     ),
-    6,
+    7,
   );
   assert.deepEqual(report.errors, []);
   await page.evaluate(() => {

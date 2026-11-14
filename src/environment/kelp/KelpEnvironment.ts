@@ -78,8 +78,10 @@ export class KelpEnvironment {
     this.rock = this.own(
       new THREE.MeshStandardMaterial({
         name: 'Kelp rock',
+        // Dark rock, encrusted pinkish-brown (coralline algae) over the vertex mottling.
+        color: 0x7d6a62,
         vertexColors: true,
-        roughness: 0.94,
+        roughness: 0.96,
       }),
     );
     const sand = this.own(
@@ -119,7 +121,7 @@ export class KelpEnvironment {
       q = new THREE.Quaternion(),
       e = new THREE.Euler();
     this.boulders.forEach((b, i) => {
-      const g = createRockGeometry(32100 + i * 17, i % 4);
+      const g = createRockGeometry(32100 + i * 17, i % 4, 3);
       g.computeBoundingBox();
       const box = g.boundingBox!,
         size = box.getSize(new THREE.Vector3()),
@@ -187,8 +189,9 @@ export class KelpEnvironment {
       const lane = laneWeight(x, z),
         speck =
           0.08 * Math.sin(x * 3.1 + z * 2.3) * Math.sin(x * 1.7 - z * 2.9),
-        k = 0.42 + 0.3 * lane + speck;
-      colors.push(k * 0.92, k * 0.88, k * 0.72);
+        // Darker rubble and shell grit between the rocks, paler sand in the lane.
+        k = 0.3 + 0.26 * lane + speck;
+      colors.push(k * 0.98, k * 0.86, k * 0.64);
     }
     g.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
     g.computeVertexNormals();
