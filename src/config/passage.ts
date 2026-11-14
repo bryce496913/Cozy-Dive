@@ -63,8 +63,10 @@ export const OUTER = {
    * Pass 026: distance fades to dark blue. Exponential fog towards the water colour, which matches the
    * water's horizon, so the blue past the reef's edge deepens with distance.
    */
-  // Playtest: less clear water, so the reef's detail changes happen inside the haze.
-  fog: 0.06,
+  // Visibility hotfix: about 96% haze by 14 m, concealing distant detail changes.
+  fog: 0.13,
+  /** Render range ends deep in the haze; the ocean background stays continuous. */
+  viewDistance: 48,
   /** Pass 026: the reef top is built this wide (m); it reaches further than you can swim. */
   reef: { minX: -44, maxX: 44 },
   /**
