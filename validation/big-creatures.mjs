@@ -258,22 +258,29 @@ try {
 
   // 3. Views of each kind (also counts each as seen), and the "New sighting" note.
   const notes = [];
-  const watch = async (index, name) => {
+  const watch = async (index, name, above = false) => {
     // Beside the creature, a little above, looking at it; stepped until it counts as seen.
     for (let i = 0; i < 90; i++) {
       const target = (await creatures())[index];
       // From the shoreward side: since #59 the swimmer cannot go more than 3.65 m past the lip.
       const side = Math.sin(target.yaw + Math.PI / 2) >= 0 ? 1 : -1,
-        yaw = target.yaw + (side * Math.PI) / 2,
-        ex = target.x - Math.cos(yaw) * 6.5,
+        yaw = target.yaw + (side * Math.PI) / 2;
+      let ex = target.x - Math.cos(yaw) * 6.5,
         ez = target.z + Math.sin(yaw) * 6.5,
         ey = target.y + 1.2;
+      if (above) {
+        // The turtles keep close to the wall's face, where the shoreward side is rock: watch
+        // from the open water above it instead, within the swimmer's reach past the lip.
+        ex = target.x;
+        ez = Math.max(target.z + 2.5, -59.3);
+        ey = target.y + 4.5;
+      }
       await place(
         ex,
         ey,
         ez,
         Math.atan2(-(target.x - ex), -(target.z - ez)),
-        Math.atan2(target.y - ey, 6.5),
+        Math.atan2(target.y - ey, Math.hypot(target.x - ex, target.z - ez)),
       );
       await step(1);
       const note = await page.evaluate(() => {
@@ -308,6 +315,7 @@ try {
   await watch(
     all.findIndex((c) => c.id === 'green-sea-turtle'),
     'turtle',
+    true,
   );
   report.notes = notes;
   for (const name of [
