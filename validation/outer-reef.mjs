@@ -250,7 +250,7 @@ try {
   assert(s.y > -16, 'but not into the deep');
   await page.screenshot({ path: path.join(output, 'down-the-wall.png') });
 
-  // Out over the blue: holding W past the lip slows to a hover a few metres out.
+  // Out over the blue: holding W past the lip slows to a hover a little way out.
   await place(2, 4, -50, 0, 0);
   await page.keyboard.down('w');
   let furthestOut = 0;
@@ -260,8 +260,9 @@ try {
   }
   await page.keyboard.up('w');
   report.outOverTheBlue = { pastTheLip: +furthestOut.toFixed(2) };
-  assert(furthestOut > 4, 'a little way out over the blue');
-  assert(furthestOut < 9.5, 'then hovering');
+  // Since the viewing-edge boundary (#59): an easing metre, a crawl, then a wall 3.65 m out.
+  assert(furthestOut > 1, 'a little way out over the blue');
+  assert(furthestOut < 3.7, 'then hovering');
   await page.screenshot({
     path: path.join(output, 'hovering-in-the-blue.png'),
   });
