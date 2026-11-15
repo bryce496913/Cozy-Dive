@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { AssetLoader } from '../assets/AssetLoader';
-import { KELP, KELP_FRAME } from '../config/passage';
+import { GROTTO, KELP, KELP_FRAME } from '../config/passage';
 import type { Bounds, Vec3 } from '../config/world';
 import type { SightCandidate } from '../discovery/journal';
 import { KELP_SIGHTS } from '../discovery/sights';
@@ -15,6 +15,7 @@ import { KelpStalks } from '../environment/kelp/KelpStalks';
 import { easeInKelp, kelpFloor } from '../environment/kelp/KelpTerrain';
 import { OuterCreatures } from '../environment/outer/OuterCreatures';
 import { OuterSchools } from '../environment/outer/OuterSchools';
+import { TurnedCrevice } from '../environment/passage/TurnedCrevice';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
 import type { CollisionWorld } from '../player/collision';
 import {
@@ -43,6 +44,8 @@ export class KelpForestScene implements WaterWorld {
   readonly camera = new THREE.PerspectiveCamera(64, 1, 0.08, 120);
   readonly environment = new KelpEnvironment();
   readonly stalks = new KelpStalks();
+  /** v0.6 Pass 034: the grotto against the wall, east of the tunnel: the way on to the sea cave. */
+  readonly grotto = new TurnedCrevice(GROTTO.offset, 'Grotto to the sea cave');
   schools?: OuterSchools;
   creatures?: OuterCreatures;
   readonly sightings: SightCandidate[] = [];
@@ -62,7 +65,7 @@ export class KelpForestScene implements WaterWorld {
     this.scene.name = 'Kelp forest';
     this.scene.background = new THREE.Color(KELP.water);
     this.scene.fog = new THREE.FogExp2(KELP.water, KELP.fog);
-    this.scene.add(this.environment.root, this.stalks.root);
+    this.scene.add(this.environment.root, this.stalks.root, this.grotto.root);
     // The same kinds and number of lights as the tank, so most programs are shared with it.
     const sky = new THREE.HemisphereLight(0xd8f0c8, 0x3a4630, 1.35),
       sun = new THREE.DirectionalLight(0xfff0c6, 2.3),
@@ -72,7 +75,10 @@ export class KelpForestScene implements WaterWorld {
     this.lights.push(sky, sun, fill);
     this.scene.add(sky, sun, fill);
     this.world = new TerrainCollisionWorld(
-      new ColliderGrid(this.environment.colliders),
+      new ColliderGrid([
+        ...this.environment.colliders,
+        ...this.grotto.colliders,
+      ]),
       KELP.bounds,
       kelpFloor,
     );
@@ -189,6 +195,7 @@ export class KelpForestScene implements WaterWorld {
     this.creatures?.dispose();
     this.sightings.length = 0;
     this.stalks.dispose();
+    this.grotto.dispose();
     this.environment.dispose();
     this.lights.forEach((l) => l.dispose());
     this.scene.clear();

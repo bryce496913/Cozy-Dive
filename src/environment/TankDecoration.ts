@@ -8,6 +8,7 @@ import {
   type TankKind,
 } from '../catalog/catalog';
 import { authoredPlantGeometry } from './AuthoredReef';
+import { caveArchGeometry } from './cave/CaveEnvironment';
 import { kelpPatchGeometry } from './kelp/KelpStalks';
 import { LevelInstances } from './outer/LevelInstances';
 
@@ -67,12 +68,20 @@ export class TankDecoration {
           const pieces: Piece[] = [],
             box = new THREE.Box3();
           // v0.6 Pass 032: kelp has no library node; it is built in code, in unit height.
+          // v0.6 Pass 034: so has the sea cave's limestone arch, in its own rock material.
           const procedural =
-            d.kind === 'kelp' ? kelpPatchGeometry() : undefined;
+            d.kind === 'kelp'
+              ? kelpPatchGeometry()
+              : d.kind === 'arch'
+                ? caveArchGeometry()
+                : undefined;
           if (procedural) this.ownedGeometry.add(procedural);
           for (const suffix of procedural ? [''] : ['', '_Tips']) {
             const node = procedural
-              ? new THREE.Mesh(procedural, this.plants)
+              ? new THREE.Mesh(
+                  procedural,
+                  d.kind === 'arch' ? this.limestone() : this.plants,
+                )
               : lease.model.getObjectByName(d.node + suffix);
             if (!(node instanceof THREE.Mesh)) continue;
             let geometry = node.geometry,
@@ -142,6 +151,17 @@ export class TankDecoration {
         return false;
       }
     })());
+  }
+  /** v0.6 Pass 034: the arch's pale limestone (owned here). */
+  private limestone(): THREE.MeshStandardMaterial {
+    const m = new THREE.MeshStandardMaterial({
+      name: 'Tank limestone arch',
+      color: 0xc4b9a6,
+      vertexColors: true,
+      roughness: 0.95,
+    });
+    this.ownedMaterials.add(m);
+    return m;
   }
   private transform(item: TankItem, out: THREE.Matrix4) {
     const t = this.templates.get(item.kind)!,

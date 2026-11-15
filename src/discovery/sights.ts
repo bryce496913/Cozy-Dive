@@ -28,6 +28,13 @@ export const KELP_SIGHTS = {
   garibaldi: { id: 'species:garibaldi', label: 'Garibaldi' },
 } as const satisfies Record<string, Sight>;
 
+/** v0.6 Pass 034: what the sea cave shows (its whitetips are listed with the big creatures). */
+export const CAVE_SIGHTS = {
+  cave: { id: 'place:sea-cave', label: 'Sea cave' },
+  lobster: { id: 'species:spiny-lobster', label: 'Spiny lobster' },
+  sweeper: { id: 'species:glassy-sweeper', label: 'Glassy sweeper' },
+} as const satisfies Record<string, Sight>;
+
 const REEF: Readonly<Record<string, Sight | undefined>> = REEF_SIGHTS;
 /** The sight a kind of reef piece shows, if any (by the layout's family name). */
 export function reefSight(family: string): Sight | undefined {
@@ -44,6 +51,7 @@ export const SIGHTS: readonly Sight[] = [
     (s, i, all) => all.findIndex((o) => o.id === s.id) === i,
   ),
   ...Object.values(KELP_SIGHTS),
+  ...Object.values(CAVE_SIGHTS),
 ];
 /** A sight's name, or null for an id this version does not know (kept, but not listed). */
 export function sightLabel(id: string): string | null {

@@ -200,3 +200,78 @@ export const KELP_FRAME: PassageFrame = {
   origin: { x: 0, y: KELP.tunnel.y, z: 0 },
   forward: { x: 0, z: -1 },
 };
+
+/**
+ * v0.6 Pass 034: the third passage. Another copy of the tank's crevice stands against the kelp
+ * forest's rock wall, east of its tunnel and hidden among the kelp: turned half round, as the
+ * cleft is, so its glass side lies against the wall and its mouth faces west. Past its threshold
+ * the swimmer continues in the sea cave's tunnel. Tank coordinates map to the kelp forest as
+ * x' = offset.x - x, y' = y + offset.y, z' = offset.z - z.
+ */
+export const GROTTO = {
+  offset: { x: 26, y: 1.2, z: -22.1 },
+  /** Load the sea cave within this distance of the grotto's mouth; release it beyond the second. */
+  preload: 15,
+  release: 22,
+  /** Kelp and boulders keep out of this area (the outcrop and the water before its mouth). */
+  clear: { minX: 16.5, maxX: 27.5, z: -14.5 },
+} as const;
+/** A point from the tank's crevice coordinates into the kelp forest (in place into `out`). */
+export function grottoFromTank(p: Vec3, out: Vec3): Vec3 {
+  const x = p.x,
+    z = p.z;
+  out.x = GROTTO.offset.x - x;
+  out.y = p.y + GROTTO.offset.y;
+  out.z = GROTTO.offset.z - z;
+  return out;
+}
+/** A point from the kelp forest back into the tank's crevice coordinates (the same half turn). */
+export function grottoToTank(p: Vec3, out: Vec3): Vec3 {
+  const x = p.x,
+    z = p.z;
+  out.x = GROTTO.offset.x - x;
+  out.y = p.y - GROTTO.offset.y;
+  out.z = GROTTO.offset.z - z;
+  return out;
+}
+/** The grotto's threshold in the kelp forest: the crevice threshold, turned with it. */
+export const GROTTO_FRAME: PassageFrame = {
+  origin: {
+    x: GROTTO.offset.x - CREVICE_FRAME.origin.x,
+    y: CREVICE_FRAME.origin.y + GROTTO.offset.y,
+    z: GROTTO.offset.z - CREVICE_FRAME.origin.z,
+  },
+  forward: { x: -CREVICE_FRAME.forward.x, z: -CREVICE_FRAME.forward.z },
+};
+
+/**
+ * v0.6 Pass 034: the sea cave. Its tunnel starts at the grotto's threshold and runs south into a
+ * dome-shaped limestone cavern, lit from above by a shaft of sunlight through a hole in its roof.
+ * Metres, y up; the cave's sand floor is near y 0.
+ */
+export const CAVE = {
+  bounds: {
+    min: { x: -22, y: -2, z: -46 },
+    max: { x: 22, y: 18, z: 4 },
+    clearance: 0.65,
+  } satisfies Bounds,
+  /** The tunnel: start (capped behind), axis height, radius, and where it opens into the cavern. */
+  tunnel: { startZ: 1.6, y: 3, radius: 1.45, openZ: -9.5 },
+  /** The cavern: an uneven dome, its centre and radii (m). */
+  chamber: { x: 0, y: 4, z: -25, rx: 16, ry: 10, rz: 16 },
+  /**
+   * Swimming towards the wall eases off from `inset` m away, slows to a crawl over `band` m, then
+   * stops within 2 m more: about a metre short of the rock.
+   */
+  ease: { inset: 4.2, band: 1.2 },
+  /** The hole in the roof, and the sunlit water seen through it. */
+  skylight: { x: 3.5, z: -27, radius: 2.4 },
+  /** Dim blue-green water: about 12 m of visibility, darker than the kelp forest. */
+  fog: 0.07,
+  water: 0x173f4a,
+} as const;
+/** The sea cave tunnel's start, matching the grotto's threshold. */
+export const CAVE_FRAME: PassageFrame = {
+  origin: { x: 0, y: CAVE.tunnel.y, z: 0 },
+  forward: { x: 0, z: -1 },
+};

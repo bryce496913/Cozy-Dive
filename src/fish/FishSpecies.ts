@@ -9,7 +9,9 @@ export type SpeciesId =
   | 'firefish-goby'
   | 'ocellaris-clownfish'
   /** v0.6 Pass 032: the kelp forest's bright orange damselfish (never in the tank's population). */
-  | 'garibaldi';
+  | 'garibaldi'
+  /** v0.6 Pass 034: the sea cave's coppery schooling fish (never in the tank's population). */
+  | 'glassy-sweeper';
 export interface SchoolingTuning {
   readonly enabled: boolean;
   readonly spacing: number;

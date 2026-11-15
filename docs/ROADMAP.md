@@ -101,6 +101,10 @@ v0.5 closes on the user's macOS acceptance of this candidate; v0.4 (`0.4.0-rc.3`
   - **Who:** a reef manta, a whale shark, schooling scalloped hammerheads, a great hammerhead and a humpback whale, newly authored.
   - **How:** they loop back and forth beyond the lip, and one more kind comes the longer the swimmer waits at the edge.
   - **Surprise:** each visit to the outer reef opens with a different animal.
+- **Pass 034 — The sea cave (`0.6.0-alpha.3`, chosen by the user):** a fourth water world beyond the kelp forest.
+  - **The way in:** a hidden grotto in the kelp forest's wall leads into a limestone cavern lit by a sunbeam through its roof.
+  - **Life:** resting and circling whitetip reef sharks, glassy sweepers and spiny lobsters.
+  - **Discovery:** new sightings, and the cave unlocks a limestone arch for the tank.
 - **Provisional, to agree after the user plays Pass 032:**
   - the kelp forest's life for the tank (garibaldi, a bat ray pup);
   - more kelp-forest character (light shafts, a sea lion);

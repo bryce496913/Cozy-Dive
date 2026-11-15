@@ -211,6 +211,14 @@ export const ASSET_REGISTRY = {
     maxDimension: 3.4,
     requireMorphs: true,
   },
+  /** v0.6 Pass 034: the sea cave's whitetip reef shark (the reef shark's body, its own skin). */
+  whitetipShark: {
+    path: 'assets/models/creatures/whitetip-shark.glb',
+    requiredNodes: ['Whitetip_Root', 'Body', 'Body_LOD1'],
+    minDimension: 2.6,
+    maxDimension: 3.4,
+    requireMorphs: true,
+  },
   acropora: {
     path: 'assets/models/coral/acropora.glb',
     requiredNodes: [

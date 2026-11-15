@@ -1078,5 +1078,48 @@
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
+  },
+  {
+    "id": "whitetip-shark",
+    "file": "assets/models/creatures/whitetip-shark.glb",
+    "sha256": "93ad4a1dc760953891fc5fdeab613d335d1024128c29e67624c85a3cd77f0377",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 545336,
+    "visualPrimitives": 2,
+    "visualTriangles": 11998,
+    "collisionTriangles": 0,
+    "materials": 1,
+    "images": [
+      {
+        "name": "creature_whitetip_normal",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 100820
+      },
+      {
+        "name": "creature_whitetip_base",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 28470
+      },
+      {
+        "name": "creature_whitetip_orm",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 1221
+      }
+    ],
+    "geometryAccessorBytes": 293376,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium hero asset"
   }
 ]

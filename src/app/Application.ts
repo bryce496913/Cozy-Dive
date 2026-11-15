@@ -23,11 +23,13 @@ import {
 } from '../player/dive';
 import { OfficeScene } from '../rendering/OfficeScene';
 import { KelpForestScene } from '../rendering/KelpForestScene';
+import { SeaCaveScene } from '../rendering/SeaCaveScene';
 import { OuterWatersScene } from '../rendering/OuterWatersScene';
 import type { WaterWorld } from '../rendering/WaterWorld';
-import { CLEFT, PASSAGE } from '../config/passage';
+import { CLEFT, GROTTO, PASSAGE } from '../config/passage';
 import {
   cleftDistance,
+  grottoDistance,
   crossing,
   frameTurn,
   mapPoint,
@@ -95,6 +97,9 @@ export class Application {
   /** v0.6 Pass 032: the kelp forest, while it might be needed (reached through the outer reef). */
   private kelp?: KelpForestScene;
   private kelpIdle = 0;
+  /** v0.6 Pass 034: the sea cave, while it might be needed (reached through the kelp forest). */
+  private cave?: SeaCaveScene;
+  private caveIdle = 0;
   /** Which water world the swimmer is in. */
   private waterWorld: WaterWorldId = 'aquarium';
   /** Seconds the outer waters have been out of range (released after a delay). */
@@ -605,6 +610,7 @@ export class Application {
   /** v0.4 Pass 023: the water world the swimmer is in (the tank unless in the outer waters). */
   private water(): WaterWorld {
     if (this.waterWorld === 'kelp' && this.kelp) return this.kelp;
+    if (this.waterWorld === 'cave' && this.cave) return this.cave;
     return this.waterWorld === 'outer' && this.outer ? this.outer : this.world!;
   }
   private setWaterWorld(id: WaterWorldId): void {
@@ -627,9 +633,11 @@ export class Application {
     this.audio?.setLocations(
       id === 'kelp' && this.kelp
         ? this.kelp.soundSpots
-        : id === 'outer' && this.outer
-          ? this.outer.soundSpots
-          : this.tankSoundSpots,
+        : id === 'cave' && this.cave
+          ? this.cave.soundSpots
+          : id === 'outer' && this.outer
+            ? this.outer.soundSpots
+            : this.tankSoundSpots,
     );
   }
   /**
@@ -680,12 +688,41 @@ export class Application {
     }
     const keep =
       this.waterWorld === 'kelp' ||
+      // v0.6 Pass 034: kept while in the sea cave beyond it, so the way back is seamless.
+      this.waterWorld === 'cave' ||
       (swimming && inOuter && distance < CLEFT.release);
     this.kelpIdle = keep ? 0 : this.kelpIdle + dt;
     if (this.kelpIdle > PASSAGE.releaseDelay) {
       this.kelp.dispose();
       this.kelp = undefined;
       this.kelpIdle = 0;
+    }
+  }
+  /**
+   * v0.6 Pass 034: load the sea cave as the swimmer nears the grotto in the kelp forest, and
+   * release it once well away (after a delay); it stays while the swimmer is in it.
+   */
+  private manageCave(dt: number): void {
+    const swimming = this.mode === 'aquarium',
+      inKelp = this.waterWorld === 'kelp',
+      distance = inKelp ? grottoDistance(this.state.position) : Infinity;
+    if (!this.cave) {
+      if (swimming && inKelp && distance < GROTTO.preload && this.kelp)
+        this.cave = new SeaCaveScene(this.world!.renderer, {
+          fish: this.world!.authored.loader,
+          soundSpots: this.tankSoundSpots.length,
+        });
+      this.caveIdle = 0;
+      return;
+    }
+    const keep =
+      this.waterWorld === 'cave' ||
+      (swimming && inKelp && distance < GROTTO.release);
+    this.caveIdle = keep ? 0 : this.caveIdle + dt;
+    if (this.caveIdle > PASSAGE.releaseDelay) {
+      this.cave.dispose();
+      this.cave = undefined;
+      this.caveIdle = 0;
     }
   }
   /**
@@ -696,6 +733,7 @@ export class Application {
     const c = crossing(this.waterWorld, this.state.position, {
       outer: !!this.outer?.isReady,
       kelp: !!this.kelp?.isReady,
+      cave: !!this.cave?.isReady,
     });
     if (!c) return;
     const { from, to, target } = c,
@@ -800,6 +838,7 @@ export class Application {
     );
     this.manageOuter(dt);
     this.manageKelp(dt);
+    this.manageCave(dt);
     if (this.mode === 'office' && this.office) {
       this.tickOffice(dt);
       this.frame = requestAnimationFrame(this.tick);
@@ -931,6 +970,8 @@ export class Application {
     this.office?.dispose();
     this.kelp?.dispose();
     this.kelp = undefined;
+    this.cave?.dispose();
+    this.cave = undefined;
     this.outer?.dispose();
     this.outer = undefined;
     this.tankEditor?.dispose();
