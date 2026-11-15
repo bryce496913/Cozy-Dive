@@ -258,9 +258,10 @@ try {
 
   // 3. Views of each kind (also counts each as seen), and the "New sighting" note.
   const notes = [];
-  const watch = async (index, name, above = false) => {
+  const watch = async (index, name, label, above = false) => {
+    const mine = `New sighting · ${label}`;
     // Beside the creature, a little above, looking at it; stepped until it counts as seen.
-    for (let i = 0; i < 90; i++) {
+    for (let i = 0; i < 90 && !notes.includes(mine); i++) {
       const target = (await creatures())[index];
       // From the shoreward side: since #59 the swimmer cannot go more than 3.65 m past the lip.
       const side = Math.sin(target.yaw + Math.PI / 2) >= 0 ? 1 : -1,
@@ -287,10 +288,8 @@ try {
         const n = document.querySelector('#sighting-note');
         return n.hidden ? null : n.textContent;
       });
-      if (note && !notes.includes(note)) {
-        notes.push(note);
-        break;
-      }
+      // Another creature passing may be noted first: keep it, and keep watching this one.
+      if (note && !notes.includes(note)) notes.push(note);
     }
     await step(4);
     report.views[name] = await page.evaluate(() => {
@@ -307,14 +306,17 @@ try {
   await watch(
     all.findIndex((c) => c.id === 'blacktip-reef-shark'),
     'shark',
+    'Blacktip reef shark',
   );
   await watch(
     all.findIndex((c) => c.id === 'spotted-eagle-ray'),
     'eagle-rays',
+    'Spotted eagle ray',
   );
   await watch(
     all.findIndex((c) => c.id === 'green-sea-turtle'),
     'turtle',
+    'Green sea turtle',
     true,
   );
   report.notes = notes;
