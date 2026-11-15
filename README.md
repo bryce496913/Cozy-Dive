@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.6 / Pass 033 — Wall visitors (`0.6.0-alpha.2`)** is a first-person, browser-based aquarium prototype. Start in a small glass-walled office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15` and v0.3 (Office & Dive Transition) at `0.3.0-rc.1`. No scores, timers, combat, accounts, or external asset services.
+A quiet little world beneath the surface. **v0.6 / Pass 034 — The sea cave (`0.6.0-alpha.3`)** is a first-person, browser-based aquarium prototype. Start in a small glass-walled office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15` and v0.3 (Office & Dive Transition) at `0.3.0-rc.1`. No scores, timers, combat, accounts, or external asset services.
 
 ## Stack and requirements
 
@@ -45,7 +45,7 @@ In the office, W A S D walk and the mouse looks around.
 
 Click **Return to the Water** to resume. Look up or down and use W/S to change depth; A/D always strafe horizontally. Space and Shift have no swimming action. Pausing or losing browser focus clears held input and propulsion momentum while retaining a resting breath’s phase and small vertical velocity. Diagonal input is normalized. Subtle stroke-related pitch feedback stays below 0.07 degrees, with no roll or visual position offsets. Looking straight up/down is limited.
 
-v0.6 Expanding Oceans has begun, while the v0.4 and v0.5 candidates await macOS acceptance. See [Pass 033 validation](docs/VALIDATION_V06_PASS_033.md), [the kelp forest](docs/KELP_FOREST.md), [Pass 032 validation](docs/VALIDATION_V06_PASS_032.md), [Pass 031 release-candidate validation](docs/VALIDATION_V05_PASS_031.md), [tank catalog design](docs/TANK_CATALOG.md) and [Pass 030 validation](docs/VALIDATION_V05_PASS_030.md), including the completed Pass 029 regressions. See [outer reef life validation](docs/VALIDATION_OUTER_REEF_LIFE.md), [Pass 028 playtest round](docs/VALIDATION_V04_PASS_028_PLAYTEST.md), [Pass 028 release-candidate validation](docs/VALIDATION_V04_PASS_028.md), [Pass 027 validation](docs/VALIDATION_V04_PASS_027.md), [Pass 026 playtest round](docs/VALIDATION_V04_PASS_026_PLAYTEST.md), [Pass 026 validation](docs/VALIDATION_V04_PASS_026.md), [Pass 025 validation](docs/VALIDATION_V04_PASS_025.md), [Pass 024 validation](docs/VALIDATION_V04_PASS_024.md), [Pass 023 validation](docs/VALIDATION_V04_PASS_023.md), [Pass 022 validation](docs/VALIDATION_V03_PASS_022.md), [Pass 021 validation](docs/VALIDATION_V03_PASS_021.md), [Pass 020 validation](docs/VALIDATION_V03_PASS_020.md), [Pass 019 validation](docs/VALIDATION_V02_PASS_019.md), [Pass 018 validation](docs/VALIDATION_V02_PASS_018.md), [Pass 017 validation](docs/VALIDATION_V02_PASS_017.md), [Pass 016 validation](docs/VALIDATION_V02_PASS_016.md), [Pass 015 validation](docs/VALIDATION_V02_PASS_015.md), [Pass 014 validation](docs/VALIDATION_V02_PASS_014.md), [Pass 013 validation](docs/VALIDATION_V02_PASS_013.md) and [repeatable benchmarks](validation/README.md).
+v0.6 Expanding Oceans has begun, while the v0.4 and v0.5 candidates await macOS acceptance. See [Pass 034 validation](docs/VALIDATION_V06_PASS_034.md), [Pass 033 validation](docs/VALIDATION_V06_PASS_033.md), [the kelp forest](docs/KELP_FOREST.md), [Pass 032 validation](docs/VALIDATION_V06_PASS_032.md), [Pass 031 release-candidate validation](docs/VALIDATION_V05_PASS_031.md), [tank catalog design](docs/TANK_CATALOG.md) and [Pass 030 validation](docs/VALIDATION_V05_PASS_030.md), including the completed Pass 029 regressions. See [outer reef life validation](docs/VALIDATION_OUTER_REEF_LIFE.md), [Pass 028 playtest round](docs/VALIDATION_V04_PASS_028_PLAYTEST.md), [Pass 028 release-candidate validation](docs/VALIDATION_V04_PASS_028.md), [Pass 027 validation](docs/VALIDATION_V04_PASS_027.md), [Pass 026 playtest round](docs/VALIDATION_V04_PASS_026_PLAYTEST.md), [Pass 026 validation](docs/VALIDATION_V04_PASS_026.md), [Pass 025 validation](docs/VALIDATION_V04_PASS_025.md), [Pass 024 validation](docs/VALIDATION_V04_PASS_024.md), [Pass 023 validation](docs/VALIDATION_V04_PASS_023.md), [Pass 022 validation](docs/VALIDATION_V03_PASS_022.md), [Pass 021 validation](docs/VALIDATION_V03_PASS_021.md), [Pass 020 validation](docs/VALIDATION_V03_PASS_020.md), [Pass 019 validation](docs/VALIDATION_V02_PASS_019.md), [Pass 018 validation](docs/VALIDATION_V02_PASS_018.md), [Pass 017 validation](docs/VALIDATION_V02_PASS_017.md), [Pass 016 validation](docs/VALIDATION_V02_PASS_016.md), [Pass 015 validation](docs/VALIDATION_V02_PASS_015.md), [Pass 014 validation](docs/VALIDATION_V02_PASS_014.md), [Pass 013 validation](docs/VALIDATION_V02_PASS_013.md) and [repeatable benchmarks](validation/README.md).
 
 ## Current features
 
@@ -356,6 +356,17 @@ Every embedded texture is now KTX2/Basis with a full mip chain, re-encoded from 
 ### v0.2 Pass 017 candidate
 
 Fish beyond 14 body lengths switch to a morphing distance level (about 1.8k instead of 12.7k triangles), cutting the spawn view by 28%. Every shipped model is Draco-compressed with WebP textures, so the production startup download falls from about 53 MB to about 17 MB, with no visible change. The Draco decoder is served locally. See [validation](docs/VALIDATION_V02_PASS_017.md).
+
+### v0.6 Pass 034 — The sea cave
+
+Beyond the kelp forest there is now a sea cave.
+
+- **The way in:** a hidden grotto against the kelp forest's rock wall, east of its tunnel, leads through a dark tunnel into the cave.
+- **The cave:** a limestone dome lit by a shaft of sunlight through a hole in its roof, with a pool of light on the sand and faintly glowing sponges in the shadows.
+- **Life:** whitetip reef sharks resting on the sand (and one circling), schools of glassy sweepers, and spiny lobsters peering from the cracks.
+- **Discovery:** new sightings. Seeing the cave unlocks a limestone arch for your tank.
+
+See [validation](docs/VALIDATION_V06_PASS_034.md).
 
 ### v0.6 Pass 033 — Wall visitors
 

@@ -16,7 +16,9 @@ export type BigCreatureId =
   | 'whale-shark'
   | 'humpback-whale'
   | 'great-hammerhead'
-  | 'scalloped-hammerhead';
+  | 'scalloped-hammerhead'
+  /** v0.6 Pass 034: the sea cave's sharks, resting on its sand or circling slowly. */
+  | 'whitetip-reef-shark';
 
 export interface CruiseSpecies {
   readonly id: BigCreatureId;
@@ -191,6 +193,21 @@ export const CRUISE_SPECIES: Readonly<Record<BigCreatureId, CruiseSpecies>> = {
     clearance: 2,
     detailDistance: 14,
     bank: 0.6,
+  },
+  'whitetip-reef-shark': {
+    id: 'whitetip-reef-shark',
+    name: 'Whitetip reef shark',
+    asset: 'whitetipShark',
+    scale: 0.55,
+    radius: 0.9,
+    speed: 0.45,
+    strokeHz: 0.4,
+    stroke: 0.75,
+    comfort: 4,
+    giveWay: 2.5,
+    clearance: 1.2,
+    detailDistance: 14,
+    bank: 0.5,
   },
 };
 

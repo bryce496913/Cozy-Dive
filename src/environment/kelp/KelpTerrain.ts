@@ -1,4 +1,4 @@
-import { KELP } from '../../config/passage';
+import { GROTTO, KELP } from '../../config/passage';
 import type { Vec3 } from '../../config/world';
 
 /**
@@ -55,4 +55,10 @@ export function easeInKelp(p: Vec3, dir: Vec3): Vec3 {
   if (dir.y > 0) dir.y *= kelpEase(p.y - r.up, r.rise);
   if (dir.x * p.x > 0) dir.x *= kelpEase(Math.abs(p.x) - r.halfWidth, r.side);
   return dir;
+}
+
+/** v0.6 Pass 034: whether something at (x, z) reaching `reach` m would crowd the grotto. */
+export function inGrottoClear(x: number, z: number, reach = 0): boolean {
+  const c = GROTTO.clear;
+  return x > c.minX - reach && x < c.maxX + reach && z > c.z - reach;
 }

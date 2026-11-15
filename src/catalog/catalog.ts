@@ -71,6 +71,16 @@ export const TANK_ITEMS = [
     depth: 1.1,
     height: 2.4,
   },
+  {
+    // v0.6 Pass 034: seen in the sea cave. A small limestone arch, built in code (no library node).
+    kind: 'arch',
+    sighting: 'place:sea-cave',
+    label: 'Limestone arch',
+    node: '',
+    width: 1.2,
+    depth: 0.55,
+    height: 0.9,
+  },
 ] as const;
 export type TankKind = (typeof TANK_ITEMS)[number]['kind'];
 export interface TankItem {

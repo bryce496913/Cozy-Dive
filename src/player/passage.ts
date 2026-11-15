@@ -1,4 +1,9 @@
 import {
+  CAVE,
+  CAVE_FRAME,
+  GROTTO,
+  GROTTO_FRAME,
+  grottoToTank,
   CLEFT,
   CLEFT_FRAME,
   CREVICE,
@@ -21,7 +26,7 @@ import type { Vec3 } from '../config/world';
  * stops and nothing jumps; the darkness, which peaks at the threshold on both sides, hides the
  * change of world. Pure (no allocation in the per-frame paths).
  */
-export type WaterWorldId = 'aquarium' | 'outer' | 'kelp';
+export type WaterWorldId = 'aquarium' | 'outer' | 'kelp' | 'cave';
 
 /** Heading (camera yaw) that looks along a horizontal direction: forward = (-sin, -cos). */
 export const headingOf = (d: { x: number; z: number }): number =>
@@ -78,13 +83,15 @@ export function mapVector(
   return rotate(v, frameTurn(from, to), out);
 }
 
-/** The frame a world's end of the tank passage uses (the kelp forest's is its own tunnel). */
+/** The frame a world's end of the tank passage uses (the kelp forest's and cave's are their own). */
 export const passageFrame = (world: WaterWorldId): PassageFrame =>
   world === 'aquarium'
     ? CREVICE_FRAME
     : world === 'kelp'
       ? KELP_FRAME
-      : TUNNEL_FRAME;
+      : world === 'cave'
+        ? CAVE_FRAME
+        : TUNNEL_FRAME;
 
 /** Whether `p` is inside the crevice channel's cross-section (for the darkness and the swap). */
 export function inChannel(p: Vec3): boolean {
@@ -125,7 +132,13 @@ export function passageTarget(
 export function passageDarkness(world: WaterWorldId, p: Vec3): number {
   if (world === 'aquarium')
     return inChannel(p) ? darkness(CREVICE_FRAME, p) : 0;
-  if (world === 'kelp') return inKelpTunnel(p) ? darkness(KELP_FRAME, p) : 0;
+  // v0.6 Pass 034: the kelp forest has two as well: its tunnel and the grotto to the sea cave.
+  if (world === 'kelp')
+    return Math.max(
+      inKelpTunnel(p) ? darkness(KELP_FRAME, p) : 0,
+      inGrotto(p) ? darkness(GROTTO_FRAME, p) : 0,
+    );
+  if (world === 'cave') return inCaveTunnel(p) ? darkness(CAVE_FRAME, p) : 0;
   // The outer waters have two: the tunnel from the tank, and the cleft to the kelp forest.
   return Math.max(
     darkness(TUNNEL_FRAME, p),
@@ -151,6 +164,28 @@ export function inKelpTunnel(p: Vec3): boolean {
     p.z >= t.wallZ - 0.5 &&
     Math.abs(p.x - KELP_FRAME.origin.x) <= t.radius + 0.3 &&
     Math.abs(p.y - t.y) <= t.radius + 0.3
+  );
+}
+/** v0.6 Pass 034: whether `p` (kelp forest) is inside the grotto's channel. */
+export function inGrotto(p: Vec3): boolean {
+  return inChannel(grottoToTank(p, local));
+}
+/** v0.6 Pass 034: whether `p` (sea cave) is in its tunnel, from its start to the cavern. */
+export function inCaveTunnel(p: Vec3): boolean {
+  const t = CAVE.tunnel;
+  return (
+    p.z <= t.startZ &&
+    p.z >= t.openZ - 0.5 &&
+    Math.abs(p.x - CAVE_FRAME.origin.x) <= t.radius + 0.3 &&
+    Math.abs(p.y - t.y) <= t.radius + 0.3
+  );
+}
+/** v0.6 Pass 034: distance from the grotto's mouth in the kelp forest (to load the sea cave). */
+export function grottoDistance(p: Vec3): number {
+  return Math.hypot(
+    p.x - (GROTTO.offset.x - CREVICE.mouthX),
+    p.y - (CREVICE.centre.y + GROTTO.offset.y),
+    p.z - (GROTTO.offset.z - CREVICE.centre.z),
   );
 }
 /** Distance from the cleft's mouth in the outer waters (for loading and releasing the kelp forest). */
@@ -187,6 +222,16 @@ const TANK_TO_OUTER: Crossing = {
     target: 'outer',
     from: KELP_FRAME,
     to: CLEFT_FRAME,
+  },
+  KELP_TO_CAVE: Crossing = {
+    target: 'cave',
+    from: GROTTO_FRAME,
+    to: CAVE_FRAME,
+  },
+  CAVE_TO_KELP: Crossing = {
+    target: 'kelp',
+    from: CAVE_FRAME,
+    to: GROTTO_FRAME,
   };
 /**
  * v0.6 Pass 032: whether to change world this frame, and how. The tank and the outer waters are
@@ -196,7 +241,12 @@ const TANK_TO_OUTER: Crossing = {
 export function crossing(
   world: WaterWorldId,
   p: Vec3,
-  ready: { readonly outer: boolean; readonly kelp: boolean },
+  ready: {
+    readonly outer: boolean;
+    readonly kelp: boolean;
+    /** v0.6 Pass 034: the sea cave, beyond the kelp forest's grotto. */
+    readonly cave?: boolean;
+  },
 ): Crossing | null {
   if (world === 'aquarium')
     return passageTarget('aquarium', p, ready.outer) === 'outer'
@@ -210,9 +260,20 @@ export function crossing(
       ? OUTER_TO_KELP
       : null;
   }
-  return depthPast(KELP_FRAME, p) < -PASSAGE.hysteresis &&
+  if (world === 'cave')
+    return depthPast(CAVE_FRAME, p) < -PASSAGE.hysteresis &&
+      Math.abs(p.y - CAVE_FRAME.origin.y) < 3
+      ? CAVE_TO_KELP
+      : null;
+  if (
+    depthPast(KELP_FRAME, p) < -PASSAGE.hysteresis &&
     Math.abs(p.y - KELP_FRAME.origin.y) < 3
-    ? KELP_TO_OUTER
+  )
+    return KELP_TO_OUTER;
+  return ready.cave &&
+    inGrotto(p) &&
+    depthPast(GROTTO_FRAME, p) > PASSAGE.hysteresis
+    ? KELP_TO_CAVE
     : null;
 }
 

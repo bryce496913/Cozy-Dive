@@ -6,7 +6,7 @@ import { boxCollider } from '../passage/Crevice';
 import { createRockGeometry } from '../RockGeometry';
 import { rockCollider } from '../rockCollider';
 import { STALKS } from './KelpStalks';
-import { kelpFloor, laneWeight } from './KelpTerrain';
+import { inGrottoClear, kelpFloor, laneWeight } from './KelpTerrain';
 
 /**
  * v0.6 Pass 032: the kelp forest's ground and walls. The tunnel from the cleft runs straight
@@ -54,6 +54,7 @@ export function boulderLayout(): Boulder[] {
       yaw = rand() * Math.PI * 2;
     if (
       laneWeight(x, z) > 0.02 ||
+      inGrottoClear(x, z, size * 0.6) ||
       (Math.abs(x) < STALKS.exitClear.halfWidth + 1 &&
         z > KELP.tunnel.wallZ - STALKS.exitClear.depth - 2) ||
       out.some((b) => Math.hypot(b.x - x, b.z - z) < (b.size + size) * 0.6)
