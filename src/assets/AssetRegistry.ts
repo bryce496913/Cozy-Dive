@@ -181,6 +181,36 @@ export const ASSET_REGISTRY = {
     maxDimension: 2.6,
     requireMorphs: true,
   },
+  /** v0.6 Pass 033: the outer reef's wall visitors (authored about 3 m long, scaled at runtime). */
+  hammerhead: {
+    path: 'assets/models/creatures/hammerhead.glb',
+    requiredNodes: ['Hammerhead_Root', 'Body', 'Body_LOD1'],
+    minDimension: 2.7,
+    maxDimension: 3.4,
+    requireMorphs: true,
+  },
+  mantaRay: {
+    path: 'assets/models/creatures/manta-ray.glb',
+    requiredNodes: ['Manta_Root', 'Body', 'Body_LOD1'],
+    // Bounds include the wing-beat morphs: the 4.4 m span measures 5.2 m with both strokes.
+    minDimension: 4.0,
+    maxDimension: 5.5,
+    requireMorphs: true,
+  },
+  whaleShark: {
+    path: 'assets/models/creatures/whale-shark.glb',
+    requiredNodes: ['WhaleShark_Root', 'Body', 'Body_LOD1'],
+    minDimension: 2.7,
+    maxDimension: 3.4,
+    requireMorphs: true,
+  },
+  humpbackWhale: {
+    path: 'assets/models/creatures/humpback-whale.glb',
+    requiredNodes: ['Humpback_Root', 'Body', 'Body_LOD1'],
+    minDimension: 2.7,
+    maxDimension: 3.4,
+    requireMorphs: true,
+  },
   acropora: {
     path: 'assets/models/coral/acropora.glb',
     requiredNodes: [

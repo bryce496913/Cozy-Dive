@@ -192,6 +192,16 @@ export class Cruiser {
   ) {
     this.distance = placement.start;
     this.phase = placement.phase;
+    this.restart(0);
+  }
+  /**
+   * v0.6 Pass 033: start again `distance` m along the route (plus its own place in its group),
+   * on its line and facing along it, with nothing left over from giving way.
+   */
+  restart(distance: number): void {
+    this.distance = distance + this.placement.start;
+    this.offset.x = this.offset.y = this.offset.z = 0;
+    this.engaged = false;
     this.place();
     this.previous.x = this.position.x;
     this.previous.y = this.position.y;
@@ -199,6 +209,7 @@ export class Cruiser {
     const t = this.tangent;
     this.yaw = Math.atan2(-t.z, t.x);
     this.pitch = this.clampPitch(Math.atan2(t.y, Math.hypot(t.x, t.z)));
+    this.bank = 0;
   }
   private clampPitch(p: number): number {
     return Math.max(-CRUISING.maxPitch, Math.min(CRUISING.maxPitch, p));

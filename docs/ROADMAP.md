@@ -97,6 +97,10 @@ v0.5 closes on the user's macOS acceptance of this candidate; v0.4 (`0.4.0-rc.3`
   - **Life:** garibaldi around the rocks and bat rays gliding along the lane.
   - **Passages:** they become links between worlds, and Return to the tank works from either.
   - **Discovery:** new sightings, and the kelp unlocks a kelp stand for the tank. See [the kelp forest](KELP_FOREST.md).
+- **Pass 033 — Wall visitors (`0.6.0-alpha.2`, by user request):** bigger creatures along the outer reef's wall.
+  - **Who:** a reef manta, a whale shark, schooling scalloped hammerheads, a great hammerhead and a humpback whale, newly authored.
+  - **How:** they loop back and forth beyond the lip, and one more kind comes the longer the swimmer waits at the edge.
+  - **Surprise:** each visit to the outer reef opens with a different animal.
 - **Provisional, to agree after the user plays Pass 032:**
   - the kelp forest's life for the tank (garibaldi, a bat ray pup);
   - more kelp-forest character (light shafts, a sea lion);
