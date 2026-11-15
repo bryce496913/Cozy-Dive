@@ -262,7 +262,9 @@ try {
     // Beside the creature, a little above, looking at it; stepped until it counts as seen.
     for (let i = 0; i < 90; i++) {
       const target = (await creatures())[index];
-      const yaw = target.yaw + Math.PI / 2,
+      // From the shoreward side: since #59 the swimmer cannot go more than 3.65 m past the lip.
+      const side = Math.sin(target.yaw + Math.PI / 2) >= 0 ? 1 : -1,
+        yaw = target.yaw + (side * Math.PI) / 2,
         ex = target.x - Math.cos(yaw) * 6.5,
         ez = target.z + Math.sin(yaw) * 6.5,
         ey = target.y + 1.2;
