@@ -185,6 +185,24 @@ export class Cruiser {
   /** The side it moves to while giving way (unit), fixed for each encounter. */
   private readonly away: Vec3 = { x: 0, y: 0, z: 0 };
   private engaged = false;
+  /**
+   * v0.6 Pass 037: the whole route shifted along z (m), the shift it is easing towards, and how
+   * quickly. The outer reef moves a creature's pass nearer the glass or further out into the blue.
+   */
+  private laneNow = 0;
+  private laneTarget = 0;
+  /** Set the lane shift it eases to (or jumps to, with `snap`, while out of sight). */
+  setLane(shift: number, snap = false): void {
+    this.laneTarget = shift;
+    if (snap) this.laneNow = shift;
+  }
+  get lane(): number {
+    return this.laneTarget;
+  }
+  /** Its place to the right of its group's route (m). */
+  get placementSide(): number {
+    return this.placement.side;
+  }
   constructor(
     readonly species: CruiseSpecies,
     readonly route: CruiseRoute,
@@ -225,6 +243,7 @@ export class Cruiser {
     b.x += (-t.z / h) * this.placement.side;
     b.z += (t.x / h) * this.placement.side;
     b.y += this.placement.up;
+    b.z += this.laneNow;
     this.position.x = b.x + this.offset.x;
     this.position.y = b.y + this.offset.y;
     this.position.z = b.z + this.offset.z;
@@ -233,6 +252,8 @@ export class Cruiser {
     if (!(dt > 0)) return;
     const s = this.species;
     this.distance += s.speed * dt;
+    this.laneNow +=
+      (this.laneTarget - this.laneNow) * approach(CRUISING.laneResponse, dt);
     this.place();
     // Give way: aside from the line of travel, away from the swimmer; up rather than down. The
     // side is chosen once per encounter (so passing the swimmer never flips it), and the route a
@@ -248,9 +269,11 @@ export class Cruiser {
           this.distance + s.speed * CRUISING.lookAhead,
           this.ahead,
         ),
+        // The route ahead, in its current lane.
+        az = a.z + this.laneNow,
         d = Math.min(
           Math.hypot(b.x - p.x, b.y - p.y, b.z - p.z),
-          Math.hypot(a.x - p.x, a.y - p.y, a.z - p.z),
+          Math.hypot(a.x - p.x, a.y - p.y, az - p.z),
         ),
         strength = smoothstep(0, 1, 1 - d / s.comfort);
       if (strength > 0) {
