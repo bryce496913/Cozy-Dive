@@ -26,6 +26,8 @@ export const REEF_SIGHTS = {
 export const KELP_SIGHTS = {
   kelp: { id: 'plant:giant-kelp', label: 'Giant kelp' },
   garibaldi: { id: 'species:garibaldi', label: 'Garibaldi' },
+  /** v0.6 Pass 035. */
+  bass: { id: 'species:kelp-bass', label: 'Kelp bass' },
 } as const satisfies Record<string, Sight>;
 
 /** v0.6 Pass 034: what the sea cave shows (its whitetips are listed with the big creatures). */

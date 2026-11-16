@@ -11,7 +11,9 @@ export type SpeciesId =
   /** v0.6 Pass 032: the kelp forest's bright orange damselfish (never in the tank's population). */
   | 'garibaldi'
   /** v0.6 Pass 034: the sea cave's coppery schooling fish (never in the tank's population). */
-  | 'glassy-sweeper';
+  | 'glassy-sweeper'
+  /** v0.6 Pass 035: the kelp forest's olive-brown mid-water fish (never in the tank). */
+  | 'kelp-bass';
 export interface SchoolingTuning {
   readonly enabled: boolean;
   readonly spacing: number;

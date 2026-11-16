@@ -66,6 +66,45 @@ export function kelpSpecies(boulders: readonly Boulder[]): FishSpecies[] {
   });
 }
 
+/**
+ * v0.6 Pass 035: kelp bass, hanging in loose groups in mid-water among the kelp (the chromis rig
+ * in olive brown, a little larger than the garibaldi), drifting slowly together.
+ */
+export const KELP_BASS = [
+  { x: -12, y: 7.5, z: -26, count: 9 },
+  { x: 18, y: 9, z: -44, count: 8 },
+  { x: -4, y: 6.5, z: -60, count: 7 },
+] as const;
+export function kelpBassSpecies(): FishSpecies[] {
+  const chromis = FISH_SPECIES.find((f) => f.id === 'blue-green-chromis')!,
+    k = 2.5,
+    olive = 0x7a6a45;
+  return KELP_BASS.map((b) => ({
+    ...chromis,
+    id: 'kelp-bass',
+    name: 'Kelp bass',
+    count: b.count,
+    length: chromis.length * k,
+    height: chromis.height * k * 0.9,
+    width: chromis.width * k,
+    color: olive,
+    backColor: olive,
+    finColor: olive,
+    accentColor: olive,
+    schooling: {
+      ...chromis.schooling,
+      enabled: true,
+      spacing: chromis.schooling.spacing * 2.2,
+      separationRange: chromis.schooling.separationRange * 2.2,
+    },
+    speed: chromis.speed * 0.9,
+    region: { x: b.x, y: b.y, z: b.z },
+    spread: { x: 5, y: 2.2, z: 5 },
+    depth: [b.y - 2.5, b.y + 2.5],
+    individualScale: undefined,
+  }));
+}
+
 /** Coarse boxes the garibaldi steer around: each boulder, and the wall behind the forest. */
 export function kelpFishRocks(boulders: readonly Boulder[]): ConvexCollider[] {
   const b = KELP.bounds;

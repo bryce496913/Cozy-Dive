@@ -15,7 +15,9 @@ import {
   caveObstacles,
   caveSpecies,
 } from '../environment/cave/CaveLife';
+import { CaveDressing } from '../environment/cave/CaveDressing';
 import { CaveLobsters } from '../environment/cave/CaveLobsters';
+import { MarineSnow } from '../environment/shared/MarineSnow';
 import { caveFloor, easeInCave } from '../environment/cave/CaveTerrain';
 import { RestingSharks } from '../environment/cave/RestingSharks';
 import { OuterCreatures } from '../environment/outer/OuterCreatures';
@@ -49,6 +51,17 @@ export class SeaCaveScene implements WaterWorld {
   readonly camera = new THREE.PerspectiveCamera(64, 1, 0.08, 80);
   readonly environment = new CaveEnvironment();
   readonly lobsters: CaveLobsters;
+  /** v0.6 Pass 035: hanging formations, sun corals, rubble and motes; drifting particles. */
+  readonly dressing: CaveDressing;
+  readonly snow = new MarineSnow({
+    count: 500,
+    reach: 10,
+    size: 0.04,
+    color: 0xcfe4e0,
+    opacity: 0.45,
+    sink: 0.02,
+    wander: 0.03,
+  });
   schools?: OuterSchools;
   creatures?: OuterCreatures;
   resting?: RestingSharks;
@@ -70,7 +83,13 @@ export class SeaCaveScene implements WaterWorld {
     this.scene.background = new THREE.Color(CAVE.water);
     this.scene.fog = new THREE.FogExp2(CAVE.water, CAVE.fog);
     this.lobsters = new CaveLobsters(this.environment.cracks);
-    this.scene.add(this.environment.root, this.lobsters.root);
+    this.dressing = new CaveDressing(this.environment.skylightTop);
+    this.scene.add(
+      this.environment.root,
+      this.lobsters.root,
+      this.dressing.root,
+      this.snow.points,
+    );
     // The same kinds and number of lights as the tank, so most programs are shared with it: a
     // dim sky light, the sun from above through the roof, and a cool fill.
     const sky = new THREE.HemisphereLight(0x8fc4c4, 0x2c2a22, 0.95),
@@ -186,7 +205,9 @@ export class SeaCaveScene implements WaterWorld {
       this.camera.updateProjectionMatrix();
     }
     this.environment.update(dt, active, reducedMotion);
-    this.lobsters.update(dt, active, reducedMotion);
+    this.dressing.update(dt, active, reducedMotion);
+    this.snow.update(dt, active, reducedMotion, this.camera.position);
+    this.lobsters.update(dt, active, reducedMotion, player);
     this.resting?.update(dt, active, reducedMotion);
     this.schools?.update(dt, active, reducedMotion, player, this.camera);
     this.creatures?.update(dt, active, reducedMotion, player, this.camera);
@@ -201,6 +222,8 @@ export class SeaCaveScene implements WaterWorld {
     this.resting?.dispose();
     this.sightings.length = 0;
     this.lobsters.dispose();
+    this.dressing.dispose();
+    this.snow.dispose();
     this.environment.dispose();
     this.lights.forEach((l) => l.dispose());
     this.scene.clear();

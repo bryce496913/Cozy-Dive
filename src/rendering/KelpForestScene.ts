@@ -5,8 +5,12 @@ import type { Bounds, Vec3 } from '../config/world';
 import type { SightCandidate } from '../discovery/journal';
 import { KELP_SIGHTS } from '../discovery/sights';
 import { KelpEnvironment } from '../environment/kelp/KelpEnvironment';
+import { KelpDressing } from '../environment/kelp/KelpDressing';
+import { KelpLight } from '../environment/kelp/KelpLight';
+import { MarineSnow } from '../environment/shared/MarineSnow';
 import {
   KELP_CRUISERS,
+  kelpBassSpecies,
   kelpHabitat,
   kelpObstacles,
   kelpSpecies,
@@ -44,6 +48,18 @@ export class KelpForestScene implements WaterWorld {
   readonly camera = new THREE.PerspectiveCamera(64, 1, 0.08, 120);
   readonly environment = new KelpEnvironment();
   readonly stalks = new KelpStalks();
+  /** v0.6 Pass 035: urchins, sea stars, anemones and cobbles; sunbeams; drifting particles. */
+  readonly dressing: KelpDressing;
+  readonly light = new KelpLight();
+  readonly snow = new MarineSnow({
+    count: 700,
+    reach: 11,
+    size: 0.05,
+    color: 0xd8e8c8,
+    opacity: 0.55,
+    sink: 0.03,
+    wander: 0.05,
+  });
   /** v0.6 Pass 034: the grotto against the wall, east of the tunnel: the way on to the sea cave. */
   readonly grotto = new TurnedCrevice(GROTTO.offset, 'Grotto to the sea cave');
   schools?: OuterSchools;
@@ -65,7 +81,15 @@ export class KelpForestScene implements WaterWorld {
     this.scene.name = 'Kelp forest';
     this.scene.background = new THREE.Color(KELP.water);
     this.scene.fog = new THREE.FogExp2(KELP.water, KELP.fog);
-    this.scene.add(this.environment.root, this.stalks.root, this.grotto.root);
+    this.dressing = new KelpDressing(this.environment.boulders);
+    this.scene.add(
+      this.environment.root,
+      this.stalks.root,
+      this.grotto.root,
+      this.dressing.root,
+      this.light.root,
+      this.snow.points,
+    );
     // The same kinds and number of lights as the tank, so most programs are shared with it.
     const sky = new THREE.HemisphereLight(0xd8f0c8, 0x3a4630, 1.35),
       sun = new THREE.DirectionalLight(0xfff0c6, 2.3),
@@ -123,7 +147,7 @@ export class KelpForestScene implements WaterWorld {
     const boulders = this.environment.boulders;
     this.schools = new OuterSchools(
       kelpHabitat(boulders),
-      kelpSpecies(boulders),
+      [...kelpSpecies(boulders), ...kelpBassSpecies()],
       fish,
     );
     this.creatures = new OuterCreatures(
@@ -150,6 +174,17 @@ export class KelpForestScene implements WaterWorld {
         label: KELP_SIGHTS.garibaldi.label,
         position: garibaldi[i].position,
         radius: 1.2,
+      });
+    // v0.6 Pass 035: a kelp bass is seen by following one fish from each group.
+    const bass = this.schools.fish.simulation.fish.filter(
+      (f) => f.species.id === 'kelp-bass',
+    );
+    for (let i = 0; i < bass.length; i += 8)
+      this.sightings.push({
+        id: KELP_SIGHTS.bass.id,
+        label: KELP_SIGHTS.bass.label,
+        position: bass[i].position,
+        radius: 1.6,
       });
     await warmUpScene(this.renderer, this.scene, this.camera);
     if (this.disposed) return false;
@@ -183,6 +218,9 @@ export class KelpForestScene implements WaterWorld {
       this.camera.updateProjectionMatrix();
     }
     this.stalks.update(dt, active, reducedMotion);
+    this.dressing.update(dt, active, reducedMotion);
+    this.light.update(dt, active, reducedMotion, this.camera.position);
+    this.snow.update(dt, active, reducedMotion, this.camera.position);
     this.schools?.update(dt, active, reducedMotion, player, this.camera);
     this.creatures?.update(dt, active, reducedMotion, player, this.camera);
     this.renderer.render(this.scene, this.camera);
@@ -195,6 +233,9 @@ export class KelpForestScene implements WaterWorld {
     this.creatures?.dispose();
     this.sightings.length = 0;
     this.stalks.dispose();
+    this.dressing.dispose();
+    this.light.dispose();
+    this.snow.dispose();
     this.grotto.dispose();
     this.environment.dispose();
     this.lights.forEach((l) => l.dispose());

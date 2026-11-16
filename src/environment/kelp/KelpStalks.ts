@@ -87,6 +87,42 @@ export function stalkTemplate(
 ): THREE.BufferGeometry {
   const rand = random(seed),
     parts: THREE.BufferGeometry[] = [];
+  /** Give a part its own colour (blades shade lighter towards their tips; see `blade`). */
+  const tone = (g: THREE.BufferGeometry, r: number, gr: number, b: number) => {
+    const n = g.getAttribute('position').count,
+      existing = g.getAttribute('color'),
+      c = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) {
+      const k = existing ? existing.getX(i) : 1;
+      c[i * 3] = r * k;
+      c[i * 3 + 1] = gr * k;
+      c[i * 3 + 2] = b * k;
+    }
+    g.setAttribute('color', new THREE.Float32BufferAttribute(c, 3));
+    return g;
+  };
+  // The holdfast: a tangle of root-like haptera spreading over the rock.
+  for (let i = 0; i < 12; i++) {
+    const a = (i / 12) * Math.PI * 2 + rand() * 0.4,
+      reach = 0.35 + rand() * 0.3,
+      curve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(0, 0.25, 0),
+        new THREE.Vector3(
+          Math.cos(a) * reach * 0.45,
+          0.22 + rand() * 0.08,
+          Math.sin(a) * reach * 0.45,
+        ),
+        new THREE.Vector3(Math.cos(a) * reach, 0.02, Math.sin(a) * reach),
+      ]);
+    parts.push(
+      tone(
+        new THREE.TubeGeometry(curve, 5, 0.025 + rand() * 0.015, 4, false),
+        0.3,
+        0.22,
+        0.1,
+      ),
+    );
+  }
   const stipes = 3;
   for (let k = 0; k < stipes; k++) {
     const tall = height * (k === 0 ? 1 : 0.72 + rand() * 0.22),
@@ -106,60 +142,92 @@ export function stalkTemplate(
       path: THREE.Vector3[] = [];
     for (let i = 0; i <= segments; i++) path.push(at((i / segments) * tall));
     parts.push(
-      new THREE.TubeGeometry(
-        new THREE.CatmullRomCurve3(path),
-        segments,
-        0.04,
-        4,
-        false,
+      tone(
+        new THREE.TubeGeometry(
+          new THREE.CatmullRomCurve3(path),
+          segments,
+          0.04,
+          4,
+          false,
+        ),
+        0.42,
+        0.34,
+        0.12,
       ),
     );
     // Blades every 30-45 cm, each hanging from the stipe on its own side, trailing up and out.
-    for (let y = 0.7; y < tall - 0.6; y += 0.3 + rand() * 0.15)
+    // Each blade grows from a small gas bulb (a pneumatocyst) that holds it up in the water.
+    for (let y = 0.7; y < tall - 0.6; y += 0.3 + rand() * 0.15) {
+      const base = at(y),
+        angle = rand() * Math.PI * 2,
+        bulb = new THREE.IcosahedronGeometry(0.05 + rand() * 0.02, 0);
+      bulb.scale(1, 1.4, 1);
+      bulb.translate(
+        base.x + Math.cos(angle) * 0.06,
+        base.y + 0.04,
+        base.z + Math.sin(angle) * 0.06,
+      );
+      parts.push(tone(bulb, 0.62, 0.5, 0.16));
+      const v = 0.85 + rand() * 0.3;
       parts.push(
-        blade(
-          at(y),
-          rand() * Math.PI * 2,
-          1.1 + rand() * 0.7,
-          0.24 + rand() * 0.1,
-          0.2,
-          rand,
+        tone(
+          blade(
+            base,
+            angle,
+            1.1 + rand() * 0.7,
+            0.24 + rand() * 0.1,
+            0.2,
+            rand,
+          ),
+          0.7 * v,
+          0.5 * v,
+          0.15 * v,
         ),
       );
+    }
     // The canopy: long blades fanning out where the stipe reaches the top.
-    for (let i = 0; i < 6; i++)
+    for (let i = 0; i < 6; i++) {
+      const v = 0.9 + rand() * 0.25;
       parts.push(
-        blade(
-          at(tall - 0.3),
-          (i / 6) * Math.PI * 2 + rand() * 0.6,
-          2 + rand() * 1.6,
-          0.32,
-          -0.9,
-          rand,
+        tone(
+          blade(
+            at(tall - 0.3),
+            (i / 6) * Math.PI * 2 + rand() * 0.6,
+            2 + rand() * 1.6,
+            0.32,
+            -0.9,
+            rand,
+          ),
+          0.78 * v,
+          0.56 * v,
+          0.17 * v,
         ),
       );
+    }
   }
-  // Positions only (normals are computed once, after merging), so every part has the same layout.
+  // Positions and colours only (normals are computed once, after merging), so every part has
+  // the same layout.
   const flat = parts.map((p) => {
     const g = p.index ? p.toNonIndexed() : p.clone();
     for (const name of Object.keys(g.attributes))
-      if (name !== 'position') g.deleteAttribute(name);
+      if (name !== 'position' && name !== 'color') g.deleteAttribute(name);
     return g;
   });
   parts.forEach((p) => p.dispose());
   const merged = mergeGeometries(flat, false);
   flat.forEach((g) => g.dispose());
   if (!merged) throw Error('Kelp template could not be built');
-  // Golden brown, deeper towards the holdfast, amber where the sun reaches the canopy.
+  // Deeper towards the holdfast, brighter where the sun reaches the canopy.
   const pos = merged.getAttribute('position'),
+    tones = merged.getAttribute('color'),
     colors = new Float32Array(pos.count * 3);
   for (let i = 0; i < pos.count; i++) {
     const t = Math.max(0, Math.min(1, pos.getY(i) / height)),
       k = 0.62 + 0.38 * t,
-      n = 0.9 + 0.1 * Math.sin(i * 0.731);
-    colors[i * 3] = 0.66 * k * n;
-    colors[i * 3 + 1] = 0.47 * k * n;
-    colors[i * 3 + 2] = 0.14 * k * n;
+      n = 0.92 + 0.08 * Math.sin(i * 0.731);
+    colors[i * 3] = tones.getX(i) * k * n;
+    colors[i * 3 + 1] = tones.getY(i) * k * n;
+    colors[i * 3 + 2] = tones.getZ(i) * k * n;
   }
   merged.setAttribute('color', new THREE.BufferAttribute(colors, 3));
   merged.computeVertexNormals();
@@ -178,7 +246,7 @@ function blade(
   lift: number,
   rand: () => number,
 ): THREE.BufferGeometry {
-  const steps = 5,
+  const steps = 8,
     positions: number[] = [],
     indices: number[] = [],
     dx = Math.cos(angle),
@@ -191,12 +259,18 @@ function blade(
       w =
         width *
         Math.sin(Math.PI * Math.min(1, t * 1.05 + 0.08)) *
-        (1 + 0.15 * Math.sin(t * 9 + ripple)),
+        (1 + 0.15 * Math.sin(t * 9 + ripple)) *
+        // Ruffled edges, as giant kelp blades have.
+        (1 + 0.08 * Math.sin(t * 31 + ripple * 2)),
       up = r * rise * (1 - t * 0.6) + lift * t * t;
     for (const side of [-1, 1])
       positions.push(
         base.x + dx * r * 0.75 - dz * w * side * 0.5,
-        base.y + up + side * w * 0.12 * Math.sin(t * 7 + ripple),
+        base.y +
+          up +
+          side *
+            w *
+            (0.12 * Math.sin(t * 7 + ripple) + 0.05 * Math.sin(t * 23)),
         base.z + dz * r * 0.75 + dx * w * side * 0.5,
       );
   }
@@ -206,6 +280,13 @@ function blade(
   }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  // Lightness (in the red channel; `tone` multiplies it in): darker at the base, paler at the tip.
+  const light: number[] = [];
+  for (let i = 0; i <= steps; i++) {
+    const k = 0.75 + 0.4 * (i / steps);
+    light.push(k, k, k, k, k, k);
+  }
+  g.setAttribute('color', new THREE.Float32BufferAttribute(light, 3));
   g.setIndex(indices);
   return g;
 }
