@@ -66,10 +66,13 @@ export function easeFactor(past: number, band: number): number {
  * nothing); movement along or back from a limit is untouched. `dir` is changed in place.
  */
 export function easeAtEdges(p: Vec3, dir: Vec3): Vec3 {
-  const r = OUTER.reach,
-    lip = OUTER.dropOff.start;
-  // Out over the blue, beyond the lip.
-  if (dir.z < 0) dir.z *= easeFactor(lip - p.z, r.past);
+  const r = OUTER.reach;
+  // v0.6 Pass 036: out over the blue to the back glass, slowing gently just before it.
+  if (dir.z < 0) {
+    const g = OUTER.glass,
+      left = p.z - (g.z + g.gap);
+    dir.z *= Math.max(0.15, Math.min(1, left / g.ease));
+  }
   // Down the wall.
   if (dir.y < 0) dir.y *= easeFactor(r.down - p.y, r.depth);
   // Up towards the far surface.

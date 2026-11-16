@@ -65,6 +65,31 @@ export function boulderLayout(): Boulder[] {
   return out;
 }
 
+/** v0.6 Pass 036: big rocks along the foot of the side and far walls (pure, deterministic). */
+export function wallRockLayout(): Boulder[] {
+  const rand = random(36021),
+    w = KELP.walls,
+    out: Boulder[] = [];
+  const add = (x: number, z: number) => {
+    const size = 2.4 + rand() * 2.6,
+      height = size * (0.5 + rand() * 0.4);
+    out.push({
+      x,
+      y: kelpFloor(x, z),
+      z,
+      size,
+      height,
+      yaw: rand() * Math.PI * 2,
+    });
+  };
+  for (const side of [-1, 1])
+    for (let z = KELP.tunnel.wallZ - 3; z > w.farZ; z -= 3 + rand() * 2.5)
+      add(side * (w.x + 0.2 - rand() * 0.8), z);
+  for (let x = -w.x; x < w.x; x += 3 + rand() * 2.5)
+    add(x, w.farZ + 0.2 - rand() * 0.8);
+  return out;
+}
+
 export class KelpEnvironment {
   readonly root = new THREE.Group();
   readonly colliders: readonly ConvexCollider[];
@@ -145,9 +170,30 @@ export class KelpEnvironment {
       colliders.push(rockCollider(g, m));
       rocks.push(g.applyMatrix4(m));
     });
+    // v0.6 Pass 036: big rocks piled along the foot of the tank's walls.
+    wallRockLayout().forEach((b, i) => {
+      const g = createRockGeometry(36100 + i * 7, i % 4, 2);
+      g.computeBoundingBox();
+      const box = g.boundingBox!,
+        size = box.getSize(new THREE.Vector3()),
+        centre = box.getCenter(new THREE.Vector3());
+      e.set(0, b.yaw, 0);
+      q.setFromEuler(e);
+      m.compose(
+        new THREE.Vector3(b.x, b.y + b.height * 0.25, b.z),
+        q,
+        new THREE.Vector3(b.size / size.x, b.height / size.y, b.size / size.z),
+      ).multiply(
+        new THREE.Matrix4().makeTranslation(-centre.x, -centre.y, -centre.z),
+      );
+      colliders.push(rockCollider(g, m));
+      rocks.push(g.applyMatrix4(m));
+    });
     const merged = mergeGeometries(rocks, false);
     rocks.forEach((g) => g.dispose());
     if (merged) this.add(merged, this.rock, 'Kelp boulders');
+    this.add(this.tankWalls(), this.rock, 'Kelp tank walls');
+    colliders.push(...this.tankWallColliders());
     const sky = new THREE.PlaneGeometry(260, 260);
     sky.rotateX(Math.PI / 2);
     sky.translate(0, KELP.surfaceY, -40);
@@ -279,6 +325,91 @@ export class KelpEnvironment {
       boxCollider(
         [-d - w, y - d - w, t.startZ + 0.2],
         [d + w, y + d + w, z1 + w],
+      ),
+    ];
+  }
+  /**
+   * v0.6 Pass 036: the tank's rock walls on the sides and far end: lumpy faces of stacked rock
+   * rising from the seabed past the surface, bulging out up to a metre or so from their line.
+   */
+  private tankWalls(): THREE.BufferGeometry {
+    const w = KELP.walls,
+      faces: THREE.BufferGeometry[] = [],
+      y0 = -3,
+      y1 = KELP.surfaceY + 4,
+      near = KELP.tunnel.wallZ + 2;
+    // Each face: a start and end along the wall's line, and its inward direction.
+    const lines: [number, number, number, number, number, number][] = [
+      // x0, z0, x1, z1, inward x, inward z
+      [-w.x, near, -w.x, w.farZ - 2, 1, 0],
+      [w.x, w.farZ - 2, w.x, near, -1, 0],
+      [-w.x - 2, w.farZ, w.x + 2, w.farZ, 0, 1],
+    ];
+    for (const [x0, z0, x1, z1, nx, nz] of lines) {
+      const length = Math.hypot(x1 - x0, z1 - z0),
+        g = new THREE.PlaneGeometry(
+          length,
+          y1 - y0,
+          Math.ceil(length / 0.8),
+          Math.ceil((y1 - y0) / 0.8),
+        ),
+        pos = g.getAttribute('position'),
+        colors: number[] = [];
+      for (let i = 0; i < pos.count; i++) {
+        const u = (pos.getX(i) + length / 2) / length,
+          y = pos.getY(i) + (y0 + y1) / 2,
+          x = x0 + (x1 - x0) * u,
+          z = z0 + (z1 - z0) * u,
+          // Stacked boulders: broad lumps, smaller lumps on them, and cracks between.
+          a = x * 0.37 + z * 0.37,
+          lump =
+            0.5 +
+            0.5 * Math.sin(a * 0.9 + y * 0.55) * Math.sin(a * 0.45 - y * 0.8),
+          small =
+            0.5 +
+            0.5 * Math.sin(a * 2.3 + y * 1.9) * Math.sin(a * 1.7 - y * 2.2),
+          crack = Math.abs(Math.sin(a * 0.6 + Math.sin(y * 0.4) * 1.2)),
+          bulge = 1.1 * lump + 0.25 * small - 0.35 * (1 - crack),
+          floor = kelpFloor(x, z),
+          // The foot of the wall sits in the sand.
+          base = y < floor ? floor : y;
+        pos.setXYZ(i, x + nx * bulge, base, z + nz * bulge);
+        const tone =
+            (0.24 + lump * 0.14 + small * 0.06) * (0.55 + 0.45 * crack),
+          // Coralline pink low down, olive and brown above.
+          pink = Math.max(0, 1 - (y - floor) / 6);
+        colors.push(
+          tone * (0.95 + 0.1 * pink),
+          tone * (0.85 - 0.1 * pink),
+          tone * (0.72 + 0.05 * pink),
+        );
+      }
+      g.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+      g.deleteAttribute('uv');
+      faces.push(g);
+    }
+    const merged = mergeGeometries(faces, false)!;
+    faces.forEach((g) => g.dispose());
+    // Each face's winding (along its line, then up) already faces into the forest.
+    merged.computeVertexNormals();
+    return merged;
+  }
+  /** Solid rock behind the tank's side and far walls. */
+  private tankWallColliders(): ConvexCollider[] {
+    const b = KELP.bounds,
+      w = KELP.walls;
+    return [
+      boxCollider(
+        [b.min.x - 1, b.min.y - 1, b.min.z - 1],
+        [-w.x, b.max.y + 1, b.max.z + 1],
+      ),
+      boxCollider(
+        [w.x, b.min.y - 1, b.min.z - 1],
+        [b.max.x + 1, b.max.y + 1, b.max.z + 1],
+      ),
+      boxCollider(
+        [b.min.x - 1, b.min.y - 1, b.min.z - 1],
+        [b.max.x + 1, b.max.y + 1, w.farZ],
       ),
     ];
   }

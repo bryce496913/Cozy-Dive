@@ -91,8 +91,8 @@ export class SeaCaveScene implements WaterWorld {
       this.snow.points,
     );
     // The same kinds and number of lights as the tank, so most programs are shared with it: a
-    // dim sky light, the sun from above through the roof, and a cool fill.
-    const sky = new THREE.HemisphereLight(0x8fc4c4, 0x2c2a22, 0.95),
+    // sky light (its ground colour lighting the rock roof from below, so the roof reads), the sun from above through the roof, and a cool fill.
+    const sky = new THREE.HemisphereLight(0x8fc4c4, 0x6a6452, 1.1),
       sun = new THREE.DirectionalLight(0xfff0cf, 1.7),
       fill = new THREE.DirectionalLight(0x6aaabb, 0.35);
     sun.position.set(CAVE.skylight.x + 6, 60, CAVE.skylight.z - 4);
