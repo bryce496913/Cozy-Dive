@@ -28,6 +28,8 @@ export const KELP_SIGHTS = {
   garibaldi: { id: 'species:garibaldi', label: 'Garibaldi' },
   /** v0.6 Pass 035. */
   bass: { id: 'species:kelp-bass', label: 'Kelp bass' },
+  /** v0.6 Pass 039. */
+  seaLion: { id: 'species:california-sea-lion', label: 'California sea lion' },
 } as const satisfies Record<string, Sight>;
 
 /** v0.6 Pass 034: what the sea cave shows (its whitetips are listed with the big creatures). */

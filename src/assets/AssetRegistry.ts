@@ -219,6 +219,14 @@ export const ASSET_REGISTRY = {
     maxDimension: 3.4,
     requireMorphs: true,
   },
+  /** v0.6 Pass 039: the kelp forest's California sea lion (about 2 m long, flippers sweeping). */
+  seaLion: {
+    path: 'assets/models/creatures/sea-lion.glb',
+    requiredNodes: ['SeaLion_Root', 'Body', 'Body_LOD1'],
+    minDimension: 1.9,
+    maxDimension: 2.6,
+    requireMorphs: true,
+  },
   acropora: {
     path: 'assets/models/coral/acropora.glb',
     requiredNodes: [
