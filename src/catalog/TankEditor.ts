@@ -133,6 +133,16 @@ export class TankEditor {
       { signal },
     );
     document.addEventListener('keydown', this.key, { signal });
+    // A left click places, too (while swimming, with the mouse captured).
+    document.addEventListener(
+      'mousedown',
+      (e) => {
+        if (e.button !== 0 || !this.editing()) return;
+        const m = this.model;
+        if (m?.preview && this.canPlace() && m.place()) this.changed();
+      },
+      { signal },
+    );
     this.ready = world.prepared
       .then(async () => {
         if (this.disposed) return;
@@ -366,7 +376,8 @@ export class TankEditor {
       let x = eye.x + this.direction.x * 4,
         z = eye.z + this.direction.z * 4,
         y = model.context.surface(x, z);
-      for (let d = 0.5; d <= 5; d += 0.1) {
+      // Far enough to reach the sand from a normal swimming height while looking down.
+      for (let d = 0.5; d <= 9; d += 0.1) {
         const px = eye.x + this.direction.x * d,
           pz = eye.z + this.direction.z * d,
           py = eye.y + this.direction.y * d,
@@ -379,12 +390,35 @@ export class TankEditor {
         }
       }
       model.aim({ x, y, z });
-      this.decoration.showPreview(model.preview, this.canPlace());
-      this.setHint('R turn · F place · Esc cancel');
+      // If it does not fit where it is aimed, slide it to the nearest spot nearby that it does.
+      if (!model.valid) this.snap(model, x, z);
+      const ok = this.canPlace();
+      this.decoration.showPreview(model.preview, ok);
+      this.setHint(
+        ok
+          ? 'R turn · F or click to place · Esc cancel'
+          : model.valid
+            ? 'Wait for the fish to pass · Esc cancel'
+            : 'Too close to rock, the sand channel or a fish route — look for open sand · Esc cancel',
+      );
     } else {
       this.decoration.showPreview(null, false);
       this.setHint(this.selected ? 'G move · X remove' : '');
     }
+  }
+  /** Try spots in widening rings around (x, z), and keep the first one that is valid. */
+  private snap(model: TankCatalog, x: number, z: number): void {
+    const surface = model.context.surface;
+    for (let r = 0.3; r <= 2.4; r += 0.3)
+      for (let k = 0; k < 10; k++) {
+        const a = (k / 10) * Math.PI * 2 + r,
+          px = x + Math.cos(a) * r,
+          pz = z + Math.sin(a) * r;
+        model.aim({ x: px, y: surface(px, pz), z: pz });
+        if (model.valid) return;
+      }
+    // Nothing fits nearby: leave it where it was aimed (shown as blocked).
+    model.aim({ x, y: surface(x, z), z });
   }
   private canPlace() {
     const m = this.model;
@@ -405,18 +439,19 @@ export class TankEditor {
     }
     this.hint.hidden = !text;
   }
+  /** Whether editing input applies now: in the tank, swimming, with the mouse captured. */
+  private editing(): boolean {
+    return (
+      !!this.current?.eligible &&
+      this.current.active &&
+      document.pointerLockElement === this.world.renderer.domElement &&
+      !!this.model
+    );
+  }
   private key = (e: KeyboardEvent) => {
-    if (
-      !this.current?.eligible ||
-      !this.current.active ||
-      document.pointerLockElement !== this.world.renderer.domElement ||
-      e.repeat ||
-      e.ctrlKey ||
-      e.metaKey ||
-      e.altKey ||
-      !this.model
-    )
+    if (!this.editing() || e.repeat || e.ctrlKey || e.metaKey || e.altKey)
       return;
+    if (!this.model) return;
     const m = this.model;
     if (m.preview && e.code === 'KeyR') {
       m.turn();

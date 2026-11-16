@@ -236,7 +236,9 @@ export class TankDecoration {
     for (const m of this.previews) {
       m.setMatrixAt(0, this.matrix);
       m.instanceMatrix.needsUpdate = true;
-      m.material.opacity = valid ? 0.32 : 0.08;
+      // Pale sea-green where it can go; a clearly visible soft red where it cannot.
+      m.material.opacity = valid ? 0.34 : 0.26;
+      m.material.color.setHex(valid ? 0xa9dbcd : 0xe0786a);
     }
   }
   update(camera: THREE.Camera) {
