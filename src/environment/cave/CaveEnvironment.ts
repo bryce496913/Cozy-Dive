@@ -88,6 +88,11 @@ export class CaveEnvironment {
   private readonly materials: THREE.Material[] = [];
   private time = 0;
   private disposed = false;
+  /** The roof's height at the skylight (where the sunbeam starts). */
+  readonly skylightTop: number;
+  /** v0.6 Pass 035: the pool of light's resting colours, and its geometry (it shimmers). */
+  private poolBase?: Float32Array;
+  private poolGeometry?: THREE.BufferGeometry;
 
   constructor() {
     this.root.name = 'Sea cave';
@@ -141,7 +146,7 @@ export class CaveEnvironment {
       }),
     );
     this.glow = this.own(
-      new THREE.MeshBasicMaterial({ name: 'Cave glow', color: 0x58e8cf }),
+      new THREE.MeshBasicMaterial({ name: 'Cave glow', color: 0x3fb8a4 }),
     );
     const mouthZ = tunnelMouthZ();
     this.add(this.shellMesh(), wall, 'Cave wall');
@@ -149,6 +154,7 @@ export class CaveEnvironment {
     this.add(this.tunnelMesh(mouthZ), tunnel, 'Cave tunnel');
     const s = CAVE.skylight,
       top = this.roofAt(s.x, s.z);
+    this.skylightTop = top;
     // The hole's chimney, and the bright water above it.
     this.add(this.chimneyMesh(top), wall, 'Cave chimney');
     const disc = new THREE.CircleGeometry(s.radius + 0.3, 32);
@@ -159,6 +165,10 @@ export class CaveEnvironment {
     beam.renderOrder = 2;
     const pool = this.add(this.poolMesh(), this.shaft, 'Cave light pool');
     pool.renderOrder = 2;
+    this.poolGeometry = pool.geometry;
+    this.poolBase = Float32Array.from(
+      pool.geometry.getAttribute('color').array,
+    );
 
     const colliders: ConvexCollider[] = [...this.tunnelColliders(mouthZ)];
     const rocks: THREE.BufferGeometry[] = [],
@@ -304,7 +314,17 @@ export class CaveEnvironment {
         algae =
           (1 - smooth(3, 8, Math.hypot(p.x - s.x, p.z - s.z))) *
           smooth(0.3, 0.8, uy),
-        tone = (0.46 + 0.9 * lump + 0.04 * stain) * (0.6 + 0.4 * low);
+        // v0.6 Pass 035: streaks where water has run down the rock, and faint bands of strata.
+        streak =
+          0.86 +
+          0.14 *
+            Math.sin(Math.atan2(ux, uz) * 37 + 2.2 * Math.sin(uy * 5 + ux * 3)),
+        strata = 0.93 + 0.07 * Math.sin(uy * 28 + 0.8 * Math.sin(ux * 6)),
+        tone =
+          (0.46 + 0.9 * lump + 0.04 * stain) *
+          (0.6 + 0.4 * low) *
+          streak *
+          strata;
       colors.push(
         tone * (1 - 0.25 * algae),
         tone * (0.96 + 0.08 * algae),
@@ -538,7 +558,8 @@ export class CaveEnvironment {
         y = c.y + (p.y - c.y) * k,
         z = c.z + (p.z - c.z) * k;
       if (y < caveFloor(x, z) + 0.15) continue;
-      const g = new THREE.IcosahedronGeometry(0.05 + rand() * 0.08, 0);
+      const g = new THREE.IcosahedronGeometry(0.05 + rand() * 0.08, 1);
+      g.scale(1, 0.7, 1);
       g.translate(x, y, z);
       parts.push(g);
     }
@@ -572,6 +593,28 @@ export class CaveEnvironment {
     this.shaft.color.setScalar(0.85 + 0.15 * Math.sin(this.time * 0.6));
     const g = 0.8 + 0.2 * Math.sin(this.time * 0.45 + 1);
     this.glow.color.setRGB(0.35 * g, 0.91 * g, 0.81 * g);
+    // The pool of light ripples with caustics, as the surface far above moves.
+    const geometry = this.poolGeometry,
+      base = this.poolBase;
+    const color = geometry?.getAttribute('color');
+    if (geometry && base && color && color.array instanceof Float32Array) {
+      const pos = geometry.getAttribute('position'),
+        t = this.time,
+        out = color.array;
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i),
+          z = pos.getZ(i),
+          w =
+            Math.sin(x * 2.1 + t * 0.9) +
+            Math.sin(z * 2.6 - t * 0.7) +
+            Math.sin((x + z) * 1.7 + t * 1.1),
+          k = 0.55 + 0.9 * Math.max(0, w / 3) ** 2 + 0.25 * (w / 3 + 1) * 0.5;
+        out[i * 3] = base[i * 3] * k;
+        out[i * 3 + 1] = base[i * 3 + 1] * k;
+        out[i * 3 + 2] = base[i * 3 + 2] * k;
+      }
+      color.needsUpdate = true;
+    }
   }
   dispose(): void {
     if (this.disposed) return;
