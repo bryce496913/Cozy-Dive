@@ -184,8 +184,9 @@ export function validPlacement(
     [radius.x, -radius.z],
     [-radius.x, -radius.z],
   ]) {
+    // v0.6: a little more forgiving on slopes (the piece settles into the sand a touch).
     const support = c.surface(p.x + dx, p.z + dz);
-    if (support > p.y + 0.12 || support < p.y - 0.45) return false;
+    if (support > p.y + 0.3 || support < p.y - 0.6) return false;
   }
   // The entire central sand channel stays open, at every height.
   if (b.min.x < 3.4 && b.max.x > -3.4) return false;
