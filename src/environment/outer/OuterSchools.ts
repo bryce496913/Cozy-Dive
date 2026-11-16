@@ -114,9 +114,10 @@ export const OUTER_SCHOOLS: readonly {
     depth: [2, 6],
   },
   {
-    // Mid-water life beyond the left wall, rather than more fish crowded onto the reef top.
+    // Mid-water life hanging by the window over the lip, rather than more fish crowded onto the
+    // reef top (v0.6 Pass 038: inside the glass, as every reef fish now is).
     species: 'blue-green-chromis',
-    at: { x: -16, z: -65 },
+    at: { x: -16, z: -55.5 },
     count: 24,
     above: 2.5,
     waterLevel: -3,
@@ -125,7 +126,7 @@ export const OUTER_SCHOOLS: readonly {
   },
   {
     species: 'blue-green-chromis',
-    at: { x: 16, z: -64 },
+    at: { x: 16, z: -55.5 },
     count: 24,
     above: 2.5,
     waterLevel: -1,

@@ -259,8 +259,16 @@ export class OuterWatersScene implements WaterWorld {
     // Pass 026: one map of the reef's tops places the schools and lifts the creatures' routes.
     const drawn = this.reef.drawnPlacements,
       obstacles = reefObstacles(drawn);
+    // v0.6 Pass 038: the reef's fish live in the tank: inside its back and side glass, below the
+    // glass's top (the big animals swim outside it, in their own space).
+    const g = OUTER.glass,
+      tank: Bounds = {
+        min: { x: -g.halfWidth, y: g.bottom, z: g.z },
+        max: { x: g.halfWidth, y: g.top, z: OUTER.bounds.max.z },
+        clearance: OUTER.bounds.clearance,
+      };
     const habitat: FishHabitat = {
-      bounds: OUTER.bounds,
+      bounds: tank,
       // Coarse boxes keep the fish cheap; one more keeps them off the cliff.
       rocks: [
         ...this.reef.fishObstacles,
