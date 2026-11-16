@@ -16,6 +16,7 @@ import {
 import type { SightCandidate } from '../../discovery/journal';
 import type { PlayerPresence } from '../../fish/FishDiverReaction';
 import { OuterCreatures, type CruiseGroup } from './OuterCreatures';
+import { PassingLanes } from './PassingLanes';
 
 /**
  * v0.6 Pass 033: visitors along the outer reef's wall. A manta, a whale shark, a school of
@@ -148,6 +149,10 @@ export class WallVisitors {
   /** Each visitor's sighting candidates, added to `sightings` once it has come. */
   private readonly candidates = new Map<WallVisitorId, SightCandidate[]>();
   private loaded = false;
+  /** v0.6 Pass 037: close by the glass or far out in the blue, pass by pass. */
+  private lanes?: PassingLanes;
+  /** The eye, moved into the loop's own frame (its lane shift taken off). */
+  private readonly shifted: Vec3 = { x: 0, y: 0, z: 0 };
   /** Whether those yet to come have been hidden (after the reef's warm-up has drawn them). */
   private settled = false;
   private disposed = false;
@@ -172,6 +177,11 @@ export class WallVisitors {
         list.push(c);
         this.candidates.set(id, list);
       });
+      this.lanes = new PassingLanes(
+        this.creatures.cruisers,
+        this.creatures.groupOf,
+        37021,
+      );
       this.loaded = true;
       return true;
     });
@@ -225,11 +235,16 @@ export class WallVisitors {
       const id = this.order[this.arrived],
         g = WALL_VISITOR_IDS.indexOf(id),
         lead = this.creatures.cruisers[this.creatures.groupOf.indexOf(g)];
+      // Its first pass is close to the glass, so the swimmer sees it (and it counts as seen).
+      this.lanes?.passClose(g);
+      this.shifted.x = this.eye.x;
+      this.shifted.y = this.eye.y;
+      this.shifted.z = this.eye.z - lead.lane;
       this.creatures.restartGroup(
         g,
         entryDistance(
           lead.route,
-          this.eye,
+          this.shifted,
           this.scratch,
           VISITING.lead,
           VISITING.hidden + hiddenMargin(WALL_VISITORS[id], lead.species.scale),
@@ -238,6 +253,10 @@ export class WallVisitors {
       this.creatures.showGroup(g, true);
       this.sightings.push(...(this.candidates.get(id) ?? []));
       this.arrived++;
+    }
+    if (this.lanes) {
+      camera.getWorldPosition(this.eye);
+      this.lanes.update(dt, active, this.eye);
     }
     this.creatures.update(dt, active, reducedMotion, player, camera);
   }

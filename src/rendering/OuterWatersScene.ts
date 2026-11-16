@@ -22,6 +22,7 @@ import {
   seabedHeight,
 } from '../environment/outer/OuterTerrain';
 import { reefSightings } from '../environment/outer/outerSightings';
+import { PassingLanes } from '../environment/outer/PassingLanes';
 import { WallVisitors } from '../environment/outer/WallVisitors';
 import { TankGlass } from '../environment/shared/TankGlass';
 import { WATER_LIGHT, WaterDome } from '../environment/outer/WaterDome';
@@ -105,6 +106,8 @@ export class OuterWatersScene implements WaterWorld {
   schools?: OuterSchools;
   /** v0.4 Pass 025: sharks, eagle rays and a turtle (absent if their models cannot load). */
   creatures?: OuterCreatures;
+  /** v0.6 Pass 037: whether each of the reef's own big animals passes close or far out. */
+  private lanes?: PassingLanes;
   /** v0.6 Pass 033: big animals passing along the wall, more the longer you stay at the edge. */
   visitors?: WallVisitors;
   /** This visit's number (see `arrive`), kept until the visitors exist. */
@@ -294,7 +297,10 @@ export class OuterWatersScene implements WaterWorld {
     ]);
     if (this.disposed) return false;
     this.scene.add(this.schools.root);
-    if (loaded) this.scene.add(creatures.root);
+    if (loaded) {
+      this.scene.add(creatures.root);
+      this.lanes = new PassingLanes(creatures.cruisers, creatures.groupOf);
+    }
     if (visiting) {
       // Nobody has come yet; they are hidden from the first frame after the warm-up below.
       visitors.arrive(this.visit);
@@ -361,6 +367,7 @@ export class OuterWatersScene implements WaterWorld {
     this.background.copy(this.dome.horizon);
     this.reef.update(this.camera.position, dt, reducedMotion);
     this.schools?.update(dt, active, reducedMotion, player, this.camera);
+    this.lanes?.update(dt, active, this.camera.position);
     this.creatures?.update(dt, active, reducedMotion, player, this.camera);
     this.visitors?.update(
       dt,

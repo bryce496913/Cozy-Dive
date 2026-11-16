@@ -107,6 +107,7 @@ v0.5 closes on the user's macOS acceptance of this candidate; v0.4 (`0.4.0-rc.3`
   - **Discovery:** new sightings, and the cave unlocks a limestone arch for the tank.
 - **Pass 035 — Detail for the kelp forest and sea cave (`0.6.0-alpha.4`, by user request):** richer kelp, small life on the rocks, sunbeams and drifting particles. Cave formations, sun corals and caustics. Lobsters that hide, and sharks that stir.
 - **Pass 036 — Every area is a tank (`0.6.0-alpha.5`, by user request):** a glass back wall and sides for the outer reef, rock-and-kelp walls for the kelp forest, and a tank-sized, roofed sea cave.
+- **Pass 037 — Passing close, passing far (`0.6.0-alpha.6`, by user request):** the outer reef's big animals pass either close by the glass (where they count as seen) or far out at the edge of view, chosen pass by pass.
 - **Provisional, to agree after the user plays Pass 032:**
   - the kelp forest's life for the tank (garibaldi, a bat ray pup);
   - more kelp-forest character (light shafts, a sea lion);

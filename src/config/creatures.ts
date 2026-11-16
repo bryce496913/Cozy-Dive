@@ -247,6 +247,8 @@ export const CRUISING = {
   reducedStroke: 0.6,
   /** Pass 026: big animals count as seen this much further away (m), across the clear blue. */
   sightReach: 3,
+  /** v0.6 Pass 037: how quickly a creature eases to a new lane (s⁻¹). */
+  laneResponse: 0.12,
   /** Distance-level hysteresis (fraction of the switch distance). */
   hysteresis: 0.1,
 } as const;
