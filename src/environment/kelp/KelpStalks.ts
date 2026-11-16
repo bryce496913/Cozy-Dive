@@ -77,6 +77,42 @@ export function stalkPlacements(
 }
 
 /**
+ * v0.6 Pass 036: the dense band of kelp in front of the forest's rock walls (sides and far end),
+ * so the walls read as a thicket of kelp over rock: two staggered rows, close together (pure).
+ */
+export function wallStalkPlacements(seed = 36011): StalkPlacement[] {
+  const rand = random(seed),
+    w = KELP.walls,
+    out: StalkPlacement[] = [];
+  const add = (x: number, z: number) =>
+    out.push({
+      x,
+      z,
+      y: kelpFloor(x, z) - 0.15,
+      template: Math.floor(rand() * STALKS.heights.length),
+      yaw: rand() * Math.PI * 2,
+      scale: 0.95 + rand() * 0.2,
+    });
+  for (const [inset, step, offset] of [
+    [1.2, 2.2, 0],
+    [3, 3.2, 1.1],
+  ] as const) {
+    // The side walls, from the tunnel's wall to the far end.
+    for (const side of [-1, 1])
+      for (
+        let z = KELP.tunnel.wallZ - 2 - offset;
+        z > w.farZ + inset;
+        z -= step
+      )
+        add(side * (w.x - inset - rand() * 0.6), z + (rand() - 0.5) * 0.8);
+    // The far wall.
+    for (let x = -w.x + inset + offset; x < w.x - inset; x += step)
+      add(x + (rand() - 0.5) * 0.8, w.farZ + inset + rand() * 0.6);
+  }
+  return out;
+}
+
+/**
  * One kelp plant template: a holdfast sending up several stipes that lean apart a little, each
  * hung with long, wavy golden-brown blades all the way up and spreading into a canopy at the top.
  * Positions and colours only; normals are computed once after merging (pure).
@@ -344,7 +380,8 @@ export class KelpStalks {
   private disposed = false;
   constructor() {
     this.root.name = 'Giant kelp';
-    this.placements = stalkPlacements();
+    // v0.6 Pass 036: the forest, and the dense kelp along its walls.
+    this.placements = [...stalkPlacements(), ...wallStalkPlacements()];
     const time = this.time,
       tallest = Math.max(...STALKS.heights);
     this.material = new THREE.MeshStandardMaterial({

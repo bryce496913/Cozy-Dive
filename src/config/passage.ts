@@ -75,8 +75,9 @@ export const OUTER = {
    * the wall, beyond `halfWidth` at the sides, and above `up`.
    */
   reach: {
-    halfWidth: 24,
-    side: 7,
+    // v0.6 Pass 036: swimming eases only in the last couple of metres before the side glass.
+    halfWidth: 29.5,
+    side: 2.5,
     // Ease over the first metre, then settle through the 2 m stop band at the viewing edge.
     past: 1,
     down: -6,
@@ -86,6 +87,21 @@ export const OUTER = {
     /** The slowest speed (fraction of normal), held until the band's end, then easing to zero. */
     crawl: 0.06,
     stop: 2,
+  },
+  /**
+   * v0.6 Pass 036: the outer reef is a display tank. Its back wall is a great pane of glass just
+   * past the reef's lip, where the swimmer stops to watch the big animals pass in the blue
+   * beyond; glass panes close its sides. `z` is the back glass, `halfWidth` the side glass (x),
+   * and the panes reach from `bottom` (deep down the wall) to `top` (near the surface light).
+   * Swimming eases over the last `ease` m before the glass and stops `gap` m from it.
+   */
+  glass: {
+    z: -59.4,
+    halfWidth: 32.5,
+    bottom: -24,
+    top: 18,
+    ease: 1.4,
+    gap: 0.45,
   },
   /** A narrow sand gully winding from the cliff to the lip; the rest is reef. */
   channel: { amplitude: 3, wavelength: 40, halfWidth: 2.2, depth: 0.5 },
@@ -177,21 +193,28 @@ export const KELP = {
   /** Greener, thicker water than the reef: about 15 m of visibility. */
   fog: 0.055,
   water: 0x3a6f62,
-  /** Where swimming eases to a hover (as in the outer waters). */
+  /**
+   * v0.6 Pass 036: the forest is a display tank. Rock walls, fronted by a dense band of kelp,
+   * close its sides at x ±`walls.x` and its far end at z `walls.farZ`, from the seabed up past the
+   * surface; the tunnel's wall closes the near end.
+   */
+  walls: { x: 36, farZ: -84 },
+  /** Where swimming eases to a hover, short of the walls. */
   reach: {
-    halfWidth: 30,
-    side: 7,
-    far: -78,
-    past: 7,
+    halfWidth: 30.5,
+    side: 2,
+    far: -78.5,
+    past: 2,
     up: 17,
     rise: 4,
     down: 0.6,
   },
   /** The kelp grows over rock from the wall to the far edge, leaving a sandy lane for the rays. */
   forest: {
-    minZ: -86,
+    // v0.6 Pass 036: inside the walls.
+    minZ: -81,
     maxZ: -11,
-    halfWidth: 40,
+    halfWidth: 33,
     lane: { x: 8, halfWidth: 4.5 },
   },
 } as const;
@@ -258,7 +281,11 @@ export const CAVE = {
   /** The tunnel: start (capped behind), axis height, radius, and where it opens into the cavern. */
   tunnel: { startZ: 1.6, y: 3, radius: 1.45, openZ: -9.5 },
   /** The cavern: an uneven dome, its centre and radii (m). */
-  chamber: { x: 0, y: 4, z: -25, rx: 16, ry: 10, rz: 16 },
+  /**
+   * v0.6 Pass 036: tank-sized, and boxy like a tank (a rounded box, `squareness` 2 being an
+   * ellipsoid): about 36 m wide, 28 m deep and 12 m from the sand to its rock roof.
+   */
+  chamber: { x: 0, y: 5, z: -23, rx: 18, ry: 8, rz: 14, squareness: 4 },
   /**
    * Swimming towards the wall eases off from `inset` m away, slows to a crawl over `band` m, then
    * stops within 2 m more: about a metre short of the rock.
@@ -267,8 +294,9 @@ export const CAVE = {
   /** The hole in the roof, and the sunlit water seen through it. */
   skylight: { x: 3.5, z: -27, radius: 2.4 },
   /** Dim blue-green water: about 12 m of visibility, darker than the kelp forest. */
-  fog: 0.07,
-  water: 0x173f4a,
+  // v0.6 Pass 036: clear enough to see the far walls and the roof all round.
+  fog: 0.042,
+  water: 0x1a4550,
 } as const;
 /** The sea cave tunnel's start, matching the grotto's threshold. */
 export const CAVE_FRAME: PassageFrame = {

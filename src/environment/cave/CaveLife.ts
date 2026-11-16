@@ -26,7 +26,7 @@ export const CAVE_LIFE = {
   /** Whitetips resting on the sand (heading, radians: 0 faces +x). */
   resting: [
     { x: 1.2, z: -21.2, yaw: 0.6 },
-    { x: 7.2, z: -31.5, yaw: 2.5 },
+    { x: 8.5, z: -28.5, yaw: 2.5 },
     { x: -1.8, z: -33, yaw: -0.8 },
   ],
 } as const;

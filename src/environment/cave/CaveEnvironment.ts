@@ -9,7 +9,7 @@ import type { ConvexCollider } from '../../player/collision';
 import { boxCollider } from '../passage/Crevice';
 import { createRockGeometry } from '../RockGeometry';
 import { rockCollider } from '../rockCollider';
-import { caveFloor, wallLumps, wallPoint } from './CaveTerrain';
+import { caveFloor, chamberDepth, wallLumps, wallPoint } from './CaveTerrain';
 
 /**
  * v0.6 Pass 034: the sea cave's rock and sand. A tunnel from the grotto runs south into a dome of
@@ -37,14 +37,14 @@ export interface CaveRock {
 }
 /** Around the edges and one low rock near the middle, leaving open sand under the light. */
 export const CAVE_ROCKS: readonly CaveRock[] = [
-  { x: -9, z: -16, size: 3.2, height: 1.8, yaw: 0.4 },
-  { x: 10, z: -15.5, size: 2.6, height: 1.6, yaw: 1.9 },
-  { x: -12, z: -27, size: 3.6, height: 2.4, yaw: 2.7 },
-  { x: 12.5, z: -29, size: 3.2, height: 2.0, yaw: 0.9 },
-  { x: -6, z: -36.5, size: 3.0, height: 2.2, yaw: 4.1 },
-  { x: 6.5, z: -37.5, size: 3.4, height: 1.9, yaw: 5.2 },
+  { x: -11, z: -15, size: 3.2, height: 1.8, yaw: 0.4 },
+  { x: 12, z: -14.5, size: 2.6, height: 1.6, yaw: 1.9 },
+  { x: -14, z: -26, size: 3.6, height: 2.4, yaw: 2.7 },
+  { x: 14, z: -28, size: 3.2, height: 2.0, yaw: 0.9 },
+  { x: -6, z: -33, size: 3.0, height: 2.2, yaw: 4.1 },
+  { x: 6.5, z: -33.5, size: 3.4, height: 1.9, yaw: 5.2 },
   { x: -4.5, z: -27, size: 2.2, height: 1.3, yaw: 3.3 },
-  { x: 0.5, z: -40.5, size: 2.6, height: 1.6, yaw: 1.2 },
+  { x: 0.5, z: -34.5, size: 2.6, height: 1.6, yaw: 1.2 },
 ];
 
 function random(seed: number): () => number {
@@ -61,18 +61,11 @@ const smooth = (a: number, b: number, x: number): number => {
 
 /** Where the tunnel meets the cavern's wall (z on its axis). */
 export function tunnelMouthZ(): number {
-  const c = CAVE.chamber;
+  const c = CAVE.chamber,
+    p: Vec3 = { x: 0, y: CAVE.tunnel.y, z: c.z };
   // Step along the tunnel's axis from the cavern's middle until it meets the wall.
-  let z: number = c.z;
-  for (; z < CAVE.tunnel.startZ; z += 0.02) {
-    const dx = 0,
-      dy = CAVE.tunnel.y - c.y,
-      dz = z - c.z,
-      l = Math.hypot(dx / c.rx, dy / c.ry, dz / c.rz),
-      bulge = 1 + wallLumps(dx / c.rx / l, dy / c.ry / l, dz / c.rz / l);
-    if (l >= bulge) break;
-  }
-  return z;
+  for (; p.z < CAVE.tunnel.startZ; p.z += 0.02) if (chamberDepth(p) >= 1) break;
+  return p.z;
 }
 
 export class CaveEnvironment {
@@ -274,19 +267,15 @@ export class CaveEnvironment {
   }
   /** The roof's height above (x, z). */
   private roofAt(x: number, z: number): number {
-    const c = CAVE.chamber;
+    const c = CAVE.chamber,
+      p: Vec3 = { x, y: c.y, z };
     // Bisect along the vertical for the wall's height.
     let lo: number = c.y,
       hi: number = c.y + c.ry * 1.3;
     for (let i = 0; i < 30; i++) {
-      const mid = (lo + hi) / 2;
-      const dx = (x - c.x) / c.rx,
-        dy = (mid - c.y) / c.ry,
-        dz = (z - c.z) / c.rz,
-        l = Math.hypot(dx, dy, dz),
-        inside = l < 1 + wallLumps(dx / l, dy / l, dz / l);
-      if (inside) lo = mid;
-      else hi = mid;
+      p.y = (lo + hi) / 2;
+      if (chamberDepth(p) < 1) lo = p.y;
+      else hi = p.y;
     }
     return lo;
   }
@@ -315,10 +304,16 @@ export class CaveEnvironment {
           (1 - smooth(3, 8, Math.hypot(p.x - s.x, p.z - s.z))) *
           smooth(0.3, 0.8, uy),
         // v0.6 Pass 035: streaks where water has run down the rock, and faint bands of strata.
+        // On the walls only: on the roof the streaks would gather into rays.
+        walls = 1 - smooth(0.45, 0.8, Math.abs(uy)),
         streak =
-          0.86 +
+          1 +
           0.14 *
-            Math.sin(Math.atan2(ux, uz) * 37 + 2.2 * Math.sin(uy * 5 + ux * 3)),
+            walls *
+            (Math.sin(
+              Math.atan2(ux, uz) * 37 + 2.2 * Math.sin(uy * 5 + ux * 3),
+            ) -
+              1),
         strata = 0.93 + 0.07 * Math.sin(uy * 28 + 0.8 * Math.sin(ux * 6)),
         tone =
           (0.46 + 0.9 * lump + 0.04 * stain) *
@@ -462,12 +457,13 @@ export class CaveEnvironment {
       g = new THREE.CylinderGeometry(
         s.radius + 0.3,
         s.radius + 0.8,
-        4.2,
+        3.3,
         28,
         4,
         true,
       );
-    g.translate(s.x, top + 0.9, s.z);
+    // Its foot only just below the roof, so it does not hang down into the cave.
+    g.translate(s.x, top + 1.35, s.z);
     const pos = g.getAttribute('position'),
       colors: number[] = [];
     for (let i = 0; i < pos.count; i++) {

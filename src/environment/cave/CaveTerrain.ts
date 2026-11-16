@@ -26,21 +26,28 @@ export function wallLumps(ux: number, uy: number, uz: number): number {
  */
 export function chamberDepth(p: Readonly<Vec3>, normal?: Vec3): number {
   const c = CAVE.chamber,
+    n = c.squareness,
     qx = (p.x - c.x) / c.rx,
     qy = (p.y - c.y) / c.ry,
     qz = (p.z - c.z) / c.rz,
-    q = Math.hypot(qx, qy, qz);
+    q = norm(qx, qy, qz);
   if (normal) {
-    const nx = qx / c.rx,
-      ny = qy / c.ry,
-      nz = qz / c.rz,
-      l = Math.hypot(nx, ny, nz) || 1;
-    normal.x = nx / l;
-    normal.y = ny / l;
-    normal.z = nz / l;
+    // The rounded box's outward normal (its gradient).
+    const gx = (Math.sign(qx) * Math.abs(qx) ** (n - 1)) / c.rx,
+      gy = (Math.sign(qy) * Math.abs(qy) ** (n - 1)) / c.ry,
+      gz = (Math.sign(qz) * Math.abs(qz) ** (n - 1)) / c.rz,
+      l = Math.hypot(gx, gy, gz) || 1;
+    normal.x = gx / l;
+    normal.y = gy / l;
+    normal.z = gz / l;
   }
   if (q < 1e-9) return 0;
   return q / (1 + wallLumps(qx / q, qy / q, qz / q));
+}
+/** The rounded box's size measure of a point in the cavern's stretched space (1 on its wall). */
+function norm(x: number, y: number, z: number): number {
+  const n = CAVE.chamber.squareness;
+  return (Math.abs(x) ** n + Math.abs(y) ** n + Math.abs(z) ** n) ** (1 / n);
 }
 /** Distance (m) from `p` to the wall, measured towards it from the centre (negative beyond it). */
 export function wallDistance(p: Readonly<Vec3>): number {
@@ -49,12 +56,15 @@ export function wallDistance(p: Readonly<Vec3>): number {
     r = Math.hypot(p.x - c.x, p.y - c.y, p.z - c.z);
   return q > 1e-9 ? r * (1 / q - 1) : Infinity;
 }
-/** A point on the wall along the unit direction (dx, dy, dz) from the centre (in place). */
+/** A point on the wall along the direction (dx, dy, dz) from the centre (in place). */
 export function wallPoint(dx: number, dy: number, dz: number, out: Vec3): Vec3 {
   const c = CAVE.chamber,
-    l = Math.hypot(dx / c.rx, dy / c.ry, dz / c.rz) || 1,
-    // Unit direction in the cavern's stretched space, and the bulge there.
-    k = (1 + wallLumps(dx / c.rx / l, dy / c.ry / l, dz / c.rz / l)) / l;
+    sx = dx / c.rx,
+    sy = dy / c.ry,
+    sz = dz / c.rz,
+    l = norm(sx, sy, sz) || 1,
+    // Unit size in the cavern's stretched space, and the bulge there.
+    k = (1 + wallLumps(sx / l, sy / l, sz / l)) / l;
   out.x = c.x + dx * k;
   out.y = c.y + dy * k;
   out.z = c.z + dz * k;
@@ -74,7 +84,10 @@ export function inTunnelReach(p: Readonly<Vec3>): boolean {
 /** Sand height (m) at (x, z): soft ripples and mounds, banking up towards the walls. */
 export function caveFloor(x: number, z: number): number {
   const c = CAVE.chamber,
-    rim = Math.hypot((x - c.x) / c.rx, (z - c.z) / c.rz),
+    rim =
+      (Math.abs((x - c.x) / c.rx) ** c.squareness +
+        Math.abs((z - c.z) / c.rz) ** c.squareness) **
+      (1 / c.squareness),
     ripple =
       0.035 * Math.sin(x * 1.3 + z * 0.5) +
       0.25 * Math.sin(x * 0.31 - z * 0.23 + 1.3) +
