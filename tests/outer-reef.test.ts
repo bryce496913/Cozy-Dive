@@ -85,23 +85,21 @@ describe('Pass 026 outer seabed and edges', () => {
       v(0, 0, -1),
     ])
       expect(eased(v(0, 3, -45), d)).toEqual(d);
-    // Out over the blue: slower the further past the lip, then stopped.
+    // v0.6 Pass 036: out over the blue at full speed, slowing only over the last metre and a half
+    // before the back glass (which the swimmer-only bounds then stop them at).
+    const g = OUTER.glass,
+      stopZ = g.z + g.gap;
+    expect(-eased(v(0, 0, lip - 1), v(0, 0, -1)).z).toBe(1);
     let previous = 1;
-    for (let past = 0; past <= r.past + r.stop + 1; past += 0.5) {
-      const k = -eased(v(0, 0, lip - past), v(0, 0, -1)).z;
+    for (let left = g.ease + 1; left >= 0; left -= 0.25) {
+      const k = -eased(v(0, 0, stopZ + left), v(0, 0, -1)).z;
       expect(k).toBeLessThanOrEqual(previous + 1e-12);
+      expect(k).toBeGreaterThanOrEqual(0.15);
       previous = k;
     }
-    expect(-eased(v(0, 0, lip - r.past), v(0, 0, -1)).z).toBeCloseTo(
-      r.crawl,
-      9,
-    );
-    expect(eased(v(0, 0, lip - r.past - r.stop), v(0, 0, -1)).z).toBeCloseTo(
-      0,
-      9,
-    );
+    expect(-eased(v(0, 0, stopZ + g.ease + 0.5), v(0, 0, -1)).z).toBe(1);
     // Swimming back towards the reef is never slowed.
-    expect(eased(v(0, 0, lip - r.past - r.stop), v(0, 0, 1)).z).toBe(1);
+    expect(eased(v(0, 0, stopZ), v(0, 0, 1)).z).toBe(1);
     // Down the wall, up high and at both sides alike.
     expect(
       eased(v(0, r.down - r.depth - r.stop, -60), v(0, -1, 0)).y,
@@ -116,10 +114,11 @@ describe('Pass 026 outer seabed and edges', () => {
       expect(eased(v(x, 3, -45), v(side, 0, 0)).x).toBeCloseTo(0, 9);
       expect(eased(v(x, 3, -45), v(-side, 0, 0)).x).toBe(-side);
     }
-    // The viewing-edge hotfix (PR #59, agreed by the user): a 1 m ease and the 2 m stop, so the
-    // swimmer settles about 3 m out over the blue, at a viewing edge (it was 5-8 m before).
-    expect(r.past).toBeGreaterThanOrEqual(0.5);
-    expect(r.past + r.stop).toBeLessThanOrEqual(3.5);
+    // The glass stands a few metres past the lip, over the drop, inside the swimmer's reach of the
+    // sides' glass too.
+    expect(g.z).toBeLessThan(lip - 2);
+    expect(g.z).toBeGreaterThan(lip - 5);
+    expect(g.halfWidth).toBeGreaterThan(r.halfWidth);
     expect(easeFactor(-1, 3)).toBe(1);
   });
   it('fades into darker blue with depth', () => {
@@ -386,7 +385,9 @@ it('adds bounded entrance and wall shoals at reachable swimming depths', () => {
   })).filter((s) => s.layout.waterLevel !== undefined);
   expect(wall).toHaveLength(2);
   for (const s of wall) {
-    expect(s.layout.at.z).toBeLessThan(OUTER.dropOff.start);
+    // v0.6 Pass 038: they hover by the window, inside the glass, over the lip.
+    expect(s.layout.at.z - s.layout.spread.z).toBeGreaterThan(OUTER.glass.z);
+    expect(s.layout.at.z).toBeLessThan(OUTER.dropOff.start + 1);
     expect(s.species.region.y).toBe(s.layout.waterLevel);
     expect(s.species.depth[0]).toBeGreaterThan(OUTER.reach.down);
     expect(s.species.depth[1]).toBeLessThan(OUTER.reach.up);
