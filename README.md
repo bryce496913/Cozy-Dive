@@ -170,7 +170,7 @@ To test manually:
 - The build reports a bundle-size advisory for Three.js (see the current validation record for measured size). No runtime asset downloads are needed.
 - Browser coverage and performance claims are limited to the actual results in the validation record. Software-rendered Chromium does not establish ordinary-laptop GPU performance.
 
-The [roadmap](docs/ROADMAP.md) is provisional; future passes should preserve the quiet, low-pressure experience.
+The [roadmap](docs/ROADMAP.md) is the canonical plan and milestone status. v0.2 and v0.3 are accepted; v0.4, v0.5 and v0.6 are implemented but await the user's macOS play-through. Nothing has been released. See also [the development audit](docs/DEVELOPMENT_AUDIT.md). Future passes should preserve the quiet, low-pressure experience.
 
 Pass 011 integrates the complete tropical roster and six ornaments without changing production behavior. Deterministic physical route fixtures, full-scene long-session audits, graphics/input failure checks and retained browser evidence support this candidate. MacBook Air performance, Safari behavior, audio comfort and final v0.2 acceptance remain manual. No release, tag, automatic merge or v0.3 work is included.
 
@@ -347,7 +347,7 @@ Fixes from two MacBook playtests:
 - **Swimming:** 40% slower than v0.2 rc.12 (default 1.68 m/s, maximum 3 m/s), with saved speeds moved onto the new scale. Idle bobbing is calmer: about 8 cm instead of 13 cm.
 - **Texture pop-in:** gone. Every texture and per-object GPU resource is uploaded behind "Preparing aquarium details" before you enter, where 93 used to upload during the first swim.
 
-The roadmap now follows the agreed sequence: v0.3 Office & Dive Transition, v0.4 Personalization, v0.5 Beyond the Glass, v0.6 Expanding Oceans. See [validation](docs/VALIDATION_V02_PASS_019.md).
+The roadmap now follows the agreed sequence: v0.3 Office & Dive Transition, v0.4 Personalization, v0.5 Beyond the Glass, v0.6 Expanding Oceans. See [validation](docs/VALIDATION_V02_PASS_019.md). (Historical. After v0.3 was accepted, v0.4 and v0.5 were swapped: v0.4 is First Passage and v0.5 Personalization. See the [roadmap](docs/ROADMAP.md).)
 
 ### v0.2 Pass 018 candidate
 

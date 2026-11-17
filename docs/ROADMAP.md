@@ -1,17 +1,77 @@
-# Cozy Diver — provisional roadmap
+# Cozy Diver — roadmap
 
-These milestones describe direction, not commitments or a fixed release schedule. Each pass should remain small, playable, and easy to review. Revisit priorities after testing swimming feel and browser performance.
+This is the canonical roadmap. It was reconciled with the code in Pass 049; the evidence (feature matrix, tests and gaps) is in [DEVELOPMENT_AUDIT.md](DEVELOPMENT_AUDIT.md). Milestones describe direction, not a fixed release schedule. Each pass stays small, playable and easy to review. A milestone closes only on the user's explicit acceptance after a macOS play-through. Passing automated checks never closes one.
 
-| Milestone                           | Focus                                                                                                                    |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| **v0.1 — First Dive**               | Project foundation, procedural aquarium, calm first-person swimming, boundaries, settings, tests, and desktop prototype. |
-| **v0.2 — Living Aquarium**          | Tropical marine reef life and lightweight fish behavior; improve scenery and measure performance.                        |
-| **v0.3 — Office & Dive Transition** | Office environment and a seamless entry into the aquarium.                                                               |
-| **v0.4 — First Passage**            | Swim through a hidden opening in the tank into a larger tropical reef, with new environments, creatures and big animals. |
-| **v0.5 — Personalization**          | Add fish, decorations and plants you have seen in the outer waters, with persistent saves.                               |
-| **v0.6 — Expanding Oceans**         | New environments, species and discoveries.                                                                               |
+## Vision
 
-**Vision (agreed after the Pass 018 playtest).** An office fish-tank escape is the entry point: a memorable start, a strong visual identity and a natural home. It is also a metaphor for escaping the everyday into something peaceful. A tiny aquarium in the real world becomes an enormous underwater playground, with hidden passages into expansive oceans; the aquarium is a portal into an ocean world. Later milestones (polish, accessibility, broader device testing and a public beta) follow once these are in place.
+Cozy Diver is a calm, browser-based scuba exploration experience. The player begins in a cozy office, approaches a small aquarium, dives inside, and becomes tiny in a large, customizable underwater world. Hidden passages lead to larger marine environments. The experience prioritizes natural creature behaviour, polished geometry, comforting sound, smooth swimming, freedom of exploration and zero gameplay pressure.
+
+## Milestone status
+
+"Implemented" means merged and reachable in the app. "Accepted" means the user played it on the MacBook Air and said so. Nothing has been released: there are no git tags or releases.
+
+| Milestone                           | Focus                                                                                     | Last candidate | Implemented | Automated tests | Accepted                    | Released |
+| ----------------------------------- | ----------------------------------------------------------------------------------------- | -------------- | ----------- | --------------- | --------------------------- | -------- |
+| **v0.1 — First Dive**               | Foundation, procedural aquarium, calm first-person swimming, boundaries, settings, tests. | Pass 003       | Yes         | Yes             | Not explicitly recorded     | No       |
+| **v0.2 — Living Aquarium**          | Tropical reef life, fish behaviour, plants, ornaments, audio, authored art.               | `0.2.0-rc.15`  | Yes         | Yes             | **Yes**                     | No       |
+| **v0.3 — Office & Dive Transition** | The office and a seamless dive into the aquarium.                                         | `0.3.0-rc.1`   | Yes         | Yes             | **Yes**                     | No       |
+| **v0.4 — First Passage**            | A hidden opening in the tank to a larger tropical reef, with big animals and sightings.   | `0.4.0-rc.3`   | Yes         | Yes             | Open: awaiting play-through | No       |
+| **v0.5 — Personalization**          | Seen items and baby animals added to the tank, with local saves.                          | `0.5.0-rc.1`   | Yes         | Yes             | Open: awaiting play-through | No       |
+| **v0.6 — Expanding Oceans**         | Kelp forest, sea cave and under the ice, with wildlife and rare encounters.               | `0.6.0-rc.10`  | Yes         | Partly¹         | Open: content still growing | No       |
+| **v0.7 — Polish** (proposed)        | See below.                                                                                | —              | —           | —               | —                           | —        |
+| **v0.8 — Beta** (proposed)          | See below.                                                                                | —              | —           | —               | —                           | —        |
+
+¹ v0.6 has unit tests throughout. The full browser regression was last run at `0.6.0-rc.1` (Pass 040). The under-ice harnesses and the long-session memory harness have not been run yet.
+
+## Original plan versus the actual order
+
+The original plan was:
+
+1. V0.1 First Swim
+2. V0.2 Living Aquarium
+3. V0.3 Office and Dive Transition
+4. V0.4 Personalization
+5. V0.5 Beyond the Glass
+6. V0.6 Expanding Oceans
+
+After v0.3 was accepted, the user swapped v0.4 and v0.5 so that exploring fills the catalog: First Passage (Beyond the Glass) became v0.4 and Personalization v0.5. v0.6 has grown from "new environments" into three new worlds with wildlife and rare encounters. The history below is preserved as it happened; it is not reversed.
+
+## Unresolved product decisions
+
+These need the user's decision. Nothing is removed until then (details in the audit, §8):
+
+1. **Geography:**
+   - **The worlds:** the aquarium and outer reef are tropical, while the kelp forest and sea cave are temperate and under the ice is Antarctic. Is the game a tour of many oceans through one tropical tank?
+   - **The polar bear:** it is Arctic. Keep it as whimsy, relabel the world as polar, or replace it?
+2. **Temperate and polar unlocks:** whether their animals unlock for the tropical tank.
+3. **v0.6 content freeze:** freeze v0.6 content now, or add one more world first?
+4. **v0.1 acceptance:** whether v0.1 counts as accepted through the v0.2 acceptance.
+
+## Proposed next milestones
+
+These are proposals, not commitments; they start only when agreed.
+
+**v0.7 — Polish (proposed).** No new worlds; make what exists feel finished.
+
+- **Loading:** smooth the world-entry hitch (about 140–190 ms worst frame on SwiftShader), measured on the MacBook Air first.
+- **Sound:** give each world a gentle sound of its own (kelp surge, cave drip, ice creak), within the existing audio budget.
+- **Comfort:**
+  - a reduced-motion and comfort review across all worlds;
+  - text size and contrast in the journal and editor;
+  - a full keyboard-only pass.
+- **Personalization:** a decision on unlocks from the newer worlds (see the decisions above).
+- **Regression:** every browser harness green, plus the long-session memory budget, on one revision.
+
+**v0.8 — Beta (proposed).** Ready for people other than the developer.
+
+- **Browsers and hardware:**
+  - Safari and Firefox checks;
+  - a lower-end laptop GPU tier, with a quality setting if measurements need one.
+- **First run:** a short, skippable first-run hint flow, plus recovery from failed loads (retry rather than reload).
+- **Production:** a production build and hosting checklist, a size budget and a version tag (the first actual release).
+- **Feedback:** a short known-limitations list and a way for testers to report issues offline (no accounts or backend).
+
+## History
 
 The first pass intentionally excludes office scenes, fish AI, customization, hidden passages, large oceans, multiplayer, authentication, inventory, quests, complex physics, backend services, and mobile touch controls. Do not interpret roadmap entries as authorization to build them now.
 
@@ -108,6 +168,7 @@ v0.5 closes on the user's macOS acceptance of this candidate; v0.4 (`0.4.0-rc.3`
 - **Pass 035 — Detail for the kelp forest and sea cave (`0.6.0-alpha.4`, by user request):** richer kelp, small life on the rocks, sunbeams and drifting particles. Cave formations, sun corals and caustics. Lobsters that hide, and sharks that stir.
 - **Pass 036 — Every area is a tank (`0.6.0-alpha.5`, by user request):** a glass back wall and sides for the outer reef, rock-and-kelp walls for the kelp forest, and a tank-sized, roofed sea cave.
 - **Pass 037 — Passing close, passing far (`0.6.0-alpha.6`, by user request):** the outer reef's big animals pass either close by the glass (where they count as seen) or far out at the edge of view, chosen pass by pass.
+- **Pass 038 — Fish inside the glass (`0.6.0-alpha.7`, by user request):** the outer reef's own fish live inside its tank, bounded by the back and side glass; the big animals stay outside. A follow-up fixed tank placement (`0.6.0-alpha.8`).
 - **Pass 039 — A playful sea lion (`0.6.0-alpha.9`, by user request):** a California sea lion in the kelp forest that comes over to circle the swimmer, then darts off.
 - **Pass 040 — Release candidate (`0.6.0-rc.1`):** unit tests brought up to date (565 passing), a full 21-harness browser regression (all pass), and one bug fixed (giant kelp sightings near the tunnel exit). v0.6 closes on the user's macOS play-through.
 - **Pass 041 — Play-test fixes (`0.6.0-rc.2`, by user request):** the outer reef's corals load in the tunnel (no pop-in); a smaller kelp forest with blacksmith and señorita schools; resting whitetips that bolt when approached and settle elsewhere; lobster dens; fluted stalactite clusters, stalagmites, more boulders, soldierfish and rock crabs in the cave.
@@ -125,7 +186,8 @@ v0.5 closes on the user's macOS acceptance of this candidate; v0.4 (`0.4.0-rc.3`
 - **Pass 046 review fixes (`0.6.0-rc.8`, from code review):** scenes no longer change after being let go mid-load; explicit world preparation states; worlds built a piece per frame (measured), with rock shapes reused; a long-session browser harness with memory budgets (to run with the full regression).
 - **Pass 047 — Antarctic everyday wildlife (`0.6.0-rc.9`, by user request):** emperor penguins diving through the breathing holes, a group of Adélie penguins, a Weddell seal that breathes at its hole and calls, icefish, bald notothens, a krill swarm, sea butterflies, comb jellies, giant sea spiders and ribbon worms.
 - **Pass 048 — Antarctic rare encounters (`0.6.0-rc.10`, by user request):** one at a time, never at once on arrival, never the same twice running. A leopard seal comes to look; a minke whale and three killer whales come in and leave through the breathing holes; a toothfish rises from the dark; a colossal squid's eyes glow far off; a polar bear paddles at a hole and dives for a look (by request, though polar bears are Arctic).
-- **Provisional, to agree after the user plays Pass 032:**
+- **Provisional, to agree after the user plays Pass 032 (superseded; kept for history):** the sea lion and light shafts were built in Passes 035 and 039, and v0.6 polish and acceptance is now part of the proposed v0.7. The kelp-life-for-the-tank idea is still open (see decision 2).
   - the kelp forest's life for the tank (garibaldi, a bat ray pup);
   - more kelp-forest character (light shafts, a sea lion);
   - then polish and acceptance for v0.6.
+- **Pass 049 — Roadmap reconciliation (documentation only):** this canonical roadmap, the milestone status table and [the development audit](DEVELOPMENT_AUDIT.md). Passes 047–048 had been merged into stacked branches rather than `main`; #79 lands them.
