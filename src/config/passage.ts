@@ -295,11 +295,65 @@ export const CAVE = {
   ease: { inset: 4.2, band: 1.2 },
   /** The hole in the roof, and the sunlit water seen through it. */
   skylight: { x: 3.5, z: -27, radius: 2.4 },
+  /**
+   * v0.6 Pass 046: a second tunnel, through the back wall between the boulders there, to the waters
+   * under the ice: its axis (x, y), radius, and where it ends (its threshold, z).
+   */
+  backTunnel: { x: -3, y: 3.2, radius: 1.45, endZ: -42 },
   /** Dim blue-green water: about 12 m of visibility, darker than the kelp forest. */
   // v0.6 Pass 036: clear enough to see the far walls and the roof all round.
   fog: 0.042,
   water: 0x1a4550,
 } as const;
+/** v0.6 Pass 046: the threshold at the end of the cave's back tunnel, to the waters under the ice. */
+export const ICE_GATE_FRAME: PassageFrame = {
+  origin: {
+    x: CAVE.backTunnel.x,
+    y: CAVE.backTunnel.y,
+    z: CAVE.backTunnel.endZ,
+  },
+  forward: { x: 0, z: -1 },
+};
+
+/**
+ * v0.6 Pass 046: under the ice, an Antarctic dive, reached through the sea cave's back tunnel. A
+ * display tank the size of the kelp forest: icebergs for its side and far walls, a sheet of sea ice
+ * for its roof with breathing holes where the light falls through, a rocky near wall that the
+ * tunnel opens through, and a pale garden of sponges, soft corals and anemones on the seabed.
+ * Metres, y up; the seabed is near y 0.
+ */
+export const ICE = {
+  bounds: {
+    min: { x: -28, y: -2, z: -66 },
+    max: { x: 28, y: 20, z: 4 },
+    clearance: 0.65,
+  } satisfies Bounds,
+  /** The tunnel: start (capped behind), axis height, radius and the rock wall it opens through. */
+  tunnel: { startZ: 1.6, y: 4, radius: 1.45, wallZ: -8 },
+  /** Iceberg walls at x ±`x` and the far end at z `farZ`; the underside of the sea ice at `ceiling`. */
+  walls: { x: 24, farZ: -60 },
+  ceiling: 15,
+  /** Breathing holes in the ice: where the light falls through, and the seals come up to breathe. */
+  holes: [
+    { x: -6, z: -28, r: 2.2 },
+    { x: 9, z: -42, r: 1.8 },
+    { x: -13, z: -50, r: 1.6 },
+  ],
+  /**
+   * Swimming eases to a hover from `inset` m short of the walls and `up` m below the ice, slowing to
+   * a crawl over `band` m, then stopping within 2 m more: about 2 m short of the ice.
+   */
+  ease: { inset: 5, band: 1.2, up: 5.7 },
+  /** Very clear, cold blue water: the far icebergs show faintly at the end of the tank. */
+  fog: 0.026,
+  water: 0x1d4f78,
+} as const;
+/** The tunnel's start under the ice, matching the cave's back threshold. */
+export const ICE_FRAME: PassageFrame = {
+  origin: { x: 0, y: ICE.tunnel.y, z: 0 },
+  forward: { x: 0, z: -1 },
+};
+
 /** The sea cave tunnel's start, matching the grotto's threshold. */
 export const CAVE_FRAME: PassageFrame = {
   origin: { x: 0, y: CAVE.tunnel.y, z: 0 },

@@ -24,12 +24,14 @@ import {
 import { OfficeScene } from '../rendering/OfficeScene';
 import { KelpForestScene } from '../rendering/KelpForestScene';
 import { SeaCaveScene } from '../rendering/SeaCaveScene';
+import { UnderIceScene } from '../rendering/UnderIceScene';
 import { OuterWatersScene } from '../rendering/OuterWatersScene';
 import type { WaterWorld } from '../rendering/WaterWorld';
 import { CLEFT, GROTTO, PASSAGE } from '../config/passage';
 import {
   cleftDistance,
   grottoDistance,
+  iceGateDistance,
   crossing,
   frameTurn,
   mapPoint,
@@ -100,6 +102,9 @@ export class Application {
   /** v0.6 Pass 034: the sea cave, while it might be needed (reached through the kelp forest). */
   private cave?: SeaCaveScene;
   private caveIdle = 0;
+  /** v0.6 Pass 046: the waters under the ice, while they might be needed (beyond the cave). */
+  private ice?: UnderIceScene;
+  private iceIdle = 0;
   /** Which water world the swimmer is in. */
   private waterWorld: WaterWorldId = 'aquarium';
   /** Seconds the outer waters have been out of range (released after a delay). */
@@ -611,6 +616,7 @@ export class Application {
   private water(): WaterWorld {
     if (this.waterWorld === 'kelp' && this.kelp) return this.kelp;
     if (this.waterWorld === 'cave' && this.cave) return this.cave;
+    if (this.waterWorld === 'ice' && this.ice) return this.ice;
     return this.waterWorld === 'outer' && this.outer ? this.outer : this.world!;
   }
   private setWaterWorld(id: WaterWorldId): void {
@@ -635,9 +641,11 @@ export class Application {
         ? this.kelp.soundSpots
         : id === 'cave' && this.cave
           ? this.cave.soundSpots
-          : id === 'outer' && this.outer
-            ? this.outer.soundSpots
-            : this.tankSoundSpots,
+          : id === 'ice' && this.ice
+            ? this.ice.soundSpots
+            : id === 'outer' && this.outer
+              ? this.outer.soundSpots
+              : this.tankSoundSpots,
     );
   }
   /**
@@ -690,6 +698,8 @@ export class Application {
       this.waterWorld === 'kelp' ||
       // v0.6 Pass 034: kept while in the sea cave beyond it, so the way back is seamless.
       this.waterWorld === 'cave' ||
+      // v0.6 Pass 046: and under the ice beyond that.
+      this.waterWorld === 'ice' ||
       (swimming && inOuter && distance < CLEFT.release);
     this.kelpIdle = keep ? 0 : this.kelpIdle + dt;
     if (this.kelpIdle > PASSAGE.releaseDelay) {
@@ -717,12 +727,41 @@ export class Application {
     }
     const keep =
       this.waterWorld === 'cave' ||
+      // v0.6 Pass 046: kept while under the ice beyond it, so the way back is seamless.
+      this.waterWorld === 'ice' ||
       (swimming && inKelp && distance < GROTTO.release);
     this.caveIdle = keep ? 0 : this.caveIdle + dt;
     if (this.caveIdle > PASSAGE.releaseDelay) {
       this.cave.dispose();
       this.cave = undefined;
       this.caveIdle = 0;
+    }
+  }
+  /**
+   * v0.6 Pass 046: load the waters under the ice as the swimmer nears the cave's back tunnel, and
+   * release them once well away (after a delay); they stay while the swimmer is in them.
+   */
+  private manageIce(dt: number): void {
+    const swimming = this.mode === 'aquarium',
+      inCave = this.waterWorld === 'cave',
+      distance = inCave ? iceGateDistance(this.state.position) : Infinity;
+    if (!this.ice) {
+      if (swimming && inCave && distance < GROTTO.preload && this.cave)
+        this.ice = new UnderIceScene(this.world!.renderer, {
+          fish: this.world!.authored.loader,
+          soundSpots: this.tankSoundSpots.length,
+        });
+      this.iceIdle = 0;
+      return;
+    }
+    const keep =
+      this.waterWorld === 'ice' ||
+      (swimming && inCave && distance < GROTTO.release);
+    this.iceIdle = keep ? 0 : this.iceIdle + dt;
+    if (this.iceIdle > PASSAGE.releaseDelay) {
+      this.ice.dispose();
+      this.ice = undefined;
+      this.iceIdle = 0;
     }
   }
   /**
@@ -734,6 +773,7 @@ export class Application {
       outer: !!this.outer?.isReady,
       kelp: !!this.kelp?.isReady,
       cave: !!this.cave?.isReady,
+      ice: !!this.ice?.isReady,
     });
     if (!c) return;
     const { from, to, target } = c,
@@ -839,6 +879,7 @@ export class Application {
     this.manageOuter(dt);
     this.manageKelp(dt);
     this.manageCave(dt);
+    this.manageIce(dt);
     if (this.mode === 'office' && this.office) {
       this.tickOffice(dt);
       this.frame = requestAnimationFrame(this.tick);
@@ -972,6 +1013,8 @@ export class Application {
     this.kelp = undefined;
     this.cave?.dispose();
     this.cave = undefined;
+    this.ice?.dispose();
+    this.ice = undefined;
     this.outer?.dispose();
     this.outer = undefined;
     this.tankEditor?.dispose();

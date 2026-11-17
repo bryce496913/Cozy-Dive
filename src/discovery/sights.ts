@@ -71,6 +71,16 @@ export function reefSight(family: string): Sight | undefined {
   return Object.hasOwn(REEF, family) ? REEF[family] : undefined;
 }
 
+/** v0.6 Pass 046: what the waters under the ice show. */
+export const ICE_SIGHTS = {
+  place: { id: 'place:under-ice', label: 'Under the ice' },
+  sponge: { id: 'species:glass-sponge', label: 'Glass sponge' },
+  coral: { id: 'species:antarctic-soft-coral', label: 'Antarctic soft coral' },
+  anemone: { id: 'species:antarctic-anemone', label: 'Antarctic anemone' },
+  star: { id: 'species:antarctic-sea-star', label: 'Antarctic sea star' },
+  feather: { id: 'species:feather-star', label: 'Feather star' },
+} as const satisfies Record<string, Sight>;
+
 /** v0.6 Pass 042: what else the outer reef shows, now and then, out in the blue. */
 export const OUTER_SIGHTS = {
   barracuda: { id: 'species:great-barracuda', label: 'Great barracuda' },
@@ -102,6 +112,7 @@ export const SIGHTS: readonly Sight[] = [
   ...Object.values(KELP_SIGHTS),
   ...Object.values(CAVE_SIGHTS),
   ...Object.values(OUTER_SIGHTS),
+  ...Object.values(ICE_SIGHTS),
 ];
 /** A sight's name, or null for an id this version does not know (kept, but not listed). */
 export function sightLabel(id: string): string | null {

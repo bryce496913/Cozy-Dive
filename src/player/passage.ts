@@ -1,6 +1,9 @@
 import {
   CAVE,
   CAVE_FRAME,
+  ICE,
+  ICE_FRAME,
+  ICE_GATE_FRAME,
   GROTTO,
   GROTTO_FRAME,
   grottoToTank,
@@ -26,7 +29,7 @@ import type { Vec3 } from '../config/world';
  * stops and nothing jumps; the darkness, which peaks at the threshold on both sides, hides the
  * change of world. Pure (no allocation in the per-frame paths).
  */
-export type WaterWorldId = 'aquarium' | 'outer' | 'kelp' | 'cave';
+export type WaterWorldId = 'aquarium' | 'outer' | 'kelp' | 'cave' | 'ice';
 
 /** Heading (camera yaw) that looks along a horizontal direction: forward = (-sin, -cos). */
 export const headingOf = (d: { x: number; z: number }): number =>
@@ -91,7 +94,9 @@ export const passageFrame = (world: WaterWorldId): PassageFrame =>
       ? KELP_FRAME
       : world === 'cave'
         ? CAVE_FRAME
-        : TUNNEL_FRAME;
+        : world === 'ice'
+          ? ICE_FRAME
+          : TUNNEL_FRAME;
 
 /** Whether `p` is inside the crevice channel's cross-section (for the darkness and the swap). */
 export function inChannel(p: Vec3): boolean {
@@ -138,7 +143,12 @@ export function passageDarkness(world: WaterWorldId, p: Vec3): number {
       inKelpTunnel(p) ? darkness(KELP_FRAME, p) : 0,
       inGrotto(p) ? darkness(GROTTO_FRAME, p) : 0,
     );
-  if (world === 'cave') return inCaveTunnel(p) ? darkness(CAVE_FRAME, p) : 0;
+  if (world === 'cave')
+    return Math.max(
+      inCaveTunnel(p) ? darkness(CAVE_FRAME, p) : 0,
+      inBackTunnel(p) ? darkness(ICE_GATE_FRAME, p) : 0,
+    );
+  if (world === 'ice') return inIceTunnel(p) ? darkness(ICE_FRAME, p) : 0;
   // The outer waters have two: the tunnel from the tank, and the cleft to the kelp forest.
   return Math.max(
     darkness(TUNNEL_FRAME, p),
@@ -155,6 +165,21 @@ const local: Vec3 = { x: 0, y: 0, z: 0 };
 /** v0.6 Pass 032: whether `p` (outer waters) is inside the cleft's channel. */
 export function inCleft(p: Vec3): boolean {
   return inChannel(cleftToTank(p, local));
+}
+/** v0.6 Pass 046: whether `p` (sea cave) is in its back tunnel's tube, near or past its end. */
+export function inBackTunnel(p: Vec3): boolean {
+  const t = CAVE.backTunnel;
+  return p.z < t.endZ + 6 && Math.hypot(p.x - t.x, p.y - t.y) < t.radius + 0.4;
+}
+/** v0.6 Pass 046: whether `p` (under the ice) is in its tunnel, from its start to the rock wall. */
+export function inIceTunnel(p: Vec3): boolean {
+  const t = ICE.tunnel;
+  return p.z > t.wallZ - 1 && Math.hypot(p.x, p.y - t.y) < t.radius + 0.4;
+}
+/** v0.6 Pass 046: distance from the cave's back threshold (for loading and releasing the ice). */
+export function iceGateDistance(p: Vec3): number {
+  const o = ICE_GATE_FRAME.origin;
+  return Math.hypot(p.x - o.x, p.y - o.y, p.z - o.z);
 }
 /** v0.6 Pass 032: whether `p` (kelp forest) is in its tunnel, from its start to the wall. */
 export function inKelpTunnel(p: Vec3): boolean {
@@ -232,6 +257,17 @@ const TANK_TO_OUTER: Crossing = {
     target: 'kelp',
     from: CAVE_FRAME,
     to: GROTTO_FRAME,
+  },
+  /** v0.6 Pass 046: the sea cave's back tunnel and the waters under the ice. */
+  CAVE_TO_ICE: Crossing = {
+    target: 'ice',
+    from: ICE_GATE_FRAME,
+    to: ICE_FRAME,
+  },
+  ICE_TO_CAVE: Crossing = {
+    target: 'cave',
+    from: ICE_FRAME,
+    to: ICE_GATE_FRAME,
   };
 /**
  * v0.6 Pass 032: whether to change world this frame, and how. The tank and the outer waters are
@@ -246,8 +282,15 @@ export function crossing(
     readonly kelp: boolean;
     /** v0.6 Pass 034: the sea cave, beyond the kelp forest's grotto. */
     readonly cave?: boolean;
+    /** v0.6 Pass 046: the waters under the ice, beyond the cave's back tunnel. */
+    readonly ice?: boolean;
   },
 ): Crossing | null {
+  if (world === 'ice')
+    return depthPast(ICE_FRAME, p) < -PASSAGE.hysteresis &&
+      Math.abs(p.y - ICE_FRAME.origin.y) < 3
+      ? ICE_TO_CAVE
+      : null;
   if (world === 'aquarium')
     return passageTarget('aquarium', p, ready.outer) === 'outer'
       ? TANK_TO_OUTER
@@ -260,11 +303,18 @@ export function crossing(
       ? OUTER_TO_KELP
       : null;
   }
-  if (world === 'cave')
+  if (world === 'cave') {
+    if (
+      ready.ice &&
+      inBackTunnel(p) &&
+      depthPast(ICE_GATE_FRAME, p) > PASSAGE.hysteresis
+    )
+      return CAVE_TO_ICE;
     return depthPast(CAVE_FRAME, p) < -PASSAGE.hysteresis &&
       Math.abs(p.y - CAVE_FRAME.origin.y) < 3
       ? CAVE_TO_KELP
       : null;
+  }
   if (
     depthPast(KELP_FRAME, p) < -PASSAGE.hysteresis &&
     Math.abs(p.y - KELP_FRAME.origin.y) < 3

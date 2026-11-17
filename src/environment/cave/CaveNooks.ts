@@ -81,7 +81,10 @@ export interface CaveNooks {
 export function caveNooks(skylightTop: number): CaveNooks {
   // The moray: low in the right-hand wall, looking into the cave.
   const m = onWall(1.7, -0.22, 0.985),
-    mouth = offWall({ x: m.x, y: Math.max(m.y, caveFloor(m.x, m.z) + 0.55), z: m.z }, 0.05);
+    mouth = offWall(
+      { x: m.x, y: Math.max(m.y, caveFloor(m.x, m.z) + 0.55), z: m.z },
+      0.05,
+    );
   // The ledge: against the back wall, right of middle, clear of the boulders there.
   const l = onWall(Math.PI - 0.62, -0.3, 0.9),
     lin = inward(l),

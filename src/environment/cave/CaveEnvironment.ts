@@ -7,6 +7,7 @@ import { CAVE, CAVE_FRAME, PASSAGE } from '../../config/passage';
 import type { Vec3 } from '../../config/world';
 import type { ConvexCollider } from '../../player/collision';
 import { boxCollider } from '../passage/Crevice';
+import { rockTubeColliders, rockTubeGeometry } from '../shared/RockTube';
 import { createRockGeometry } from '../RockGeometry';
 import { rockCollider } from '../rockCollider';
 import { caveFloor, chamberDepth, wallLumps, wallPoint } from './CaveTerrain';
@@ -68,6 +69,13 @@ const smooth = (a: number, b: number, x: number): number => {
   return t * t * (3 - 2 * t);
 };
 
+/** v0.6 Pass 046: where the back tunnel meets the cavern's wall (z on its axis). */
+export function backMouthZ(): number {
+  const b = CAVE.backTunnel,
+    p: Vec3 = { x: b.x, y: b.y, z: CAVE.chamber.z };
+  for (; p.z > b.endZ; p.z -= 0.02) if (chamberDepth(p) >= 1) break;
+  return p.z;
+}
 /** Where the tunnel meets the cavern's wall (z on its axis). */
 export function tunnelMouthZ(): number {
   const c = CAVE.chamber,
@@ -154,6 +162,28 @@ export class CaveEnvironment {
     this.add(this.shellMesh(), wall, 'Cave wall');
     this.add(this.floorMesh(), sand, 'Cave sand');
     this.add(this.tunnelMesh(mouthZ), tunnel, 'Cave tunnel');
+    // v0.6 Pass 046: the back tunnel, from the back wall to its threshold (and a little beyond).
+    const back = CAVE.backTunnel,
+      backTube = {
+        x: back.x,
+        y: back.y,
+        radius: back.radius,
+        from: backMouthZ() + 0.3,
+        to: back.endZ - 3,
+        dark: back.endZ,
+      };
+    this.add(rockTubeGeometry(backTube), tunnel, 'Cave back tunnel');
+    // Its far end fades into darkness (beyond the threshold, where the swap has happened).
+    const backCap = new THREE.CircleGeometry(back.radius + 0.4, 24);
+    backCap.translate(back.x, back.y, backTube.to);
+    backCap.setAttribute(
+      'color',
+      new THREE.Float32BufferAttribute(
+        new Float32Array(backCap.getAttribute('position').count * 3).fill(0.02),
+        3,
+      ),
+    );
+    this.add(backCap, tunnel, 'Cave back tunnel end');
     const s = CAVE.skylight,
       top = this.roofAt(s.x, s.z);
     this.skylightTop = top;
@@ -172,7 +202,14 @@ export class CaveEnvironment {
       pool.geometry.getAttribute('color').array,
     );
 
-    const colliders: ConvexCollider[] = [...this.tunnelColliders(mouthZ)];
+    const colliders: ConvexCollider[] = [
+      ...this.tunnelColliders(mouthZ),
+      ...rockTubeColliders(backTube),
+      boxCollider(
+        [back.x - 2, back.y - 2, backTube.to - 1],
+        [back.x + 2, back.y + 2, backTube.to + 0.6],
+      ),
+    ];
     const rocks: THREE.BufferGeometry[] = [],
       cracks: { x: number; y: number; z: number; yaw: number }[] = [],
       m = new THREE.Matrix4(),
@@ -350,7 +387,8 @@ export class CaveEnvironment {
       pos = sphere.getAttribute('position');
     const index = sphere.getIndex()!,
       kept: number[] = [],
-      t = CAVE.tunnel;
+      t = CAVE.tunnel,
+      b = CAVE.backTunnel;
     for (let f = 0; f < index.count; f += 3) {
       let cx = 0,
         cy = 0,
@@ -362,8 +400,10 @@ export class CaveEnvironment {
         cz += pos.getZ(v) / 3;
       }
       const tunnelHole = cz > c.z && Math.hypot(cx, cy - t.y) < t.radius + 0.25,
-        skyHole = cy > c.y && Math.hypot(cx - s.x, cz - s.z) < s.radius;
-      if (!tunnelHole && !skyHole)
+        skyHole = cy > c.y && Math.hypot(cx - s.x, cz - s.z) < s.radius,
+        // v0.6 Pass 046: and where the back tunnel leaves for the waters under the ice.
+        backHole = cz < c.z && Math.hypot(cx - b.x, cy - b.y) < b.radius + 0.25;
+      if (!tunnelHole && !skyHole && !backHole)
         kept.push(index.getX(f), index.getX(f + 1), index.getX(f + 2));
     }
     sphere.setIndex(kept);
@@ -391,6 +431,16 @@ export class CaveEnvironment {
           r = t.radius + 0.25 + edge;
         if (d < r && d > 1e-6)
           pos.setXYZ(v, (x * r) / d, t.y + ((y - t.y) * r) / d, z);
+      } else {
+        const d = Math.hypot(x - b.x, y - b.y),
+          r = b.radius + 0.25 + edge;
+        if (d < r && d > 1e-6)
+          pos.setXYZ(
+            v,
+            b.x + ((x - b.x) * r) / d,
+            b.y + ((y - b.y) * r) / d,
+            z,
+          );
       }
     }
     sphere.computeVertexNormals();
