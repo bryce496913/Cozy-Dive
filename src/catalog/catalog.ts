@@ -310,13 +310,92 @@ export function loadTank(
 ): TankItem[] {
   return loadTankState(store, seen, c).items;
 }
+/**
+ * v0.6 Pass 050: saved entries that this load did not bring into the tank, so that the next save
+ * keeps them rather than erasing them. An addition is skipped when it is not (yet) unlocked, for
+ * example after the sightings were lost, or when it no longer fits; a baby likewise. A save written
+ * by a newer version is never overwritten.
+ */
+export interface KeptEntries {
+  readonly items: readonly unknown[];
+  readonly babies: readonly string[];
+  /** The save is from a newer version; it is left untouched. */
+  readonly newer: boolean;
+}
+export const KEPT_CAP = 40;
+export const NO_KEPT: KeptEntries = { items: [], babies: [], newer: false };
+export function keptEntries(
+  store: JournalStore,
+  loaded: Readonly<TankSave>,
+): KeptEntries {
+  try {
+    const data: unknown = JSON.parse(store.getItem(TANK_KEY) ?? 'null');
+    if (!data || typeof data !== 'object' || !('version' in data))
+      return NO_KEPT;
+    if (typeof data.version === 'number' && data.version > 2)
+      return { ...NO_KEPT, newer: true };
+    if (data.version !== 1 && data.version !== 2) return NO_KEPT;
+    const ids = new Set(loaded.items.map((i) => i.id)),
+      items: unknown[] = [];
+    if ('items' in data && Array.isArray(data.items))
+      for (const raw of data.items) {
+        if (items.length >= KEPT_CAP) break;
+        if (!raw || typeof raw !== 'object' || !('id' in raw)) continue;
+        const id = raw.id;
+        if (
+          typeof id !== 'string' ||
+          !/^tank-[a-z0-9-]{1,64}$/.test(id) ||
+          ids.has(id)
+        )
+          continue;
+        ids.add(id);
+        items.push(raw);
+      }
+    const babies: string[] = [];
+    if (data.version === 2 && 'babies' in data && Array.isArray(data.babies))
+      for (const raw of data.babies)
+        if (
+          typeof raw === 'string' &&
+          TANK_BABIES.some((b) => b.id === raw) &&
+          !loaded.babies.some((b) => b === raw) &&
+          !babies.includes(raw)
+        )
+          babies.push(raw);
+    return { items, babies, newer: false };
+  } catch {
+    return NO_KEPT;
+  }
+}
 export function saveTank(
   store: JournalStore,
   items: readonly TankItem[],
   babies: readonly BigCreatureId[] = [],
+  kept: Readonly<KeptEntries> = NO_KEPT,
 ): boolean {
+  if (kept.newer) return false;
   try {
-    store.setItem(TANK_KEY, JSON.stringify({ version: 2, items, babies }));
+    const ids = new Set(items.map((i) => i.id));
+    store.setItem(
+      TANK_KEY,
+      JSON.stringify({
+        version: 2,
+        items: [
+          ...items,
+          ...kept.items.filter(
+            (raw) =>
+              !!raw &&
+              typeof raw === 'object' &&
+              'id' in raw &&
+              typeof raw.id === 'string' &&
+              !ids.has(raw.id),
+          ),
+        ],
+        babies: [
+          ...babies,
+          ...kept.babies.filter((b) => !babies.some((id) => id === b)),
+        ],
+      }),
+    );
     return true;
   } catch {
     return false;

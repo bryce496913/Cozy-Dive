@@ -6,7 +6,10 @@ import type { UnderwaterScene } from '../rendering/UnderwaterScene';
 import type { Sighting } from '../discovery/journal';
 import {
   TankCatalog,
+  keptEntries,
   loadTankState,
+  NO_KEPT,
+  type KeptEntries,
   unlockedBabies,
   saveTank,
   unlockedItems,
@@ -43,6 +46,8 @@ export class TankEditor {
   private artReady = false;
   private disposed = false;
   private colliders: ReturnType<typeof itemCollider>[] = [];
+  /** Saved entries this visit could not show; written back so they are never erased. */
+  private kept: KeptEntries = NO_KEPT;
   private lastHint = '';
   private lastProbe = -Infinity;
   private readonly direction = new THREE.Vector3();
@@ -113,6 +118,8 @@ export class TankEditor {
       'click',
       () => {
         this.model?.reset();
+        // Restoring the tank removes every addition, including any kept unseen.
+        this.kept = this.kept.newer ? this.kept : NO_KEPT;
         this.world.babies?.dispose();
         this.world.babies = undefined;
         this.changed();
@@ -160,12 +167,16 @@ export class TankEditor {
         let saved: ReturnType<typeof loadTankState> = { items: [], babies: [] };
         try {
           saved = loadTankState(localStorage, this.seen(), actual);
+          this.kept = keptEntries(localStorage, saved);
         } catch {
           /* unavailable storage */
         }
         if (this.disposed) return;
         this.model = new TankCatalog(saved.items, actual, saved.babies);
         this.reset.disabled = false;
+        if (this.kept.newer)
+          this.notice.textContent =
+            'This tank was saved by a newer version of Cozy Diver, so it is left as it is. Your changes last for this visit.';
         this.artReady = await this.decoration.prepare();
         if (this.disposed) return;
         if (this.artReady) this.changed(false);
@@ -280,13 +291,20 @@ export class TankEditor {
     if (!this.model) return;
     let saved = false;
     try {
-      saved = saveTank(localStorage, this.model.items, this.model.babies);
+      saved = saveTank(
+        localStorage,
+        this.model.items,
+        this.model.babies,
+        this.kept,
+      );
     } catch {
       /* unavailable storage */
     }
     this.notice.textContent = saved
       ? ''
-      : 'Storage unavailable. Your tank changes last for this visit.';
+      : this.kept.newer
+        ? 'This tank was saved by a newer version of Cozy Diver, so it is left as it is. Your changes last for this visit.'
+        : 'Storage unavailable. Your tank changes last for this visit.';
   }
   private changed(persist = true) {
     if (!this.model) return;
