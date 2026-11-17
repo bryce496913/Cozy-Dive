@@ -183,11 +183,16 @@ try {
   await lookAt(from(p, 0, 0.5, 4), p);
   await step(30);
   await shot('2-blue-tang.png');
-  // 3. The wrasse comes for a look.
-  const eye = { x: -2, y: 4, z: -44 };
+  // 3. The wrasse comes for a look: wait near it, after its rest.
+  const w = await life(() => {
+    const l = window.__cozy.outer.life.wrasse;
+    l.rest = 0;
+    return { ...l.pose.position };
+  });
+  const eye = { x: w.x, y: w.y, z: Math.min(w.z + 7, -36) };
   await place(eye, 0, 0);
   let mood = '';
-  for (let i = 0; i < 40 && mood !== 'look'; i++) {
+  for (let i = 0; i < 60 && mood !== 'look'; i++) {
     await step(10);
     mood = await life(() => window.__cozy.outer.life.wrasse.mood);
   }

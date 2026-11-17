@@ -88,7 +88,11 @@ export class OctopusMind {
         );
       this.heading += turn * (1 - Math.exp(-4 * dt));
     }
-    p.y += (this.ground(p.x, p.z) - p.y) * (1 - Math.exp(-8 * dt));
+    // On the bottom by its den (the den sits on the sand), over rock and sand elsewhere.
+    const atDen = Math.hypot(p.x - this.den.x, p.z - this.den.z) < 0.8;
+    p.y +=
+      ((atDen ? this.den.y : this.ground(p.x, p.z)) - p.y) *
+      (1 - Math.exp(-8 * dt));
     return d < 0.08;
   }
   update(dt: number, player?: PlayerPresence): void {

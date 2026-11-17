@@ -345,8 +345,11 @@ export class CuriousWrasse {
 // ------------------------------------------------------------------ the cleaning encounter
 
 export const CLEANING = {
-  /** Where the bannerfish wait: beyond the glass by this much (m), at x and y. */
-  station: { x: 6, y: -1.5, out: 3 },
+  /**
+   * Where the bannerfish wait: beyond the glass by this much (m), at x and y: in the middle of a
+   * pane (posts every 8 m from x -32.5) and above the frame bar at y -1.2, in clear view.
+   */
+  station: { x: 3.5, y: 2.2, out: 3 },
   bannerfish: 12,
   /** The sunfish hovers this far beyond the station (m), and rises from (and sinks to) `deep`. */
   sunfishOut: 1.8,
