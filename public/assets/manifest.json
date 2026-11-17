@@ -46,7 +46,9 @@
       }
     ],
     "geometryAccessorBytes": 171948,
-    "animations": ["SwimPreview"],
+    "animations": [
+      "SwimPreview"
+    ],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Development benchmark"
   },
@@ -343,7 +345,11 @@
         "Rubble": 150,
         "Sand": 1
       },
-      "rockLevels": [20480, 5120, 1280]
+      "rockLevels": [
+        20480,
+        5120,
+        1280
+      ]
     },
     "id": "reef-environment",
     "file": "assets/models/reef/reef-environment.glb",
@@ -1313,11 +1319,11 @@
   {
     "id": "idol",
     "file": "assets/models/fish/idol.glb",
-    "sha256": "6f2221cded85d53191ba7e1d6af28ff0dcb336aba7c6623db6afde3a273c54f6",
+    "sha256": "2c0ba88dae885fcc7b05b3cb4707deb10b0baba0591ba8ccdb3416577f47b6f9",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 616232,
+    "bytes": 616860,
     "visualPrimitives": 14,
     "visualTriangles": 14448,
     "collisionTriangles": 0,
@@ -1364,13 +1370,13 @@
   {
     "id": "bannerfish",
     "file": "assets/models/fish/bannerfish.glb",
-    "sha256": "8d97eac2b2364364c054fc3e6807e1f5e23df51efaf2318c378bb618edfdca68",
+    "sha256": "41912a54e7e5c8dabe362a1b6f1789aa570be1b9a5f7f9e9895c0dfc57244a10",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 612184,
+    "bytes": 612692,
     "visualPrimitives": 14,
-    "visualTriangles": 14449,
+    "visualTriangles": 14448,
     "collisionTriangles": 0,
     "materials": 5,
     "images": [

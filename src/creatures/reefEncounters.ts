@@ -309,7 +309,11 @@ export class CuriousWrasse {
       }
     } else if (this.mood === 'approach') {
       if (!player.active || this.moodTime > 25) this.setMood('leave');
-      else if (toEye < WRASSE.look + 0.6) this.setMood('look');
+      else if (
+        toEye < WRASSE.look + 1.5 ||
+        Math.hypot(a.x - p.x, a.y - p.y, a.z - p.z) < 1
+      )
+        this.setMood('look');
     } else if (this.mood === 'look') {
       if (!player.active || this.moodTime > this.stay) this.setMood('leave');
     } else if (this.moodTime > 8) {

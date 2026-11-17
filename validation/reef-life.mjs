@@ -196,15 +196,22 @@ try {
   await lookAt(eye, p);
   await step(10);
   await shot('3-wrasse.png');
-  // 4. The octopus: out, then hidden when approached.
-  const den = await life(() => ({
-    ...window.__cozy.outer.life.octopus.mind.den,
-  }));
-  await lookAt(from(den, 0, 1.4, 3.2), den);
+  // 4. The octopus: out, then hidden in its den when approached.
+  const octo = () =>
+    life(() => ({ ...window.__cozy.outer.life.octopus.mind.position }));
+  let o = await octo();
+  await lookAt(from(o, 0, 1.4, 3.2), o);
+  await step(20);
+  o = await octo();
+  await lookAt(from(o, 0, 1.4, 3.2), o);
   await step(20);
   await shot('4-octopus.png');
-  await lookAt(from(den, 0, 0.6, 1.4), den);
-  await step(40);
+  for (let i = 0; i < 6; i++) {
+    o = await octo();
+    await lookAt(from(o, 0, 0.6, 1.4), o);
+    await step(10);
+  }
+  await step(30);
   report.octopus = await life(() => window.__cozy.outer.life.octopus.mind.mood);
   await shot('5-octopus-hidden.png');
   // 5. The cleaning station: bannerfish gather (the sign), then the sunfish rises and is cleaned.
