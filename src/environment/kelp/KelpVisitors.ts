@@ -120,7 +120,7 @@ export class KelpVisitors {
     name: string,
   ): Promise<SoloCreature> {
     const body = new SoloCreature(this.loader, id, pose, 1, name, 16);
-    // v0.6 Pass 047: tracked from the start, so a body still loading when the visitors are let go
+    // v0.6 Pass 046 review: tracked from the start, so a body still loading when the visitors are let go
     // is disposed with them (and releases its model), and never added afterwards.
     this.pending.add(body);
     const ok = await body.ready;

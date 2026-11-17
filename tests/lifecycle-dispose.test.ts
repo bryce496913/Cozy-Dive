@@ -50,7 +50,7 @@ const parts: [string, (l: AssetLoader) => Part][] = [
   ['resting sharks', (l) => new RestingSharks(CAVE_LIFE.resting, l)],
 ];
 
-describe('v0.6 Pass 047: let go while still loading', () => {
+describe('v0.6 Pass 046 review: let go while still loading', () => {
   for (const [name, make] of parts)
     it(`${name}: nothing is added, and every model is released, when its models arrive late`, async () => {
       const { loader, open } = gated(),
@@ -78,7 +78,7 @@ describe('v0.6 Pass 047: let go while still loading', () => {
     });
 });
 
-describe('v0.6 Pass 047: a world’s preparation state', () => {
+describe('v0.6 Pass 046 review: a world’s preparation state', () => {
   it('is ready when every part loads, partial when some fail', async () => {
     const all = new WorldPreparation();
     await Promise.all([
@@ -118,7 +118,7 @@ describe('v0.6 Pass 047: a world’s preparation state', () => {
   });
 });
 
-describe('v0.6 Pass 047: scenes let go while their life is still loading', () => {
+describe('v0.6 Pass 046 review: scenes let go while their life is still loading', () => {
   /**
    * A renderer that is never drawn with: these scenes only touch the renderer once their life has
    * loaded (to compile it) or when rendered, and here they are let go before either. The double
@@ -182,7 +182,7 @@ describe('v0.6 Pass 047: scenes let go while their life is still loading', () =>
     });
 });
 
-describe('v0.6 Pass 047: building a world a piece per frame', () => {
+describe('v0.6 Pass 046 review: building a world a piece per frame', () => {
   const renderer = {} as unknown as THREE.WebGLRenderer;
   it('builds each piece in its own frame, timing each, and stops (disposing what it built) if let go', async () => {
     const loader = new AssetLoader(() => new Promise(() => undefined));

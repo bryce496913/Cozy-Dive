@@ -40,7 +40,7 @@ export class UnderIceScene implements WaterWorld {
   readonly camera = new THREE.PerspectiveCamera(64, 1, 0.08, 120);
   readonly environment: IceEnvironment;
   readonly garden: IceGarden;
-  /** v0.6 Pass 047: how long each piece took to build (see `UnderIceScene.build`). */
+  /** v0.6 Pass 046 review: how long each piece took to build (see `UnderIceScene.build`). */
   buildStats?: BuildStats;
   readonly snow = new MarineSnow({
     count: 650,
@@ -52,7 +52,7 @@ export class UnderIceScene implements WaterWorld {
     wander: 0.025,
   });
   readonly sightings: SightCandidate[] = [];
-  /** v0.6 Pass 047: how far it has got, and which parts loaded. */
+  /** v0.6 Pass 046 review: how far it has got, and which parts loaded. */
   readonly preparation = new WorldPreparation();
   readonly soundSpots: Vec3[] = [];
   /** Resolves once it can be entered: built and its shaders compiled. */
@@ -64,7 +64,7 @@ export class UnderIceScene implements WaterWorld {
   private disposed = false;
 
   /**
-   * v0.6 Pass 047: build the waters under the ice a piece per frame (ice and rock, garden), so no
+   * v0.6 Pass 046 review: build the waters under the ice a piece per frame (ice and rock, garden), so no
    * one frame carries it all; resolves undefined if no longer wanted while building.
    */
   static async build(

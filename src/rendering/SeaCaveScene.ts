@@ -64,7 +64,7 @@ export class SeaCaveScene implements WaterWorld {
   readonly scene = new THREE.Scene();
   readonly camera = new THREE.PerspectiveCamera(64, 1, 0.08, 80);
   readonly environment: CaveEnvironment;
-  /** v0.6 Pass 047: how long each piece took to build (see `SeaCaveScene.build`). */
+  /** v0.6 Pass 046 review: how long each piece took to build (see `SeaCaveScene.build`). */
   buildStats?: BuildStats;
   readonly lobsters: CaveLobsters;
   /** v0.6 Pass 041 */
@@ -87,7 +87,7 @@ export class SeaCaveScene implements WaterWorld {
   visitors?: CaveVisitors;
   readonly nooks: CaveNooks;
   readonly sightings: SightCandidate[] = [];
-  /** v0.6 Pass 047: how far it has got, and which parts loaded. */
+  /** v0.6 Pass 046 review: how far it has got, and which parts loaded. */
   readonly preparation = new WorldPreparation();
   readonly soundSpots: Vec3[] = [];
   /** Resolves once it can be entered: built, its life loaded, its shaders compiled. */
@@ -99,7 +99,7 @@ export class SeaCaveScene implements WaterWorld {
   private disposed = false;
 
   /**
-   * v0.6 Pass 047: build the cave a piece per frame (its rock and sand, lobsters and crabs, its
+   * v0.6 Pass 046 review: build the cave a piece per frame (its rock and sand, lobsters and crabs, its
    * detail), so no one frame carries it all; resolves undefined if no longer wanted while building.
    */
   static async build(
@@ -221,7 +221,7 @@ export class SeaCaveScene implements WaterWorld {
     );
   }
   private async prepare(fish: AssetLoader): Promise<boolean> {
-    // v0.6 Pass 047: its life is set up a part per frame too (stopping if let go meanwhile).
+    // v0.6 Pass 046 review: its life is set up a part per frame too (stopping if let go meanwhile).
     if (!(await this.nextPart())) return false;
     this.schools = new OuterSchools(caveHabitat(), caveSpecies(), fish);
     this.creatures = new OuterCreatures(
@@ -246,7 +246,7 @@ export class SeaCaveScene implements WaterWorld {
       prep.track('resting sharks', this.resting.ready),
       prep.track('visitors', this.visitors.ready),
     ]);
-    // v0.6 Pass 047: nothing is added once the cave has been let go.
+    // v0.6 Pass 046 review: nothing is added once the cave has been let go.
     if (this.disposed) return false;
     // The schools show their simple fish if their rigs failed, so they are always added.
     this.scene.add(this.schools.root);

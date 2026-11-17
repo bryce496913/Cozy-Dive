@@ -178,7 +178,7 @@ export class AssetLoader {
     this.free(entry);
   }
   /** Shared transient users retain one cache entry until the last owner leaves. */
-  /** v0.6 Pass 047: how many leases are held across every asset (for lifecycle checks). */
+  /** v0.6 Pass 046 review: how many leases are held across every asset (for lifecycle checks). */
   get leased(): number {
     let n = 0;
     for (const e of this.entries.values()) n += e.refs;

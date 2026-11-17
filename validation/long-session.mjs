@@ -1,5 +1,5 @@
 import { browserScale, recordBrowserScale } from './browser-scale.mjs';
-/* v0.6 Pass 047: a long session through every passage, with real input.
+/* v0.6 Pass 046 review: a long session through every passage, with real input.
  *
  *   COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy047-long node validation/long-session.mjs
  *

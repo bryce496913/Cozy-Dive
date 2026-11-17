@@ -72,7 +72,7 @@ export class KelpForestScene implements WaterWorld {
   });
   /** v0.6 Pass 034: the grotto against the wall, east of the tunnel: the way on to the sea cave. */
   readonly grotto: TurnedCrevice;
-  /** v0.6 Pass 047: how long each piece took to build (see `KelpForestScene.build`). */
+  /** v0.6 Pass 046 review: how long each piece took to build (see `KelpForestScene.build`). */
   buildStats?: BuildStats;
   schools?: OuterSchools;
   creatures?: OuterCreatures;
@@ -81,7 +81,7 @@ export class KelpForestScene implements WaterWorld {
   /** v0.6 Pass 044 */
   visitors?: KelpVisitors;
   readonly sightings: SightCandidate[] = [];
-  /** v0.6 Pass 047: how far it has got, and which parts loaded. */
+  /** v0.6 Pass 046 review: how far it has got, and which parts loaded. */
   readonly preparation = new WorldPreparation();
   readonly soundSpots: Vec3[] = [];
   /** Resolves once it can be entered: built, its fish and rays loaded, its shaders compiled. */
@@ -93,7 +93,7 @@ export class KelpForestScene implements WaterWorld {
   private disposed = false;
 
   /**
-   * v0.6 Pass 047: build the forest a piece per frame (environment, kelp, dressing, light, grotto),
+   * v0.6 Pass 046 review: build the forest a piece per frame (environment, kelp, dressing, light, grotto),
    * so no one frame carries it all; resolves undefined if it stops being wanted while building.
    */
   static async build(
@@ -221,7 +221,7 @@ export class KelpForestScene implements WaterWorld {
   }
   private async prepare(fish: AssetLoader): Promise<boolean> {
     const boulders = this.environment.boulders;
-    // v0.6 Pass 047: its life is set up a part per frame too (stopping if let go meanwhile).
+    // v0.6 Pass 046 review: its life is set up a part per frame too (stopping if let go meanwhile).
     if (!(await this.nextPart())) return false;
     this.schools = new OuterSchools(
       kelpHabitat(boulders),

@@ -1,5 +1,5 @@
 /**
- * v0.6 Pass 047: how far a water world has got in preparing itself, and which of its parts are
+ * v0.6 Pass 046 review: how far a water world has got in preparing itself, and which of its parts are
  * usable. A world is `loading` until its preparation settles, then `ready` (every part loaded),
  * `partial` (it can be swum in, but some parts failed and are left out), or `failed` (its
  * preparation itself failed; it is still a place to swim, without its life). Once disposed it is

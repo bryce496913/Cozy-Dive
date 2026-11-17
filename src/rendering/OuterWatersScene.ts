@@ -122,7 +122,7 @@ export class OuterWatersScene implements WaterWorld {
   private visit = 0;
   /** What can be seen here: the reef's corals and seagrass, and its big creatures. */
   readonly sightings: SightCandidate[] = [];
-  /** v0.6 Pass 047: how far it has got, and which parts loaded. */
+  /** v0.6 Pass 046 review: how far it has got, and which parts loaded. */
   readonly preparation = new WorldPreparation();
   /** Where the soundscape's small sounds come from here (at the coral heads). */
   readonly soundSpots: Vec3[] = [];

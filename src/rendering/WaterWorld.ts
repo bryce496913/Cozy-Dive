@@ -18,7 +18,7 @@ export interface WaterWorld {
   readonly camera: THREE.PerspectiveCamera;
   /** Things that can be seen here for the first time (none in the tank itself). */
   readonly sightings: readonly SightCandidate[];
-  /** v0.6 Pass 047: how far it has got in preparing itself (the tank is always ready). */
+  /** v0.6 Pass 046 review: how far it has got in preparing itself (the tank is always ready). */
   readonly preparation?: WorldPreparation;
   /**
    * Pass 026: soft limits, if any. Scales down the outward part of the swimming direction `dir`

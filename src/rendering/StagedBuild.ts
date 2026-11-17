@@ -1,5 +1,5 @@
 /**
- * v0.6 Pass 047: building a world a piece at a time. A world's environment, kelp, dressing and so
+ * v0.6 Pass 046 review: building a world a piece at a time. A world's environment, kelp, dressing and so
  * on each take tens to a hundred milliseconds or more to generate; built together in one frame
  * they stall the swimmer for several hundred milliseconds as they near a passage. Built one piece
  * per frame (`Staging.step`), each frame carries only one piece. The time each piece took is kept

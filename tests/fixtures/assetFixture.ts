@@ -48,7 +48,7 @@ export function assetFixture(): LoadedAsset {
 }
 
 /**
- * v0.6 Pass 047: a stand-in for any registered creature or fish model, by its URL: the fixture's
+ * v0.6 Pass 046 review: a stand-in for any registered creature or fish model, by its URL: the fixture's
  * rig renamed to the asset's root and scaled to the middle of its allowed size.
  */
 export function creatureFixture(url: string): LoadedAsset {

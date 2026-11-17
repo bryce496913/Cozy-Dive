@@ -177,7 +177,7 @@ export class Application {
   private previous = 0;
   private elapsed = 0;
   private disposed = false;
-  /** v0.6 Pass 047: worlds being built, and how long each build took (for measurement). */
+  /** v0.6 Pass 046 review: worlds being built, and how long each build took (for measurement). */
   private readonly building = new Set<WaterWorldId>();
   readonly buildTimes: Partial<
     Record<
@@ -672,7 +672,7 @@ export class Application {
       inTank = this.waterWorld === 'aquarium';
     if (!this.outer) {
       if (swimming && inTank && distance < PASSAGE.preload) {
-        // v0.6 Pass 047: measured (its reef dresses itself later, in the tunnel).
+        // v0.6 Pass 046 review: measured (its reef dresses itself later, in the tunnel).
         const begun = performance.now();
         this.outer = new OuterWatersScene(this.world!.renderer, {
           reef: this.world!.reefLoader,
@@ -786,7 +786,7 @@ export class Application {
     }
   }
   /**
-   * v0.6 Pass 047: build a world a piece per frame (see `StagedBuild`), once at a time; hand it over
+   * v0.6 Pass 046 review: build a world a piece per frame (see `StagedBuild`), once at a time; hand it over
    * when built, unless the application has closed meanwhile (then it is let go). How long it took,
    * piece by piece and in all, is kept in `buildTimes`.
    */
