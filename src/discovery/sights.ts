@@ -28,6 +28,9 @@ export const KELP_SIGHTS = {
   garibaldi: { id: 'species:garibaldi', label: 'Garibaldi' },
   /** v0.6 Pass 035. */
   bass: { id: 'species:kelp-bass', label: 'Kelp bass' },
+  /** v0.6 Pass 041. */
+  blacksmith: { id: 'species:blacksmith', label: 'Blacksmith' },
+  senorita: { id: 'species:senorita', label: 'Señorita' },
   /** v0.6 Pass 039. */
   seaLion: { id: 'species:california-sea-lion', label: 'California sea lion' },
 } as const satisfies Record<string, Sight>;
@@ -37,6 +40,9 @@ export const CAVE_SIGHTS = {
   cave: { id: 'place:sea-cave', label: 'Sea cave' },
   lobster: { id: 'species:spiny-lobster', label: 'Spiny lobster' },
   sweeper: { id: 'species:glassy-sweeper', label: 'Glassy sweeper' },
+  // v0.6 Pass 041
+  soldierfish: { id: 'species:soldierfish', label: 'Soldierfish' },
+  crab: { id: 'species:rock-crab', label: 'Rock crab' },
 } as const satisfies Record<string, Sight>;
 
 const REEF: Readonly<Record<string, Sight | undefined>> = REEF_SIGHTS;

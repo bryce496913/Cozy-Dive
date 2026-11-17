@@ -15,13 +15,14 @@ export const SEA_LION = {
   /** Roaming: a slow loop around the forest (centre, radii, height and its swell, speed). */
   roam: {
     x: 0,
-    z: -46,
-    rx: 20,
-    rz: 24,
+    // v0.6 Pass 041: fitted to the smaller forest.
+    z: -34,
+    rx: 13,
+    rz: 16,
     y: 7,
     swell: 2.5,
     speed: 1.5,
-    rate: 0.03,
+    rate: 0.04,
   },
   /** Notices the swimmer within this distance (m), and plays for a while (s). */
   notice: 14,

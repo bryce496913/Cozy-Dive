@@ -16,7 +16,10 @@ import { caveFloor, wallPoint } from './CaveTerrain';
  */
 export const CAVE_DRESSING = {
   seed: 35041,
-  hanging: 46,
+  // v0.6 Pass 041: more, and each a cluster of fluted stalactites.
+  hanging: 64,
+  // v0.6 Pass 041: stalagmites rising from the sand by the walls and at the feet of the rocks.
+  stalagmites: 44,
   corals: 64,
   rubble: 260,
   motes: 160,
@@ -49,19 +52,132 @@ function unitRock(seed: number, family: number, detail: number) {
   return g;
 }
 /**
- * A hanging formation: one knobbly lump of rock drawn out downwards and tapering to a blunt tip,
- * its top at y 0 (set into the roof).
+ * One fluted stalactite hanging from y 0 to y -len: ribbed down its length, with drip bulges, a
+ * fine wet tip and a drop of rock at its end. Positions, normals and colours, non-indexed.
  */
-export function hangingGeometry(): THREE.BufferGeometry {
-  const g = unitRock(35101, 2, 3),
-    pos = g.getAttribute('position');
-  for (let i = 0; i < pos.count; i++) {
-    const t = pos.getY(i),
-      // Narrowing towards the tip, with a slight bulge partway (drip-like).
-      w = (1 - 0.78 * t) * (1 + 0.12 * Math.sin(t * 9));
-    pos.setXYZ(i, pos.getX(i) * w, -t, pos.getZ(i) * w);
-  }
+function stalactite(
+  x: number,
+  z: number,
+  radius: number,
+  len: number,
+  seed: number,
+): THREE.BufferGeometry {
+  const rand = random(seed),
+    sides = 12,
+    rings = 14,
+    flutes = 5 + Math.floor(rand() * 4),
+    bulges = 2 + rand() * 3,
+    twist = (rand() - 0.5) * 1.2,
+    lean = (rand() - 0.5) * 0.12,
+    phase = rand() * 6.3,
+    positions: number[] = [],
+    colors: number[] = [],
+    ring = (j: number, i: number): [number, number, number, number] => {
+      const t = j / rings,
+        a = (i / sides) * Math.PI * 2,
+        rib = Math.sin(a * flutes + t * twist * 6 + phase),
+        r =
+          radius *
+            Math.pow(1 - t, 0.85) *
+            (1 + 0.12 * Math.sin(t * Math.PI * bulges + phase)) *
+            (1 + 0.1 * rib * (1 - 0.6 * t)) +
+          (j < rings ? 0.012 : 0);
+      // Shade: darker in the flutes' grooves and near the roof; paler and wet towards the tip.
+      const shade = (0.82 + 0.1 * rib) * (0.86 + 0.2 * t);
+      return [
+        x + Math.cos(a) * r + lean * t * len,
+        -t * len,
+        z + Math.sin(a) * r,
+        shade,
+      ];
+    };
+  for (let j = 0; j < rings; j++)
+    for (let i = 0; i < sides; i++) {
+      const q = [
+        ring(j, i),
+        ring(j, i + 1),
+        ring(j + 1, i + 1),
+        ring(j + 1, i),
+      ];
+      for (const k of [0, 2, 1, 0, 3, 2]) {
+        positions.push(q[k][0], q[k][1], q[k][2]);
+        colors.push(q[k][3], q[k][3] * 0.97, q[k][3] * 0.9);
+      }
+    }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
   g.computeVertexNormals();
+  // A drop of rock forming at the tip.
+  const drip = new THREE.SphereGeometry(Math.max(0.012, radius * 0.16), 6, 4);
+  drip.scale(1, 1.5, 1);
+  drip.translate(x + lean * len, -len - radius * 0.1, z);
+  return mergeGeometries([g, painted(drip, 0.98)], false)!;
+}
+/** Non-indexed, with a flat pale colour. */
+function painted(g: THREE.BufferGeometry, shade: number): THREE.BufferGeometry {
+  const out = only(g.toNonIndexed(), ['position', 'normal']);
+  g.dispose();
+  const n = out.getAttribute('position').count,
+    c = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    c[i * 3] = shade;
+    c[i * 3 + 1] = shade * 0.97;
+    c[i * 3 + 2] = shade * 0.9;
+  }
+  out.setAttribute('color', new THREE.Float32BufferAttribute(c, 3));
+  return out;
+}
+/** How many hanging-formation templates there are (one instanced draw each). */
+export const HANGING_KINDS = 3;
+/**
+ * v0.6 Pass 041: a hanging formation, one of `HANGING_KINDS`: a knobbly boss of rock set into
+ * the roof (its top at y 0) with a cluster of fluted stalactites beneath, one long (to y -1) and
+ * several shorter, plus a few thin soda straws.
+ */
+export function hangingGeometry(kind = 0): THREE.BufferGeometry {
+  const rand = random(35101 + kind * 977),
+    parts: THREE.BufferGeometry[] = [];
+  const boss = unitRock(35101 + kind * 31, kind % 4, 2);
+  boss.rotateX(Math.PI);
+  boss.scale(1.1, 0.3, 1.1);
+  boss.translate(0, 0.04, 0);
+  const flat = boss.index ? boss.toNonIndexed() : boss;
+  if (flat !== boss) boss.dispose();
+  parts.push(flat);
+  // The long one and its neighbours, then the short ones round them.
+  const stems = 3 + kind * 2;
+  for (let i = 0; i < stems; i++) {
+    const main = i === 0,
+      a = rand() * Math.PI * 2,
+      d = main ? rand() * 0.08 : 0.12 + rand() * 0.28,
+      len = main ? 1 : 0.3 + rand() * 0.5,
+      r = main ? 0.2 : 0.07 + rand() * 0.1;
+    parts.push(
+      stalactite(
+        Math.cos(a) * d,
+        Math.sin(a) * d,
+        r,
+        len,
+        35200 + kind * 50 + i,
+      ),
+    );
+  }
+  for (let i = 0; i < 2 + kind; i++) {
+    const a = rand() * Math.PI * 2,
+      d = 0.2 + rand() * 0.25;
+    parts.push(
+      stalactite(
+        Math.cos(a) * d,
+        Math.sin(a) * d,
+        0.025,
+        0.15 + rand() * 0.25,
+        35300 + kind * 50 + i,
+      ),
+    );
+  }
+  const g = mergeGeometries(parts, false)!;
+  parts.forEach((p) => p.dispose());
   return g;
 }
 /** A cluster of sun-coral cups: short orange tubes, each crowned with a ring of yellow polyp tips. */
@@ -144,38 +260,87 @@ export class CaveDressing {
         roughness: 0.92,
       }),
     );
-    const hanging = this.instanced(
-      hangingGeometry(),
-      rock,
-      CAVE_DRESSING.hanging,
-      'Cave hanging formations',
+    const hanging = Array.from({ length: HANGING_KINDS }, (_, k) =>
+      this.instanced(
+        hangingGeometry(k),
+        rock,
+        CAVE_DRESSING.hanging,
+        'Cave hanging formations',
+      ),
     );
-    let placed = 0;
-    for (
-      let tries = 0;
-      placed < CAVE_DRESSING.hanging && tries < 400;
-      tries++
-    ) {
+    const perKind = hanging.map(() => 0);
+    let total = 0;
+    for (let tries = 0; total < CAVE_DRESSING.hanging && tries < 600; tries++) {
       const a = rand() * Math.PI * 2,
         uy = 0.3 + rand() * 0.62,
         h = Math.sqrt(1 - uy * uy);
       wallPoint(Math.sin(a) * h, uy, Math.cos(a) * h, p);
       if (Math.hypot(p.x - sky.x, p.z - sky.z) < sky.radius + 1.5) continue;
       if (p.z > c.z + c.rz * 0.5 && Math.abs(p.x) < 4) continue;
-      const len = 0.5 + rand() * rand() * 2.4,
-        w = 0.35 + rand() * 0.45;
+      const len = 0.6 + rand() * rand() * 2.6,
+        w = 0.7 + rand() * 0.8,
+        k = total % HANGING_KINDS;
       e.set(0, rand() * Math.PI * 2, 0);
       q.setFromEuler(e);
       // Its top set well into the roof, so it grows from the rock.
       m.compose(
-        new THREE.Vector3(p.x, p.y + 0.45, p.z),
+        new THREE.Vector3(p.x, p.y + 0.35, p.z),
         q,
-        s.set(w, len + 0.45, w),
+        s.set(w, len + 0.35, w),
       );
-      hanging.setMatrixAt(placed++, m);
+      hanging[k].setMatrixAt(perKind[k]++, m);
+      total++;
     }
-    hanging.count = placed;
-    hanging.instanceMatrix.needsUpdate = true;
+    hanging.forEach((mesh, k) => {
+      mesh.count = perKind[k];
+      mesh.instanceMatrix.needsUpdate = true;
+    });
+
+    // v0.6 Pass 041: stalagmites, the same formations standing up from the sand: banked against
+    // the walls, and beside the boulders (never in the pool of light or at the tunnel's foot).
+    const standing = hangingGeometry(1);
+    standing.rotateX(Math.PI);
+    const stalagmites = this.instanced(
+      standing,
+      rock,
+      CAVE_DRESSING.stalagmites,
+      'Cave stalagmites',
+    );
+    let raised = 0;
+    for (
+      let tries = 0;
+      raised < CAVE_DRESSING.stalagmites && tries < 400;
+      tries++
+    ) {
+      let x: number, z: number;
+      if (raised % 2) {
+        const r = CAVE_ROCKS[(raised * 7) % CAVE_ROCKS.length],
+          a = rand() * Math.PI * 2,
+          d = r.size * (0.45 + rand() * 0.25);
+        x = r.x + Math.sin(a) * d;
+        z = r.z + Math.cos(a) * d;
+      } else {
+        const a = rand() * Math.PI * 2;
+        wallPoint(Math.sin(a) * 0.96, -0.28, Math.cos(a) * 0.96, p);
+        const k = 0.9 - rand() * 0.06;
+        x = c.x + (p.x - c.x) * k;
+        z = c.z + (p.z - c.z) * k;
+      }
+      if (Math.hypot(x - sky.x, z - sky.z) < sky.radius + 2) continue;
+      if (z > c.z + c.rz * 0.45 && Math.abs(x) < 4) continue;
+      const tall = 0.4 + rand() * rand() * 1.6,
+        w = 0.5 + rand() * 0.6;
+      e.set((rand() - 0.5) * 0.15, rand() * Math.PI * 2, (rand() - 0.5) * 0.15);
+      q.setFromEuler(e);
+      m.compose(
+        new THREE.Vector3(x, caveFloor(x, z) - 0.2, z),
+        q,
+        s.set(w, tall + 0.2, w),
+      );
+      stalagmites.setMatrixAt(raised++, m);
+    }
+    stalagmites.count = raised;
+    stalagmites.instanceMatrix.needsUpdate = true;
 
     // Sun-coral clusters: on the lower walls and the shaded sides of the boulders.
     const { cups, polyps } = coralClusterGeometry(35061);
@@ -265,7 +430,7 @@ export class CaveDressing {
       CAVE_DRESSING.rubble,
       'Cave rubble',
     );
-    placed = 0;
+    let placed = 0;
     for (
       let tries = 0;
       placed < CAVE_DRESSING.rubble && tries < CAVE_DRESSING.rubble * 5;

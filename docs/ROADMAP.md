@@ -110,6 +110,7 @@ v0.5 closes on the user's macOS acceptance of this candidate; v0.4 (`0.4.0-rc.3`
 - **Pass 037 — Passing close, passing far (`0.6.0-alpha.6`, by user request):** the outer reef's big animals pass either close by the glass (where they count as seen) or far out at the edge of view, chosen pass by pass.
 - **Pass 039 — A playful sea lion (`0.6.0-alpha.9`, by user request):** a California sea lion in the kelp forest that comes over to circle the swimmer, then darts off.
 - **Pass 040 — Release candidate (`0.6.0-rc.1`):** unit tests brought up to date (565 passing), a full 21-harness browser regression (all pass), and one bug fixed (giant kelp sightings near the tunnel exit). v0.6 closes on the user's macOS play-through.
+- **Pass 041 — Play-test fixes (`0.6.0-rc.2`, by user request):** the outer reef's corals load in the tunnel (no pop-in); a smaller kelp forest with blacksmith and señorita schools; resting whitetips that bolt when approached and settle elsewhere; lobster dens; fluted stalactite clusters, stalagmites, more boulders, soldierfish and rock crabs in the cave.
 - **Provisional, to agree after the user plays Pass 032:**
   - the kelp forest's life for the tank (garibaldi, a bat ray pup);
   - more kelp-forest character (light shafts, a sea lion);

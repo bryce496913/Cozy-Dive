@@ -315,9 +315,12 @@ export class OuterWatersScene implements WaterWorld {
       this.scene.add(visitors.root);
     }
     this.sightings.push(...reefSightings(drawn), ...creatures.sightings);
-    this.reef.update(this.camera.position, 0, false);
+    // v0.6 Pass 041: while the swimmer is in the tunnel, upload every coral and rock at every
+    // detail level (one copy of each drawn in the warm-up), so none pops in on first sight.
+    this.reef.primeAll();
     await warmUpScene(this.renderer, this.scene, this.camera);
     if (this.disposed) return false;
+    this.reef.resort(this.camera.position);
     this.reefReady = true;
     this.reefPrepareMs = performance.now() - this.begunAt;
     return true;

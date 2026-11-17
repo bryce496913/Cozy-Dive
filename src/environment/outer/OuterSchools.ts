@@ -27,12 +27,18 @@ const LIBRARY: Readonly<Partial<Record<SpeciesId, AssetId>>> = {
   garibaldi: 'chromis',
   'glassy-sweeper': 'chromis',
   'kelp-bass': 'chromis',
+  blacksmith: 'chromis',
+  senorita: 'chromis',
+  soldierfish: 'chromis',
 };
 /** v0.6 Pass 032: species drawn on another's rig in a colour of their own. */
 const RECOLOR: Readonly<Partial<Record<SpeciesId, number>>> = {
   garibaldi: 0xff6a12,
   'glassy-sweeper': 0xc98a4e,
   'kelp-bass': 0x7a6a45,
+  blacksmith: 0x3f4d5e,
+  senorita: 0xe0b23a,
+  soldierfish: 0xc23a22,
 };
 /** Outer schools switch to their light rigs at this many body lengths. */
 export const OUTER_FISH_DETAIL = 8;

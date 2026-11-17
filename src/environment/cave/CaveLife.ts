@@ -23,11 +23,35 @@ export const CAVE_LIFE = {
   ],
   /** How much smaller than a chromis (body length). */
   sweeperSize: 0.75,
+  /**
+   * v0.6 Pass 041: small loose groups of soldierfish hanging in the shade beside the big rocks,
+   * and rock crabs picking their way round the rocks' feet (how many, and how much bigger than a
+   * chromis the soldierfish are).
+   */
+  soldiers: [
+    { x: -11, y: 2, z: -24.5, count: 9 },
+    { x: 11, y: 1.8, z: -30, count: 8 },
+    { x: -7.5, y: 1.8, z: -31, count: 7 },
+    { x: 10, y: 1.6, z: -16, count: 6 },
+  ],
+  soldierSize: 1.35,
+  crabs: 18,
   /** Whitetips resting on the sand (heading, radians: 0 faces +x). */
   resting: [
     { x: 1.2, z: -21.2, yaw: 0.6 },
     { x: 8.5, z: -28.5, yaw: 2.5 },
     { x: -1.8, z: -33, yaw: -0.8 },
+  ],
+  /** v0.6 Pass 041: open sand where a startled whitetip may settle again. */
+  settle: [
+    { x: 1.2, z: -21.2, yaw: 0.6 },
+    { x: 8.5, z: -28.5, yaw: 2.5 },
+    { x: -1.8, z: -33, yaw: -0.8 },
+    { x: -9, z: -21, yaw: 1.4 },
+    { x: 7, z: -19.5, yaw: -2.2 },
+    { x: 1.5, z: -28, yaw: 3.0 },
+    { x: -10, z: -30.5, yaw: -1.6 },
+    { x: 11, z: -22.5, yaw: 0.2 },
   ],
 } as const;
 
@@ -36,6 +60,42 @@ export function caveSpecies(): FishSpecies[] {
   const chromis = FISH_SPECIES.find((f) => f.id === 'blue-green-chromis')!,
     k = CAVE_LIFE.sweeperSize,
     copper = 0xc98a4e;
+  return [...sweeperSpecies(chromis, k, copper), ...soldierSpecies(chromis)];
+}
+/** v0.6 Pass 041: soldierfish, red and deep-bodied, loosely grouped and slow, near the rocks. */
+function soldierSpecies(chromis: FishSpecies): FishSpecies[] {
+  const k = CAVE_LIFE.soldierSize,
+    red = 0xc23a22;
+  return CAVE_LIFE.soldiers.map((s) => ({
+    ...chromis,
+    id: 'soldierfish',
+    name: 'Soldierfish',
+    count: s.count,
+    length: chromis.length * k,
+    height: chromis.height * k * 1.1,
+    width: chromis.width * k,
+    color: red,
+    backColor: red,
+    finColor: red,
+    accentColor: red,
+    schooling: {
+      ...chromis.schooling,
+      enabled: true,
+      spacing: chromis.schooling.spacing * 1.6,
+      cohesionWeight: chromis.schooling.cohesionWeight * 0.7,
+    },
+    speed: chromis.speed * 0.45,
+    region: { x: s.x, y: s.y, z: s.z },
+    spread: { x: 1.8, y: 0.7, z: 1.8 },
+    depth: [s.y - 0.9, s.y + 1.1],
+    individualScale: undefined,
+  }));
+}
+function sweeperSpecies(
+  chromis: FishSpecies,
+  k: number,
+  copper: number,
+): FishSpecies[] {
   return CAVE_LIFE.sweepers.map((s) => ({
     ...chromis,
     id: 'glassy-sweeper',

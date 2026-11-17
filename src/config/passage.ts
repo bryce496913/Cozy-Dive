@@ -198,12 +198,13 @@ export const KELP = {
    * close its sides at x ±`walls.x` and its far end at z `walls.farZ`, from the seabed up past the
    * surface; the tunnel's wall closes the near end.
    */
-  walls: { x: 36, farZ: -84 },
+  // v0.6 Pass 041: a smaller tank, about 48 m wide and 50 m deep.
+  walls: { x: 24, farZ: -60 },
   /** Where swimming eases to a hover, short of the walls. */
   reach: {
-    halfWidth: 30.5,
+    halfWidth: 18.5,
     side: 2,
-    far: -78.5,
+    far: -54.5,
     past: 2,
     up: 17,
     rise: 4,
@@ -212,9 +213,9 @@ export const KELP = {
   /** The kelp grows over rock from the wall to the far edge, leaving a sandy lane for the rays. */
   forest: {
     // v0.6 Pass 036: inside the walls.
-    minZ: -81,
+    minZ: -57,
     maxZ: -11,
-    halfWidth: 33,
+    halfWidth: 21,
     lane: { x: 8, halfWidth: 4.5 },
   },
 } as const;
@@ -232,12 +233,13 @@ export const KELP_FRAME: PassageFrame = {
  * x' = offset.x - x, y' = y + offset.y, z' = offset.z - z.
  */
 export const GROTTO = {
-  offset: { x: 26, y: 1.2, z: -22.1 },
+  // v0.6 Pass 041: moved in with the smaller forest's east wall.
+  offset: { x: 21.5, y: 1.2, z: -22.1 },
   /** Load the sea cave within this distance of the grotto's mouth; release it beyond the second. */
   preload: 15,
   release: 22,
   /** Kelp and boulders keep out of this area (the outcrop and the water before its mouth). */
-  clear: { minX: 16.5, maxX: 27.5, z: -14.5 },
+  clear: { minX: 12, maxX: 23.5, z: -14.5 },
 } as const;
 /** A point from the tank's crevice coordinates into the kelp forest (in place into `out`). */
 export function grottoFromTank(p: Vec3, out: Vec3): Vec3 {

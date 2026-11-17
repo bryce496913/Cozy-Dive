@@ -12,7 +12,7 @@ import { inGrottoClear, kelpFloor, laneWeight } from './KelpTerrain';
 export const STALKS = {
   /** Template heights (m); the canopy reaches the surface for the tallest. */
   heights: [15.5, 18.5, KELP.surfaceY - 0.6],
-  count: 150,
+  count: 110,
   seed: 32032,
   /** Sway at the top (m), and its slow periods (s). */
   sway: 1.5,
