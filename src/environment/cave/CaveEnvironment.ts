@@ -173,6 +173,17 @@ export class CaveEnvironment {
         dark: back.endZ,
       };
     this.add(rockTubeGeometry(backTube), tunnel, 'Cave back tunnel');
+    // Its far end fades into darkness (beyond the threshold, where the swap has happened).
+    const backCap = new THREE.CircleGeometry(back.radius + 0.4, 24);
+    backCap.translate(back.x, back.y, backTube.to);
+    backCap.setAttribute(
+      'color',
+      new THREE.Float32BufferAttribute(
+        new Float32Array(backCap.getAttribute('position').count * 3).fill(0.02),
+        3,
+      ),
+    );
+    this.add(backCap, tunnel, 'Cave back tunnel end');
     const s = CAVE.skylight,
       top = this.roofAt(s.x, s.z);
     this.skylightTop = top;
@@ -194,6 +205,10 @@ export class CaveEnvironment {
     const colliders: ConvexCollider[] = [
       ...this.tunnelColliders(mouthZ),
       ...rockTubeColliders(backTube),
+      boxCollider(
+        [back.x - 2, back.y - 2, backTube.to - 1],
+        [back.x + 2, back.y + 2, backTube.to + 0.6],
+      ),
     ];
     const rocks: THREE.BufferGeometry[] = [],
       cracks: { x: number; y: number; z: number; yaw: number }[] = [],

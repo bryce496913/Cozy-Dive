@@ -141,3 +141,32 @@ describe('v0.6 Pass 046: the waters under the ice', () => {
     expect(env.root.children).toHaveLength(0);
   });
 });
+
+describe('v0.6 Pass 046: swimming into the back tunnel', () => {
+  it('lets the swimmer swim from the cave into the back tunnel and past its threshold', async () => {
+    const { CaveEnvironment } =
+      await import('../src/environment/cave/CaveEnvironment');
+    const { caveFloor, easeInCave } =
+      await import('../src/environment/cave/CaveTerrain');
+    const cave = new CaveEnvironment(),
+      world = new TerrainCollisionWorld(
+        new ColliderGrid(cave.colliders),
+        CAVE.bounds,
+        caveFloor,
+      ),
+      b = CAVE.backTunnel,
+      s = createSwimState(v(b.x, b.y, -30)),
+      dir = v(0, 0, 0);
+    let deepest = Infinity;
+    for (let i = 0; i < 60 * 40; i++) {
+      dir.x = 0;
+      dir.y = 0;
+      dir.z = -1;
+      easeInCave(s.position, dir);
+      integrateSwimming(s, dir, 1 / 60, tuning, CAVE.bounds, world);
+      deepest = Math.min(deepest, s.position.z);
+    }
+    expect(deepest).toBeLessThan(b.endZ - 0.2);
+    cave.dispose();
+  });
+});

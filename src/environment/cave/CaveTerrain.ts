@@ -75,9 +75,9 @@ export function wallPoint(dx: number, dy: number, dz: number, out: Vec3): Vec3 {
 export function inTunnelReach(p: Readonly<Vec3>): boolean {
   const t = CAVE.tunnel,
     b = CAVE.backTunnel;
-  // v0.6 Pass 046: and the back tunnel, from just inside the back wall.
+  // v0.6 Pass 046: and the back tunnel, from where the wall's easing would start in front of it.
   if (
-    p.z < CAVE.chamber.z - CAVE.chamber.rz + 3 &&
+    p.z < CAVE.chamber.z - CAVE.chamber.rz + CAVE.ease.inset + 2.5 &&
     Math.hypot(p.x - b.x, p.y - b.y) < b.radius + 0.4
   )
     return true;
