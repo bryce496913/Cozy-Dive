@@ -16,6 +16,7 @@ import {
   caveSpecies,
 } from '../environment/cave/CaveLife';
 import { CaveDressing } from '../environment/cave/CaveDressing';
+import { CaveCrabs } from '../environment/cave/CaveCrabs';
 import { CaveLobsters } from '../environment/cave/CaveLobsters';
 import { MarineSnow } from '../environment/shared/MarineSnow';
 import { caveFloor, easeInCave } from '../environment/cave/CaveTerrain';
@@ -51,6 +52,8 @@ export class SeaCaveScene implements WaterWorld {
   readonly camera = new THREE.PerspectiveCamera(64, 1, 0.08, 80);
   readonly environment = new CaveEnvironment();
   readonly lobsters: CaveLobsters;
+  /** v0.6 Pass 041 */
+  readonly crabs: CaveCrabs;
   /** v0.6 Pass 035: hanging formations, sun corals, rubble and motes; drifting particles. */
   readonly dressing: CaveDressing;
   readonly snow = new MarineSnow({
@@ -83,10 +86,12 @@ export class SeaCaveScene implements WaterWorld {
     this.scene.background = new THREE.Color(CAVE.water);
     this.scene.fog = new THREE.FogExp2(CAVE.water, CAVE.fog);
     this.lobsters = new CaveLobsters(this.environment.cracks);
+    this.crabs = new CaveCrabs(CAVE_ROCKS, CAVE_LIFE.crabs);
     this.dressing = new CaveDressing(this.environment.skylightTop);
     this.scene.add(
       this.environment.root,
       this.lobsters.root,
+      this.crabs.root,
       this.dressing.root,
       this.snow.points,
     );
@@ -121,7 +126,7 @@ export class SeaCaveScene implements WaterWorld {
         position: { x: c.x + x, y: c.y, z },
         radius: 4,
       });
-    this.sightings.push(...this.lobsters.sightings);
+    this.sightings.push(...this.lobsters.sightings, ...this.crabs.sightings);
     this.camera.rotation.order = 'YXZ';
     this.camera.position.set(
       CAVE_FRAME.origin.x,
@@ -146,7 +151,12 @@ export class SeaCaveScene implements WaterWorld {
       CAVE_CRUISERS,
       'Sea cave whitetip',
     );
-    this.resting = new RestingSharks(CAVE_LIFE.resting, fish);
+    this.resting = new RestingSharks(
+      CAVE_LIFE.resting,
+      fish,
+      CAVE_LIFE.settle,
+      caveObstacles,
+    );
     const [, cruising, resting] = await Promise.all([
       this.schools.ready,
       this.creatures.ready,
@@ -172,6 +182,17 @@ export class SeaCaveScene implements WaterWorld {
         label: CAVE_SIGHTS.sweeper.label,
         position: sweepers[i].position,
         radius: 1.5,
+      });
+    // v0.6 Pass 041: and a soldierfish by coming close to one in each group.
+    const soldiers = this.schools.fish.simulation.fish.filter(
+      (f) => f.species.id === 'soldierfish',
+    );
+    for (let i = 0; i < soldiers.length; i += 4)
+      this.sightings.push({
+        id: CAVE_SIGHTS.soldierfish.id,
+        label: CAVE_SIGHTS.soldierfish.label,
+        position: soldiers[i].position,
+        radius: 1.4,
       });
     await warmUpScene(this.renderer, this.scene, this.camera);
     if (this.disposed) return false;
@@ -208,7 +229,8 @@ export class SeaCaveScene implements WaterWorld {
     this.dressing.update(dt, active, reducedMotion);
     this.snow.update(dt, active, reducedMotion, this.camera.position);
     this.lobsters.update(dt, active, reducedMotion, player);
-    this.resting?.update(dt, active, reducedMotion);
+    this.crabs.update(dt, active, reducedMotion, player);
+    this.resting?.update(dt, active, reducedMotion, player);
     this.schools?.update(dt, active, reducedMotion, player, this.camera);
     this.creatures?.update(dt, active, reducedMotion, player, this.camera);
     this.renderer.render(this.scene, this.camera);
@@ -222,6 +244,7 @@ export class SeaCaveScene implements WaterWorld {
     this.resting?.dispose();
     this.sightings.length = 0;
     this.lobsters.dispose();
+    this.crabs.dispose();
     this.dressing.dispose();
     this.snow.dispose();
     this.environment.dispose();

@@ -45,6 +45,15 @@ export const CAVE_ROCKS: readonly CaveRock[] = [
   { x: 6.5, z: -33.5, size: 3.4, height: 1.9, yaw: 5.2 },
   { x: -4.5, z: -27, size: 2.2, height: 1.3, yaw: 3.3 },
   { x: 0.5, z: -34.5, size: 2.6, height: 1.6, yaw: 1.2 },
+  // v0.6 Pass 041: more rock, banked against the walls and in the corners.
+  { x: -15.5, z: -20, size: 2.4, height: 1.7, yaw: 0.8 },
+  { x: 15.5, z: -21, size: 2.8, height: 1.9, yaw: 2.2 },
+  { x: -12, z: -34, size: 2.6, height: 2.1, yaw: 5.6 },
+  { x: 13, z: -34.5, size: 2.4, height: 1.6, yaw: 3.9 },
+  { x: -8, z: -11.5, size: 2.0, height: 1.2, yaw: 1.1 },
+  { x: 7.5, z: -11.5, size: 2.2, height: 1.4, yaw: 4.6 },
+  { x: -16, z: -31, size: 2.0, height: 1.5, yaw: 2.9 },
+  { x: -16.5, z: -14, size: 2.2, height: 1.8, yaw: 0.3 },
 ];
 
 function random(seed: number): () => number {

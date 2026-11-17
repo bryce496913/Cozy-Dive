@@ -27,7 +27,7 @@ export function kelpFloor(x: number, z: number): number {
       0.45 * Math.sin(x * 0.051 - z * 0.11 + 0.8) +
       0.2 * Math.sin(x * 0.37 + z * 0.29 + 2.1),
     wall = 1.4 * smooth((z - (KELP.tunnel.wallZ - 7)) / 7),
-    sides = 3 * smooth((Math.abs(x) - 34) / 12),
+    sides = 3 * smooth((Math.abs(x) - KELP.walls.x + 2) / 8),
     far = 2.5 * smooth((KELP.reach.far - 6 - z) / 14);
   return (
     0.2 +

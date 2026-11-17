@@ -15,7 +15,7 @@ import { inGrottoClear, kelpFloor, laneWeight } from './KelpTerrain';
  * sealed by colliders: the tunnel is the only way in or out. Owns its geometries and materials.
  */
 export const KELP_LAYOUT = {
-  boulders: 44,
+  boulders: 30,
   seed: 32033,
   /** The tunnel's colliders: a square duct a little inside its rock, and its rock's thickness. */
   duct: 1.22,

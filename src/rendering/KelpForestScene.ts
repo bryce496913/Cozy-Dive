@@ -12,6 +12,7 @@ import { MarineSnow } from '../environment/shared/MarineSnow';
 import {
   KELP_CRUISERS,
   kelpBassSpecies,
+  kelpSchoolSpecies,
   kelpHabitat,
   kelpObstacles,
   kelpSpecies,
@@ -152,7 +153,7 @@ export class KelpForestScene implements WaterWorld {
     const boulders = this.environment.boulders;
     this.schools = new OuterSchools(
       kelpHabitat(boulders),
-      [...kelpSpecies(boulders), ...kelpBassSpecies()],
+      [...kelpSpecies(boulders), ...kelpBassSpecies(), ...kelpSchoolSpecies()],
       fish,
     );
     this.creatures = new OuterCreatures(
@@ -193,6 +194,20 @@ export class KelpForestScene implements WaterWorld {
     const bass = this.schools.fish.simulation.fish.filter(
       (f) => f.species.id === 'kelp-bass',
     );
+    // v0.6 Pass 041: and a blacksmith and a señorita likewise.
+    for (const kind of ['blacksmith', 'senorita'] as const) {
+      const sight = KELP_SIGHTS[kind],
+        fish = this.schools.fish.simulation.fish.filter(
+          (f) => f.species.id === kind,
+        );
+      for (let i = 0; i < fish.length; i += 8)
+        this.sightings.push({
+          id: sight.id,
+          label: sight.label,
+          position: fish[i].position,
+          radius: 1.4,
+        });
+    }
     for (let i = 0; i < bass.length; i += 8)
       this.sightings.push({
         id: KELP_SIGHTS.bass.id,

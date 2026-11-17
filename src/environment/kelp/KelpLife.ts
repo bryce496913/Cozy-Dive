@@ -32,7 +32,7 @@ export function garibaldiHomes(boulders: readonly Boulder[]): Boulder[] {
   for (const b of sorted) {
     if (homes.length >= KELP_LIFE.groups) break;
     if (b.size < 2.4) continue;
-    if (homes.some((h) => Math.hypot(h.x - b.x, h.z - b.z) < 12)) continue;
+    if (homes.some((h) => Math.hypot(h.x - b.x, h.z - b.z) < 9)) continue;
     homes.push(b);
   }
   return homes;
@@ -72,8 +72,8 @@ export function kelpSpecies(boulders: readonly Boulder[]): FishSpecies[] {
  */
 export const KELP_BASS = [
   { x: -12, y: 7.5, z: -26, count: 9 },
-  { x: 18, y: 9, z: -44, count: 8 },
-  { x: -4, y: 6.5, z: -60, count: 7 },
+  { x: 13, y: 9, z: -42, count: 8 },
+  { x: -6, y: 6.5, z: -50, count: 7 },
 ] as const;
 export function kelpBassSpecies(): FishSpecies[] {
   const chromis = FISH_SPECIES.find((f) => f.id === 'blue-green-chromis')!,
@@ -103,6 +103,58 @@ export function kelpBassSpecies(): FishSpecies[] {
     depth: [b.y - 2.5, b.y + 2.5],
     individualScale: undefined,
   }));
+}
+
+/**
+ * v0.6 Pass 041: more fish among the kelp. Blacksmith (dark blue-grey damselfish) school in
+ * mid-water by the score; señoritas (slender yellow wrasse) weave in loose little groups lower
+ * down between the stalks. Both on the chromis rig, recoloured.
+ */
+export const KELP_SCHOOLS = [
+  { id: 'blacksmith', x: 4, y: 10, z: -22, count: 30, size: 1.4, spread: 4.5 },
+  {
+    id: 'blacksmith',
+    x: -12,
+    y: 12,
+    z: -40,
+    count: 26,
+    size: 1.4,
+    spread: 4.5,
+  },
+  { id: 'blacksmith', x: 12, y: 13, z: -50, count: 22, size: 1.4, spread: 4 },
+  { id: 'senorita', x: -6, y: 3.5, z: -18, count: 8, size: 1.1, spread: 3 },
+  { id: 'senorita', x: 15, y: 4, z: -34, count: 8, size: 1.1, spread: 3 },
+  { id: 'senorita', x: -15, y: 3.5, z: -48, count: 7, size: 1.1, spread: 3 },
+] as const;
+export function kelpSchoolSpecies(): FishSpecies[] {
+  const chromis = FISH_SPECIES.find((f) => f.id === 'blue-green-chromis')!;
+  return KELP_SCHOOLS.map((g) => {
+    const colour = g.id === 'blacksmith' ? 0x3f4d5e : 0xe0b23a,
+      slender = g.id === 'senorita';
+    return {
+      ...chromis,
+      id: g.id,
+      name: g.id === 'blacksmith' ? 'Blacksmith' : 'Señorita',
+      count: g.count,
+      length: chromis.length * g.size * (slender ? 1.15 : 1),
+      height: chromis.height * g.size * (slender ? 0.6 : 1),
+      width: chromis.width * g.size * (slender ? 0.7 : 1),
+      color: colour,
+      backColor: colour,
+      finColor: colour,
+      accentColor: colour,
+      schooling: {
+        ...chromis.schooling,
+        enabled: !slender,
+        spacing: chromis.schooling.spacing * (slender ? 1 : 1.4),
+      },
+      speed: chromis.speed * (slender ? 1.3 : 1),
+      region: { x: g.x, y: g.y, z: g.z },
+      spread: { x: g.spread, y: slender ? 1 : 2, z: g.spread },
+      depth: [g.y - (slender ? 1.5 : 3), g.y + (slender ? 1.5 : 3)],
+      individualScale: undefined,
+    };
+  });
 }
 
 /** Coarse boxes the garibaldi steer around: each boulder, and the wall behind the forest. */
@@ -138,8 +190,14 @@ export function kelpHabitat(boulders: readonly Boulder[]): FishHabitat {
         normal: up,
       },
     );
+  // v0.6 Pass 041: inside the forest's walls (and below its surface).
+  const w = KELP.walls;
   return {
-    bounds: KELP.bounds,
+    bounds: {
+      min: { x: -w.x + 0.8, y: KELP.bounds.min.y, z: w.farZ + 0.8 },
+      max: { x: w.x - 0.8, y: KELP.surfaceY - 1, z: KELP.tunnel.wallZ },
+      clearance: KELP.bounds.clearance,
+    },
     rocks: kelpFishRocks(boulders),
     interests,
     substrateHeight: kelpFloor,
@@ -202,7 +260,7 @@ function laneLoop(
 export const KELP_CRUISERS: readonly CruiseGroup[] = [
   {
     species: 'bat-ray',
-    waypoints: laneLoop(-16, -74, 2.2, 1.4),
+    waypoints: laneLoop(-16, -52, 2.2, 1.4),
     members: [
       { start: 0, side: 0, up: 0, phase: 0 },
       { start: -6, side: 0.8, up: 0.5, phase: 1.9 },
@@ -213,7 +271,7 @@ export const KELP_CRUISERS: readonly CruiseGroup[] = [
   {
     species: 'bat-ray',
     scale: 1.1,
-    waypoints: laneLoop(-30, -80, 2.8, 2.2),
+    waypoints: laneLoop(-24, -55, 2.6, 2.2),
     members: [{ start: 40, side: 0, up: 0, phase: 4.4 }],
     tint: KELP_LIFE.rayTint,
   },

@@ -13,7 +13,12 @@ export type SpeciesId =
   /** v0.6 Pass 034: the sea cave's coppery schooling fish (never in the tank's population). */
   | 'glassy-sweeper'
   /** v0.6 Pass 035: the kelp forest's olive-brown mid-water fish (never in the tank). */
-  | 'kelp-bass';
+  | 'kelp-bass'
+  /** v0.6 Pass 041: more kelp forest fish (never in the tank's population). */
+  | 'blacksmith'
+  | 'senorita'
+  /** v0.6 Pass 041: the sea cave's red, big-eyed fish of the shade (never in the tank). */
+  | 'soldierfish';
 export interface SchoolingTuning {
   readonly enabled: boolean;
   readonly spacing: number;

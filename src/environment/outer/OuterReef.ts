@@ -505,6 +505,18 @@ export class OuterReef {
     this.sinceSort = 0;
     for (const set of this.sets) set.update(eye.x, eye.y, eye.z);
   }
+  /**
+   * v0.6 Pass 041: show one copy of every piece at every detail level (for the warm-up in the
+   * tunnel, so nothing uploads on first sight), then sort them for `eye` again.
+   */
+  primeAll(): void {
+    for (const set of this.sets) set.primeAll();
+  }
+  resort(eye: THREE.Vector3): void {
+    this.eye.copy(eye);
+    this.sinceSort = 0;
+    for (const set of this.sets) set.update(eye.x, eye.y, eye.z);
+  }
   /** Copies drawn at each level, summed over the reef (for budgets). */
   drawnCounts(): { pieces: number; draws: number } {
     let pieces = 0,
