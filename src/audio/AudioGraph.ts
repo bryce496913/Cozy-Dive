@@ -178,6 +178,48 @@ export class AudioGraph {
       event.duration,
     );
   }
+  /**
+   * v0.6 Pass 047: a Weddell seal's call from `position`: a long, eerie descending trill, two
+   * warbling whistles sliding down from high to low over a few seconds, placed like the water's
+   * sounds (pan and distance). One at a time; it ends and disconnects itself.
+   */
+  trill(position: Readonly<Vec3>, listener: Readonly<Vec3>, yaw: number): void {
+    if (this.disposed || this.calling) return;
+    const c = this.context,
+      now = c.currentTime,
+      length = 3.2,
+      s = spatialMix(position, listener, yaw, this.spatial),
+      gain = c.createGain(),
+      pan = c.createStereoPanner(),
+      warble = c.createOscillator(),
+      depth = c.createGain(),
+      voices = [c.createOscillator(), c.createOscillator()];
+    pan.pan.value = s.pan;
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.05 * s.gain, now + 0.25);
+    gain.gain.setTargetAtTime(0, now + length - 0.8, 0.35);
+    warble.frequency.value = 9;
+    depth.gain.value = 120;
+    warble.connect(depth);
+    voices.forEach((o, i) => {
+      o.type = 'sine';
+      o.frequency.setValueAtTime(3200 - i * 900, now);
+      o.frequency.exponentialRampToValueAtTime(320 + i * 90, now + length);
+      depth.connect(o.frequency);
+      o.connect(gain);
+      o.start(now);
+      o.stop(now + length);
+    });
+    warble.start(now);
+    warble.stop(now + length);
+    gain.connect(pan).connect(this.master);
+    this.calling = true;
+    voices[0].onended = () => {
+      for (const n of [...voices, warble, depth, gain, pan]) n.disconnect();
+      this.calling = false;
+    };
+  }
+  private calling = false;
   stopEvent(): void {
     if (!this.voice) return;
     this.voice.onended = null;

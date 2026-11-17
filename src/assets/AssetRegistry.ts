@@ -415,6 +415,49 @@ export const ASSET_REGISTRY = {
     maxDimension: 3,
     requireMorphs: true,
   },
+  /** v0.6 Pass 047: Antarctic penguins (flippers' stroke in their morphs) and fish. */
+  emperorPenguin: {
+    path: 'assets/models/creatures/emperor-penguin.glb',
+    requiredNodes: ['EmperorPenguin_Root', 'Body', 'Body_LOD1'],
+    minDimension: 1,
+    maxDimension: 1.5,
+    requireMorphs: true,
+  },
+  adeliePenguin: {
+    path: 'assets/models/creatures/adelie-penguin.glb',
+    requiredNodes: ['AdeliePenguin_Root', 'Body', 'Body_LOD1'],
+    minDimension: 0.6,
+    maxDimension: 0.95,
+    requireMorphs: true,
+  },
+  icefish: {
+    path: 'assets/models/fish/icefish.glb',
+    requiredNodes: [
+      'Icefish_Root',
+      'Body',
+      'Body_LOD1',
+      'Median_Fins',
+      'Pectoral_Left',
+      'Pectoral_Right',
+    ],
+    minDimension: 0.562,
+    maxDimension: 1.8,
+    requireMorphs: true,
+  },
+  notothen: {
+    path: 'assets/models/fish/notothen.glb',
+    requiredNodes: [
+      'Notothen_Root',
+      'Body',
+      'Body_LOD1',
+      'Median_Fins',
+      'Pectoral_Left',
+      'Pectoral_Right',
+    ],
+    minDimension: 0.315,
+    maxDimension: 1.008,
+    requireMorphs: true,
+  },
   acropora: {
     path: 'assets/models/coral/acropora.glb',
     requiredNodes: [

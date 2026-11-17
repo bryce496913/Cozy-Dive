@@ -1053,6 +1053,9 @@ export class Application {
         this.controls.locked,
         this.playerPresence,
       );
+    // v0.6 Pass 047: the Weddell seal's call, heard where it is.
+    const call = this.waterWorld === 'ice' ? this.ice?.life?.call : undefined;
+    if (call) this.audio?.call(call);
     this.frame = requestAnimationFrame(this.tick);
   };
   /** Walk the office and draw it with the live miniature aquarium. */

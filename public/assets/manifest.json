@@ -1967,5 +1967,193 @@
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
+  },
+  {
+    "id": "emperor-penguin",
+    "file": "assets/models/creatures/emperor-penguin.glb",
+    "sha256": "a3390814e09416c0ba89a53af01918fc93359ebe3017411adf8278e27c030c2a",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 345972,
+    "visualPrimitives": 2,
+    "visualTriangles": 9270,
+    "collisionTriangles": 0,
+    "materials": 1,
+    "images": [
+      {
+        "name": "creature_emperor_normal",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 90935
+      },
+      {
+        "name": "creature_emperor_base",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 15781
+      },
+      {
+        "name": "creature_emperor_orm",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 1251
+      }
+    ],
+    "geometryAccessorBytes": 113640,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium hero asset"
+  },
+  {
+    "id": "adelie-penguin",
+    "file": "assets/models/creatures/adelie-penguin.glb",
+    "sha256": "3f0be6c0701e71dc3233458f94c1c47f5c559abf7bfd40faa948e1b9e3744898",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 344680,
+    "visualPrimitives": 2,
+    "visualTriangles": 9270,
+    "collisionTriangles": 0,
+    "materials": 1,
+    "images": [
+      {
+        "name": "creature_adelie_normal",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 90935
+      },
+      {
+        "name": "creature_adelie_base",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 13661
+      },
+      {
+        "name": "creature_adelie_orm",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 1251
+      }
+    ],
+    "geometryAccessorBytes": 113640,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium hero asset"
+  },
+  {
+    "id": "icefish",
+    "file": "assets/models/fish/icefish.glb",
+    "sha256": "e693c7f49a93bb5f2ae4044b03e485aa89b99c35b9fa93e9abddf5c95838aff3",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 604400,
+    "visualPrimitives": 14,
+    "visualTriangles": 14448,
+    "collisionTriangles": 0,
+    "materials": 5,
+    "images": [
+      {
+        "name": "chromis-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 146091
+      },
+      {
+        "name": "fish-scales-base",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 24177
+      },
+      {
+        "name": "chromis-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 30157
+      },
+      {
+        "name": "fin-rays",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 45279
+      }
+    ],
+    "geometryAccessorBytes": 170928,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium hero asset"
+  },
+  {
+    "id": "notothen",
+    "file": "assets/models/fish/notothen.glb",
+    "sha256": "f260e5634824c89a1158313675c381d3dac99e765fe081d20f618a75cdd0ba61",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 613920,
+    "visualPrimitives": 14,
+    "visualTriangles": 14448,
+    "collisionTriangles": 0,
+    "materials": 5,
+    "images": [
+      {
+        "name": "chromis-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 146091
+      },
+      {
+        "name": "fish-scales-base",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 24177
+      },
+      {
+        "name": "chromis-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 30157
+      },
+      {
+        "name": "fin-rays",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 45279
+      }
+    ],
+    "geometryAccessorBytes": 170952,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium hero asset"
   }
 ]
