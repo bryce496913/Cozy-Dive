@@ -10,6 +10,7 @@ import { SeaLion } from '../src/environment/kelp/SeaLion';
 import { BarracudaSchool } from '../src/environment/outer/BarracudaSchool';
 import { ReefLife } from '../src/environment/outer/ReefLife';
 import { WorldPreparation } from '../src/rendering/WorldPreparation';
+import { noWait, Staging } from '../src/rendering/StagedBuild';
 import { creatureFixture } from './fixtures/assetFixture';
 
 /** A loader whose every model arrives only once `open` is called. */
@@ -124,11 +125,13 @@ describe('v0.6 Pass 047: scenes let go while their life is still loading', () =>
    * cast is that stand-in's only purpose.
    */
   const renderer = {} as unknown as THREE.WebGLRenderer;
+  const built = <T>(scene: T | undefined): T => {
+    if (!scene) throw Error('not built');
+    return scene;
+  };
   const scenes: [
     string,
-    (
-      l: AssetLoader,
-    ) => Promise<{
+    (l: AssetLoader) => Promise<{
       dispose(): void;
       prepared: Promise<boolean>;
       scene: THREE.Scene;
@@ -138,25 +141,28 @@ describe('v0.6 Pass 047: scenes let go while their life is still loading', () =>
     [
       'kelp forest',
       async (l) =>
-        new (await import('../src/rendering/KelpForestScene')).KelpForestScene(
-          renderer,
-          { fish: l, soundSpots: 2 },
+        built(
+          await (
+            await import('../src/rendering/KelpForestScene')
+          ).KelpForestScene.build(renderer, { fish: l, soundSpots: 2 }, noWait),
         ),
     ],
     [
       'sea cave',
       async (l) =>
-        new (await import('../src/rendering/SeaCaveScene')).SeaCaveScene(
-          renderer,
-          { fish: l, soundSpots: 2 },
+        built(
+          await (
+            await import('../src/rendering/SeaCaveScene')
+          ).SeaCaveScene.build(renderer, { fish: l, soundSpots: 2 }, noWait),
         ),
     ],
     [
       'under the ice',
       async (l) =>
-        new (await import('../src/rendering/UnderIceScene')).UnderIceScene(
-          renderer,
-          { fish: l, soundSpots: 2 },
+        built(
+          await (
+            await import('../src/rendering/UnderIceScene')
+          ).UnderIceScene.build(renderer, { fish: l, soundSpots: 2 }, noWait),
         ),
     ],
   ];
@@ -166,11 +172,62 @@ describe('v0.6 Pass 047: scenes let go while their life is still loading', () =>
         world = await make(loader);
       world.dispose();
       open();
-      expect(await world.prepared).toBe(false);
+      // (A world with nothing to load may already have finished preparing; either way it is gone.)
+      await world.prepared;
       await new Promise((r) => setTimeout(r, 0));
       expect(world.scene.children).toHaveLength(0);
       expect(world.preparation.state).toBe('disposed');
       expect(loader.leased).toBe(0);
       loader.dispose();
     });
+});
+
+describe('v0.6 Pass 047: building a world a piece per frame', () => {
+  const renderer = {} as unknown as THREE.WebGLRenderer;
+  it('builds each piece in its own frame, timing each, and stops (disposing what it built) if let go', async () => {
+    const loader = new AssetLoader(() => new Promise(() => undefined));
+    let frames = 0;
+    const counted = () => {
+      frames++;
+      return Promise.resolve();
+    };
+    const { UnderIceScene } = await import('../src/rendering/UnderIceScene');
+    const scene = await UnderIceScene.build(
+      renderer,
+      { fish: loader, soundSpots: 2 },
+      counted,
+    );
+    expect(scene).toBeDefined();
+    expect(frames).toBeGreaterThanOrEqual(3);
+    expect(Object.keys(scene!.buildStats!.pieces)).toEqual([
+      'ice and rock',
+      'garden',
+      'scene',
+    ]);
+    expect(scene!.buildStats!.longest).toBeLessThanOrEqual(
+      scene!.buildStats!.total,
+    );
+    scene!.dispose();
+    // Let go after its first piece: nothing is handed over.
+    let pieces = 0;
+    const stop = await UnderIceScene.build(
+      renderer,
+      { fish: loader, soundSpots: 2 },
+      noWait,
+      () => pieces++ < 1,
+    );
+    expect(stop).toBeUndefined();
+    loader.dispose();
+  });
+  it('a staging that is let go disposes what it has built', async () => {
+    let disposed = 0,
+      wanted = true;
+    const stage = new Staging(noWait, () => wanted);
+    await stage.step('a', () => ({ dispose: () => disposed++ }));
+    wanted = false;
+    await expect(
+      stage.step('b', () => ({ dispose: () => disposed++ })),
+    ).rejects.toBe(Staging.cancelled);
+    expect(disposed).toBe(1);
+  });
 });

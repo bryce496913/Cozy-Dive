@@ -32,6 +32,12 @@ import {
 import type { WaterWorld } from './WaterWorld';
 import { WorldPreparation } from './WorldPreparation';
 import { warmUpScene } from './warmUp';
+import {
+  nextFrame,
+  Staging,
+  type BuildStats,
+  type FrameWait,
+} from './StagedBuild';
 
 /**
  * v0.6 Pass 032: the kelp forest, the third water world. Built when the swimmer nears the cleft
@@ -50,11 +56,11 @@ export class KelpForestScene implements WaterWorld {
   readonly id = 'kelp' as const;
   readonly scene = new THREE.Scene();
   readonly camera = new THREE.PerspectiveCamera(64, 1, 0.08, 120);
-  readonly environment = new KelpEnvironment();
-  readonly stalks = new KelpStalks();
+  readonly environment: KelpEnvironment;
+  readonly stalks: KelpStalks;
   /** v0.6 Pass 035: urchins, sea stars, anemones and cobbles; sunbeams; drifting particles. */
   readonly dressing: KelpDressing;
-  readonly light = new KelpLight();
+  readonly light: KelpLight;
   readonly snow = new MarineSnow({
     count: 700,
     reach: 11,
@@ -65,7 +71,9 @@ export class KelpForestScene implements WaterWorld {
     wander: 0.05,
   });
   /** v0.6 Pass 034: the grotto against the wall, east of the tunnel: the way on to the sea cave. */
-  readonly grotto = new TurnedCrevice(GROTTO.offset, 'Grotto to the sea cave');
+  readonly grotto: TurnedCrevice;
+  /** v0.6 Pass 047: how long each piece took to build (see `KelpForestScene.build`). */
+  buildStats?: BuildStats;
   schools?: OuterSchools;
   creatures?: OuterCreatures;
   /** v0.6 Pass 039: a playful sea lion that comes to circle the swimmer. */
@@ -84,14 +92,69 @@ export class KelpForestScene implements WaterWorld {
   private ready = false;
   private disposed = false;
 
+  /**
+   * v0.6 Pass 047: build the forest a piece per frame (environment, kelp, dressing, light, grotto),
+   * so no one frame carries it all; resolves undefined if it stops being wanted while building.
+   */
+  static async build(
+    renderer: THREE.WebGLRenderer,
+    libraries: KelpLibraries,
+    frame: FrameWait = nextFrame,
+    wanted: () => boolean = () => true,
+  ): Promise<KelpForestScene | undefined> {
+    const stage = new Staging(frame, wanted);
+    try {
+      const environment = await stage.step(
+          'environment',
+          () => new KelpEnvironment(),
+        ),
+        stalks = await stage.step('kelp', () => new KelpStalks()),
+        dressing = await stage.step(
+          'dressing',
+          () => new KelpDressing(environment.boulders),
+        ),
+        light = await stage.step('light', () => new KelpLight()),
+        grotto = await stage.step(
+          'grotto',
+          () => new TurnedCrevice(GROTTO.offset, 'Grotto to the sea cave'),
+        ),
+        scene = await stage.step(
+          'scene',
+          () =>
+            new KelpForestScene(renderer, libraries, {
+              environment,
+              stalks,
+              dressing,
+              light,
+              grotto,
+            }),
+        );
+      scene.buildStats = stage.stats;
+      return scene;
+    } catch (error) {
+      if (error === Staging.cancelled) return undefined;
+      throw error;
+    }
+  }
   constructor(
     private readonly renderer: THREE.WebGLRenderer,
     libraries: KelpLibraries,
+    parts: {
+      readonly environment: KelpEnvironment;
+      readonly stalks: KelpStalks;
+      readonly dressing: KelpDressing;
+      readonly light: KelpLight;
+      readonly grotto: TurnedCrevice;
+    },
   ) {
+    this.environment = parts.environment;
+    this.stalks = parts.stalks;
+    this.dressing = parts.dressing;
+    this.light = parts.light;
+    this.grotto = parts.grotto;
     this.scene.name = 'Kelp forest';
     this.scene.background = new THREE.Color(KELP.water);
     this.scene.fog = new THREE.FogExp2(KELP.water, KELP.fog);
-    this.dressing = new KelpDressing(this.environment.boulders);
     this.scene.add(
       this.environment.root,
       this.stalks.root,
@@ -158,6 +221,8 @@ export class KelpForestScene implements WaterWorld {
   }
   private async prepare(fish: AssetLoader): Promise<boolean> {
     const boulders = this.environment.boulders;
+    // v0.6 Pass 047: its life is set up a part per frame too (stopping if let go meanwhile).
+    if (!(await this.nextPart())) return false;
     this.schools = new OuterSchools(
       kelpHabitat(boulders),
       [...kelpSpecies(boulders), ...kelpBassSpecies(), ...kelpSchoolSpecies()],
@@ -169,10 +234,12 @@ export class KelpForestScene implements WaterWorld {
       KELP_CRUISERS,
       'Kelp forest rays',
     );
+    if (!(await this.nextPart())) return false;
     this.seaLion = new SeaLion(
       kelpSeaLionLimits(kelpObstacles(boulders)),
       fish,
     );
+    if (!(await this.nextPart())) return false;
     this.visitors = new KelpVisitors(
       fish,
       boulders,
@@ -238,6 +305,11 @@ export class KelpForestScene implements WaterWorld {
     prep.settle();
     this.ready = true;
     return true;
+  }
+  /** Wait a frame; whether the forest is still wanted. */
+  private async nextPart(): Promise<boolean> {
+    await nextFrame();
+    return !this.disposed;
   }
   get bounds(): Bounds {
     return KELP.bounds;

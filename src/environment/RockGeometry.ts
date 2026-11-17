@@ -97,3 +97,24 @@ export function createRockTemplates(seed = 94721): RockTemplates {
     ),
   };
 }
+
+/**
+ * v0.6 Pass 047: a copy of a rock shape, generating each (seed, family, detail) only once. Each
+ * rock takes 1–2 ms to generate; an area's builds reuse a small set of shapes (varied by scale and
+ * turn), so building a world no longer stalls a frame for hundreds of milliseconds. The cache
+ * holds plain CPU-side geometry (never uploaded); callers own and dispose their copies.
+ */
+const shapes = new Map<string, THREE.BufferGeometry>();
+export function rockShape(
+  seed: number,
+  family: number,
+  detail = 2,
+): THREE.BufferGeometry {
+  const key = `${seed}/${family}/${detail}`;
+  let shape = shapes.get(key);
+  if (!shape) {
+    shape = createRockGeometry(seed, family, detail);
+    shapes.set(key, shape);
+  }
+  return shape.clone();
+}

@@ -3,7 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { ICE, ICE_FRAME } from '../../config/passage';
 import type { ConvexCollider } from '../../player/collision';
 import { boxCollider } from '../passage/Crevice';
-import { createRockGeometry } from '../RockGeometry';
+import { rockShape } from '../RockGeometry';
 import {
   rockTubeColliders,
   rockTubeGeometry,
@@ -43,7 +43,7 @@ function lump(
   family: number,
   detail: number,
 ): THREE.BufferGeometry {
-  const g = createRockGeometry(seed, family, detail);
+  const g = rockShape(seed, family, detail);
   for (const name of Object.keys(g.attributes))
     if (name !== 'position' && name !== 'normal' && name !== 'color')
       g.deleteAttribute(name);
@@ -256,7 +256,7 @@ export class IceEnvironment {
     // and rising up through the sea ice.
     const blocks: THREE.BufferGeometry[] = [];
     const block = (x: number, z: number, sx: number, sz: number, k: number) => {
-      const g = lump(46100 + k * 17, k % 4, 1),
+      const g = lump(46100 + (k % 12) * 17, k % 4, 1),
         h = top + 6 + rand() * 4;
       g.scale(sx, h, sz);
       g.rotateY((rand() - 0.5) * 0.5);
@@ -327,7 +327,7 @@ export class IceEnvironment {
       if (ICE.holes.some((h) => Math.hypot(x - h.x, z - h.z) < h.r + 1.5))
         continue;
       const s = 0.6 + rand() * rand() * 2.6,
-        g = lump(46300 + i * 7, i % 4, 1);
+        g = lump(46300 + (i % 8) * 7, i % 4, 1);
       g.scale(s * (1 + rand()), s * 0.7, s * (1 + rand()));
       g.rotateY(rand() * Math.PI);
       // Set well up into the sheet (which dips by up to 0.6 m), so none seems to float.
@@ -398,7 +398,7 @@ export class IceEnvironment {
       if (Math.abs(x) < 4 && z > t.wallZ - 7) continue;
       const s = 0.5 + rand() * rand() * 2.2,
         y = iceFloor(x, z),
-        g = lump(46500 + i * 11, i % 4, 2);
+        g = lump(46500 + (i % 8) * 11, i % 4, 2);
       g.scale(s * 1.2, s * 0.8, s);
       g.rotateY(rand() * Math.PI);
       g.translate(x, y + s * 0.25, z);

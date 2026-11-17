@@ -3,7 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { KELP, KELP_FRAME, PASSAGE } from '../../config/passage';
 import type { ConvexCollider } from '../../player/collision';
 import { boxCollider } from '../passage/Crevice';
-import { createRockGeometry } from '../RockGeometry';
+import { rockShape } from '../RockGeometry';
 import { rockCollider } from '../rockCollider';
 import { STALKS } from './KelpStalks';
 import { inGrottoClear, kelpFloor, laneWeight } from './KelpTerrain';
@@ -147,7 +147,7 @@ export class KelpEnvironment {
       q = new THREE.Quaternion(),
       e = new THREE.Euler();
     this.boulders.forEach((b, i) => {
-      const g = createRockGeometry(32100 + i * 17, i % 4, 3);
+      const g = rockShape(32100 + (i % 12) * 17, i % 4, 3);
       g.computeBoundingBox();
       const box = g.boundingBox!,
         size = box.getSize(new THREE.Vector3()),
@@ -172,7 +172,7 @@ export class KelpEnvironment {
     });
     // v0.6 Pass 036: big rocks piled along the foot of the tank's walls.
     wallRockLayout().forEach((b, i) => {
-      const g = createRockGeometry(36100 + i * 7, i % 4, 2);
+      const g = rockShape(36100 + (i % 12) * 7, i % 4, 2);
       g.computeBoundingBox();
       const box = g.boundingBox!,
         size = box.getSize(new THREE.Vector3()),
