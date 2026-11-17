@@ -47,10 +47,24 @@ Date: November 17, 2026. By user request; the second of three passes adding life
 - **Updated expectations:**
   - the forest's cruiser count (4 → 7);
   - the model download budget (26 → 30 MB; each area's models load only on entering it).
-- **Browser check:** `validation/kelp-life.mjs`, SwiftShader at DPR 0.5. See the PR for the result. Screenshots are in `docs/screenshots/pass044/`.
+- **Browser check** (`validation/kelp-life.mjs`, SwiftShader at DPR 0.5) passes with no page errors. It enters through the crevice, the cleft and the tunnel, then:
+  - photographs the otter at the surface from below (a silhouette against the light);
+  - photographs leopard sharks under the bat rays, the sheephead among the urchins, a Spanish shawl and a kelp crab;
+  - confirms the seal watching from 8.3 m;
+  - brings on cue the giant sea bass, which passes 6.7 m from the swimmer, and the gull, which plunges in and pecks at the sand.
+- **Sightings counted in the run:** sheephead, Spanish shawl, kelp crab, harbour seal and giant sea bass; the leopard shark in the first run.
+- **Otter sighting:** its radius was then widened (to 5 m), so it counts from below.
+- **Screenshots:** `docs/screenshots/pass044/`.
+- **Earlier run caught and fixed:**
+  - the gull's bounds (wings raised) failed validation;
+  - the otter was hidden in the canopy, so it now floats over the open sandy lane;
+  - the seal watched from too far to see (now 7 m, backing off inside 5 m);
+  - the leopard sharks were small beside the rays (now 2.0–2.3 m).
+- **Not measured:** real-GPU frame time.
 
 ## Known limitations
 
 - The gull enters from above the surface. The forest's surface is seen from below only, so it simply appears there.
 - The nudibranchs and crabs are tiny. Their sightings need you to come close, as for the lobsters.
 - The seal and the sea lion don't avoid each other.
+- The sea bass can pass behind kelp, so it is easy to miss (by design it is slow and rare).

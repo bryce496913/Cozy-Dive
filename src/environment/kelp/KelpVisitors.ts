@@ -149,7 +149,8 @@ export class KelpVisitors {
         this.sightings.push({
           ...KELP_SIGHTS.otter,
           position: this.otter.pose.position,
-          radius: 1.2,
+          // Seen from well below, against the bright surface.
+          radius: 5,
         });
       }, 'sea otter'),
       this.part(async () => {
