@@ -455,7 +455,8 @@ try {
       () =>
         JSON.parse(localStorage.getItem('cozy-diver.journal.v1')).seen.length,
     ),
-    7,
+    // Restoring the tank keeps every sighting (the eight seeded, Pass 034 adding the cave).
+    8,
   );
   assert.deepEqual(report.errors, []);
   await page.evaluate(() => {
