@@ -17,6 +17,12 @@ import {
 } from '../environment/cave/CaveLife';
 import { CaveDressing } from '../environment/cave/CaveDressing';
 import { CaveCrabs } from '../environment/cave/CaveCrabs';
+import { CaveVisitors } from '../environment/cave/CaveVisitors';
+import {
+  caveNooks,
+  ledgeColliders,
+  type CaveNooks,
+} from '../environment/cave/CaveNooks';
 import { CaveLobsters } from '../environment/cave/CaveLobsters';
 import { MarineSnow } from '../environment/shared/MarineSnow';
 import { caveFloor, easeInCave } from '../environment/cave/CaveTerrain';
@@ -68,6 +74,9 @@ export class SeaCaveScene implements WaterWorld {
   schools?: OuterSchools;
   creatures?: OuterCreatures;
   resting?: RestingSharks;
+  /** v0.6 Pass 045 */
+  visitors?: CaveVisitors;
+  private readonly nooks: CaveNooks;
   readonly sightings: SightCandidate[] = [];
   readonly soundSpots: Vec3[] = [];
   /** Resolves once it can be entered: built, its life loaded, its shaders compiled. */
@@ -104,8 +113,12 @@ export class SeaCaveScene implements WaterWorld {
     fill.position.set(-20, 10, 30);
     this.lights.push(sky, sun, fill);
     this.scene.add(sky, sun, fill);
+    this.nooks = caveNooks(this.environment.skylightTop);
     this.world = new TerrainCollisionWorld(
-      new ColliderGrid(this.environment.colliders),
+      new ColliderGrid([
+        ...this.environment.colliders,
+        ...ledgeColliders(this.nooks),
+      ]),
       CAVE.bounds,
       caveFloor,
     );
@@ -157,11 +170,20 @@ export class SeaCaveScene implements WaterWorld {
       CAVE_LIFE.settle,
       caveObstacles,
     );
+    this.visitors = new CaveVisitors(fish, this.nooks);
     const [, cruising, resting] = await Promise.all([
       this.schools.ready,
       this.creatures.ready,
       this.resting.ready,
+      this.visitors.ready,
     ]);
+    this.scene.add(this.visitors.root);
+    this.visitors.attachGlows(
+      this.schools.fish.simulation.fish.filter(
+        (f) => f.species.id === 'flashlight-fish',
+      ),
+    );
+    this.sightings.push(...this.visitors.sightings);
     if (this.disposed) return false;
     this.scene.add(this.schools.root);
     if (cruising) {
@@ -233,6 +255,8 @@ export class SeaCaveScene implements WaterWorld {
     this.resting?.update(dt, active, reducedMotion, player);
     this.schools?.update(dt, active, reducedMotion, player, this.camera);
     this.creatures?.update(dt, active, reducedMotion, player, this.camera);
+    // Only once warmed up, so everything is drawn (and compiled) in the warm-up first.
+    if (this.ready) this.visitors?.update(dt, active, reducedMotion, player);
     this.renderer.render(this.scene, this.camera);
   }
   dispose(): void {
@@ -244,6 +268,7 @@ export class SeaCaveScene implements WaterWorld {
     this.resting?.dispose();
     this.sightings.length = 0;
     this.lobsters.dispose();
+    this.visitors?.dispose();
     this.crabs.dispose();
     this.dressing.dispose();
     this.snow.dispose();

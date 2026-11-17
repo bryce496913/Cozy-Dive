@@ -407,6 +407,14 @@ export const ASSET_REGISTRY = {
     maxDimension: 2.09,
     requireMorphs: true,
   },
+  /** v0.6 Pass 045: the sea cave's nurse shark (about 2.6 m long), asleep under a ledge. */
+  nurseShark: {
+    path: 'assets/models/creatures/nurse-shark.glb',
+    requiredNodes: ['NurseShark_Root', 'Body', 'Body_LOD1'],
+    minDimension: 2.3,
+    maxDimension: 3,
+    requireMorphs: true,
+  },
   acropora: {
     path: 'assets/models/coral/acropora.glb',
     requiredNodes: [

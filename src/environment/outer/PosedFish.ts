@@ -61,6 +61,8 @@ export class PosedFish {
     private readonly length: number,
     private readonly detailLengths = 10,
     textures?: Map<string, THREE.Texture>,
+    /** v0.6 Pass 045: one solid colour in place of the authored colour map (as AuthoredSchool). */
+    recolor?: number,
   ) {
     if (leases.length !== poses.length)
       throw Error('PosedFish needs one lease per pose');
@@ -107,6 +109,13 @@ export class PosedFish {
             }
             material.metalness = 0;
             material.envMapIntensity = 0.35;
+            if (
+              recolor !== undefined &&
+              !/Eye|Gill|Mouth/i.test(material.name)
+            ) {
+              material.map = null;
+              material.color.setHex(recolor);
+            }
             if (textures) shareTextures(material, textures);
           }
           clones.set(part.material, material);
