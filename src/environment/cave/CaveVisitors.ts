@@ -118,11 +118,17 @@ function rayGeometry(): THREE.BufferGeometry {
     seg.translate(0, 0.125 + k * 0.25, 0);
     parts.push(tinted(seg, k % 2 ? [0.95, 0.88, 0.8] : [0.6, 0.15, 0.1]));
   }
-  // A sliver of membrane behind each ray.
-  const web = new THREE.PlaneGeometry(0.12, 0.8);
-  web.translate(-0.06, 0.4, 0);
-  web.rotateY(Math.PI / 2);
-  parts.push(tinted(web, [0.75, 0.45, 0.35]));
+  // A thin, tapering sliver of membrane trailing each ray, joined at its base.
+  const web = new THREE.BufferGeometry();
+  web.setAttribute(
+    'position',
+    new THREE.Float32BufferAttribute(
+      [0, 0.05, 0, 0, 0.75, 0, 0, 0.4, -0.06],
+      3,
+    ),
+  );
+  web.computeVertexNormals();
+  parts.push(tinted(web, [0.85, 0.6, 0.5]));
   return merged(parts);
 }
 

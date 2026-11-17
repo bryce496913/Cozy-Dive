@@ -55,7 +55,15 @@ Date: November 17, 2026. By user request; the last of three passes adding life (
   - the cleaning visit, with shrimps on the fish;
   - the lionfish fanning out, turning, and settling;
   - the lights' blinking.
-- **Browser check:** `validation/cave-life.mjs`, SwiftShader at DPR 0.5. See the PR for the result. Screenshots are in `docs/screenshots/pass045/`.
+- **Browser check** (`validation/cave-life.mjs`, SwiftShader at DPR 0.5) passes on its first run with no page errors. It swims tank → outer reef → kelp forest → grotto → cave, then:
+  - photographs the moray's crack, the flashlight fish with all 18 lights, and the nurse shark under its ledge;
+  - photographs the turtle asleep, then breathing at the roof (on cue);
+  - photographs a soldierfish at the cleaner shrimps (on cue), the octopus out and then hidden in its den;
+  - confirms the lionfish fanned out (spread 0.998).
+- **Sightings counted:** moray eel, flashlight fish, green sea turtle, cleaner shrimp, octopus and lionfish. The nurse shark wasn't looked at long enough in the run to count.
+- **Fixed after the run:** the lionfish's fin membranes read as flat slabs and were made thin, tapering slivers.
+- **Screenshots:** `docs/screenshots/pass045/`.
+- **Not measured:** real-GPU frame time.
 
 ## Known limitations
 
