@@ -61,7 +61,7 @@ Date: November 17, 2026. By user request; the last of three passes adding life (
   - photographs a soldierfish at the cleaner shrimps (on cue), the octopus out and then hidden in its den;
   - confirms the lionfish fanned out (spread 0.998).
 - **Sightings counted:** moray eel, flashlight fish, green sea turtle, cleaner shrimp, octopus and lionfish. The nurse shark wasn't looked at long enough in the run to count.
-- **Fixed after the run:** the lionfish's fin membranes read as flat slabs and were made thin, tapering slivers.
+- **Fixed after the run:** the lionfish's fin membranes read as flat slabs and were made thin, tapering slivers. A second full run also passed with no page errors, and its lionfish screenshot is the one kept.
 - **Screenshots:** `docs/screenshots/pass045/`.
 - **Not measured:** real-GPU frame time.
 
