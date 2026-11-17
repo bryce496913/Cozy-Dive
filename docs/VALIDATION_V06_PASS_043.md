@@ -59,7 +59,20 @@ Every big animal now passes no deeper than 8 m below the reef's lip (body middle
 - **Updated expectations:**
   - the reef's school count (235 → 307);
   - the model download budget (20 → 26 MB; all of the new models load only on entering the outer reef).
-- **Browser check:** `validation/reef-life.mjs`, SwiftShader at DPR 0.5. See the PR for the result. Screenshots are in `docs/screenshots/pass043/`.
+- **Browser check** (`validation/reef-life.mjs`, SwiftShader at DPR 0.5) passes with no page errors:
+  - 4 parrotfish grazing, with sand puffs showing;
+  - 62 blue tang, and 10 butterflyfish and idols in pairs;
+  - the wrasse comes over and looks;
+  - the octopus is out, then hidden in its den when approached;
+  - the bannerfish gather, then the sunfish rises and is cleaned;
+  - the great white passes close by the glass;
+  - the trevally circle.
+- **Sightings:** all eight new ones counted on sight.
+- **Screenshots:** `docs/screenshots/pass043/`.
+- **Earlier runs caught and fixed:**
+  - the idol and bannerfish streamers were far too tall, so the models failed validation;
+  - the cleaning station sat behind a glass frame bar;
+  - the octopus floated above the coral by its den.
 - **Not measured:** real-GPU frame time with everything present.
 
 ## Known limitations
@@ -67,3 +80,4 @@ Every big animal now passes no deeper than 8 m below the reef's lip (body middle
 - The octopus walks over rock tops by the reef's height map. It doesn't wrap its arms round them.
 - The wrasse and the parrotfish don't collide with other fish.
 - The cleaning encounter is very rare by design. The harness starts it on cue.
+- The stones round the octopus's den are faceted low-poly (the lobsters' den geometry).
