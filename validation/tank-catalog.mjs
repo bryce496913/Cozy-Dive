@@ -41,6 +41,8 @@ try {
             'plant:seagrass',
             // v0.6 Pass 032: the kelp forest's giant kelp unlocks a kelp stand.
             'plant:giant-kelp',
+            // v0.6 Pass 034: the sea cave unlocks a limestone arch.
+            'place:sea-cave',
           ].map((id) => ({ id, first: '2026-11-13T00:00:00Z' })),
         }),
       );
@@ -175,7 +177,7 @@ try {
       parts: t.pieces.length,
     })),
   );
-  assert.equal(report.templates.length, 7);
+  assert.equal(report.templates.length, 8);
   assert(
     report.templates.every((t) =>
       t.size.every((v) => Number.isFinite(v) && v > 0),
@@ -186,8 +188,8 @@ try {
   await page
     .getByRole('button', { name: 'For your tank', exact: true })
     .click();
-  // Seven items (Pass 032 adds the kelp stand) and the Close button.
-  assert.equal(await page.locator('.tank-catalog button').count(), 8);
+  // Eight items (Pass 032 adds the kelp stand, Pass 034 the limestone arch) and Close.
+  assert.equal(await page.locator('.tank-catalog button').count(), 9);
   await shot('catalog');
   await page.getByRole('button', { name: 'Close', exact: true }).click();
   const spots = await page.evaluate(async () => {
@@ -229,7 +231,8 @@ try {
             'soft',
             'sea-fan',
             'kelp',
-          ][list.length % 7],
+            'arch',
+          ][list.length % 8],
           position: { x, y: m.context.surface(x, z), z },
           rotation: 0,
         };
@@ -345,7 +348,8 @@ try {
         'Soft coral',
         'Sea fan',
         'Kelp',
-      ][i % 7],
+        'Limestone arch',
+      ][i % 8],
     );
     await pose(spots[i].position);
     await place();
