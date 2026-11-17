@@ -4,14 +4,14 @@ Date: November 17, 2026. By user request. Stacked on Pass 047 (its PR is based o
 
 ## Wildlife inventory (the agreed rare list)
 
-| Encounter | Model | Entrance | Behaviour | Departure |
-| --- | --- | --- | --- | --- |
-| Leopard seal | New, authored 3 m: huge reptilian head, long fore flippers, spotted grey | From the far haze, at least 24 m from the swimmer | Comes to about 4.5 m and circles side-on, its head turned to the swimmer, for 14–22 s. Never closer than 3 m; gentle. | Glides back out of sight |
-| Minke whale | New, about 7.5 m: sleek and pointed, white flipper bands | Down through the breathing hole furthest from the swimmer (at least 14 m off) | One long, slow pass across the far side of the tank, more than 7.5 m from the swimmer | Up through the hole |
-| Killer whales (3) | New, about 6.9 m: tall dorsal, white eye patch and belly, grey saddle | Down through the furthest hole, in line | A wide sweep round the far side, together, more than 7.5 m from the swimmer | Up through the hole, in line |
-| Antarctic toothfish | New, 1.7 m, on the chromis rig: heavy-jawed, dark grey-brown | Rises from the seabed in the far, dark corner | Hangs in mid-water for 18 s, turning to face the swimmer | Sinks back to the corner |
-| Colossal squid | Built in code: two great glowing eyes and the faint shape of its mantle | Low in the dark at the far end (at least 24 m off); the eyes glow up over 4 s | Hold, blink once (not with reduced motion) | Fade away |
-| Polar bear | New, 2.2 m: cream fur, black nose, paddling paws | Paddling at a breathing hole, seen from below (8–22 m off) | Dives down a few metres for an 8 s look round, at least 4 m from the swimmer | Climbs back up out of the hole |
+| Encounter           | Model                                                                    | Entrance                                                                      | Behaviour                                                                                                             | Departure                      |
+| ------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| Leopard seal        | New, authored 3 m: huge reptilian head, long fore flippers, spotted grey | From the far haze, at least 24 m from the swimmer                             | Comes to about 4.5 m and circles side-on, its head turned to the swimmer, for 14–22 s. Never closer than 3 m; gentle. | Glides back out of sight       |
+| Minke whale         | New, about 7.5 m: sleek and pointed, white flipper bands                 | Down through the breathing hole furthest from the swimmer (at least 14 m off) | One long, slow pass across the far side of the tank, more than 7.5 m from the swimmer                                 | Up through the hole            |
+| Killer whales (3)   | New, about 6.9 m: tall dorsal, white eye patch and belly, grey saddle    | Down through the furthest hole, in line                                       | A wide sweep round the far side, together, more than 7.5 m from the swimmer                                           | Up through the hole, in line   |
+| Antarctic toothfish | New, 1.7 m, on the chromis rig: heavy-jawed, dark grey-brown             | Rises from the seabed in the far, dark corner                                 | Hangs in mid-water for 18 s, turning to face the swimmer                                                              | Sinks back to the corner       |
+| Colossal squid      | Built in code: two great glowing eyes and the faint shape of its mantle  | Low in the dark at the far end (at least 24 m off); the eyes glow up over 4 s | Hold, blink once (not with reduced motion)                                                                            | Fade away                      |
+| Polar bear          | New, 2.2 m: cream fur, black nose, paddling paws                         | Paddling at a breathing hole, seen from below (8–22 m off)                    | Dives down a few metres for an 8 s look round, at least 4 m from the swimmer                                          | Climbs back up out of the hole |
 
 The polar bear is included **by your request**. Polar bears live only in the Arctic, so its place in an Antarctic dive is the open geographic question recorded in Pass 049.
 
