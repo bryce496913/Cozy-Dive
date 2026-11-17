@@ -191,7 +191,10 @@ try {
   const life0 = await page.evaluate(() => {
     const k = window.__cozy.kelp;
     return {
-      fish: k.schools.fish.simulation.fish.map((f) => ({ ...f.position })),
+      // Garibaldi only (Pass 035 added kelp bass to the same fish system).
+      fish: k.schools.fish.simulation.fish
+        .filter((f) => f.species.id === 'garibaldi')
+        .map((f) => ({ ...f.position })),
       rays: k.creatures.cruisers.map((c) => ({ ...c.position })),
     };
   });
@@ -199,7 +202,10 @@ try {
   const life1 = await page.evaluate(() => {
     const k = window.__cozy.kelp;
     return {
-      fish: k.schools.fish.simulation.fish.map((f) => ({ ...f.position })),
+      // Garibaldi only (Pass 035 added kelp bass to the same fish system).
+      fish: k.schools.fish.simulation.fish
+        .filter((f) => f.species.id === 'garibaldi')
+        .map((f) => ({ ...f.position })),
       rays: k.creatures.cruisers.map((c) => ({ ...c.position })),
     };
   });
