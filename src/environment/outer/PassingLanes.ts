@@ -13,8 +13,11 @@ import type { Cruiser } from '../../creatures/cruising';
 export const LANES = {
   /** A close pass leaves this much water between the glass and the animal's side (m). */
   close: 1.8,
-  /** A far pass keeps the animal's near side this far beyond the glass (m). */
-  far: 9,
+  /**
+   * A far pass keeps the animal's near side this far beyond the glass (m).
+   * v0.6 Pass 042: a little closer (was 9), so the far passes read better in the blue.
+   */
+  far: 6.5,
   /** Chance a pass is close. */
   closeChance: 0.45,
   /** A group may change lane only this far from the eye (m: beyond the view distance)... */

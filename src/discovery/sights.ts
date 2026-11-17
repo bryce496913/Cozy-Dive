@@ -51,6 +51,11 @@ export function reefSight(family: string): Sight | undefined {
   return Object.hasOwn(REEF, family) ? REEF[family] : undefined;
 }
 
+/** v0.6 Pass 042: what else the outer reef shows, now and then, out in the blue. */
+export const OUTER_SIGHTS = {
+  barracuda: { id: 'species:great-barracuda', label: 'Great barracuda' },
+} as const satisfies Record<string, Sight>;
+
 /** Every sight, in the order the "Seen" page lists them when first seen together. */
 export const SIGHTS: readonly Sight[] = [
   ...Object.values(CRUISE_SPECIES).map((s) => ({
@@ -62,6 +67,7 @@ export const SIGHTS: readonly Sight[] = [
   ),
   ...Object.values(KELP_SIGHTS),
   ...Object.values(CAVE_SIGHTS),
+  ...Object.values(OUTER_SIGHTS),
 ];
 /** A sight's name, or null for an id this version does not know (kept, but not listed). */
 export function sightLabel(id: string): string | null {

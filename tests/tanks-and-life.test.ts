@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { CAVE, KELP, OUTER } from '../src/config/passage';
 import type { Vec3 } from '../src/config/world';
+import { BARRACUDA, BarracudaVisit } from '../src/creatures/barracuda';
 import { SEA_LION, SeaLionSwimmer } from '../src/creatures/seaLion';
 import { CaveLobsters, LOBSTER } from '../src/environment/cave/CaveLobsters';
 import {
@@ -241,5 +242,49 @@ describe('v0.6 Pass 039: the playful sea lion', () => {
       roll = Math.max(roll, Math.abs(calm.roll));
     }
     expect(roll).toBe(0);
+  });
+});
+
+describe('v0.6 Pass 042: barracuda circling out in the blue', () => {
+  it('comes now and then from out of sight, circles beyond the glass, then leaves', () => {
+    const visit = new BarracudaVisit(),
+      pose = { x: 0, y: 0, z: 0, yaw: 0, effort: 0 },
+      states = new Set<string>();
+    let circled = 0;
+    // An hour of simulated time in 0.1 s steps.
+    for (let t = 0; t < 36000; t++) {
+      visit.update(0.1);
+      states.add(visit.state);
+      if (visit.state === 'circling') circled++;
+      if (visit.state === 'away')
+        expect(visit.centre.z).toBeCloseTo(BarracudaVisit.hiddenZ(), 6);
+      if (t % 50 === 0)
+        for (let i = 0; i < BARRACUDA.count; i += 7) {
+          visit.pose(i, pose);
+          // Always beyond the glass, every fish.
+          expect(pose.z).toBeLessThan(OUTER.glass.z - 2);
+          expect(Math.abs(pose.x)).toBeLessThan(OUTER.glass.halfWidth);
+        }
+    }
+    expect([...states].sort()).toEqual([
+      'arriving',
+      'away',
+      'circling',
+      'leaving',
+    ]);
+    // A small chance: it is not there most of the time.
+    expect(circled / 36000).toBeLessThan(0.5);
+    expect(circled).toBeGreaterThan(0);
+  });
+  it('is away when the swimmer arrives, deep in the haze', () => {
+    const visit = new BarracudaVisit(7);
+    visit.come();
+    visit.arrive();
+    expect(visit.present).toBe(false);
+    expect(OUTER.glass.z - visit.centre.z).toBeGreaterThanOrEqual(30);
+  });
+  it('brings the far passes a little closer than before', () => {
+    expect(LANES.far).toBeLessThan(9);
+    expect(LANES.far).toBeGreaterThan(LANES.close + 3);
   });
 });

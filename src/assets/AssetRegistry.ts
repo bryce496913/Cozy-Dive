@@ -227,6 +227,14 @@ export const ASSET_REGISTRY = {
     maxDimension: 2.6,
     requireMorphs: true,
   },
+  /** v0.6 Pass 042: the outer reef's great barracuda (about 1.5 m long), schooling in the blue. */
+  barracuda: {
+    path: 'assets/models/creatures/barracuda.glb',
+    requiredNodes: ['Barracuda_Root', 'Body', 'Body_LOD1'],
+    minDimension: 1.3,
+    maxDimension: 1.8,
+    requireMorphs: true,
+  },
   acropora: {
     path: 'assets/models/coral/acropora.glb',
     requiredNodes: [

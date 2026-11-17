@@ -1164,5 +1164,48 @@
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
+  },
+  {
+    "id": "barracuda",
+    "file": "assets/models/creatures/barracuda.glb",
+    "sha256": "12014bb4dcef911c51eb57734e12939d7ae3cab3bcde8e969b8a8792338d7047",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 522828,
+    "visualPrimitives": 2,
+    "visualTriangles": 11678,
+    "collisionTriangles": 0,
+    "materials": 1,
+    "images": [
+      {
+        "name": "creature_barracuda_normal",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 90935
+      },
+      {
+        "name": "creature_barracuda_base",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 29326
+      },
+      {
+        "name": "creature_barracuda_orm",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 1199
+      }
+    ],
+    "geometryAccessorBytes": 285456,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium hero asset"
   }
 ]
