@@ -17,7 +17,13 @@ Date: November 17, 2026. By user request. No merge or release is authorized by t
 
 - `npm run typecheck`, `npm run lint`, `npm run build`: pass.
 - `npm run test`: 569 passing, including new tests. The school comes now and then over an hour of simulated time, every fish stays beyond the glass, it is away and hidden in the haze on arrival, and the far lane is closer than before.
-- Browser (`validation/barracuda.mjs`, SwiftShader in headless Chromium): see the PR for the result.
+- **Browser check** (`validation/barracuda.mjs`, SwiftShader in headless Chromium at DPR 0.5) passes with no page errors:
+  - the school is away and not drawn on arrival;
+  - brought in on cue, it drifts in from the haze and is circling about 28 s later;
+  - looked at from the glass in front of it, it counts as seen;
+  - sent away, it drifts out and is hidden again.
+- **Screenshot:** `docs/screenshots/pass042/barracuda-circling.png`.
+- **Not measured:** real-GPU frame time with the school present.
 
 ## Known limitations
 
