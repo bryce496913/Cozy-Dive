@@ -8,7 +8,7 @@ import type { Vec3 } from '../../config/world';
 import type { ConvexCollider } from '../../player/collision';
 import { boxCollider } from '../passage/Crevice';
 import { rockTubeColliders, rockTubeGeometry } from '../shared/RockTube';
-import { createRockGeometry } from '../RockGeometry';
+import { createRockGeometry, rockShape } from '../RockGeometry';
 import { rockCollider } from '../rockCollider';
 import { caveFloor, chamberDepth, wallLumps, wallPoint } from './CaveTerrain';
 
@@ -216,7 +216,7 @@ export class CaveEnvironment {
       q = new THREE.Quaternion(),
       e = new THREE.Euler();
     CAVE_ROCKS.forEach((r, i) => {
-      const g = createRockGeometry(34100 + i * 13, i % 4, 3);
+      const g = rockShape(34100 + (i % 8) * 13, i % 4, 3);
       g.computeBoundingBox();
       const box = g.boundingBox!,
         size = box.getSize(new THREE.Vector3()),
@@ -248,7 +248,7 @@ export class CaveEnvironment {
     const mouthRocks = 10;
     for (let i = 0; i < mouthRocks; i++) {
       const a = (i / mouthRocks) * Math.PI * 2 + 0.3,
-        g = createRockGeometry(34300 + i * 7, i % 4, 2);
+        g = rockShape(34300 + (i % 8) * 7, i % 4, 2);
       g.computeBoundingBox();
       const box = g.boundingBox!,
         size = box.getSize(new THREE.Vector3()),

@@ -37,6 +37,7 @@ import {
   TerrainCollisionWorld,
 } from '../player/terrainCollision';
 import type { WaterWorld } from './WaterWorld';
+import { WorldPreparation } from './WorldPreparation';
 import { warmUpScene } from './warmUp';
 
 /**
@@ -121,6 +122,8 @@ export class OuterWatersScene implements WaterWorld {
   private visit = 0;
   /** What can be seen here: the reef's corals and seagrass, and its big creatures. */
   readonly sightings: SightCandidate[] = [];
+  /** v0.6 Pass 046 review: how far it has got, and which parts loaded. */
+  readonly preparation = new WorldPreparation();
   /** Where the soundscape's small sounds come from here (at the coral heads). */
   readonly soundSpots: Vec3[] = [];
   /**
@@ -194,6 +197,7 @@ export class OuterWatersScene implements WaterWorld {
     );
     const failed = (error: unknown): boolean => {
       console.error('Cozy Diver: outer waters could not be prepared.', error);
+      this.preparation.fail();
       if (!this.disposed) this.ready = this.reefReady = true;
       return !this.disposed;
     };
@@ -309,12 +313,13 @@ export class OuterWatersScene implements WaterWorld {
     this.barracuda = barracuda;
     const life = new ReefLife(fishLoader, drawn, obstacles);
     this.life = life;
+    const prep = this.preparation;
     const [, loaded, visiting, schooling, living] = await Promise.all([
-      this.schools.ready,
-      creatures.ready,
-      visitors.ready,
-      barracuda.ready,
-      life.ready,
+      prep.track('schools', this.schools.ready),
+      prep.track('cruisers', creatures.ready),
+      prep.track('wall visitors', visitors.ready),
+      prep.track('barracuda', barracuda.ready),
+      prep.track('reef life', life.ready),
     ]);
     if (this.disposed) return false;
     this.scene.add(this.schools.root);
@@ -357,6 +362,7 @@ export class OuterWatersScene implements WaterWorld {
     await warmUpScene(this.renderer, this.scene, this.camera);
     if (this.disposed) return false;
     this.reef.resort(this.camera.position);
+    prep.settle();
     this.reefReady = true;
     this.reefPrepareMs = performance.now() - this.begunAt;
     return true;
@@ -436,6 +442,7 @@ export class OuterWatersScene implements WaterWorld {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    this.preparation.dispose();
     this.ready = false;
     this.environment.undress();
     this.cleft.dispose();

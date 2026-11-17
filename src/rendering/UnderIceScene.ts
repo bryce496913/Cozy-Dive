@@ -14,7 +14,14 @@ import {
   TerrainCollisionWorld,
 } from '../player/terrainCollision';
 import type { WaterWorld } from './WaterWorld';
+import { WorldPreparation } from './WorldPreparation';
 import { warmUpScene } from './warmUp';
+import {
+  nextFrame,
+  Staging,
+  type BuildStats,
+  type FrameWait,
+} from './StagedBuild';
 
 export interface IceLibraries {
   /** The tank's fish loader (for the animals to come in later passes). */
@@ -31,8 +38,10 @@ export class UnderIceScene implements WaterWorld {
   readonly id = 'ice' as const;
   readonly scene = new THREE.Scene();
   readonly camera = new THREE.PerspectiveCamera(64, 1, 0.08, 120);
-  readonly environment = new IceEnvironment();
+  readonly environment: IceEnvironment;
   readonly garden: IceGarden;
+  /** v0.6 Pass 046 review: how long each piece took to build (see `UnderIceScene.build`). */
+  buildStats?: BuildStats;
   readonly snow = new MarineSnow({
     count: 650,
     reach: 11,
@@ -43,6 +52,8 @@ export class UnderIceScene implements WaterWorld {
     wander: 0.025,
   });
   readonly sightings: SightCandidate[] = [];
+  /** v0.6 Pass 046 review: how far it has got, and which parts loaded. */
+  readonly preparation = new WorldPreparation();
   readonly soundSpots: Vec3[] = [];
   /** Resolves once it can be entered: built and its shaders compiled. */
   readonly prepared: Promise<boolean>;
@@ -52,14 +63,47 @@ export class UnderIceScene implements WaterWorld {
   private ready = false;
   private disposed = false;
 
+  /**
+   * v0.6 Pass 046 review: build the waters under the ice a piece per frame (ice and rock, garden), so no
+   * one frame carries it all; resolves undefined if no longer wanted while building.
+   */
+  static async build(
+    renderer: THREE.WebGLRenderer,
+    libraries: IceLibraries,
+    frame: FrameWait = nextFrame,
+    wanted: () => boolean = () => true,
+  ): Promise<UnderIceScene | undefined> {
+    const stage = new Staging(frame, wanted);
+    try {
+      const environment = await stage.step(
+          'ice and rock',
+          () => new IceEnvironment(),
+        ),
+        garden = await stage.step(
+          'garden',
+          () => new IceGarden(environment.stones),
+        ),
+        scene = await stage.step(
+          'scene',
+          () => new UnderIceScene(renderer, libraries, { environment, garden }),
+        );
+      scene.buildStats = stage.stats;
+      return scene;
+    } catch (error) {
+      if (error === Staging.cancelled) return undefined;
+      throw error;
+    }
+  }
   constructor(
     private readonly renderer: THREE.WebGLRenderer,
     libraries: IceLibraries,
+    parts: { readonly environment: IceEnvironment; readonly garden: IceGarden },
   ) {
+    this.environment = parts.environment;
     this.scene.name = 'Under the ice';
     this.scene.background = new THREE.Color(ICE.water);
     this.scene.fog = new THREE.FogExp2(ICE.water, ICE.fog);
-    this.garden = new IceGarden(this.environment.stones);
+    this.garden = parts.garden;
     this.scene.add(this.environment.root, this.garden.root, this.snow.points);
     // The same kinds and number of lights as the tank: a cold sky light (the ice glowing above,
     // the seabed dark below), the sun low and pale through the ice, and a blue fill.
@@ -116,6 +160,7 @@ export class UnderIceScene implements WaterWorld {
           'Cozy Diver: the waters under the ice could not be prepared.',
           error,
         );
+        this.preparation.fail();
         if (!this.disposed) this.ready = true;
         return !this.disposed;
       },
@@ -124,6 +169,7 @@ export class UnderIceScene implements WaterWorld {
   private async prepare(): Promise<boolean> {
     await warmUpScene(this.renderer, this.scene, this.camera);
     if (this.disposed) return false;
+    this.preparation.settle();
     this.ready = true;
     return true;
   }
@@ -160,6 +206,7 @@ export class UnderIceScene implements WaterWorld {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    this.preparation.dispose();
     this.ready = false;
     this.garden.dispose();
     this.snow.dispose();

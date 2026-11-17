@@ -25,6 +25,7 @@ import { OfficeScene } from '../rendering/OfficeScene';
 import { KelpForestScene } from '../rendering/KelpForestScene';
 import { SeaCaveScene } from '../rendering/SeaCaveScene';
 import { UnderIceScene } from '../rendering/UnderIceScene';
+import { nextFrame, type BuildStats } from '../rendering/StagedBuild';
 import { OuterWatersScene } from '../rendering/OuterWatersScene';
 import type { WaterWorld } from '../rendering/WaterWorld';
 import { CLEFT, GROTTO, PASSAGE } from '../config/passage';
@@ -176,6 +177,19 @@ export class Application {
   private previous = 0;
   private elapsed = 0;
   private disposed = false;
+  /** v0.6 Pass 046 review: worlds being built, and how long each build took (for measurement). */
+  private readonly building = new Set<WaterWorldId>();
+  readonly buildTimes: Partial<
+    Record<
+      WaterWorldId,
+      {
+        longest: number;
+        total: number;
+        elapsed: number;
+        pieces: Record<string, number>;
+      }
+    >
+  > = {};
   readonly tankEditor?: TankEditor;
   private readonly abort = new AbortController();
   constructor(
@@ -657,13 +671,23 @@ export class Application {
       distance = mouthDistance(this.state.position),
       inTank = this.waterWorld === 'aquarium';
     if (!this.outer) {
-      if (swimming && inTank && distance < PASSAGE.preload)
+      if (swimming && inTank && distance < PASSAGE.preload) {
+        // v0.6 Pass 046 review: measured (its reef dresses itself later, in the tunnel).
+        const begun = performance.now();
         this.outer = new OuterWatersScene(this.world!.renderer, {
           reef: this.world!.reefLoader,
           fish: this.world!.authored.loader,
           plants: this.world!.aquarium.plants.material,
           soundSpots: this.tankSoundSpots.length,
         });
+        const ms = performance.now() - begun;
+        this.buildTimes.outer = {
+          longest: ms,
+          total: ms,
+          elapsed: ms,
+          pieces: { scene: ms },
+        };
+      }
       this.outerIdle = 0;
       return;
     }
@@ -687,10 +711,22 @@ export class Application {
       distance = inOuter ? cleftDistance(this.state.position) : Infinity;
     if (!this.kelp) {
       if (swimming && inOuter && distance < CLEFT.preload && this.outer)
-        this.kelp = new KelpForestScene(this.world!.renderer, {
-          fish: this.world!.authored.loader,
-          soundSpots: this.tankSoundSpots.length,
-        });
+        this.buildWorld(
+          'kelp',
+          (wanted) =>
+            KelpForestScene.build(
+              this.world!.renderer,
+              {
+                fish: this.world!.authored.loader,
+                soundSpots: this.tankSoundSpots.length,
+              },
+              nextFrame,
+              wanted,
+            ),
+          (scene) => {
+            this.kelp = scene;
+          },
+        );
       this.kelpIdle = 0;
       return;
     }
@@ -718,10 +754,22 @@ export class Application {
       distance = inKelp ? grottoDistance(this.state.position) : Infinity;
     if (!this.cave) {
       if (swimming && inKelp && distance < GROTTO.preload && this.kelp)
-        this.cave = new SeaCaveScene(this.world!.renderer, {
-          fish: this.world!.authored.loader,
-          soundSpots: this.tankSoundSpots.length,
-        });
+        this.buildWorld(
+          'cave',
+          (wanted) =>
+            SeaCaveScene.build(
+              this.world!.renderer,
+              {
+                fish: this.world!.authored.loader,
+                soundSpots: this.tankSoundSpots.length,
+              },
+              nextFrame,
+              wanted,
+            ),
+          (scene) => {
+            this.cave = scene;
+          },
+        );
       this.caveIdle = 0;
       return;
     }
@@ -738,6 +786,41 @@ export class Application {
     }
   }
   /**
+   * v0.6 Pass 046 review: build a world a piece per frame (see `StagedBuild`), once at a time; hand it over
+   * when built, unless the application has closed meanwhile (then it is let go). How long it took,
+   * piece by piece and in all, is kept in `buildTimes`.
+   */
+  private buildWorld<T extends { dispose(): void; buildStats?: BuildStats }>(
+    id: WaterWorldId,
+    build: (wanted: () => boolean) => Promise<T | undefined>,
+    take: (scene: T) => void,
+  ): void {
+    if (this.building.has(id)) return;
+    this.building.add(id);
+    const begun = performance.now();
+    build(() => !this.disposed && this.building.has(id)).then(
+      (scene) => {
+        this.building.delete(id);
+        if (!scene) return;
+        if (this.disposed) {
+          scene.dispose();
+          return;
+        }
+        this.buildTimes[id] = {
+          longest: scene.buildStats?.longest ?? 0,
+          total: scene.buildStats?.total ?? 0,
+          elapsed: performance.now() - begun,
+          pieces: { ...(scene.buildStats?.pieces ?? {}) },
+        };
+        take(scene);
+      },
+      (error: unknown) => {
+        this.building.delete(id);
+        console.error(`Cozy Diver: the ${id} world could not be built.`, error);
+      },
+    );
+  }
+  /**
    * v0.6 Pass 046: load the waters under the ice as the swimmer nears the cave's back tunnel, and
    * release them once well away (after a delay); they stay while the swimmer is in them.
    */
@@ -747,10 +830,22 @@ export class Application {
       distance = inCave ? iceGateDistance(this.state.position) : Infinity;
     if (!this.ice) {
       if (swimming && inCave && distance < GROTTO.preload && this.cave)
-        this.ice = new UnderIceScene(this.world!.renderer, {
-          fish: this.world!.authored.loader,
-          soundSpots: this.tankSoundSpots.length,
-        });
+        this.buildWorld(
+          'ice',
+          (wanted) =>
+            UnderIceScene.build(
+              this.world!.renderer,
+              {
+                fish: this.world!.authored.loader,
+                soundSpots: this.tankSoundSpots.length,
+              },
+              nextFrame,
+              wanted,
+            ),
+          (scene) => {
+            this.ice = scene;
+          },
+        );
       this.iceIdle = 0;
       return;
     }
@@ -1003,6 +1098,7 @@ export class Application {
   dispose = (): void => {
     if (this.disposed) return;
     this.disposed = true;
+    this.building.clear();
     cancelAnimationFrame(this.frame);
     this.abort.abort();
     this.audio?.dispose();

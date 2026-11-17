@@ -36,7 +36,14 @@ import {
   TerrainCollisionWorld,
 } from '../player/terrainCollision';
 import type { WaterWorld } from './WaterWorld';
+import { WorldPreparation } from './WorldPreparation';
 import { warmUpScene } from './warmUp';
+import {
+  nextFrame,
+  Staging,
+  type BuildStats,
+  type FrameWait,
+} from './StagedBuild';
 
 /**
  * v0.6 Pass 034: the sea cave, the fourth water world, reached through the grotto in the kelp
@@ -56,7 +63,9 @@ export class SeaCaveScene implements WaterWorld {
   readonly id = 'cave' as const;
   readonly scene = new THREE.Scene();
   readonly camera = new THREE.PerspectiveCamera(64, 1, 0.08, 80);
-  readonly environment = new CaveEnvironment();
+  readonly environment: CaveEnvironment;
+  /** v0.6 Pass 046 review: how long each piece took to build (see `SeaCaveScene.build`). */
+  buildStats?: BuildStats;
   readonly lobsters: CaveLobsters;
   /** v0.6 Pass 041 */
   readonly crabs: CaveCrabs;
@@ -78,6 +87,8 @@ export class SeaCaveScene implements WaterWorld {
   visitors?: CaveVisitors;
   readonly nooks: CaveNooks;
   readonly sightings: SightCandidate[] = [];
+  /** v0.6 Pass 046 review: how far it has got, and which parts loaded. */
+  readonly preparation = new WorldPreparation();
   readonly soundSpots: Vec3[] = [];
   /** Resolves once it can be entered: built, its life loaded, its shaders compiled. */
   readonly prepared: Promise<boolean>;
@@ -87,16 +98,68 @@ export class SeaCaveScene implements WaterWorld {
   private ready = false;
   private disposed = false;
 
+  /**
+   * v0.6 Pass 046 review: build the cave a piece per frame (its rock and sand, lobsters and crabs, its
+   * detail), so no one frame carries it all; resolves undefined if no longer wanted while building.
+   */
+  static async build(
+    renderer: THREE.WebGLRenderer,
+    libraries: CaveLibraries,
+    frame: FrameWait = nextFrame,
+    wanted: () => boolean = () => true,
+  ): Promise<SeaCaveScene | undefined> {
+    const stage = new Staging(frame, wanted);
+    try {
+      const environment = await stage.step(
+          'environment',
+          () => new CaveEnvironment(),
+        ),
+        lobsters = await stage.step(
+          'lobsters',
+          () => new CaveLobsters(environment.cracks),
+        ),
+        crabs = await stage.step(
+          'crabs',
+          () => new CaveCrabs(CAVE_ROCKS, CAVE_LIFE.crabs),
+        ),
+        dressing = await stage.step(
+          'detail',
+          () => new CaveDressing(environment.skylightTop),
+        ),
+        scene = await stage.step(
+          'scene',
+          () =>
+            new SeaCaveScene(renderer, libraries, {
+              environment,
+              lobsters,
+              crabs,
+              dressing,
+            }),
+        );
+      scene.buildStats = stage.stats;
+      return scene;
+    } catch (error) {
+      if (error === Staging.cancelled) return undefined;
+      throw error;
+    }
+  }
   constructor(
     private readonly renderer: THREE.WebGLRenderer,
     libraries: CaveLibraries,
+    parts: {
+      readonly environment: CaveEnvironment;
+      readonly lobsters: CaveLobsters;
+      readonly crabs: CaveCrabs;
+      readonly dressing: CaveDressing;
+    },
   ) {
+    this.environment = parts.environment;
     this.scene.name = 'Sea cave';
     this.scene.background = new THREE.Color(CAVE.water);
     this.scene.fog = new THREE.FogExp2(CAVE.water, CAVE.fog);
-    this.lobsters = new CaveLobsters(this.environment.cracks);
-    this.crabs = new CaveCrabs(CAVE_ROCKS, CAVE_LIFE.crabs);
-    this.dressing = new CaveDressing(this.environment.skylightTop);
+    this.lobsters = parts.lobsters;
+    this.crabs = parts.crabs;
+    this.dressing = parts.dressing;
     this.scene.add(
       this.environment.root,
       this.lobsters.root,
@@ -150,6 +213,7 @@ export class SeaCaveScene implements WaterWorld {
       (ok) => ok,
       (error: unknown) => {
         console.error('Cozy Diver: the sea cave could not be prepared.', error);
+        this.preparation.fail();
         // Without its life it is still a cave to swim in.
         if (!this.disposed) this.ready = true;
         return !this.disposed;
@@ -157,6 +221,8 @@ export class SeaCaveScene implements WaterWorld {
     );
   }
   private async prepare(fish: AssetLoader): Promise<boolean> {
+    // v0.6 Pass 046 review: its life is set up a part per frame too (stopping if let go meanwhile).
+    if (!(await this.nextPart())) return false;
     this.schools = new OuterSchools(caveHabitat(), caveSpecies(), fish);
     this.creatures = new OuterCreatures(
       caveObstacles,
@@ -164,27 +230,25 @@ export class SeaCaveScene implements WaterWorld {
       CAVE_CRUISERS,
       'Sea cave whitetip',
     );
+    if (!(await this.nextPart())) return false;
     this.resting = new RestingSharks(
       CAVE_LIFE.resting,
       fish,
       CAVE_LIFE.settle,
       caveObstacles,
     );
+    if (!(await this.nextPart())) return false;
     this.visitors = new CaveVisitors(fish, this.nooks);
-    const [, cruising, resting] = await Promise.all([
-      this.schools.ready,
-      this.creatures.ready,
-      this.resting.ready,
-      this.visitors.ready,
+    const prep = this.preparation;
+    const [schooled, cruising, resting, visiting] = await Promise.all([
+      prep.track('schools', this.schools.ready),
+      prep.track('cruisers', this.creatures.ready),
+      prep.track('resting sharks', this.resting.ready),
+      prep.track('visitors', this.visitors.ready),
     ]);
-    this.scene.add(this.visitors.root);
-    this.visitors.attachGlows(
-      this.schools.fish.simulation.fish.filter(
-        (f) => f.species.id === 'flashlight-fish',
-      ),
-    );
-    this.sightings.push(...this.visitors.sightings);
+    // v0.6 Pass 046 review: nothing is added once the cave has been let go.
     if (this.disposed) return false;
+    // The schools show their simple fish if their rigs failed, so they are always added.
     this.scene.add(this.schools.root);
     if (cruising) {
       this.scene.add(this.creatures.root);
@@ -194,6 +258,15 @@ export class SeaCaveScene implements WaterWorld {
       this.scene.add(this.resting.root);
       this.sightings.push(...this.resting.sightings);
     }
+    // The visitors' built-in-code parts are always there; each loaded part only if it loaded.
+    this.scene.add(this.visitors.root);
+    this.sightings.push(...this.visitors.sightings);
+    if (schooled || visiting)
+      this.visitors.attachGlows(
+        this.schools.fish.simulation.fish.filter(
+          (f) => f.species.id === 'flashlight-fish',
+        ),
+      );
     // A sweeper is seen by following one fish from each school.
     const sweepers = this.schools.fish.simulation.fish.filter(
       (f) => f.species.id === 'glassy-sweeper',
@@ -218,8 +291,14 @@ export class SeaCaveScene implements WaterWorld {
       });
     await warmUpScene(this.renderer, this.scene, this.camera);
     if (this.disposed) return false;
+    prep.settle();
     this.ready = true;
     return true;
+  }
+  /** Wait a frame; whether the cave is still wanted. */
+  private async nextPart(): Promise<boolean> {
+    await nextFrame();
+    return !this.disposed;
   }
   get bounds(): Bounds {
     return CAVE.bounds;
@@ -262,6 +341,7 @@ export class SeaCaveScene implements WaterWorld {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    this.preparation.dispose();
     this.ready = false;
     this.schools?.dispose();
     this.creatures?.dispose();

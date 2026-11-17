@@ -277,7 +277,7 @@ export class ReefLife {
           'Ocean sunfish',
         );
         this.sunfish = sun;
-        if (!(await sun.ready)) throw Error('sunfish');
+        if (!(await sun.ready) || this.disposed) throw Error('sunfish');
         this.root.add(sun.root);
         this.sightings.push({
           ...OUTER_SIGHTS.sunfish,
@@ -295,7 +295,7 @@ export class ReefLife {
           24,
         );
         this.shark = shark;
-        if (!(await shark.ready)) throw Error('great white');
+        if (!(await shark.ready) || this.disposed) throw Error('great white');
         this.root.add(shark.root);
         this.sightings.push({
           ...OUTER_SIGHTS.greatWhite,
