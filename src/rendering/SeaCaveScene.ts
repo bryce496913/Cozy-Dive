@@ -76,7 +76,7 @@ export class SeaCaveScene implements WaterWorld {
   resting?: RestingSharks;
   /** v0.6 Pass 045 */
   visitors?: CaveVisitors;
-  private readonly nooks: CaveNooks;
+  readonly nooks: CaveNooks;
   readonly sightings: SightCandidate[] = [];
   readonly soundSpots: Vec3[] = [];
   /** Resolves once it can be entered: built, its life loaded, its shaders compiled. */

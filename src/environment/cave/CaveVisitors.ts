@@ -144,7 +144,7 @@ export class CaveVisitors {
   private readonly shrimpMesh: THREE.InstancedMesh;
   private readonly lionBodies: THREE.InstancedMesh;
   private readonly lionRays: THREE.InstancedMesh;
-  private glowMesh?: THREE.InstancedMesh;
+  glowMesh?: THREE.InstancedMesh;
   private glowFish: readonly FishEntity[] = [];
   private readonly m = new THREE.Matrix4();
   private readonly m2 = new THREE.Matrix4();
