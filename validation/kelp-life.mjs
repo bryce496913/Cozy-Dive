@@ -75,7 +75,7 @@ try {
       for (let i = 0; i < count; i++) {
         await new Promise((r) => requestAnimationFrame(r));
         cancelAnimationFrame(a.frame);
-        a.__t = (a.__t ?? performance.now()) + 1000 / 30;
+        a.__t = (a.__t ?? performance.now()) + (window.__stepMs ?? 1000 / 30);
         a.tick(a.__t);
         cancelAnimationFrame(a.frame);
       }
@@ -173,6 +173,10 @@ try {
   report.inForest = { x: s.x, y: s.y, z: s.z };
   await page.screenshot({ path: path.join(output, '4-forest.png') });
 
+  // In the forest, step 0.1 s a frame so the slow animals arrive within the run.
+  await page.evaluate(() => {
+    window.__stepMs = 100;
+  });
   const life = (f) => page.evaluate(f);
   const lookAt = async (from, at) => {
     const yaw = Math.atan2(-(at.x - from.x), -(at.z - from.z)),
@@ -187,7 +191,7 @@ try {
   const at = (expr) => life(new Function(`return {...(${expr})}`));
   // 1. The otter at the surface, seen from below.
   let p = await at('window.__cozy.kelp.visitors.otter.pose.position');
-  await lookAt(from(p, 0, -6, 4), p);
+  await lookAt(from(p, 0, -10, 5), p);
   await step(20);
   await shot('1-otter.png');
   // 2. A leopard shark.

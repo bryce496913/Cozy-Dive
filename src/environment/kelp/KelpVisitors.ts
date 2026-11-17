@@ -22,6 +22,7 @@ import { createPose, PosedFish } from '../outer/PosedFish';
 import { SandPuffs } from '../outer/SandPuffs';
 import { SoloCreature } from '../outer/SoloCreature';
 import { KelpCritters } from './KelpCritters';
+import { laneCentre } from './KelpTerrain';
 import type { Boulder } from './KelpEnvironment';
 
 /**
@@ -85,7 +86,12 @@ export class KelpVisitors {
         minZ: w.farZ + 3,
         maxZ: KELP.tunnel.wallZ - 3,
       };
-    this.otter = new SeaOtter(createPose(), limits, urchins);
+    // The otter floats over the sandy lane, where the canopy opens and it shows from below.
+    this.otter = new SeaOtter(createPose(), limits, urchins, 44011, {
+      x: laneCentre(-30),
+      z: -30,
+      r: 3,
+    });
     this.seal = new ShySeal(createPose(), limits);
     this.seaBass = new RareCruise(createPose(), limits);
     this.gull = new GullDive(createPose(), limits);

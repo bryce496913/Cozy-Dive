@@ -261,6 +261,7 @@ export const KELP_CRUISERS: readonly CruiseGroup[] = [
   // v0.6 Pass 044: leopard sharks, low over the sand along the lane, below the rays.
   {
     species: 'leopard-shark',
+    scale: 1.35,
     waypoints: laneLoop(-14, -50, -3, 0.6),
     members: [
       { start: 0, side: 0, up: 0, phase: 0.6 },
@@ -269,7 +270,7 @@ export const KELP_CRUISERS: readonly CruiseGroup[] = [
   },
   {
     species: 'leopard-shark',
-    scale: 1.15,
+    scale: 1.5,
     waypoints: laneLoop(-22, -56, 1.8, 0.65),
     members: [{ start: 25, side: 0, up: 0, phase: 4.1 }],
   },

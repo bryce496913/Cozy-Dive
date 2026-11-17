@@ -374,8 +374,9 @@ export const ASSET_REGISTRY = {
   westernGull: {
     path: 'assets/models/creatures/western-gull.glb',
     requiredNodes: ['Gull_Root', 'Body', 'Body_LOD1'],
+    // Bounds include the wingbeat morphs: the 1.48 m span reaches 2.0 m with the wings raised.
     minDimension: 1.2,
-    maxDimension: 1.9,
+    maxDimension: 2.3,
     requireMorphs: true,
   },
   giantSeaBass: {

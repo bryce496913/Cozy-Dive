@@ -67,12 +67,18 @@ export class SeaOtter {
     private readonly limits: KelpLimits,
     private readonly urchins: readonly Readonly<Vec3>[],
     seed = 44011,
+    /** Where it floats (centre, drift radius): over open water, where it can be seen from below. */
+    private readonly home: {
+      readonly x: number;
+      readonly z: number;
+      readonly r: number;
+    } = OTTER.home,
   ) {
     this.rand = new Seeded(seed);
     this.swim = createSwim(pose);
-    pose.position.x = OTTER.home.x;
+    pose.position.x = home.x;
     pose.position.y = limits.surface - OTTER.float;
-    pose.position.z = OTTER.home.z;
+    pose.position.z = home.z;
     pose.roll = Math.PI;
     this.wait = this.rand.between(OTTER.rest);
   }
@@ -88,7 +94,7 @@ export class SeaOtter {
       top = this.limits.surface - OTTER.float;
     if (this.mood === 'float') {
       // Drifting slowly on its back, turning, sculling now and then with its tail.
-      const h = OTTER.home,
+      const h = this.home,
         t = this.time * 0.02;
       a.x = h.x + Math.cos(t) * h.r;
       a.z = h.z + Math.sin(t * 1.3) * h.r;
@@ -162,9 +168,9 @@ export const SEAL = {
   /** Roams a slow loop (centre, radii, height). */
   roam: { x: 6, z: -40, rx: 10, rz: 12, y: 8, speed: 0.9, rate: 0.035 },
   /** Watches the swimmer from `watch` m when they come within `notice` m; backs off inside `shy`. */
-  notice: 14,
-  watch: 9,
-  shy: 7,
+  notice: 12,
+  watch: 7,
+  shy: 5,
   stay: [8, 16] as const,
   rest: [30, 60] as const,
 } as const;
