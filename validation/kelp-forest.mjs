@@ -191,7 +191,10 @@ try {
   const life0 = await page.evaluate(() => {
     const k = window.__cozy.kelp;
     return {
-      fish: k.schools.fish.simulation.fish.map((f) => ({ ...f.position })),
+      // Garibaldi only (Pass 035 added kelp bass to the same fish system).
+      fish: k.schools.fish.simulation.fish
+        .filter((f) => f.species.id === 'garibaldi')
+        .map((f) => ({ ...f.position })),
       rays: k.creatures.cruisers.map((c) => ({ ...c.position })),
     };
   });
@@ -199,7 +202,10 @@ try {
   const life1 = await page.evaluate(() => {
     const k = window.__cozy.kelp;
     return {
-      fish: k.schools.fish.simulation.fish.map((f) => ({ ...f.position })),
+      // Garibaldi only (Pass 035 added kelp bass to the same fish system).
+      fish: k.schools.fish.simulation.fish
+        .filter((f) => f.species.id === 'garibaldi')
+        .map((f) => ({ ...f.position })),
       rays: k.creatures.cruisers.map((c) => ({ ...c.position })),
     };
   });
@@ -233,8 +239,9 @@ try {
             ? k.creatures.cruisers[0].position
             : target === 'fish'
               ? k.schools.fish.simulation.fish[0].position
-              : k.stalks.placements[0];
-      return { x: c.x, y: target === 'kelp' ? c.y + 4 : c.y, z: c.z };
+              : // A spot where the kelp counts as seen (on a stalk near the tunnel's exit).
+                k.sightings.find((s) => s.id === 'plant:giant-kelp').position;
+      return { x: c.x, y: c.y, z: c.z };
     }, target);
     const back = target === 'ray' ? 5 : 3;
     await place({ x: p.x, y: p.y + 0.5, z: p.z + back }, 0, -0.1);

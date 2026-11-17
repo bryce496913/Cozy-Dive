@@ -260,6 +260,14 @@ try {
   const notes = [];
   const watch = async (id, name, label, above = true) => {
     const mine = `New sighting · ${label}`;
+    // Since Pass 037 each group passes either close by the glass or far out, switching only
+    // while out of sight; the camera stays near it here, so put every group in its close lane
+    // (the pass that is meant to be seen).
+    await page.evaluate(() => {
+      const a = window.__cozy.outer;
+      for (let g = 0; g < new Set(a.creatures.groupOf).size; g++)
+        a.lanes.passClose(g);
+    });
     // Beside the creature, a little above, looking at it; stepped until it counts as seen.
     // Since #59 the swimmer stays within 3.65 m of the lip, and the sharks patrol far out: follow
     // whichever of the kind is nearest the wall, for up to a minute, until it counts as seen.
