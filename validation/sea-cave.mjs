@@ -267,8 +267,11 @@ try {
     },
     0,
   );
-  await lookAt(crack);
-  await step(30);
+  // Keep looking at it for longer than a sighting needs (1.5 s in view).
+  for (let i = 0; i < 75; i++) {
+    await lookAt(crack);
+    await step(1);
+  }
   const hidden = await lobsterZ();
   report.lobsterBackedIn = Number(
     Math.hypot(hidden[0] - out[0], hidden[1] - out[1]).toFixed(2),
