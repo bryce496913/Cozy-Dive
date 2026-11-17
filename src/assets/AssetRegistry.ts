@@ -458,6 +458,49 @@ export const ASSET_REGISTRY = {
     maxDimension: 1.008,
     requireMorphs: true,
   },
+  // v0.6 Pass 048: the rare visitors under the ice.
+  leopardSeal: {
+    path: 'assets/models/creatures/leopard-seal.glb',
+    requiredNodes: ['LeopardSeal_Root', 'Body', 'Body_LOD1'],
+    minDimension: 2.6,
+    maxDimension: 3.6,
+    requireMorphs: true,
+  },
+  minkeWhale: {
+    path: 'assets/models/creatures/minke-whale.glb',
+    requiredNodes: ['Minke_Root', 'Body', 'Body_LOD1'],
+    minDimension: 2.6,
+    maxDimension: 3.4,
+    requireMorphs: true,
+  },
+  killerWhale: {
+    path: 'assets/models/creatures/killer-whale.glb',
+    requiredNodes: ['Orca_Root', 'Body', 'Body_LOD1'],
+    minDimension: 2.6,
+    maxDimension: 3.4,
+    requireMorphs: true,
+  },
+  polarBear: {
+    path: 'assets/models/creatures/polar-bear.glb',
+    requiredNodes: ['PolarBear_Root', 'Body', 'Body_LOD1'],
+    minDimension: 1.8,
+    maxDimension: 2.7,
+    requireMorphs: true,
+  },
+  toothfish: {
+    path: 'assets/models/fish/toothfish.glb',
+    requiredNodes: [
+      'Toothfish_Root',
+      'Body',
+      'Body_LOD1',
+      'Median_Fins',
+      'Pectoral_Left',
+      'Pectoral_Right',
+    ],
+    minDimension: 1.275,
+    maxDimension: 4.08,
+    requireMorphs: true,
+  },
   acropora: {
     path: 'assets/models/coral/acropora.glb',
     requiredNodes: [

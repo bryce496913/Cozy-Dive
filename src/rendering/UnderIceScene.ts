@@ -7,6 +7,8 @@ import { ICE_SIGHTS } from '../discovery/sights';
 import { IceEnvironment } from '../environment/ice/IceEnvironment';
 import { IceGarden } from '../environment/ice/IceGarden';
 import { IceLife } from '../environment/ice/IceLife';
+import { IceRare } from '../environment/ice/IceRare';
+import { iceLimits } from '../creatures/iceLife';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
 import { easeInIce, iceFloor } from '../environment/ice/IceTerrain';
 import { MarineSnow } from '../environment/shared/MarineSnow';
@@ -65,6 +67,8 @@ export class UnderIceScene implements WaterWorld {
   private ready = false;
   /** v0.6 Pass 047: its everyday life. */
   life?: IceLife;
+  /** v0.6 Pass 048: its rare encounters. */
+  rare?: IceRare;
   private disposed = false;
 
   /**
@@ -184,15 +188,24 @@ export class UnderIceScene implements WaterWorld {
       };
     const life = new IceLife(fish, ground, stones);
     this.life = life;
-    await this.preparation.track('wildlife', life.ready);
+    const rare = new IceRare(fish, iceLimits(ground), this.sightings);
+    this.rare = rare;
+    await Promise.all([
+      this.preparation.track('wildlife', life.ready),
+      this.preparation.track('rare encounters', rare.ready),
+    ]);
     if (this.disposed) return false;
-    this.scene.add(life.root);
+    this.scene.add(life.root, rare.root);
     this.sightings.push(...life.sightings);
     await warmUpScene(this.renderer, this.scene, this.camera);
     if (this.disposed) return false;
     this.preparation.settle();
     this.ready = true;
     return true;
+  }
+  /** v0.6 Pass 048: the swimmer has come under the ice: the rare encounters start over. */
+  arrive(): void {
+    this.rare?.arrive();
   }
   get bounds(): Bounds {
     return ICE.bounds;
@@ -223,8 +236,10 @@ export class UnderIceScene implements WaterWorld {
     this.environment.update(dt, active, reducedMotion);
     this.garden.update(dt, active, reducedMotion);
     // Only once warmed up, so everything is drawn (and compiled) in the warm-up first.
-    if (this.ready)
+    if (this.ready) {
       this.life?.update(dt, active, reducedMotion, player, this.camera);
+      this.rare?.update(dt, active, reducedMotion, player, this.camera);
+    }
     this.snow.update(dt, active, reducedMotion, this.camera.position);
     this.renderer.render(this.scene, this.camera);
   }
@@ -235,6 +250,7 @@ export class UnderIceScene implements WaterWorld {
     this.ready = false;
     this.garden.dispose();
     this.life?.dispose();
+    this.rare?.dispose();
     this.snow.dispose();
     this.environment.dispose();
     this.lights.forEach((l) => l.dispose());

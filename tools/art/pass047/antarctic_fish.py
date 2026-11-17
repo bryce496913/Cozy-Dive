@@ -21,6 +21,9 @@ F, L, ss, mix, band = R.F, R.L, R.ss, R.mix, R.band
 ICE_FISH = {
     'icefish': dict(id='blackfin-icefish', name='Icefish', length=0.75, height=0.16, width=0.11, eye=1.25,
                     iris=(0.75, 0.78, 0.8), snout=0.16),
+    # v0.6 Pass 048: the rare toothfish: big (1.7 m), heavy-jawed, dark grey-brown, rising from the dark.
+    'toothfish': dict(id='antarctic-toothfish', name='Toothfish', length=1.7, height=0.36, width=0.26, eye=0.75,
+                      iris=(0.7, 0.62, 0.3), hump=0.03),
     'notothen': dict(id='bald-notothen', name='Notothen', length=0.42, height=0.11, width=0.07, eye=1.15,
                      iris=(0.6, 0.55, 0.4)),
 }
@@ -56,6 +59,13 @@ def pattern(name, p, fin):
         col = mix(col, [0.55, 0.58, 0.6], 0.5 * bars * ss(-0.2, 0.4, v))
         if fin:
             col = mix(col, [0.12, 0.13, 0.15], 0.7)
+    elif name == 'toothfish':
+        col = np.tile([0.34, 0.32, 0.3], (n, 1))
+        col = mix(col, [0.52, 0.5, 0.47], ss(-0.2, -0.9, v))
+        mottle = (0.5 + 0.5 * np.sin(u * 37 + np.sin(v * 9) * 2)) ** 6
+        col = mix(col, [0.22, 0.2, 0.19], 0.4 * mottle)
+        if fin:
+            col = mix(col, [0.25, 0.24, 0.23], 0.6)
     else:
         col = np.tile([0.5, 0.46, 0.4], (n, 1))
         cells = R.F.cKDTree(np.random.default_rng(4702).random((60, 2)) * [0.44, 0.2] + [-0.22, -0.1])
