@@ -22,6 +22,7 @@ import {
   seabedHeight,
 } from '../environment/outer/OuterTerrain';
 import { reefSightings } from '../environment/outer/outerSightings';
+import { BarracudaSchool } from '../environment/outer/BarracudaSchool';
 import { PassingLanes } from '../environment/outer/PassingLanes';
 import { WallVisitors } from '../environment/outer/WallVisitors';
 import { TankGlass } from '../environment/shared/TankGlass';
@@ -110,6 +111,8 @@ export class OuterWatersScene implements WaterWorld {
   private lanes?: PassingLanes;
   /** v0.6 Pass 033: big animals passing along the wall, more the longer you stay at the edge. */
   visitors?: WallVisitors;
+  /** v0.6 Pass 042 */
+  barracuda?: BarracudaSchool;
   /** This visit's number (see `arrive`), kept until the visitors exist. */
   private visit = 0;
   /** What can be seen here: the reef's corals and seagrass, and its big creatures. */
@@ -298,10 +301,13 @@ export class OuterWatersScene implements WaterWorld {
     this.creatures = creatures;
     const visitors = new WallVisitors(obstacles, fishLoader, this.sightings);
     this.visitors = visitors;
-    const [, loaded, visiting] = await Promise.all([
+    const barracuda = new BarracudaSchool(fishLoader);
+    this.barracuda = barracuda;
+    const [, loaded, visiting, schooling] = await Promise.all([
       this.schools.ready,
       creatures.ready,
       visitors.ready,
+      barracuda.ready,
     ]);
     if (this.disposed) return false;
     this.scene.add(this.schools.root);
@@ -313,6 +319,11 @@ export class OuterWatersScene implements WaterWorld {
       // Nobody has come yet; they are hidden from the first frame after the warm-up below.
       visitors.arrive(this.visit);
       this.scene.add(visitors.root);
+    }
+    if (schooling) {
+      // Away to begin with; drawn in the warm-up below so its shaders are ready when it comes.
+      this.scene.add(barracuda.root);
+      this.sightings.push(...barracuda.sightings);
     }
     this.sightings.push(...reefSightings(drawn), ...creatures.sightings);
     // v0.6 Pass 041: while the swimmer is in the tunnel, upload every coral and rock at every
@@ -332,6 +343,7 @@ export class OuterWatersScene implements WaterWorld {
   arrive(visit: number): void {
     this.visit = visit;
     this.visitors?.arrive(visit);
+    this.barracuda?.arrive();
   }
   get bounds(): Bounds {
     return OUTER.bounds;
@@ -380,6 +392,7 @@ export class OuterWatersScene implements WaterWorld {
     this.schools?.update(dt, active, reducedMotion, player, this.camera);
     this.lanes?.update(dt, active, this.camera.position);
     this.creatures?.update(dt, active, reducedMotion, player, this.camera);
+    this.barracuda?.update(dt, active && this.reefReady, reducedMotion);
     this.visitors?.update(
       dt,
       active && this.reefReady,
@@ -400,6 +413,7 @@ export class OuterWatersScene implements WaterWorld {
     this.schools?.dispose();
     this.creatures?.dispose();
     this.visitors?.dispose();
+    this.barracuda?.dispose();
     this.sightings.length = 0;
     this.reef.dispose();
     this.environment.dispose();
