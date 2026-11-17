@@ -349,6 +349,63 @@ export const ASSET_REGISTRY = {
     maxDimension: 2.2,
     requireMorphs: true,
   },
+  // v0.6 Pass 044: the kelp forest's new animals.
+  seaOtter: {
+    path: 'assets/models/creatures/sea-otter.glb',
+    requiredNodes: ['Otter_Root', 'Body', 'Body_LOD1'],
+    minDimension: 1.0,
+    maxDimension: 1.6,
+    requireMorphs: true,
+  },
+  leopardShark: {
+    path: 'assets/models/creatures/leopard-shark.glb',
+    requiredNodes: ['LeopardShark_Root', 'Body', 'Body_LOD1'],
+    minDimension: 1.3,
+    maxDimension: 1.9,
+    requireMorphs: true,
+  },
+  harbourSeal: {
+    path: 'assets/models/creatures/harbour-seal.glb',
+    requiredNodes: ['Seal_Root', 'Body', 'Body_LOD1'],
+    minDimension: 1.4,
+    maxDimension: 2.0,
+    requireMorphs: true,
+  },
+  westernGull: {
+    path: 'assets/models/creatures/western-gull.glb',
+    requiredNodes: ['Gull_Root', 'Body', 'Body_LOD1'],
+    minDimension: 1.2,
+    maxDimension: 1.9,
+    requireMorphs: true,
+  },
+  giantSeaBass: {
+    path: 'assets/models/fish/seabass.glb',
+    requiredNodes: [
+      'Giant_Sea_Bass_Root',
+      'Body',
+      'Body_LOD1',
+      'Median_Fins',
+      'Pectoral_Left',
+      'Pectoral_Right',
+    ],
+    minDimension: 1.65,
+    maxDimension: 4.84,
+    requireMorphs: true,
+  },
+  sheephead: {
+    path: 'assets/models/fish/sheephead.glb',
+    requiredNodes: [
+      'Sheephead_Root',
+      'Body',
+      'Body_LOD1',
+      'Median_Fins',
+      'Pectoral_Left',
+      'Pectoral_Right',
+    ],
+    minDimension: 0.712,
+    maxDimension: 2.09,
+    requireMorphs: true,
+  },
   acropora: {
     path: 'assets/models/coral/acropora.glb',
     requiredNodes: [

@@ -42,6 +42,7 @@ Date: November 17, 2026. By user request; the first of three passes adding life 
 ## Depth limit
 
 Every big animal now passes no deeper than 8 m below the reef's lip (body middle), where the swimmer can see it from the lip.
+
 - **Reef animals:** the deep blacktip went from 15 m down to 5.5 m; the turtles from 7.5 and 10.5 m to 4.5 and 6 m.
 - **Wall visitors:** the scalloped hammerheads went from 9.5 m to 5.5 m.
 - **Restacked to stay apart:** the other lanes were moved within that band so they still pass clear of each other.

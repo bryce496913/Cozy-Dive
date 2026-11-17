@@ -102,7 +102,17 @@ export function turnTo(s: Swim, yaw: number, dt: number, rate = 1.5): void {
 
 // ------------------------------------------------------------------ parrotfish
 
-export const PARROT = {
+/** How a grazer behaves (the parrotfish's, or v0.6 Pass 044's sheephead at the urchins). */
+export interface GrazeConfig {
+  readonly count: number;
+  readonly speed: number;
+  readonly bites: readonly [number, number];
+  readonly every: number;
+  readonly above: number;
+  readonly range: number;
+  readonly shy: number;
+}
+export const PARROT: GrazeConfig = {
   count: 4,
   speed: 0.55,
   /** Bites per coral, seconds between them, and hovering height above the coral (m). */
@@ -112,7 +122,7 @@ export const PARROT = {
   /** Moves on to another coral within this distance (m); shies from a swimmer this close. */
   range: 14,
   shy: 1.8,
-} as const;
+};
 
 type GrazeState = 'swim' | 'graze';
 interface Grazer {
@@ -135,10 +145,11 @@ export class ParrotGrazers {
     private readonly corals: readonly Readonly<Vec3>[],
     makePose: () => FishPose,
     seed = 43011,
+    private readonly config: GrazeConfig = PARROT,
   ) {
     this.rand = new Seeded(seed);
     this.poses = [];
-    for (let i = 0; i < PARROT.count; i++) {
+    for (let i = 0; i < config.count; i++) {
       const pose = makePose(),
         coral = corals.length
           ? Math.floor(this.rand.next() * corals.length)
@@ -164,7 +175,7 @@ export class ParrotGrazers {
       const k = Math.floor(this.rand.next() * this.corals.length),
         c = this.corals[k];
       if (k === g.coral) continue;
-      if (here && Math.hypot(c.x - here.x, c.z - here.z) > PARROT.range)
+      if (here && Math.hypot(c.x - here.x, c.z - here.z) > this.config.range)
         continue;
       if (avoid && Math.hypot(c.x - avoid.x, c.z - avoid.z) < 4) continue;
       g.coral = k;
@@ -185,7 +196,7 @@ export class ParrotGrazers {
           player.position.x - p.x,
           player.position.y - p.y,
           player.position.z - p.z,
-        ) < PARROT.shy &&
+        ) < this.config.shy &&
         g.state === 'graze'
       )
         this.nextCoral(g, player.position);
@@ -193,24 +204,24 @@ export class ParrotGrazers {
         const d = swimTo(
           g.swim,
           c.x,
-          c.y + PARROT.above,
+          c.y + this.config.above,
           c.z,
-          PARROT.speed,
+          this.config.speed,
           dt,
           1.4,
         );
         if (d < 0.35) {
           g.state = 'graze';
-          g.bites = Math.round(this.rand.between(PARROT.bites));
+          g.bites = Math.round(this.rand.between(this.config.bites));
           g.clock = 0;
         }
       } else {
         // Hovering nose-down over the coral, lunging in to bite now and then.
         g.clock += dt;
-        const t = g.clock % PARROT.every,
+        const t = g.clock % this.config.every,
           lunge = Math.sin(Math.min(1, t / 0.35) * Math.PI);
         g.swim.v.x = g.swim.v.y = g.swim.v.z = 0;
-        p.y += (c.y + PARROT.above - 0.18 * lunge - p.y) * ease(6, dt);
+        p.y += (c.y + this.config.above - 0.18 * lunge - p.y) * ease(6, dt);
         g.swim.pose.pitch += (-0.55 - g.swim.pose.pitch) * ease(3, dt);
         g.swim.pose.effort = 0.25 * Math.sin(g.clock * 5);
         g.swim.pose.fins = Math.sin(g.clock * 4);
