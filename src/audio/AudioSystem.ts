@@ -229,6 +229,8 @@ export class AudioSystem {
     try {
       this.time += dt;
       this.controlTime += dt;
+      this.listener = state.position;
+      this.listenerYaw = yaw;
       if (this.controlTime >= 1 / 20) {
         this.controlTime %= 1 / 20;
         this.graph.update(
@@ -254,6 +256,23 @@ export class AudioSystem {
       this.unavailable();
     }
   }
+  /** v0.6 Pass 047: a seal's call from somewhere in the water (only while sound is playing). */
+  call(position: Readonly<Vec3>): void {
+    if (
+      !this.playing ||
+      !this.graph ||
+      this.context?.state !== 'running' ||
+      !this.listener
+    )
+      return;
+    try {
+      this.graph.trill(position, this.listener, this.listenerYaw);
+    } catch {
+      this.unavailable();
+    }
+  }
+  private listener?: Readonly<Vec3>;
+  private listenerYaw = 0;
   private unavailable(): void {
     this.clearResumeTimer();
     this.failed = true;

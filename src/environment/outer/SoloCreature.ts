@@ -28,6 +28,8 @@ export class SoloCreature {
     name: string,
     /** Beyond this distance (m) it is drawn with its light model. */
     private readonly detail = 18,
+    /** v0.6 Pass 047: a colour multiplied into its own (the Weddell seal's darker coat). */
+    private readonly tint?: number,
   ) {
     this.root.name = name;
     this.root.rotation.order = 'YZX';
@@ -50,6 +52,14 @@ export class SoloCreature {
       this.far = far;
       const k = near.morphTargetDictionary ?? {};
       this.keys = { left: k.Stroke_Left ?? 0, right: k.Stroke_Right ?? 1 };
+      if (this.tint !== undefined)
+        for (const mesh of [near, far])
+          if (mesh.material instanceof THREE.MeshStandardMaterial) {
+            const own = mesh.material.clone();
+            own.color.multiply(new THREE.Color(this.tint));
+            this.tinted.push(own);
+            mesh.material = own;
+          }
       this.root.add(lease.model);
       this.update();
       return true;
@@ -78,7 +88,10 @@ export class SoloCreature {
     creatureStroke(this.near, this.keys, p.effort);
     creatureStroke(this.far, this.keys, p.effort);
   }
+  private readonly tinted: THREE.Material[] = [];
   private release(): void {
+    this.tinted.forEach((m) => m.dispose());
+    this.tinted.length = 0;
     this.lease?.release();
     this.lease = undefined;
     this.loader.evictUnused(this.asset);
