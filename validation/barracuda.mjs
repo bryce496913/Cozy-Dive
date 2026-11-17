@@ -181,6 +181,8 @@ try {
     ...window.__cozy.outer.barracuda.visit.centre,
   }));
   report.centre = c;
+  // Along the glass to just in front of the column, as a swimmer would.
+  edge.x = c.x + 2;
   const yaw = Math.atan2(-(c.x - edge.x), -(c.z - edge.z));
   await place(
     edge,
