@@ -16,7 +16,7 @@ import {
   kelpObstacles,
   kelpSpecies,
 } from '../environment/kelp/KelpLife';
-import { KelpStalks } from '../environment/kelp/KelpStalks';
+import { KelpStalks, STALKS } from '../environment/kelp/KelpStalks';
 import { easeInKelp, kelpFloor } from '../environment/kelp/KelpTerrain';
 import { OuterCreatures } from '../environment/outer/OuterCreatures';
 import { OuterSchools } from '../environment/outer/OuterSchools';
@@ -115,7 +115,9 @@ export class KelpForestScene implements WaterWorld {
       this.soundSpots.push({ x: r.x, y: r.y + r.height + 1, z: r.z });
     }
     // Giant kelp counts as seen from a handful of stalks near the tunnel's exit and beyond.
-    const near = [...this.stalks.placements]
+    // From the forest's own kelp (not the dense band along its walls, Pass 036).
+    const near = this.stalks.placements
+      .slice(0, STALKS.count)
       .sort((a, b) => b.z - a.z)
       .slice(0, 40);
     for (let i = 0; i < near.length; i += 8) {

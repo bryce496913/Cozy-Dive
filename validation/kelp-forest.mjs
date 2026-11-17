@@ -239,8 +239,9 @@ try {
             ? k.creatures.cruisers[0].position
             : target === 'fish'
               ? k.schools.fish.simulation.fish[0].position
-              : k.stalks.placements[0];
-      return { x: c.x, y: target === 'kelp' ? c.y + 4 : c.y, z: c.z };
+              : // A spot where the kelp counts as seen (on a stalk near the tunnel's exit).
+                k.sightings.find((s) => s.id === 'plant:giant-kelp').position;
+      return { x: c.x, y: c.y, z: c.z };
     }, target);
     const back = target === 'ray' ? 5 : 3;
     await place({ x: p.x, y: p.y + 0.5, z: p.z + back }, 0, -0.1);
