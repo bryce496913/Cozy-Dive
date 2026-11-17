@@ -90,6 +90,16 @@ export const ICE_SIGHTS = {
   ribbonWorm: { id: 'species:ribbon-worm', label: 'Ribbon worm' },
   seaButterfly: { id: 'species:sea-butterfly', label: 'Sea butterfly' },
   combJelly: { id: 'species:comb-jelly', label: 'Comb jelly' },
+  // v0.6 Pass 048: the rare ones
+  leopardSeal: { id: 'species:leopard-seal', label: 'Leopard seal' },
+  minke: { id: 'species:minke-whale', label: 'Minke whale' },
+  orca: { id: 'species:killer-whale', label: 'Killer whale' },
+  toothfish: {
+    id: 'species:antarctic-toothfish',
+    label: 'Antarctic toothfish',
+  },
+  squid: { id: 'species:colossal-squid', label: 'Colossal squid' },
+  polarBear: { id: 'species:polar-bear', label: 'Polar bear' },
 } as const satisfies Record<string, Sight>;
 
 /** v0.6 Pass 042: what else the outer reef shows, now and then, out in the blue. */

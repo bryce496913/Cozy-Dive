@@ -2155,5 +2155,228 @@
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
+  },
+  {
+    "id": "leopard-seal",
+    "file": "assets/models/creatures/leopard-seal.glb",
+    "sha256": "ed40754658cbe8bd32132763a3d4c60430fd44529d8d55cb0152265205e217ef",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 434724,
+    "visualPrimitives": 2,
+    "visualTriangles": 8806,
+    "collisionTriangles": 0,
+    "materials": 1,
+    "images": [
+      {
+        "name": "creature_leopardseal_normal",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 90935
+      },
+      {
+        "name": "creature_leopardseal_base",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 35834
+      },
+      {
+        "name": "creature_leopardseal_orm",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 1206
+      }
+    ],
+    "geometryAccessorBytes": 216864,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium hero asset"
+  },
+  {
+    "id": "minke-whale",
+    "file": "assets/models/creatures/minke-whale.glb",
+    "sha256": "cf4844500bf69733a15d654e7fccc7b235e612a94bad518888251073bd2f0ac6",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 380832,
+    "visualPrimitives": 2,
+    "visualTriangles": 9516,
+    "collisionTriangles": 0,
+    "materials": 1,
+    "images": [
+      {
+        "name": "creature_minke_normal",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 90935
+      },
+      {
+        "name": "creature_minke_base",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 14479
+      },
+      {
+        "name": "creature_minke_orm",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 1222
+      }
+    ],
+    "geometryAccessorBytes": 116760,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium hero asset"
+  },
+  {
+    "id": "killer-whale",
+    "file": "assets/models/creatures/killer-whale.glb",
+    "sha256": "1e65b9971b1216e468a69b6e1a8610f79a3b2abef56700ffa52145ca41fcc7f6",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 367864,
+    "visualPrimitives": 2,
+    "visualTriangles": 9544,
+    "collisionTriangles": 0,
+    "materials": 1,
+    "images": [
+      {
+        "name": "creature_orca_normal",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 90935
+      },
+      {
+        "name": "creature_orca_base",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 12724
+      },
+      {
+        "name": "creature_orca_orm",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 1199
+      }
+    ],
+    "geometryAccessorBytes": 117168,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium hero asset"
+  },
+  {
+    "id": "polar-bear",
+    "file": "assets/models/creatures/polar-bear.glb",
+    "sha256": "287b644fda939536508fc9f2b4f3eeecf739585abca6f2cda86531c6880ca614",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 411160,
+    "visualPrimitives": 2,
+    "visualTriangles": 9056,
+    "collisionTriangles": 0,
+    "materials": 1,
+    "images": [
+      {
+        "name": "creature_polarbear_normal",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 90935
+      },
+      {
+        "name": "creature_polarbear_base",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 53765
+      },
+      {
+        "name": "creature_polarbear_orm",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 1309
+      }
+    ],
+    "geometryAccessorBytes": 111408,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium hero asset"
+  },
+  {
+    "id": "toothfish",
+    "file": "assets/models/fish/toothfish.glb",
+    "sha256": "7c77bc17f227e6e9121d6d23c0b76a261271db7d8800ec023774d851ffc2cbdf",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 614480,
+    "visualPrimitives": 14,
+    "visualTriangles": 14447,
+    "collisionTriangles": 0,
+    "materials": 5,
+    "images": [
+      {
+        "name": "chromis-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 146091
+      },
+      {
+        "name": "fish-scales-base",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 24177
+      },
+      {
+        "name": "chromis-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 30157
+      },
+      {
+        "name": "fin-rays",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 45279
+      }
+    ],
+    "geometryAccessorBytes": 170928,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium hero asset"
   }
 ]
