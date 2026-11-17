@@ -13,6 +13,17 @@ import {
   ShySeal,
 } from '../src/creatures/kelpEncounters';
 import { OctopusMind } from '../src/creatures/octopus';
+import {
+  blinkOn,
+  CleaningVisit,
+  LionfishFan,
+  SleepingTurtle,
+} from '../src/creatures/caveEncounters';
+import {
+  caveNooks,
+  ledgeColliders,
+  nooksClear,
+} from '../src/environment/cave/CaveNooks';
 import { KelpCritters } from '../src/environment/kelp/KelpCritters';
 import { KELP_CRUISERS } from '../src/environment/kelp/KelpLife';
 import {
@@ -527,5 +538,73 @@ describe('v0.6 Pass 044: the kelp forest’s newer life', () => {
     expect(leopards.length).toBeGreaterThan(0);
     for (const g of leopards)
       for (const w of g.waypoints) expect(w.y).toBeLessThan(1);
+  });
+});
+
+describe('v0.6 Pass 045: the sea cave’s newer life', () => {
+  it('puts its nooks inside the cave, clear of the sharks’ places and the pool of light', () => {
+    const n = caveNooks(14);
+    expect(nooksClear(n)).toBe(true);
+    for (const p of [n.turtle.bed, n.nurse.at, n.station.patch, n.moray.mouth])
+      expect(wallDistance(p)).toBeGreaterThan(-0.5);
+    // The ledge is a roof over the sleeping shark.
+    expect(n.ledge.y).toBeGreaterThan(n.nurse.at.y + 0.5);
+    expect(ledgeColliders(n).length).toBeGreaterThan(0);
+  });
+  it('the turtle sleeps, rises to breathe at the hole in the roof, and comes back to its bed', () => {
+    const bed = v(10, 0.6, -16),
+      air = v(3.5, 13, -27),
+      t = new SleepingTurtle(createPose(), bed, 2, air),
+      moods: string[] = [];
+    t.wake();
+    for (let i = 0; i < 10 * 400; i++) {
+      t.update(0.1);
+      if (moods[moods.length - 1] !== t.mood) moods.push(t.mood);
+      if (moods.length > 1 && t.mood === 'asleep') break;
+    }
+    expect(moods).toEqual(['rising', 'breathing', 'sinking', 'asleep']);
+    expect(t.pose.position.x).toBeCloseTo(bed.x, 3);
+  });
+  it('a soldierfish comes to the cleaners, the shrimps climb on it, and it leaves', () => {
+    const c = new CleaningVisit(
+        createPose(),
+        v(-17, 4, -23.5),
+        v(1, 0, 0),
+        v(-14, 3.7, -23.5),
+      ),
+      moods = new Set<string>();
+    c.call();
+    let onFish = 0;
+    for (let i = 0; i < 10 * 60; i++) {
+      c.update(0.1);
+      moods.add(c.mood);
+      if (c.mood === 'cleaning') {
+        const p = c.fish.pose.position;
+        onFish = Math.max(
+          onFish,
+          c.shrimps.filter(
+            (s) => Math.hypot(s.x - p.x, s.y - p.y, s.z - p.z) < 0.3,
+          ).length,
+        );
+      }
+    }
+    expect([...moods]).toEqual(
+      expect.arrayContaining(['coming', 'cleaning', 'leaving']),
+    );
+    expect(onFish).toBeGreaterThan(1);
+  });
+  it('the lionfish fans out at a close swimmer, turned to them, and settles after', () => {
+    const l = new LionfishFan(v(0, 1, 0), 0);
+    for (let i = 0; i < 30; i++) l.update(0.1, presence(v(2, 1, 0)));
+    expect(l.spread).toBeGreaterThan(0.9);
+    expect(l.heading).toBeCloseTo(Math.PI / 2, 1);
+    for (let i = 0; i < 100; i++) l.update(0.1, presence(v(10, 1, 0)));
+    expect(l.spread).toBeLessThan(0.1);
+  });
+  it('the flashlight fish’s lights are mostly lit, shuttered now and then', () => {
+    let lit = 0;
+    for (let t = 0; t < 100; t += 0.05) if (blinkOn(3, t)) lit++;
+    expect(lit / 2000).toBeGreaterThan(0.8);
+    expect(lit).toBeLessThan(2000);
   });
 });

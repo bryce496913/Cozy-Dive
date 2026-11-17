@@ -26,7 +26,9 @@ export type SpeciesId =
   | 'longfin-bannerfish'
   | 'parrotfish'
   | 'bigeye-trevally'
-  | 'humphead-wrasse';
+  | 'humphead-wrasse'
+  /** v0.6 Pass 045: the sea cave's small dark fish with glowing light organs. */
+  | 'flashlight-fish';
 export interface SchoolingTuning {
   readonly enabled: boolean;
   readonly spacing: number;

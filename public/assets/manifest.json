@@ -1924,5 +1924,48 @@
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
+  },
+  {
+    "id": "nurse-shark",
+    "file": "assets/models/creatures/nurse-shark.glb",
+    "sha256": "dbed0cbf952c1be68a278cb3fb5b2537558420e7c360d14cabee30a49cce0957",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 601180,
+    "visualPrimitives": 2,
+    "visualTriangles": 14472,
+    "collisionTriangles": 0,
+    "materials": 1,
+    "images": [
+      {
+        "name": "creature_nurseshark_normal",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 90935
+      },
+      {
+        "name": "creature_nurseshark_base",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 13497
+      },
+      {
+        "name": "creature_nurseshark_orm",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 1268
+      }
+    ],
+    "geometryAccessorBytes": 353328,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium hero asset"
   }
 ]

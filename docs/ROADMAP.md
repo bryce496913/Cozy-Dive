@@ -120,7 +120,7 @@ v0.5 closes on the user's macOS acceptance of this candidate; v0.4 (`0.4.0-rc.3`
 - **Pass 044 — Kelp forest life (`0.6.0-rc.5`, by user request):**
   - **Everyday:** a sea otter floating on its back at the surface (diving for urchins), leopard sharks low over the sand, sheephead at the urchins, Spanish shawl nudibranchs and kelp crabs, and a shy harbour seal that watches from a distance.
   - **Now and then:** a giant sea bass cruising past, and a gull diving in to peck at the sand.
-- **Pass 045 (planned) — Sea cave life:** moray, flashlight fish, a sleeping turtle, nurse shark, a cleaner shrimp station, octopus and lionfish.
+- **Pass 045 — Sea cave life (`0.6.0-rc.6`, by user request):** a moray in a crack in the wall, flashlight fish blinking in the dark corner, a turtle asleep that rises to breathe at the roof's hole, a nurse shark asleep under a ledge, a cleaner shrimp station, the octopus, and lionfish that fan out when approached.
 - **Provisional, to agree after the user plays Pass 032:**
   - the kelp forest's life for the tank (garibaldi, a bat ray pup);
   - more kelp-forest character (light shafts, a sea lion);

@@ -34,6 +34,7 @@ const LIBRARY: Readonly<Partial<Record<SpeciesId, AssetId>>> = {
   'blue-tang': 'blueTang',
   'threadfin-butterflyfish': 'butterflyfish',
   'moorish-idol': 'moorishIdol',
+  'flashlight-fish': 'chromis',
 };
 /** v0.6 Pass 032: species drawn on another's rig in a colour of their own. */
 const RECOLOR: Readonly<Partial<Record<SpeciesId, number>>> = {
@@ -43,6 +44,7 @@ const RECOLOR: Readonly<Partial<Record<SpeciesId, number>>> = {
   blacksmith: 0x3f4d5e,
   senorita: 0xe0b23a,
   soldierfish: 0xc23a22,
+  'flashlight-fish': 0x1d2126,
 };
 /** Outer schools switch to their light rigs at this many body lengths. */
 export const OUTER_FISH_DETAIL = 8;

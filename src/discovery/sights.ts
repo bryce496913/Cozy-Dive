@@ -57,6 +57,12 @@ export const CAVE_SIGHTS = {
   // v0.6 Pass 041
   soldierfish: { id: 'species:soldierfish', label: 'Soldierfish' },
   crab: { id: 'species:rock-crab', label: 'Rock crab' },
+  // v0.6 Pass 045
+  moray: { id: 'species:moray-eel', label: 'Moray eel' },
+  flashlight: { id: 'species:flashlight-fish', label: 'Flashlight fish' },
+  nurseShark: { id: 'species:nurse-shark', label: 'Nurse shark' },
+  shrimp: { id: 'species:cleaner-shrimp', label: 'Cleaner shrimp' },
+  lionfish: { id: 'species:lionfish', label: 'Lionfish' },
 } as const satisfies Record<string, Sight>;
 
 const REEF: Readonly<Record<string, Sight | undefined>> = REEF_SIGHTS;

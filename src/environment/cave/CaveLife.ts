@@ -36,6 +36,8 @@ export const CAVE_LIFE = {
   ],
   soldierSize: 1.35,
   crabs: 18,
+  /** v0.6 Pass 045: flashlight fish in the darkest corner, at the back on the left. */
+  flashlight: { x: -10.5, y: 3, z: -31.5, count: 18 },
   /** Whitetips resting on the sand (heading, radians: 0 faces +x). */
   resting: [
     { x: 1.2, z: -21.2, yaw: 0.6 },
@@ -60,7 +62,40 @@ export function caveSpecies(): FishSpecies[] {
   const chromis = FISH_SPECIES.find((f) => f.id === 'blue-green-chromis')!,
     k = CAVE_LIFE.sweeperSize,
     copper = 0xc98a4e;
-  return [...sweeperSpecies(chromis, k, copper), ...soldierSpecies(chromis)];
+  return [
+    ...sweeperSpecies(chromis, k, copper),
+    ...soldierSpecies(chromis),
+    flashlightSpecies(chromis),
+  ];
+}
+/** v0.6 Pass 045: small, dark flashlight fish milling in a loose group in the gloom. */
+function flashlightSpecies(chromis: FishSpecies): FishSpecies {
+  const f = CAVE_LIFE.flashlight,
+    dark = 0x1d2126,
+    k = 0.8;
+  return {
+    ...chromis,
+    id: 'flashlight-fish',
+    name: 'Flashlight fish',
+    count: f.count,
+    length: chromis.length * k,
+    height: chromis.height * k,
+    width: chromis.width * k,
+    color: dark,
+    backColor: dark,
+    finColor: dark,
+    accentColor: dark,
+    schooling: {
+      ...chromis.schooling,
+      enabled: true,
+      spacing: chromis.schooling.spacing * 1.2,
+    },
+    speed: chromis.speed * 0.7,
+    region: { x: f.x, y: f.y, z: f.z },
+    spread: { x: 1.6, y: 0.8, z: 1.4 },
+    depth: [f.y - 1, f.y + 1.2],
+    individualScale: undefined,
+  };
 }
 /** v0.6 Pass 041: soldierfish, red and deep-bodied, loosely grouped and slow, near the rocks. */
 function soldierSpecies(chromis: FishSpecies): FishSpecies[] {
