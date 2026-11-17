@@ -73,7 +73,14 @@ export function wallPoint(dx: number, dy: number, dz: number, out: Vec3): Vec3 {
 
 /** Whether `p` is within the tunnel's cross-section, from its start to just inside the cavern. */
 export function inTunnelReach(p: Readonly<Vec3>): boolean {
-  const t = CAVE.tunnel;
+  const t = CAVE.tunnel,
+    b = CAVE.backTunnel;
+  // v0.6 Pass 046: and the back tunnel, from just inside the back wall.
+  if (
+    p.z < CAVE.chamber.z - CAVE.chamber.rz + 3 &&
+    Math.hypot(p.x - b.x, p.y - b.y) < b.radius + 0.4
+  )
+    return true;
   return (
     p.z > t.openZ - 1.2 &&
     Math.abs(p.x) < t.radius + 0.4 &&

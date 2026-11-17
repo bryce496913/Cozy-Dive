@@ -1,0 +1,170 @@
+import * as THREE from 'three';
+import type { AssetLoader } from '../assets/AssetLoader';
+import { ICE, ICE_FRAME } from '../config/passage';
+import type { Bounds, Vec3 } from '../config/world';
+import type { SightCandidate } from '../discovery/journal';
+import { ICE_SIGHTS } from '../discovery/sights';
+import { IceEnvironment } from '../environment/ice/IceEnvironment';
+import { IceGarden } from '../environment/ice/IceGarden';
+import { easeInIce, iceFloor } from '../environment/ice/IceTerrain';
+import { MarineSnow } from '../environment/shared/MarineSnow';
+import type { CollisionWorld } from '../player/collision';
+import {
+  ColliderGrid,
+  TerrainCollisionWorld,
+} from '../player/terrainCollision';
+import type { WaterWorld } from './WaterWorld';
+import { warmUpScene } from './warmUp';
+
+export interface IceLibraries {
+  /** The tank's fish loader (for the animals to come in later passes). */
+  readonly fish: AssetLoader;
+  readonly soundSpots: number;
+}
+
+/**
+ * v0.6 Pass 046: the waters under the ice, as a water world: the environment and its garden, cold
+ * clear blue water and drifting particles, lit like the other worlds (so programs are shared).
+ * Its animals come in Passes 047–048.
+ */
+export class UnderIceScene implements WaterWorld {
+  readonly id = 'ice' as const;
+  readonly scene = new THREE.Scene();
+  readonly camera = new THREE.PerspectiveCamera(64, 1, 0.08, 120);
+  readonly environment = new IceEnvironment();
+  readonly garden: IceGarden;
+  readonly snow = new MarineSnow({
+    count: 650,
+    reach: 11,
+    size: 0.035,
+    color: 0xe8f4ff,
+    opacity: 0.55,
+    sink: 0.015,
+    wander: 0.025,
+  });
+  readonly sightings: SightCandidate[] = [];
+  readonly soundSpots: Vec3[] = [];
+  /** Resolves once it can be entered: built and its shaders compiled. */
+  readonly prepared: Promise<boolean>;
+  private readonly world: TerrainCollisionWorld;
+  private readonly lights: THREE.Light[] = [];
+  private readonly size = new THREE.Vector2();
+  private ready = false;
+  private disposed = false;
+
+  constructor(
+    private readonly renderer: THREE.WebGLRenderer,
+    libraries: IceLibraries,
+  ) {
+    this.scene.name = 'Under the ice';
+    this.scene.background = new THREE.Color(ICE.water);
+    this.scene.fog = new THREE.FogExp2(ICE.water, ICE.fog);
+    this.garden = new IceGarden(this.environment.stones);
+    this.scene.add(this.environment.root, this.garden.root, this.snow.points);
+    // The same kinds and number of lights as the tank: a cold sky light (the ice glowing above,
+    // the seabed dark below), the sun low and pale through the ice, and a blue fill.
+    const sky = new THREE.HemisphereLight(0xdff2ff, 0x2a3442, 1.25),
+      sun = new THREE.DirectionalLight(0xf2f6ff, 1.5),
+      fill = new THREE.DirectionalLight(0x6fa8d8, 0.45);
+    sun.position.set(-10, 60, -20);
+    fill.position.set(20, 10, 30);
+    this.lights.push(sky, sun, fill);
+    this.scene.add(sky, sun, fill);
+    this.world = new TerrainCollisionWorld(
+      new ColliderGrid(this.environment.colliders),
+      ICE.bounds,
+      iceFloor,
+    );
+    const stones = this.environment.stones;
+    for (let i = 0; i < libraries.soundSpots; i++) {
+      const s = stones[(i * 5) % Math.max(1, stones.length)];
+      this.soundSpots.push(
+        s ? { x: s.x, y: s.y + 2, z: s.z } : { x: 0, y: 4, z: -30 },
+      );
+    }
+    // The place counts as seen from a few spots out of the tunnel; the garden's kinds close by.
+    for (const [x, z] of [
+      [0, -14],
+      [-6, -28],
+      [8, -42],
+    ])
+      this.sightings.push({
+        ...ICE_SIGHTS.place,
+        position: { x, y: 5, z },
+        radius: 4,
+      });
+    const g = this.garden.spots;
+    for (const [kind, sight, radius] of [
+      ['sponge', ICE_SIGHTS.sponge, 1.2],
+      ['coral', ICE_SIGHTS.coral, 0.9],
+      ['anemone', ICE_SIGHTS.anemone, 0.8],
+      ['star', ICE_SIGHTS.star, 0.8],
+      ['feather', ICE_SIGHTS.feather, 0.8],
+    ] as const)
+      for (const p of g[kind])
+        this.sightings.push({ ...sight, position: p, radius });
+    this.camera.rotation.order = 'YXZ';
+    this.camera.position.set(
+      ICE_FRAME.origin.x,
+      ICE_FRAME.origin.y,
+      ICE_FRAME.origin.z,
+    );
+    this.prepared = this.prepare().then(
+      (ok) => ok,
+      (error: unknown) => {
+        console.error(
+          'Cozy Diver: the waters under the ice could not be prepared.',
+          error,
+        );
+        if (!this.disposed) this.ready = true;
+        return !this.disposed;
+      },
+    );
+  }
+  private async prepare(): Promise<boolean> {
+    await warmUpScene(this.renderer, this.scene, this.camera);
+    if (this.disposed) return false;
+    this.ready = true;
+    return true;
+  }
+  get bounds(): Bounds {
+    return ICE.bounds;
+  }
+  get collision(): CollisionWorld {
+    return this.world;
+  }
+  get isReady(): boolean {
+    return this.ready && !this.disposed;
+  }
+  ease(p: Vec3, dir: Vec3): Vec3 {
+    return easeInIce(p, dir);
+  }
+  render(
+    _time: number,
+    reducedMotion: boolean,
+    dt: number,
+    active: boolean,
+  ): void {
+    if (this.disposed) return;
+    this.renderer.getDrawingBufferSize(this.size);
+    const aspect = this.size.x / Math.max(1, this.size.y);
+    if (Math.abs(this.camera.aspect - aspect) > 1e-6) {
+      this.camera.aspect = aspect;
+      this.camera.updateProjectionMatrix();
+    }
+    this.environment.update(dt, active, reducedMotion);
+    this.garden.update(dt, active, reducedMotion);
+    this.snow.update(dt, active, reducedMotion, this.camera.position);
+    this.renderer.render(this.scene, this.camera);
+  }
+  dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true;
+    this.ready = false;
+    this.garden.dispose();
+    this.snow.dispose();
+    this.environment.dispose();
+    this.lights.forEach((l) => l.dispose());
+    this.scene.clear();
+  }
+}
