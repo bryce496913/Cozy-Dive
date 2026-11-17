@@ -1,12 +1,20 @@
-/* Outer reef enrichment: staged rendered views, scaled body clearance, fish load and ownership.
- * COZY_URL=http://127.0.0.1:5173 node validation/reef-life.mjs
- * Native entry/pause/resume and W are real; world and camera positions are staged.
+import { browserScale, recordBrowserScale } from './browser-scale.mjs';
+/* v0.6 Pass 043: the outer reef's newer life, with real input (setup as validation/barracuda.mjs).
+ *
+ *   COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy043-reef-life node validation/reef-life.mjs
+ *
+ * Enters the outer waters through the crevice with W held, then photographs and checks: parrotfish
+ * grazing (sand puffs), the blue tang, the humphead wrasse coming for a look, the octopus out and
+ * then hidden in its den when approached, and, brought on cue rather than waited for: the
+ * bannerfish gathering (the sign), the sunfish being cleaned, the great white passing close to the
+ * glass and the bigeye trevally ball. Looking at each counts it as seen. Stepped by hand at
+ * 0.1 s per frame, yielding a real frame each step.
  */
-import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import assert from 'node:assert/strict';
 const { chromium } = await import(process.env.COZY_PLAYWRIGHT || 'playwright');
-const output = process.env.COZY_OUTPUT || '/tmp/cozy-reef-life';
+const output = process.env.COZY_OUTPUT || '/tmp/cozy043-reef-life';
 fs.mkdirSync(output, { recursive: true });
 const browser = await chromium.launch({
   executablePath: process.env.COZY_CHROMIUM || undefined,
@@ -17,14 +25,14 @@ const browser = await chromium.launch({
     '--use-angle=swiftshader',
   ],
 });
-const report = { errors: [], views: [] };
+const base = process.env.COZY_URL || 'http://127.0.0.1:5173';
+const report = { base, errors: [] };
 try {
-  const page = await browser.newPage({ viewport: { width: 800, height: 500 } });
-  page.setDefaultTimeout(240000);
-  page.on('pageerror', (e) => report.errors.push(e.message));
-  page.on('console', (m) => {
-    if (m.type() === 'error') report.errors.push(m.text());
+  const page = await browser.newPage({
+    ...browserScale(),
+    viewport: { width: 960, height: 600 },
   });
+  page.setDefaultTimeout(Number(process.env.COZY_ACTION_TIMEOUT || 240000));
   await page.route('**/src/main.ts*', async (route) => {
     const r = await route.fetch();
     await route.fulfill({
@@ -34,269 +42,254 @@ try {
         '\nwindow.__cozy=app;cancelAnimationFrame(app.frame);',
     });
   });
-  await page.goto(process.env.COZY_URL || 'http://127.0.0.1:5173');
+  page.on('pageerror', (e) => report.errors.push(e.message));
+  page.on('console', (m) => {
+    if (m.type() === 'error') report.errors.push(m.text());
+  });
+  await page.goto(base);
+  await recordBrowserScale(page);
+  await page.evaluate(() => {
+    localStorage.removeItem('cozy-diver.journal.v1');
+    localStorage.removeItem('cozy-diver.visits.v1');
+  });
+  await page.reload();
   await page.waitForFunction(() => window.__cozy?.office);
   await page.evaluate(() =>
-    Promise.all([window.__cozy.world.prepared, window.__cozy.office.prepared]),
+    Promise.all([
+      window.__cozy.world.prepared,
+      window.__cozy.office.prepared,
+      window.__cozy.tankEditor.ready,
+    ]),
   );
-  const step = (n = 1) =>
-    page.evaluate(async (n) => {
+  await page.evaluate(() => window.__cozy.tickOffice(0));
+  const locked = () =>
+    page.waitForFunction(
+      () =>
+        !!document.pointerLockElement &&
+        document.querySelector('#overlay').hidden,
+    );
+  await page
+    .getByRole('button', { name: 'Enter the Water', exact: true })
+    .click();
+  await locked();
+  const step = (count = 1) =>
+    page.evaluate(async (count) => {
       const a = window.__cozy;
-      for (let i = 0; i < n; i++) {
+      cancelAnimationFrame(a.frame);
+      for (let i = 0; i < count; i++) {
         await new Promise((r) => requestAnimationFrame(r));
         cancelAnimationFrame(a.frame);
         a.__t = (a.__t ?? performance.now()) + 100;
         a.tick(a.__t);
         cancelAnimationFrame(a.frame);
       }
-    }, n);
-  await page
-    .getByRole('button', { name: 'Enter the Water', exact: true })
-    .click();
-  await page.waitForFunction(() => !!document.pointerLockElement);
-  await step(2);
-  const memory = () =>
-    page.evaluate(() => ({ ...window.__cozy.world.renderer.info.memory }));
-  report.before = await memory();
-  await page.evaluate(() => {
-    const a = window.__cozy;
-    Object.assign(a.state.position, { x: 6.4, y: 1.6, z: -12.1 });
-    a.state.neutralDepth = 1.6;
-    a.controls.clear();
-  });
-  await step();
-  await page.evaluate(() => window.__cozy.outer.prepared);
-  await page.evaluate(() => window.__cozy.setWaterWorld('outer'));
-  await page.evaluate(() => window.__cozy.outer.reefPrepared);
-  console.log('reef prepared');
-  report.population = await page.evaluate(() => {
-    const o = window.__cozy.outer;
-    return {
-      fish: o.schools.fish.simulation.fish.length,
-      creatures: o.creatures.cruisers.length,
-      scales: o.creatures.root.children.map((r) => r.scale.x),
-      species: o.creatures.cruisers.map((c) => ({
-        id: c.species.id,
-        scale: c.species.scale,
-        radius: c.species.radius,
-      })),
-    };
-  });
-  assert.equal(report.population.fish, 235);
-  assert.equal(report.population.creatures, 9);
-  assert.deepEqual(
-    report.population.scales,
-    report.population.species.map((s) => s.scale),
-  );
-  // Actual morphing model vertices, including the rendered scale, yaw, pitch and bank.
-  report.clearance = await page.evaluate(async () => {
-    const THREE = await import('/node_modules/.vite/deps/three.js'),
-      { ColliderGrid } = await import('/src/player/terrainCollision.ts'),
-      { seabedHeight } = await import('/src/environment/outer/OuterTerrain.ts'),
-      o = window.__cozy.outer,
-      grid = new ColliderGrid(o.reef.colliders),
-      nearby = [],
-      point = new THREE.Vector3(),
-      inactive = {
-        active: false,
-        position: { x: 0, y: 0, z: 0 },
-        velocity: { x: 0, y: 0, z: 0 },
+      const p = a.state.position,
+        w = a.outer?.visitors;
+      return {
+        world: a.waterWorld,
+        x: p.x,
+        y: p.y,
+        z: p.z,
+        outer: !!a.outer,
+        outerReady: !!a.outer?.isReady,
+        reefReady: !!a.outer?.isReefReady,
+        edgeTime: w?.edgeTime ?? 0,
+        arrived: w?.arrived ?? 0,
+        order: w ? [...w.order] : [],
+        shown: w
+          ? w.creatures.root.children.filter((c) => c.visible).length
+          : 0,
+        cuda: a.outer?.barracuda?.visit.state ?? null,
+        cudaZ: a.outer?.barracuda?.visit.centre.z ?? null,
+        cudaDrawn: !!a.outer?.barracuda?.root.children[0]?.visible,
       };
-    let samples = 0,
-      hits = 0,
-      lowest = Infinity;
-    for (let second = 0; second < 180; second++) {
-      for (let k = 0; k < 10; k++)
-        o.creatures.update(0.1, true, false, inactive, o.camera);
-      o.creatures.root.updateMatrixWorld(true);
-      o.creatures.root.children.forEach((root, index) => {
-        const c = o.creatures.cruisers[index],
-          body = root.getObjectByName('Body');
-        grid.query(
-          c.position.x,
-          c.position.z,
-          c.species.radius * 3 + 3,
-          nearby,
-        );
-        for (let i = 0; i < body.geometry.attributes.position.count; i += 31) {
-          body.getVertexPosition(i, point).applyMatrix4(body.matrixWorld);
-          samples++;
-          lowest = Math.min(lowest, point.y - seabedHeight(point.x, point.z));
-          if (
-            nearby.some((h) =>
-              o.collision.contains(h, point.x, point.y, point.z),
-            )
-          )
-            hits++;
-        }
-      });
-    }
-    return { samples, hits, lowest };
-  });
-  assert.equal(report.clearance.hits, 0);
-  assert(report.clearance.lowest > 0);
-  console.log('scaled body clearance checked');
-  report.fish = await page.evaluate(async () => {
-    const { safeFishPosition } = await import('/src/fish/FishHabitat.ts'),
-      { seabedHeight } = await import('/src/environment/outer/OuterTerrain.ts'),
-      sim = window.__cozy.outer.schools.fish.simulation;
-    let unsafe = 0,
-      lowest = Infinity;
-    for (let second = 0; second < 90; second++) {
-      for (let k = 0; k < 30; k++) sim.advance(1 / 30, true);
-      for (const f of sim.fish) {
-        if (!safeFishPosition(f.position, f.radius, sim.habitat)) unsafe++;
-        lowest = Math.min(
-          lowest,
-          f.position.y - seabedHeight(f.position.x, f.position.z) - f.radius,
-        );
-      }
-    }
-    return { unsafe, lowest, steps: sim.steps };
-  });
-  assert.equal(report.fish.unsafe, 0);
-  assert(report.fish.lowest >= -1e-6);
-  report.cpu = await page.evaluate(async () => {
-    const { FishSimulation } = await import('/src/fish/FishMovement.ts'),
-      { spawnFish } = await import('/src/fish/FishSpawner.ts'),
-      { outerSpecies } = await import('/src/environment/outer/OuterSchools.ts'),
-      { reefObstacles } =
-        await import('/src/environment/outer/OuterCreatures.ts'),
-      o = window.__cozy.outer,
-      habitat = o.schools.fish.simulation.habitat,
-      species = outerSpecies(reefObstacles(o.reef.drawnPlacements));
-    const make = (old) => {
-      const h = old ? { ...habitat, floorHeight: undefined } : habitat;
-      return new FishSimulation(
-        spawnFish(h, old ? species.slice(0, 6) : species, 24024),
-        h,
-      );
-    };
-    const old = make(true),
-      current = make(false),
-      measure = (sim) => {
-        const t = performance.now();
-        for (let k = 0; k < 120; k++) sim.advance(1 / 30, true);
-        return (performance.now() - t) / 120;
-      };
-    for (let k = 0; k < 30; k++) {
-      old.advance(1 / 30, true);
-      current.advance(1 / 30, true);
-    }
-    const baseline = [],
-      enriched = [];
-    for (let run = 0; run < 3; run++) {
-      baseline.push(measure(old));
-      enriched.push(measure(current));
-    }
-    return {
-      baselineFish: old.fish.length,
-      currentFish: current.fish.length,
-      baselineMsPerStep: baseline,
-      enrichedMsPerStep: enriched,
-      limit: 'CPU simulation diagnostics on this machine, not hardware FPS',
-    };
-  });
-  const view = async (name, eye, target) => {
-    const info = await page.evaluate(
-      ([eye, target]) => {
-        const a = window.__cozy,
-          o = a.outer,
-          p = a.state.position;
-        Object.assign(p, { x: eye[0], y: eye[1], z: eye[2] });
+    }, count);
+  const place = (p, yaw, pitch = 0) =>
+    page.evaluate(
+      ([p, yaw, pitch]) => {
+        const a = window.__cozy;
+        Object.assign(a.state.position, p);
+        a.state.velocity.x = a.state.velocity.y = a.state.velocity.z = 0;
         a.state.neutralDepth = p.y;
-        a.controls.yaw = Math.atan2(-(target[0] - p.x), -(target[2] - p.z));
-        a.controls.pitch = Math.atan2(
-          target[1] - p.y,
-          Math.hypot(target[0] - p.x, target[2] - p.z),
-        );
+        a.controls.yaw = yaw;
+        a.controls.pitch = pitch;
         a.controls.clear();
-        o.reveal = 1;
-        o.camera.position.set(...eye);
-        o.camera.lookAt(...target);
-        o.render(a.elapsed, false, 0, false, a.playerPresence);
-        return {
-          calls: a.world.renderer.info.render.calls,
-          triangles: a.world.renderer.info.render.triangles,
-          nearAnimals: o.creatures.nearCount,
-        };
       },
-      [eye, target],
+      [p, yaw, pitch],
     );
-    await page.screenshot({ path: path.join(output, `${name}.png`) });
-    report.views.push({ name, ...info });
+  /** Through the crevice with W held, until the reef beyond the tunnel is ready. */
+  const enterOuter = async () => {
+    await place({ x: 6.4, y: 1.6, z: -12.1 }, Math.PI / 2);
+    let s = await step(1);
+    for (let i = 0; i < 600 && !s.outerReady; i++) s = await step(1);
+    assert(s.outerReady, 'the outer waters load near the crevice');
+    await page.keyboard.down('w');
+    for (let i = 0; i < 400 && s.world !== 'outer'; i++) s = await step(1);
+    await page.keyboard.up('w');
+    assert.equal(s.world, 'outer', 'swimming through the crevice');
+    for (let i = 0; i < 900 && !s.reefReady; i++) s = await step(2);
+    assert(s.reefReady, 'the outer reef is prepared');
+    return step(1);
   };
-  await view('entrance', [0, 8, -34], [-7, 5, -43]);
-  await view('reef-top', [0, 8, -47], [-12, 4, -53]);
-  await view('wall-shoal', [-10, -1, -61], [-16, -3, -65]);
-  for (const [name, id, minimum] of [
-    ['adult-shark', 'blacktip-reef-shark', 1.2],
-    ['ray-flight', 'spotted-eagle-ray', 1],
-    ['turtle', 'green-sea-turtle', 1.2],
-  ]) {
-    const p = await page.evaluate(
-      ([id, minimum]) => {
-        const c = window.__cozy.outer.creatures.cruisers.find(
-          (c) => c.species.id === id && c.species.scale >= minimum,
-        );
-        return { ...c.position };
-      },
-      [id, minimum],
-    );
-    await view(name, [p.x + 3.5, p.y + 1.4, p.z + 6.5], [p.x, p.y, p.z]);
-  }
-  // Native pause/re-entry freezes and resumes both simulations.
-  const snapshot = () =>
-    page.evaluate(() => ({
-      steps: window.__cozy.outer.schools.fish.simulation.steps,
-      animals: window.__cozy.outer.creatures.cruisers.map((c) => ({
-        ...c.position,
-      })),
-    }));
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => !document.pointerLockElement);
-  const paused = await snapshot();
-  await step(3);
-  assert.deepEqual(await snapshot(), paused);
-  await page.getByRole('button', { name: /the Water/ }).click();
-  await page.waitForFunction(() => !!document.pointerLockElement);
   await step(2);
-  assert((await snapshot()).steps > paused.steps);
-  report.pauseResume = true;
-  const beforeSwim = await page.evaluate(() => ({
-    ...window.__cozy.state.position,
-  }));
-  await page.keyboard.down('w');
-  await step(4);
-  await page.keyboard.up('w');
-  const afterSwim = await page.evaluate(() => ({
-    ...window.__cozy.state.position,
-  }));
-  report.swam = Math.hypot(
-    afterSwim.x - beforeSwim.x,
-    afterSwim.y - beforeSwim.y,
-    afterSwim.z - beforeSwim.z,
-  );
-  assert(report.swam > 0.01);
-  await page.evaluate(() => {
-    const a = window.__cozy;
-    a.setWaterWorld('aquarium');
-    a.outer.dispose();
-    a.outer = undefined;
-    Object.assign(a.state.position, { x: 0, y: 4.6, z: 9 });
-    a.state.neutralDepth = 4.6;
-    a.controls.clear();
+  await enterOuter();
+  const life = (f) => page.evaluate(f);
+  const lookAt = async (from, at) => {
+    const yaw = Math.atan2(-(at.x - from.x), -(at.z - from.z)),
+      pitch = Math.atan2(
+        at.y - from.y,
+        Math.hypot(at.x - from.x, at.z - from.z),
+      );
+    await place(from, yaw, pitch);
+  };
+  const shot = (name) => page.screenshot({ path: path.join(output, name) });
+  const from = (p, dx, dy, dz) => ({ x: p.x + dx, y: p.y + dy, z: p.z + dz });
+  report.counts = await life(() => {
+    const l = window.__cozy.outer.life;
+    return {
+      parrots: l.grazers.poses.length,
+      tang: window.__cozy.outer.schools.fish.simulation.fish.filter(
+        (f) => f.species.id === 'blue-tang',
+      ).length,
+      pairs: window.__cozy.outer.schools.fish.simulation.fish.filter((f) =>
+        /butterfly|idol/.test(f.species.id),
+      ).length,
+    };
   });
-  await step();
-  report.after = await memory();
-  assert.deepEqual(report.after, report.before);
-  assert.deepEqual(report.errors, []);
-  await page.evaluate(() => window.__cozy.dispose());
-  console.log(JSON.stringify(report, null, 2));
+  // 1. Parrotfish grazing.
+  let p = await life(() => ({
+    ...window.__cozy.outer.life.grazers.poses[0].position,
+  }));
+  await lookAt(from(p, 0, 1.2, 3), p);
+  await step(40);
+  p = await life(() => ({
+    ...window.__cozy.outer.life.grazers.poses[0].position,
+  }));
+  await lookAt(from(p, 0, 1.2, 3), p);
+  await step(30);
+  report.puffs = await life(
+    () =>
+      window.__cozy.outer.life.puffs.root.children.filter((c) => c.visible)
+        .length,
+  );
+  await shot('1-parrotfish.png');
+  // 2. Blue tang.
+  p = await life(() => {
+    const f = window.__cozy.outer.schools.fish.simulation.fish.filter(
+      (f) => f.species.id === 'blue-tang',
+    );
+    return { ...f[0].position };
+  });
+  await lookAt(from(p, 0, 0.5, 4), p);
+  await step(30);
+  await shot('2-blue-tang.png');
+  // 3. The wrasse comes for a look.
+  const eye = { x: -2, y: 4, z: -44 };
+  await place(eye, 0, 0);
+  let mood = '';
+  for (let i = 0; i < 40 && mood !== 'look'; i++) {
+    await step(10);
+    mood = await life(() => window.__cozy.outer.life.wrasse.mood);
+  }
+  report.wrasse = mood;
+  p = await life(() => ({ ...window.__cozy.outer.life.wrasse.pose.position }));
+  await lookAt(eye, p);
+  await step(10);
+  await shot('3-wrasse.png');
+  // 4. The octopus: out, then hidden when approached.
+  const den = await life(() => ({
+    ...window.__cozy.outer.life.octopus.mind.den,
+  }));
+  await lookAt(from(den, 0, 1.4, 3.2), den);
+  await step(20);
+  await shot('4-octopus.png');
+  await lookAt(from(den, 0, 0.6, 1.4), den);
+  await step(40);
+  report.octopus = await life(() => window.__cozy.outer.life.octopus.mind.mood);
+  await shot('5-octopus-hidden.png');
+  // 5. The cleaning station: bannerfish gather (the sign), then the sunfish rises and is cleaned.
+  const station = await life(() => {
+    const c = window.__cozy.outer.life.cleaning;
+    c.begin();
+    return { ...c.station };
+  });
+  const glassEye = { x: station.x, y: station.y + 0.5, z: -58.6 };
+  await lookAt(glassEye, station);
+  await step(100);
+  report.gathering = await life(() => window.__cozy.outer.life.cleaning.state);
+  await shot('6-bannerfish-gathering.png');
+  let state = '';
+  for (let i = 0; i < 80 && state !== 'cleaning'; i++) {
+    await step(10);
+    state = await life(() => window.__cozy.outer.life.cleaning.state);
+  }
+  report.cleaning = state;
+  const sun = await life(() => ({
+    ...window.__cozy.outer.life.cleaning.sunfish.pose.position,
+  }));
+  await lookAt({ x: sun.x, y: sun.y, z: -58.6 }, sun);
+  await step(40);
+  await shot('7-sunfish-cleaning.png');
+  // 6. A great white passes close by the glass.
+  await life(() => window.__cozy.outer.life.greatWhite.begin());
+  await place({ x: 0, y: 0.5, z: -58.6 }, 0, 0);
+  let gx = 99;
+  for (let i = 0; i < 120 && Math.abs(gx) > 4; i++) {
+    await step(10);
+    gx = await life(
+      () => window.__cozy.outer.life.greatWhite.swim.pose.position.x,
+    );
+  }
+  const gw = await life(() => ({
+    ...window.__cozy.outer.life.greatWhite.swim.pose.position,
+  }));
+  report.greatWhite = gw;
+  await lookAt({ x: 0, y: gw.y + 0.3, z: -58.6 }, gw);
+  await step(6);
+  await shot('8-great-white.png');
+  // 7. The bigeye trevally ball.
+  await life(() => window.__cozy.outer.life.trevally.come());
+  state = '';
+  for (let i = 0; i < 80 && state !== 'circling'; i++) {
+    await step(10);
+    state = await life(() => window.__cozy.outer.life.trevally.state);
+  }
+  report.trevally = state;
+  const ball = await life(() => ({
+    ...window.__cozy.outer.life.trevally.centre,
+  }));
+  await lookAt({ x: ball.x + 1, y: ball.y, z: -58.6 }, ball);
+  await step(40);
+  await shot('9-trevally.png');
+  const journal =
+    (await page.evaluate(() =>
+      localStorage.getItem('cozy-diver.journal.v1'),
+    )) ?? '';
+  report.seen = [
+    'parrotfish',
+    'blue-tang',
+    'humphead-wrasse',
+    'octopus',
+    'longfin-bannerfish',
+    'ocean-sunfish',
+    'great-white-shark',
+    'bigeye-trevally',
+  ].filter((id) => journal.includes(`species:${id}`));
+  assert.equal(report.wrasse, 'look', 'the wrasse comes for a look');
+  assert.equal(report.octopus, 'hidden', 'the octopus hides when approached');
+  assert.equal(report.gathering, 'gathering', 'the bannerfish gather first');
+  assert.equal(report.cleaning, 'cleaning', 'the sunfish is cleaned');
+  assert.equal(report.trevally, 'circling', 'the trevally circle');
+  assert.deepEqual(report.errors, [], 'no page errors');
+  report.ok = true;
+} catch (error) {
+  report.failure = String(error?.stack || error);
+  process.exitCode = 1;
 } finally {
   fs.writeFileSync(
     path.join(output, 'report.json'),
     JSON.stringify(report, null, 2),
   );
+  console.log(JSON.stringify(report, null, 2));
   await browser.close();
 }

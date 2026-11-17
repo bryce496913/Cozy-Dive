@@ -125,6 +125,11 @@ export function oval(
   });
 }
 /**
+ * v0.6 Pass 043: the deepest any big animal passes (its body's middle, m). The swimmer eases to a
+ * stop not far below the reef's lip, so everything passes where it can be seen from there.
+ */
+export const PASSING_DEEPEST = -8;
+/**
  * Pass 026: they live in the blue just off the wall, on long loops parallel to it, so a swimmer
  * hovering past the lip sees something pass every half-minute or so. Loop lengths at their
  * speeds: sharks about 2 minutes, rays about 2.5, turtles about 2. Distinct depth bands
@@ -136,21 +141,23 @@ export const OUTER_CRUISERS: readonly CruiseGroup[] = [
     // Mid-water, a little way out.
     species: 'blacktip-reef-shark',
     scale: 1.1,
-    waypoints: oval(0, -71, 30, 8, (x) => -5 + 0.3 * Math.sin(x * 0.09)),
+    // v0.6 Pass 043: above the deeper patrols, now they are all within sight.
+    waypoints: oval(0, -71, 30, 8, (x) => 1.5 + 0.3 * Math.sin(x * 0.09)),
     members: [{ start: 0, side: 0, up: 0, phase: 0 }],
   },
   {
     // Deeper and further out, fading into the dark.
     species: 'blacktip-reef-shark',
     scale: 1.15,
-    waypoints: oval(6, -74, 26, 8, (x) => -15 + 0.5 * Math.sin(x * 0.08 + 1)),
+    // v0.6 Pass 043: no deeper than the swimmer can see (was 15 m down).
+    waypoints: oval(6, -74, 26, 8, (x) => -5.5 + 0.5 * Math.sin(x * 0.08 + 1)),
     members: [{ start: 60, side: 0, up: 0, phase: 1.7 }],
   },
   {
     // A larger adult passes near the wall, above the deeper patrols: visible from the lip.
     species: 'blacktip-reef-shark',
     scale: 1.2,
-    waypoints: oval(-6, -69, 24, 7, (x) => 5 + 0.5 * Math.sin(x * 0.1)),
+    waypoints: oval(-6, -69, 24, 7, (x) => 7 + 0.5 * Math.sin(x * 0.1)),
     members: [{ start: 35, side: 0, up: 0, phase: 3.4 }],
   },
   {
@@ -169,20 +176,14 @@ export const OUTER_CRUISERS: readonly CruiseGroup[] = [
     // Along the wall's face below the lip.
     species: 'green-sea-turtle',
     scale: 1.2,
-    waypoints: oval(-10, -63.5, 14, 3.5, (x) => -7.5 + 0.3 * Math.sin(x * 0.1)),
+    waypoints: oval(-10, -63.5, 14, 3.5, (x) => -4.5 + 0.3 * Math.sin(x * 0.1)),
     members: [{ start: 0, side: 0, up: 0, phase: 0.8 }],
   },
   {
     // A second turtle follows a separate, deeper loop, with an independent glide rhythm.
     species: 'green-sea-turtle',
     scale: 1.05,
-    waypoints: oval(
-      8,
-      -64,
-      12,
-      3.5,
-      (x) => -10.5 + 0.3 * Math.sin(x * 0.1 + 1),
-    ),
+    waypoints: oval(8, -64, 12, 3.5, (x) => -6 + 0.3 * Math.sin(x * 0.1 + 1)),
     members: [{ start: 20, side: 0, up: 0, phase: 3.7 }],
   },
 ];

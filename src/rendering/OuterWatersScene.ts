@@ -23,6 +23,8 @@ import {
 } from '../environment/outer/OuterTerrain';
 import { reefSightings } from '../environment/outer/outerSightings';
 import { BarracudaSchool } from '../environment/outer/BarracudaSchool';
+import { ReefLife } from '../environment/outer/ReefLife';
+import { OUTER_SIGHTS } from '../discovery/sights';
 import { PassingLanes } from '../environment/outer/PassingLanes';
 import { WallVisitors } from '../environment/outer/WallVisitors';
 import { TankGlass } from '../environment/shared/TankGlass';
@@ -113,6 +115,8 @@ export class OuterWatersScene implements WaterWorld {
   visitors?: WallVisitors;
   /** v0.6 Pass 042 */
   barracuda?: BarracudaSchool;
+  /** v0.6 Pass 043 */
+  life?: ReefLife;
   /** This visit's number (see `arrive`), kept until the visitors exist. */
   private visit = 0;
   /** What can be seen here: the reef's corals and seagrass, and its big creatures. */
@@ -303,11 +307,14 @@ export class OuterWatersScene implements WaterWorld {
     this.visitors = visitors;
     const barracuda = new BarracudaSchool(fishLoader);
     this.barracuda = barracuda;
-    const [, loaded, visiting, schooling] = await Promise.all([
+    const life = new ReefLife(fishLoader, drawn, obstacles);
+    this.life = life;
+    const [, loaded, visiting, schooling, living] = await Promise.all([
       this.schools.ready,
       creatures.ready,
       visitors.ready,
       barracuda.ready,
+      life.ready,
     ]);
     if (this.disposed) return false;
     this.scene.add(this.schools.root);
@@ -324,6 +331,24 @@ export class OuterWatersScene implements WaterWorld {
       // Away to begin with; drawn in the warm-up below so its shaders are ready when it comes.
       this.scene.add(barracuda.root);
       this.sightings.push(...barracuda.sightings);
+    }
+    // v0.6 Pass 043: the reef's newer life, and its new schooling fish seen by following one.
+    this.scene.add(life.root);
+    if (living) this.sightings.push(...life.sightings);
+    else this.sightings.push(...life.octopus.sightings);
+    const fish = this.schools.fish.simulation.fish;
+    for (const [id, sight, every] of [
+      ['blue-tang', OUTER_SIGHTS.tang, 9],
+      ['threadfin-butterflyfish', OUTER_SIGHTS.butterflyfish, 2],
+      ['moorish-idol', OUTER_SIGHTS.idol, 2],
+    ] as const) {
+      const of = fish.filter((f) => f.species.id === id);
+      for (let i = 0; i < of.length; i += every)
+        this.sightings.push({
+          ...sight,
+          position: of[i].position,
+          radius: 0.9,
+        });
     }
     this.sightings.push(...reefSightings(drawn), ...creatures.sightings);
     // v0.6 Pass 041: while the swimmer is in the tunnel, upload every coral and rock at every
@@ -344,6 +369,7 @@ export class OuterWatersScene implements WaterWorld {
     this.visit = visit;
     this.visitors?.arrive(visit);
     this.barracuda?.arrive();
+    this.life?.arrive();
   }
   get bounds(): Bounds {
     return OUTER.bounds;
@@ -392,7 +418,11 @@ export class OuterWatersScene implements WaterWorld {
     this.schools?.update(dt, active, reducedMotion, player, this.camera);
     this.lanes?.update(dt, active, this.camera.position);
     this.creatures?.update(dt, active, reducedMotion, player, this.camera);
-    this.barracuda?.update(dt, active && this.reefReady, reducedMotion);
+    // Only once warmed up, so everything is drawn (and compiled) in the warm-up first.
+    if (this.reefReady) {
+      this.barracuda?.update(dt, active, reducedMotion);
+      this.life?.update(dt, active, reducedMotion, player, this.camera);
+    }
     this.visitors?.update(
       dt,
       active && this.reefReady,
@@ -414,6 +444,7 @@ export class OuterWatersScene implements WaterWorld {
     this.creatures?.dispose();
     this.visitors?.dispose();
     this.barracuda?.dispose();
+    this.life?.dispose();
     this.sightings.length = 0;
     this.reef.dispose();
     this.environment.dispose();

@@ -84,12 +84,6 @@ try {
         !!document.pointerLockElement &&
         document.querySelector('#overlay').hidden,
     );
-  const paused = () =>
-    page.waitForFunction(
-      () =>
-        !document.pointerLockElement &&
-        !document.querySelector('#overlay').hidden,
-    );
   await page
     .getByRole('button', { name: 'Enter the Water', exact: true })
     .click();
@@ -139,14 +133,6 @@ try {
       },
       [p, yaw, pitch],
     );
-  const snapshot = () =>
-    page.evaluate(() => {
-      const r = window.__cozy.world.renderer;
-      return {
-        geometries: r.info.memory.geometries,
-        textures: r.info.memory.textures,
-      };
-    });
   /** Through the crevice with W held, until the reef beyond the tunnel is ready. */
   const enterOuter = async () => {
     await place({ x: 6.4, y: 1.6, z: -12.1 }, Math.PI / 2);

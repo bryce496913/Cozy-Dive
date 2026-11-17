@@ -11,6 +11,7 @@ import {
 } from '../../fish/FishSpecies';
 import { FishSystem } from '../../fish/FishSystem';
 import type { ReefLayout } from './OuterReefLayout';
+import { OUTER_EXTRA_SPECIES } from './OuterExtraSpecies';
 
 /**
  * v0.4 Pass 024/026: reef fish in the outer waters. Big schools of the tank's own species over
@@ -30,6 +31,9 @@ const LIBRARY: Readonly<Partial<Record<SpeciesId, AssetId>>> = {
   blacksmith: 'chromis',
   senorita: 'chromis',
   soldierfish: 'chromis',
+  'blue-tang': 'blueTang',
+  'threadfin-butterflyfish': 'butterflyfish',
+  'moorish-idol': 'moorishIdol',
 };
 /** v0.6 Pass 032: species drawn on another's rig in a colour of their own. */
 const RECOLOR: Readonly<Partial<Record<SpeciesId, number>>> = {
@@ -139,6 +143,40 @@ export const OUTER_SCHOOLS: readonly {
     spread: { x: 4, y: 1.2, z: 2 },
     depth: [1, 6],
   },
+  // v0.6 Pass 043: two big clouds of blue tang moving over the reef top.
+  {
+    species: 'blue-tang',
+    at: { x: 4, z: -46 },
+    count: 36,
+    above: 2.6,
+    spread: { x: 6, y: 1.2, z: 4.5 },
+    depth: [1, 5],
+  },
+  {
+    species: 'blue-tang',
+    at: { x: -20, z: -47 },
+    count: 26,
+    above: 2.4,
+    spread: { x: 5, y: 1.1, z: 4 },
+    depth: [1, 5],
+  },
+  // Butterflyfish and Moorish idols, always in twos, low over the coral.
+  ...(
+    [
+      ['threadfin-butterflyfish', -12, -42],
+      ['threadfin-butterflyfish', 10, -52],
+      ['threadfin-butterflyfish', 24, -46],
+      ['moorish-idol', -3, -51],
+      ['moorish-idol', 18, -39],
+    ] as const
+  ).map(([species, x, z]) => ({
+    species,
+    at: { x, z },
+    count: 2,
+    above: 1.2,
+    spread: { x: 1.5, y: 0.5, z: 1.5 },
+    depth: [0.6, 2.4] as const,
+  })),
 ];
 
 /**
@@ -150,7 +188,9 @@ export function outerSpecies(
   top: (x: number, z: number, radius: number) => number,
 ): FishSpecies[] {
   return OUTER_SCHOOLS.map((s) => {
-    const base = FISH_SPECIES.find((f) => f.id === s.species)!,
+    const base =
+        FISH_SPECIES.find((f) => f.id === s.species) ??
+        OUTER_EXTRA_SPECIES.find((f) => f.id === s.species)!,
       ground = top(s.at.x, s.at.z, Math.max(s.spread.x, s.spread.z)),
       centre = Math.max(ground + s.above, s.waterLevel ?? -Infinity),
       floor = centre - s.above;

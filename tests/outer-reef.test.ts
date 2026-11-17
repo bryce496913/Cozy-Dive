@@ -378,7 +378,8 @@ describe('Pass 024 outer fish', () => {
 
 it('adds bounded entrance and wall shoals at reachable swimming depths', () => {
   const species = outerSpecies(() => -35);
-  expect(species.reduce((sum, s) => sum + s.count, 0)).toBe(235);
+  // v0.6 Pass 043: 235, plus two clouds of blue tang (62) and five pairs of butterflyfish and idols.
+  expect(species.reduce((sum, s) => sum + s.count, 0)).toBe(307);
   const wall = OUTER_SCHOOLS.map((s, i) => ({
     layout: s,
     species: species[i],
