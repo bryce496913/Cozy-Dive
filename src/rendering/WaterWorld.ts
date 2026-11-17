@@ -4,6 +4,7 @@ import type { PlayerPresence } from '../fish/FishDiverReaction';
 import type { CollisionWorld } from '../player/collision';
 import type { WaterWorldId } from '../player/passage';
 import type { SightCandidate } from '../discovery/journal';
+import type { WorldPreparation } from './WorldPreparation';
 
 /**
  * v0.4 Pass 023: one swimmable world. The tank and the outer waters both provide this; the
@@ -17,6 +18,8 @@ export interface WaterWorld {
   readonly camera: THREE.PerspectiveCamera;
   /** Things that can be seen here for the first time (none in the tank itself). */
   readonly sightings: readonly SightCandidate[];
+  /** v0.6 Pass 047: how far it has got in preparing itself (the tank is always ready). */
+  readonly preparation?: WorldPreparation;
   /**
    * Pass 026: soft limits, if any. Scales down the outward part of the swimming direction `dir`
    * (in place) near the world's edges, so the swimmer slows to a hover instead of meeting a wall.

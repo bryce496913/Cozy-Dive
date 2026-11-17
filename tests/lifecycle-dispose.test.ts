@@ -1,0 +1,176 @@
+import * as THREE from 'three';
+import { describe, expect, it } from 'vitest';
+import { AssetLoader } from '../src/assets/AssetLoader';
+import { CaveVisitors } from '../src/environment/cave/CaveVisitors';
+import { caveNooks } from '../src/environment/cave/CaveNooks';
+import { RestingSharks } from '../src/environment/cave/RestingSharks';
+import { CAVE_LIFE } from '../src/environment/cave/CaveLife';
+import { KelpVisitors } from '../src/environment/kelp/KelpVisitors';
+import { SeaLion } from '../src/environment/kelp/SeaLion';
+import { BarracudaSchool } from '../src/environment/outer/BarracudaSchool';
+import { ReefLife } from '../src/environment/outer/ReefLife';
+import { WorldPreparation } from '../src/rendering/WorldPreparation';
+import { creatureFixture } from './fixtures/assetFixture';
+
+/** A loader whose every model arrives only once `open` is called. */
+function gated() {
+  let open = (): void => undefined;
+  const gate = new Promise<void>((resolve) => {
+    open = resolve;
+  });
+  const loader = new AssetLoader(async (url) => {
+    await gate;
+    return creatureFixture(url);
+  });
+  return { loader, open };
+}
+interface Part {
+  readonly root: THREE.Group;
+  readonly ready: Promise<boolean>;
+  dispose(): void;
+}
+const flat = () => 0;
+const parts: [string, (l: AssetLoader) => Part][] = [
+  ['outer reef life', (l) => new ReefLife(l, [], () => 0)],
+  ['barracuda', (l) => new BarracudaSchool(l)],
+  [
+    'kelp visitors',
+    (l) => new KelpVisitors(l, [], [], [{ x: 0, y: 0.3, z: -30 }], flat),
+  ],
+  [
+    'sea lion',
+    (l) =>
+      new SeaLion(
+        { ground: flat, top: 18, minX: -20, maxX: 20, minZ: -55, maxZ: -12 },
+        l,
+      ),
+  ],
+  ['cave visitors', (l) => new CaveVisitors(l, caveNooks(14))],
+  ['resting sharks', (l) => new RestingSharks(CAVE_LIFE.resting, l)],
+];
+
+describe('v0.6 Pass 047: let go while still loading', () => {
+  for (const [name, make] of parts)
+    it(`${name}: nothing is added, and every model is released, when its models arrive late`, async () => {
+      const { loader, open } = gated(),
+        part = make(loader);
+      part.dispose();
+      open();
+      expect(await part.ready).toBe(false);
+      // Give any stray continuation a chance to run.
+      await new Promise((r) => setTimeout(r, 0));
+      expect(part.root.children).toHaveLength(0);
+      expect(part.root.parent).toBeNull();
+      expect(loader.leased).toBe(0);
+      loader.dispose();
+    });
+  for (const [name, make] of parts)
+    it(`${name}: loads normally, and releases everything when let go after`, async () => {
+      const { loader, open } = gated(),
+        part = make(loader);
+      open();
+      expect(await part.ready).toBe(true);
+      expect(loader.leased).toBeGreaterThan(0);
+      part.dispose();
+      expect(loader.leased).toBe(0);
+      loader.dispose();
+    });
+});
+
+describe('v0.6 Pass 047: a world’s preparation state', () => {
+  it('is ready when every part loads, partial when some fail', async () => {
+    const all = new WorldPreparation();
+    await Promise.all([
+      all.track('a', Promise.resolve(true)),
+      all.track('b', Promise.resolve(true)),
+    ]);
+    all.settle();
+    expect(all.state).toBe('ready');
+    const some = new WorldPreparation();
+    await Promise.all([
+      some.track('a', Promise.resolve(true)),
+      some.track('b', Promise.resolve(false)),
+      some.track('c', Promise.reject(Error('no'))),
+    ]);
+    some.settle();
+    expect(some.state).toBe('partial');
+    expect(some.has('a')).toBe(true);
+    expect(some.has('b')).toBe(false);
+    expect(some.summary).toEqual({ a: 'ready', b: 'failed', c: 'failed' });
+  });
+  it('stays disposed: nothing that finishes later changes it', async () => {
+    const p = new WorldPreparation();
+    let finish: (ok: boolean) => void = () => undefined;
+    const late = p.track('late', new Promise<boolean>((r) => (finish = r)));
+    p.dispose();
+    finish(true);
+    expect(await late).toBe(false);
+    p.settle();
+    p.fail();
+    expect(p.state).toBe('disposed');
+    expect(p.has('late')).toBe(false);
+  });
+  it('can fail outright', () => {
+    const p = new WorldPreparation();
+    p.fail();
+    expect(p.state).toBe('failed');
+  });
+});
+
+describe('v0.6 Pass 047: scenes let go while their life is still loading', () => {
+  /**
+   * A renderer that is never drawn with: these scenes only touch the renderer once their life has
+   * loaded (to compile it) or when rendered, and here they are let go before either. The double
+   * cast is that stand-in's only purpose.
+   */
+  const renderer = {} as unknown as THREE.WebGLRenderer;
+  const scenes: [
+    string,
+    (
+      l: AssetLoader,
+    ) => Promise<{
+      dispose(): void;
+      prepared: Promise<boolean>;
+      scene: THREE.Scene;
+      preparation: WorldPreparation;
+    }>,
+  ][] = [
+    [
+      'kelp forest',
+      async (l) =>
+        new (await import('../src/rendering/KelpForestScene')).KelpForestScene(
+          renderer,
+          { fish: l, soundSpots: 2 },
+        ),
+    ],
+    [
+      'sea cave',
+      async (l) =>
+        new (await import('../src/rendering/SeaCaveScene')).SeaCaveScene(
+          renderer,
+          { fish: l, soundSpots: 2 },
+        ),
+    ],
+    [
+      'under the ice',
+      async (l) =>
+        new (await import('../src/rendering/UnderIceScene')).UnderIceScene(
+          renderer,
+          { fish: l, soundSpots: 2 },
+        ),
+    ],
+  ];
+  for (const [name, make] of scenes)
+    it(`${name}: is emptied and stays disposed; late models change nothing and are released`, async () => {
+      const { loader, open } = gated(),
+        world = await make(loader);
+      world.dispose();
+      open();
+      expect(await world.prepared).toBe(false);
+      await new Promise((r) => setTimeout(r, 0));
+      expect(world.scene.children).toHaveLength(0);
+      expect(world.preparation.state).toBe('disposed');
+      expect(loader.leased).toBe(0);
+      loader.dispose();
+    });
+});

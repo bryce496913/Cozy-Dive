@@ -30,6 +30,7 @@ import {
   TerrainCollisionWorld,
 } from '../player/terrainCollision';
 import type { WaterWorld } from './WaterWorld';
+import { WorldPreparation } from './WorldPreparation';
 import { warmUpScene } from './warmUp';
 
 /**
@@ -72,6 +73,8 @@ export class KelpForestScene implements WaterWorld {
   /** v0.6 Pass 044 */
   visitors?: KelpVisitors;
   readonly sightings: SightCandidate[] = [];
+  /** v0.6 Pass 047: how far it has got, and which parts loaded. */
+  readonly preparation = new WorldPreparation();
   readonly soundSpots: Vec3[] = [];
   /** Resolves once it can be entered: built, its fish and rays loaded, its shaders compiled. */
   readonly prepared: Promise<boolean>;
@@ -146,6 +149,7 @@ export class KelpForestScene implements WaterWorld {
           'Cozy Diver: the kelp forest could not be prepared.',
           error,
         );
+        this.preparation.fail();
         // Without its life it is still a forest to swim in.
         if (!this.disposed) this.ready = true;
         return !this.disposed;
@@ -176,11 +180,12 @@ export class KelpForestScene implements WaterWorld {
       this.dressing.urchinSpots,
       kelpObstacles(boulders),
     );
+    const prep = this.preparation;
     const [, loaded, lion] = await Promise.all([
-      this.schools.ready,
-      this.creatures.ready,
-      this.seaLion.ready,
-      this.visitors.ready,
+      prep.track('schools', this.schools.ready),
+      prep.track('rays and sharks', this.creatures.ready),
+      prep.track('sea lion', this.seaLion.ready),
+      prep.track('visitors', this.visitors.ready),
     ]);
     if (this.disposed) return false;
     this.scene.add(this.schools.root);
@@ -230,6 +235,7 @@ export class KelpForestScene implements WaterWorld {
       });
     await warmUpScene(this.renderer, this.scene, this.camera);
     if (this.disposed) return false;
+    prep.settle();
     this.ready = true;
     return true;
   }
@@ -274,6 +280,7 @@ export class KelpForestScene implements WaterWorld {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    this.preparation.dispose();
     this.ready = false;
     this.schools?.dispose();
     this.creatures?.dispose();

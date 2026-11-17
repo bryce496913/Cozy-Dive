@@ -14,6 +14,7 @@ import {
   TerrainCollisionWorld,
 } from '../player/terrainCollision';
 import type { WaterWorld } from './WaterWorld';
+import { WorldPreparation } from './WorldPreparation';
 import { warmUpScene } from './warmUp';
 
 export interface IceLibraries {
@@ -43,6 +44,8 @@ export class UnderIceScene implements WaterWorld {
     wander: 0.025,
   });
   readonly sightings: SightCandidate[] = [];
+  /** v0.6 Pass 047: how far it has got, and which parts loaded. */
+  readonly preparation = new WorldPreparation();
   readonly soundSpots: Vec3[] = [];
   /** Resolves once it can be entered: built and its shaders compiled. */
   readonly prepared: Promise<boolean>;
@@ -116,6 +119,7 @@ export class UnderIceScene implements WaterWorld {
           'Cozy Diver: the waters under the ice could not be prepared.',
           error,
         );
+        this.preparation.fail();
         if (!this.disposed) this.ready = true;
         return !this.disposed;
       },
@@ -124,6 +128,7 @@ export class UnderIceScene implements WaterWorld {
   private async prepare(): Promise<boolean> {
     await warmUpScene(this.renderer, this.scene, this.camera);
     if (this.disposed) return false;
+    this.preparation.settle();
     this.ready = true;
     return true;
   }
@@ -160,6 +165,7 @@ export class UnderIceScene implements WaterWorld {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    this.preparation.dispose();
     this.ready = false;
     this.garden.dispose();
     this.snow.dispose();

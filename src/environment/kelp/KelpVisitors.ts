@@ -63,6 +63,8 @@ export class KelpVisitors {
   private bassFish?: PosedFish;
   private sheepFish?: PosedFish;
   private readonly textures = new Map<string, THREE.Texture>();
+  /** Bodies still loading (disposed with the visitors if they are let go first). */
+  private readonly pending = new Set<SoloCreature>();
   private disposed = false;
 
   constructor(
@@ -118,7 +120,12 @@ export class KelpVisitors {
     name: string,
   ): Promise<SoloCreature> {
     const body = new SoloCreature(this.loader, id, pose, 1, name, 16);
-    if (!(await body.ready)) {
+    // v0.6 Pass 047: tracked from the start, so a body still loading when the visitors are let go
+    // is disposed with them (and releases its model), and never added afterwards.
+    this.pending.add(body);
+    const ok = await body.ready;
+    this.pending.delete(body);
+    if (!ok || this.disposed) {
       body.dispose();
       throw Error(`${id} could not be loaded`);
     }
@@ -269,6 +276,8 @@ export class KelpVisitors {
     this.disposed = true;
     this.sightings.length = 0;
     this.root.removeFromParent();
+    this.pending.forEach((b) => b.dispose());
+    this.pending.clear();
     this.otterBody?.dispose();
     this.sealBody?.dispose();
     this.gullBody?.dispose();

@@ -372,7 +372,7 @@ export class CaveVisitors {
           14,
         );
         this.nurse = body;
-        if (!(await body.ready)) throw Error('nurse shark');
+        if (!(await body.ready) || this.disposed) throw Error('nurse shark');
         this.root.add(body.root);
         this.sightings.push({
           ...CAVE_SIGHTS.nurseShark,
@@ -390,7 +390,7 @@ export class CaveVisitors {
           14,
         );
         this.turtleBody = body;
-        if (!(await body.ready)) throw Error('turtle');
+        if (!(await body.ready) || this.disposed) throw Error('turtle');
         this.root.add(body.root);
         this.sightings.push({
           id: 'species:green-sea-turtle',

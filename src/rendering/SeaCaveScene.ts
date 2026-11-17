@@ -36,6 +36,7 @@ import {
   TerrainCollisionWorld,
 } from '../player/terrainCollision';
 import type { WaterWorld } from './WaterWorld';
+import { WorldPreparation } from './WorldPreparation';
 import { warmUpScene } from './warmUp';
 
 /**
@@ -78,6 +79,8 @@ export class SeaCaveScene implements WaterWorld {
   visitors?: CaveVisitors;
   readonly nooks: CaveNooks;
   readonly sightings: SightCandidate[] = [];
+  /** v0.6 Pass 047: how far it has got, and which parts loaded. */
+  readonly preparation = new WorldPreparation();
   readonly soundSpots: Vec3[] = [];
   /** Resolves once it can be entered: built, its life loaded, its shaders compiled. */
   readonly prepared: Promise<boolean>;
@@ -150,6 +153,7 @@ export class SeaCaveScene implements WaterWorld {
       (ok) => ok,
       (error: unknown) => {
         console.error('Cozy Diver: the sea cave could not be prepared.', error);
+        this.preparation.fail();
         // Without its life it is still a cave to swim in.
         if (!this.disposed) this.ready = true;
         return !this.disposed;
@@ -171,20 +175,16 @@ export class SeaCaveScene implements WaterWorld {
       caveObstacles,
     );
     this.visitors = new CaveVisitors(fish, this.nooks);
-    const [, cruising, resting] = await Promise.all([
-      this.schools.ready,
-      this.creatures.ready,
-      this.resting.ready,
-      this.visitors.ready,
+    const prep = this.preparation;
+    const [schooled, cruising, resting, visiting] = await Promise.all([
+      prep.track('schools', this.schools.ready),
+      prep.track('cruisers', this.creatures.ready),
+      prep.track('resting sharks', this.resting.ready),
+      prep.track('visitors', this.visitors.ready),
     ]);
-    this.scene.add(this.visitors.root);
-    this.visitors.attachGlows(
-      this.schools.fish.simulation.fish.filter(
-        (f) => f.species.id === 'flashlight-fish',
-      ),
-    );
-    this.sightings.push(...this.visitors.sightings);
+    // v0.6 Pass 047: nothing is added once the cave has been let go.
     if (this.disposed) return false;
+    // The schools show their simple fish if their rigs failed, so they are always added.
     this.scene.add(this.schools.root);
     if (cruising) {
       this.scene.add(this.creatures.root);
@@ -194,6 +194,15 @@ export class SeaCaveScene implements WaterWorld {
       this.scene.add(this.resting.root);
       this.sightings.push(...this.resting.sightings);
     }
+    // The visitors' built-in-code parts are always there; each loaded part only if it loaded.
+    this.scene.add(this.visitors.root);
+    this.sightings.push(...this.visitors.sightings);
+    if (schooled || visiting)
+      this.visitors.attachGlows(
+        this.schools.fish.simulation.fish.filter(
+          (f) => f.species.id === 'flashlight-fish',
+        ),
+      );
     // A sweeper is seen by following one fish from each school.
     const sweepers = this.schools.fish.simulation.fish.filter(
       (f) => f.species.id === 'glassy-sweeper',
@@ -218,6 +227,7 @@ export class SeaCaveScene implements WaterWorld {
       });
     await warmUpScene(this.renderer, this.scene, this.camera);
     if (this.disposed) return false;
+    prep.settle();
     this.ready = true;
     return true;
   }
@@ -262,6 +272,7 @@ export class SeaCaveScene implements WaterWorld {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    this.preparation.dispose();
     this.ready = false;
     this.schools?.dispose();
     this.creatures?.dispose();

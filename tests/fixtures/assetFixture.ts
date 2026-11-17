@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { ASSET_REGISTRY } from '../../src/assets/AssetRegistry';
 import type { LoadedAsset } from '../../src/assets/AssetValidation';
 export function assetFixture(): LoadedAsset {
   const scene = new THREE.Group(),
@@ -44,4 +45,20 @@ export function assetFixture(): LoadedAsset {
     scenes: [scene],
     animations: [new THREE.AnimationClip('SwimPreview', 1, [])],
   };
+}
+
+/**
+ * v0.6 Pass 047: a stand-in for any registered creature or fish model, by its URL: the fixture's
+ * rig renamed to the asset's root and scaled to the middle of its allowed size.
+ */
+export function creatureFixture(url: string): LoadedAsset {
+  const asset = assetFixture(),
+    spec = Object.values(ASSET_REGISTRY).find((s) => url.endsWith(s.path)),
+    root = asset.scene.getObjectByName('Chromis_Root'),
+    body = asset.scene.getObjectByName('Body');
+  if (!spec || !root || !(body instanceof THREE.Mesh)) throw Error(url);
+  root.name = spec.requiredNodes[0];
+  const k = (spec.minDimension + spec.maxDimension) / 2 / 0.46;
+  body.geometry.scale(k, k, k);
+  return asset;
 }
