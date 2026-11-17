@@ -3,6 +3,16 @@ import { describe, expect, it } from 'vitest';
 import { CAVE, KELP, OUTER } from '../src/config/passage';
 import type { Vec3 } from '../src/config/world';
 import { BARRACUDA, BarracudaVisit } from '../src/creatures/barracuda';
+import { OctopusMind } from '../src/creatures/octopus';
+import {
+  CleaningEncounter,
+  CuriousWrasse,
+  GREAT_WHITE,
+  ParrotGrazers,
+  RarePass,
+  WRASSE,
+} from '../src/creatures/reefEncounters';
+import { createPose } from '../src/environment/outer/PosedFish';
 import { SEA_LION, SeaLionSwimmer } from '../src/creatures/seaLion';
 import { CaveLobsters, LOBSTER } from '../src/environment/cave/CaveLobsters';
 import {
@@ -20,6 +30,7 @@ import {
 import { kelpFloor } from '../src/environment/kelp/KelpTerrain';
 import {
   OUTER_CRUISERS,
+  PASSING_DEEPEST,
   outerCruisers,
   reefObstacles,
 } from '../src/environment/outer/OuterCreatures';
@@ -286,5 +297,134 @@ describe('v0.6 Pass 042: barracuda circling out in the blue', () => {
   it('brings the far passes a little closer than before', () => {
     expect(LANES.far).toBeLessThan(9);
     expect(LANES.far).toBeGreaterThan(LANES.close + 3);
+  });
+});
+
+describe('v0.6 Pass 043: the outer reef’s newer life', () => {
+  it('passes every big animal within sight of the swimmer (no deeper than the limit)', () => {
+    for (const g of [
+      ...OUTER_CRUISERS,
+      ...WALL_VISITOR_IDS.map((id) => WALL_VISITORS[id]),
+    ]) {
+      const low = Math.min(...g.members.map((m) => m.up));
+      for (const w of g.waypoints)
+        expect(w.y + low, g.species).toBeGreaterThanOrEqual(PASSING_DEEPEST);
+    }
+  });
+  it('keeps the new reef schools inside the glass', () => {
+    for (const s of OUTER_SCHOOLS) {
+      expect(s.at.z - s.spread.z, s.species).toBeGreaterThan(OUTER.glass.z);
+      expect(Math.abs(s.at.x) + s.spread.x).toBeLessThan(OUTER.glass.halfWidth);
+    }
+    expect(
+      OUTER_SCHOOLS.filter((s) => s.species === 'moorish-idol').every(
+        (s) => s.count === 2,
+      ),
+    ).toBe(true);
+  });
+  it('grazes coral to coral, biting each a few times', () => {
+    const corals = [v(0, 1, -40), v(3, 1.2, -42), v(-2, 0.8, -44)],
+      g = new ParrotGrazers(corals, createPose);
+    let bites = 0;
+    for (let i = 0; i < 60 * 30; i++) {
+      g.update(1 / 30);
+      bites += g.bitCount;
+      for (const p of g.poses) expect(p.position.y).toBeGreaterThan(0.5);
+    }
+    expect(bites).toBeGreaterThan(10);
+  });
+  it('the wrasse comes for a look, never closer than it means to, then leaves', () => {
+    const w = new CuriousWrasse(createPose(), {
+        ground: () => 0,
+        minX: -27,
+        maxX: 27,
+        minZ: -57,
+        maxZ: -35,
+        top: 11,
+      }),
+      eye = v(0, 4, -45),
+      moods = new Set<string>();
+    let closest = Infinity;
+    for (let i = 0; i < 120 * 10; i++) {
+      w.update(0.1, presence(eye));
+      moods.add(w.mood);
+      const p = w.pose.position;
+      closest = Math.min(
+        closest,
+        Math.hypot(p.x - eye.x, p.y - eye.y, p.z - eye.z),
+      );
+    }
+    expect([...moods]).toEqual(
+      expect.arrayContaining(['approach', 'look', 'leave', 'roam']),
+    );
+    expect(closest).toBeGreaterThan(WRASSE.look - 1);
+  });
+  it('signals the sunfish by gathering the bannerfish first; cleans it beyond the glass, then it sinks', () => {
+    const c = new CleaningEncounter(createPose),
+      seen: string[] = [];
+    c.begin();
+    for (let i = 0; i < 10 * 400; i++) {
+      c.update(0.1);
+      if (seen[seen.length - 1] !== c.state) seen.push(c.state);
+      for (const b of c.bannerfish)
+        expect(b.pose.position.z).toBeLessThan(OUTER.glass.z);
+      if (c.state === 'cleaning') {
+        const s = c.sunfish.pose.position;
+        // Close to the glass, within sight.
+        expect(OUTER.glass.z - s.z).toBeLessThan(6);
+        expect(s.y).toBeGreaterThan(PASSING_DEEPEST);
+      }
+      if (c.state === 'idle' && seen.length > 1) break;
+    }
+    expect(seen).toEqual([
+      'gathering',
+      'rising',
+      'cleaning',
+      'sinking',
+      'idle',
+    ]);
+  });
+  it('is rare: the sunfish comes in well under a fifth of the time', () => {
+    const c = new CleaningEncounter(createPose, 99);
+    let cleaning = 0;
+    for (let i = 0; i < 10 * 3600 * 2; i++) {
+      c.update(0.1);
+      if (c.state === 'cleaning') cleaning++;
+    }
+    expect(cleaning / (10 * 3600 * 2)).toBeLessThan(0.2);
+  });
+  it('passes the great white the length of the glass, close by but outside it', () => {
+    const pass = new RarePass(createPose());
+    pass.begin();
+    let closest = Infinity,
+      steps = 0;
+    while (pass.passing && steps++ < 20000) {
+      pass.update(0.1);
+      const p = pass.swim.pose.position;
+      expect(p.z + GREAT_WHITE.radius).toBeLessThan(OUTER.glass.z);
+      if (Math.abs(p.x) < OUTER.glass.halfWidth)
+        closest = Math.min(closest, OUTER.glass.z - p.z);
+    }
+    expect(pass.passing).toBe(false);
+    expect(closest).toBeLessThan(GREAT_WHITE.gap + GREAT_WHITE.radius + 1);
+  });
+  it('the octopus creeps out, and hides in its den when the swimmer comes close', () => {
+    const den = { x: 0, y: 0, z: 0, yaw: 0 },
+      o = new OctopusMind(
+        den,
+        [v(3, 0, 1)],
+        () => 0,
+        (x) => x > 2,
+      );
+    for (let i = 0; i < 10 * 60; i++) o.update(0.1, presence(v(0, 3, 30)));
+    const moods = new Set<string>();
+    for (let i = 0; i < 10 * 60; i++) {
+      o.update(0.1, presence(v(o.position.x + 1, 0.5, o.position.z)));
+      moods.add(o.mood);
+    }
+    expect(o.mood).toBe('hidden');
+    expect(o.tucked).toBeGreaterThan(0.9);
+    for (let i = 0; i < 10 * 30; i++) o.update(0.1, presence(v(0, 3, 30)));
+    expect(o.mood).not.toBe('hidden');
   });
 });

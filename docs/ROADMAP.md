@@ -112,6 +112,13 @@ v0.5 closes on the user's macOS acceptance of this candidate; v0.4 (`0.4.0-rc.3`
 - **Pass 040 — Release candidate (`0.6.0-rc.1`):** unit tests brought up to date (565 passing), a full 21-harness browser regression (all pass), and one bug fixed (giant kelp sightings near the tunnel exit). v0.6 closes on the user's macOS play-through.
 - **Pass 041 — Play-test fixes (`0.6.0-rc.2`, by user request):** the outer reef's corals load in the tunnel (no pop-in); a smaller kelp forest with blacksmith and señorita schools; resting whitetips that bolt when approached and settle elsewhere; lobster dens; fluted stalactite clusters, stalagmites, more boulders, soldierfish and rock crabs in the cave.
 - **Pass 042 — Barracuda in the blue (`0.6.0-rc.3`, by user request):** a school of great barracuda now and then drifts in from the deep blue beyond the outer reef's glass and circles there before leaving; the big animals' far passes come a little closer (6.5 m beyond the glass, was 9 m).
+- **Pass 043 — Outer reef life (`0.6.0-rc.4`, by user request):**
+  - **Fish:** parrotfish grazing coral with sand puffs, blue tang clouds, butterflyfish and Moorish idols in pairs, and a curious humphead wrasse.
+  - **Octopus:** creeps between rocks, changes colour, and hides in its den.
+  - **Rare sights:** a bigeye trevally ball; very rarely, a sunfish cleaned by bannerfish (they gather first); a great white passing close to the glass.
+  - **Depth:** every big animal now passes within sight of the swimmer.
+- **Pass 044 (planned) — Kelp forest life:** sea otter, leopard sharks, giant sea bass, sheephead, Spanish shawl nudibranchs and kelp crabs, harbour seal, and a diving seagull.
+- **Pass 045 (planned) — Sea cave life:** moray, flashlight fish, a sleeping turtle, nurse shark, a cleaner shrimp station, octopus and lionfish.
 - **Provisional, to agree after the user plays Pass 032:**
   - the kelp forest's life for the tank (garibaldi, a bat ray pup);
   - more kelp-forest character (light shafts, a sea lion);

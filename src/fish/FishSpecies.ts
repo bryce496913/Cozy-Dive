@@ -18,7 +18,15 @@ export type SpeciesId =
   | 'blacksmith'
   | 'senorita'
   /** v0.6 Pass 041: the sea cave's red, big-eyed fish of the shade (never in the tank). */
-  | 'soldierfish';
+  | 'soldierfish'
+  /** v0.6 Pass 043: outer-reef fish (never in the tank's population). */
+  | 'blue-tang'
+  | 'threadfin-butterflyfish'
+  | 'moorish-idol'
+  | 'longfin-bannerfish'
+  | 'parrotfish'
+  | 'bigeye-trevally'
+  | 'humphead-wrasse';
 export interface SchoolingTuning {
   readonly enabled: boolean;
   readonly spacing: number;

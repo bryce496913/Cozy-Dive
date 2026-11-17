@@ -95,12 +95,12 @@ const school: readonly CruiserPlacement[] = [
 export const WALL_VISITORS: Readonly<Record<WallVisitorId, CruiseGroup>> = {
   'humpback-whale': {
     species: 'humpback-whale',
-    waypoints: stadium(0, -72.5, 50, 6, (x) => 9 + 0.5 * Math.sin(x * 0.05)),
+    waypoints: stadium(0, -72.5, 50, 6, (x) => 10 + 0.5 * Math.sin(x * 0.05)),
     members: alone,
   },
   'whale-shark': {
     species: 'whale-shark',
-    waypoints: stadium(-3, -70.5, 46, 4, (x) => 4 + 0.4 * Math.sin(x * 0.07)),
+    waypoints: stadium(-3, -70.5, 46, 4, (x) => 5 + 0.4 * Math.sin(x * 0.07)),
     members: alone,
   },
   'manta-ray': {
@@ -110,19 +110,20 @@ export const WALL_VISITORS: Readonly<Record<WallVisitorId, CruiseGroup>> = {
       -68.5,
       40,
       3,
-      (x) => -0.5 + 0.4 * Math.sin(x * 0.06),
+      (x) => 0.5 + 0.4 * Math.sin(x * 0.06),
       true,
     ),
     members: alone,
   },
   'great-hammerhead': {
     species: 'great-hammerhead',
-    waypoints: stadium(2, -68.5, 40, 3, () => -5, true),
+    waypoints: stadium(2, -68.5, 40, 3, () => -3.5, true),
     members: alone,
   },
   'scalloped-hammerhead': {
     species: 'scalloped-hammerhead',
-    waypoints: stadium(3, -72, 42, 4, (x) => -9.5 + 0.5 * Math.sin(x * 0.08)),
+    // v0.6 Pass 043: within sight of the swimmer (was 9.5 m down).
+    waypoints: stadium(3, -72, 42, 4, (x) => -5.5 + 0.4 * Math.sin(x * 0.08)),
     members: school,
   },
 };

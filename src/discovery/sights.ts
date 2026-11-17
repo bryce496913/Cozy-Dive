@@ -54,6 +54,20 @@ export function reefSight(family: string): Sight | undefined {
 /** v0.6 Pass 042: what else the outer reef shows, now and then, out in the blue. */
 export const OUTER_SIGHTS = {
   barracuda: { id: 'species:great-barracuda', label: 'Great barracuda' },
+  // v0.6 Pass 043
+  tang: { id: 'species:blue-tang', label: 'Blue tang' },
+  butterflyfish: {
+    id: 'species:threadfin-butterflyfish',
+    label: 'Threadfin butterflyfish',
+  },
+  idol: { id: 'species:moorish-idol', label: 'Moorish idol' },
+  parrotfish: { id: 'species:parrotfish', label: 'Parrotfish' },
+  octopus: { id: 'species:octopus', label: 'Day octopus' },
+  wrasse: { id: 'species:humphead-wrasse', label: 'Humphead wrasse' },
+  trevally: { id: 'species:bigeye-trevally', label: 'Bigeye trevally' },
+  bannerfish: { id: 'species:longfin-bannerfish', label: 'Longfin bannerfish' },
+  sunfish: { id: 'species:ocean-sunfish', label: 'Ocean sunfish' },
+  greatWhite: { id: 'species:great-white-shark', label: 'Great white shark' },
 } as const satisfies Record<string, Sight>;
 
 /** Every sight, in the order the "Seen" page lists them when first seen together. */
