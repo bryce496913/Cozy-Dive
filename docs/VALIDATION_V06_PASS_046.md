@@ -38,7 +38,19 @@ Date: November 17, 2026. By user request: a new area, an Antarctic under-ice div
   - swimming out of the tunnel into the tank;
   - the garden and its sights;
   - disposal.
-- **Browser check:** `validation/under-ice.mjs`, SwiftShader at DPR 0.5. See the PR for the result. Screenshots are in `docs/screenshots/pass046/`.
+- **Browser check** (`validation/under-ice.mjs`, SwiftShader at DPR 0.5) passes with no page errors. It swims tank → outer reef → kelp forest → grotto → sea cave → back tunnel, then:
+  - the waters under the ice load by the back tunnel;
+  - W swims through, swapping at equal darkness (0.94 either side), and out into the tank;
+  - it photographs the tank, a breathing hole, the garden and an iceberg wall;
+  - holding W stops the swimmer 3 m short of an iceberg (x 21.0) and 3.6 m below the ice (y 11.4);
+  - all six sights count;
+  - it swims back through the tunnel into the cave.
+- **Screenshots:** `docs/screenshots/pass046/`.
+- **The first run caught two problems, both fixed:**
+  - the cave's soft walls slowed the swimmer to a stop before the back tunnel's mouth;
+  - the tunnel's far end showed open water.
+- **After the run:** the hanging ice chunks were set a little further up into the sheet.
+- **Not measured:** real-GPU frame time.
 
 ## Known limitations
 

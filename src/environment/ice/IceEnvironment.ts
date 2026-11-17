@@ -330,7 +330,8 @@ export class IceEnvironment {
         g = lump(46300 + i * 7, i % 4, 1);
       g.scale(s * (1 + rand()), s * 0.7, s * (1 + rand()));
       g.rotateY(rand() * Math.PI);
-      g.translate(x, top - s * 0.25, z);
+      // Set well up into the sheet (which dips by up to 0.6 m), so none seems to float.
+      g.translate(x, top - s * 0.12 + 0.3, z);
       iceColours(g, 0.35);
       blocks.push(g);
     }
