@@ -7,6 +7,7 @@ import { KELP_SIGHTS } from '../discovery/sights';
 import { KelpEnvironment } from '../environment/kelp/KelpEnvironment';
 import { KelpDressing } from '../environment/kelp/KelpDressing';
 import { KelpLight } from '../environment/kelp/KelpLight';
+import { KelpVisitors } from '../environment/kelp/KelpVisitors';
 import { SeaLion, kelpSeaLionLimits } from '../environment/kelp/SeaLion';
 import { MarineSnow } from '../environment/shared/MarineSnow';
 import {
@@ -68,6 +69,8 @@ export class KelpForestScene implements WaterWorld {
   creatures?: OuterCreatures;
   /** v0.6 Pass 039: a playful sea lion that comes to circle the swimmer. */
   seaLion?: SeaLion;
+  /** v0.6 Pass 044 */
+  visitors?: KelpVisitors;
   readonly sightings: SightCandidate[] = [];
   readonly soundSpots: Vec3[] = [];
   /** Resolves once it can be entered: built, its fish and rays loaded, its shaders compiled. */
@@ -166,10 +169,18 @@ export class KelpForestScene implements WaterWorld {
       kelpSeaLionLimits(kelpObstacles(boulders)),
       fish,
     );
+    this.visitors = new KelpVisitors(
+      fish,
+      boulders,
+      this.stalks.placements.slice(0, STALKS.count),
+      this.dressing.urchinSpots,
+      kelpObstacles(boulders),
+    );
     const [, loaded, lion] = await Promise.all([
       this.schools.ready,
       this.creatures.ready,
       this.seaLion.ready,
+      this.visitors.ready,
     ]);
     if (this.disposed) return false;
     this.scene.add(this.schools.root);
@@ -179,6 +190,8 @@ export class KelpForestScene implements WaterWorld {
       this.sightings.push(...this.seaLion.sightings);
     }
     this.sightings.push(...this.creatures.sightings);
+    this.scene.add(this.visitors.root);
+    this.sightings.push(...this.visitors.sightings);
     // A garibaldi is seen by following one fish from each of the first few groups.
     const garibaldi = this.schools.fish.simulation.fish.filter(
       (f) => f.species.id === 'garibaldi',
@@ -253,6 +266,9 @@ export class KelpForestScene implements WaterWorld {
     this.schools?.update(dt, active, reducedMotion, player, this.camera);
     this.creatures?.update(dt, active, reducedMotion, player, this.camera);
     this.seaLion?.update(dt, active, reducedMotion, player, this.camera);
+    // Only once warmed up, so everything is drawn (and compiled) in the warm-up first.
+    if (this.ready)
+      this.visitors?.update(dt, active, reducedMotion, player, this.camera);
     this.renderer.render(this.scene, this.camera);
   }
   dispose(): void {
@@ -262,6 +278,7 @@ export class KelpForestScene implements WaterWorld {
     this.schools?.dispose();
     this.creatures?.dispose();
     this.seaLion?.dispose();
+    this.visitors?.dispose();
     this.sightings.length = 0;
     this.stalks.dispose();
     this.dressing.dispose();

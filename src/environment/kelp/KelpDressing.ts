@@ -134,7 +134,7 @@ export function anemoneCrown(): THREE.BufferGeometry {
   return merge(parts);
 }
 
-interface Seat {
+export interface Seat {
   readonly x: number;
   readonly y: number;
   readonly z: number;
@@ -144,7 +144,7 @@ interface Seat {
   readonly nz: number;
 }
 /** A point on a boulder's upper surface (its rounded box, sunk a fifth into the sand). */
-function onBoulder(b: Boulder, a: number, e: number): Seat {
+export function onBoulder(b: Boulder, a: number, e: number): Seat {
   const rx = b.size * 0.46,
     ry = b.height * 0.5,
     cy = b.y + b.height * 0.2,
@@ -166,6 +166,8 @@ function onBoulder(b: Boulder, a: number, e: number): Seat {
 
 export class KelpDressing {
   readonly root = new THREE.Group();
+  /** v0.6 Pass 044: where some of the urchins are (for the sheephead and the otter to visit). */
+  readonly urchinSpots: { x: number; y: number; z: number }[] = [];
   private readonly geometries: THREE.BufferGeometry[] = [];
   private readonly materials: THREE.Material[] = [];
   private readonly crowns: THREE.InstancedMesh;
@@ -248,6 +250,8 @@ export class KelpDressing {
             ? floorSeat(x, z)
             : onBoulder(b, a, 0.05 + rand() * 0.4);
       place(urchins, i, seat, 1.1 + rand() * 0.8, 0.02);
+      if (i % 5 === 0)
+        this.urchinSpots.push({ x: seat.x, y: seat.y, z: seat.z });
       urchins.setColorAt(
         i,
         c.setRGB(0.85 + rand() * 0.3, 0.8 + rand() * 0.3, 0.85 + rand() * 0.3),

@@ -31,6 +31,20 @@ export const KELP_SIGHTS = {
   /** v0.6 Pass 041. */
   blacksmith: { id: 'species:blacksmith', label: 'Blacksmith' },
   senorita: { id: 'species:senorita', label: 'Señorita' },
+  // v0.6 Pass 044
+  otter: { id: 'species:sea-otter', label: 'Sea otter' },
+  seaBass: { id: 'species:giant-sea-bass', label: 'Giant sea bass' },
+  sheephead: {
+    id: 'species:california-sheephead',
+    label: 'California sheephead',
+  },
+  nudibranch: {
+    id: 'species:spanish-shawl',
+    label: 'Spanish shawl nudibranch',
+  },
+  kelpCrab: { id: 'species:kelp-crab', label: 'Kelp crab' },
+  seal: { id: 'species:harbour-seal', label: 'Harbour seal' },
+  gull: { id: 'species:western-gull', label: 'Western gull' },
   /** v0.6 Pass 039. */
   seaLion: { id: 'species:california-sea-lion', label: 'California sea lion' },
 } as const satisfies Record<string, Sight>;

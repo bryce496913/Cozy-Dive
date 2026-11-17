@@ -258,6 +258,22 @@ function laneLoop(
 }
 /** Bat rays: a loose line of three along the lane, and one alone, further down the forest. */
 export const KELP_CRUISERS: readonly CruiseGroup[] = [
+  // v0.6 Pass 044: leopard sharks, low over the sand along the lane, below the rays.
+  {
+    species: 'leopard-shark',
+    scale: 1.35,
+    waypoints: laneLoop(-14, -50, -3, 0.6),
+    members: [
+      { start: 0, side: 0, up: 0, phase: 0.6 },
+      { start: -9, side: 0.6, up: 0.15, phase: 2.4 },
+    ],
+  },
+  {
+    species: 'leopard-shark',
+    scale: 1.5,
+    waypoints: laneLoop(-22, -56, 1.8, 0.65),
+    members: [{ start: 25, side: 0, up: 0, phase: 4.1 }],
+  },
   {
     species: 'bat-ray',
     waypoints: laneLoop(-16, -52, 2.2, 1.4),

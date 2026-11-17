@@ -18,7 +18,9 @@ export type BigCreatureId =
   | 'great-hammerhead'
   | 'scalloped-hammerhead'
   /** v0.6 Pass 034: the sea cave's sharks, resting on its sand or circling slowly. */
-  | 'whitetip-reef-shark';
+  | 'whitetip-reef-shark'
+  /** v0.6 Pass 044: the kelp forest's small, gentle sharks, cruising low over the sand. */
+  | 'leopard-shark';
 
 export interface CruiseSpecies {
   readonly id: BigCreatureId;
@@ -78,6 +80,21 @@ export const CRUISE_SPECIES: Readonly<Record<BigCreatureId, CruiseSpecies>> = {
     clearance: 1.3,
     detailDistance: 30,
     bank: 1.1,
+  },
+  'leopard-shark': {
+    id: 'leopard-shark',
+    name: 'Leopard shark',
+    asset: 'leopardShark',
+    scale: 1,
+    radius: 0.6,
+    speed: 0.6,
+    strokeHz: 0.55,
+    stroke: 0.8,
+    comfort: 3,
+    giveWay: 2,
+    clearance: 0.55,
+    detailDistance: 16,
+    bank: 0.7,
   },
   'bat-ray': {
     id: 'bat-ray',

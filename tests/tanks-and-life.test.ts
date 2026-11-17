@@ -3,7 +3,18 @@ import { describe, expect, it } from 'vitest';
 import { CAVE, KELP, OUTER } from '../src/config/passage';
 import type { Vec3 } from '../src/config/world';
 import { BARRACUDA, BarracudaVisit } from '../src/creatures/barracuda';
+import {
+  GULL,
+  GullDive,
+  RareCruise,
+  SEA_BASS,
+  SEAL,
+  SeaOtter,
+  ShySeal,
+} from '../src/creatures/kelpEncounters';
 import { OctopusMind } from '../src/creatures/octopus';
+import { KelpCritters } from '../src/environment/kelp/KelpCritters';
+import { KELP_CRUISERS } from '../src/environment/kelp/KelpLife';
 import {
   CleaningEncounter,
   CuriousWrasse,
@@ -426,5 +437,95 @@ describe('v0.6 Pass 043: the outer reef’s newer life', () => {
     expect(o.tucked).toBeGreaterThan(0.9);
     for (let i = 0; i < 10 * 30; i++) o.update(0.1, presence(v(0, 3, 30)));
     expect(o.mood).not.toBe('hidden');
+  });
+});
+
+describe('v0.6 Pass 044: the kelp forest’s newer life', () => {
+  const limits = {
+    ground: () => 0,
+    surface: 22,
+    minX: -21,
+    maxX: 21,
+    minZ: -57,
+    maxZ: -11,
+  };
+  it('floats the otter on its back at the surface, diving for an urchin now and then', () => {
+    const o = new SeaOtter(createPose(), limits, [v(-5, 0.3, -32)]),
+      moods = new Set<string>();
+    for (let i = 0; i < 10 * 200; i++) {
+      o.update(0.1);
+      moods.add(o.mood);
+      expect(o.pose.position.y).toBeLessThan(22);
+    }
+    expect([...moods]).toEqual(
+      expect.arrayContaining(['float', 'dive', 'forage', 'rise']),
+    );
+  });
+  it('keeps the seal at a distance: it watches, and backs off from a swimmer who comes close', () => {
+    const s = new ShySeal(createPose(), limits),
+      eye = v(4, 8, -38);
+    let watched = false;
+    for (let i = 0; i < 10 * 120; i++) {
+      // The swimmer follows it.
+      const p = s.pose.position;
+      eye.x += (p.x - eye.x) * 0.002;
+      eye.z += (p.z - eye.z) * 0.002;
+      s.update(0.1, presence(eye));
+      if (s.mood === 'watch') {
+        watched = true;
+        expect(
+          Math.hypot(p.x - eye.x, p.y - eye.y, p.z - eye.z),
+        ).toBeGreaterThan(SEAL.shy - 2.5);
+      }
+    }
+    expect(watched).toBe(true);
+  });
+  it('brings the giant sea bass in from out of sight, slowly past the swimmer, and away', () => {
+    const b = new RareCruise(createPose(), limits),
+      eye = v(0, 6, -30);
+    expect(b.begin(presence(eye))).toBe(true);
+    const p = b.swim.pose.position;
+    expect(Math.hypot(p.x - eye.x, p.y - eye.y, p.z - eye.z)).toBeGreaterThan(
+      SEA_BASS.hidden,
+    );
+    let closest = Infinity;
+    for (let i = 0; i < 10 * 300 && b.present; i++) {
+      b.update(0.1, presence(eye));
+      closest = Math.min(
+        closest,
+        Math.hypot(p.x - eye.x, p.y - eye.y, p.z - eye.z),
+      );
+    }
+    expect(closest).toBeLessThan(SEA_BASS.pass + 2);
+    expect(closest).toBeGreaterThan(2);
+    expect(b.present).toBe(false);
+  });
+  it('the gull plunges in, pecks at the sand near the swimmer, and flies off', () => {
+    const g = new GullDive(createPose(), limits),
+      eye = v(0, 6, -30),
+      moods: string[] = [];
+    let pecks = 0;
+    g.begin(eye);
+    for (let i = 0; i < 10 * 120; i++) {
+      g.update(0.1, presence(eye));
+      if (g.pecked) pecks++;
+      if (moods[moods.length - 1] !== g.mood) moods.push(g.mood);
+      if (!g.present) break;
+    }
+    expect(moods).toEqual(['plunge', 'down', 'peck', 'up', 'away']);
+    expect(pecks).toBeGreaterThanOrEqual(GULL.pecks[0]);
+  });
+  it('builds the critters and the leopard sharks low over the sand', () => {
+    const boulder = { x: 0, y: 0, z: -30, size: 2, height: 1.2, yaw: 0 },
+      c = new KelpCritters([boulder], [{ x: 2, y: 0, z: -30 }]);
+    for (let i = 0; i < 100; i++)
+      c.update(0.1, true, false, presence(v(2, 1, -29)));
+    expect(c.sightings.length).toBeGreaterThan(0);
+    c.dispose();
+    c.dispose();
+    const leopards = KELP_CRUISERS.filter((g) => g.species === 'leopard-shark');
+    expect(leopards.length).toBeGreaterThan(0);
+    for (const g of leopards)
+      for (const w of g.waypoints) expect(w.y).toBeLessThan(1);
   });
 });

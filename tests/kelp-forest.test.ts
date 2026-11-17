@@ -192,9 +192,10 @@ describe('Pass 032 kelp forest: life and discovery', () => {
   it('routes the bat rays along the lane, lifted clear of the seabed and boulders', () => {
     const obstacles = kelpObstacles(boulders),
       cruisers = outerCruisers(obstacles, KELP_CRUISERS);
-    expect(cruisers).toHaveLength(4);
+    // v0.6 Pass 044: four bat rays and three leopard sharks.
+    expect(cruisers).toHaveLength(7);
     for (const c of cruisers) {
-      expect(c.species.id).toBe('bat-ray');
+      expect(['bat-ray', 'leopard-shark']).toContain(c.species.id);
       for (let i = 0; i < 400; i++) {
         c.update(0.5, undefined, false);
         const p = c.position;
