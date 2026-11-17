@@ -117,7 +117,9 @@ v0.5 closes on the user's macOS acceptance of this candidate; v0.4 (`0.4.0-rc.3`
   - **Octopus:** creeps between rocks, changes colour, and hides in its den.
   - **Rare sights:** a bigeye trevally ball; very rarely, a sunfish cleaned by bannerfish (they gather first); a great white passing close to the glass.
   - **Depth:** every big animal now passes within sight of the swimmer.
-- **Pass 044 (planned) — Kelp forest life:** sea otter, leopard sharks, giant sea bass, sheephead, Spanish shawl nudibranchs and kelp crabs, harbour seal, and a diving seagull.
+- **Pass 044 — Kelp forest life (`0.6.0-rc.5`, by user request):**
+  - **Everyday:** a sea otter floating on its back at the surface (diving for urchins), leopard sharks low over the sand, sheephead at the urchins, Spanish shawl nudibranchs and kelp crabs, and a shy harbour seal that watches from a distance.
+  - **Now and then:** a giant sea bass cruising past, and a gull diving in to peck at the sand.
 - **Pass 045 (planned) — Sea cave life:** moray, flashlight fish, a sleeping turtle, nurse shark, a cleaner shrimp station, octopus and lionfish.
 - **Provisional, to agree after the user plays Pass 032:**
   - the kelp forest's life for the tank (garibaldi, a bat ray pup);
