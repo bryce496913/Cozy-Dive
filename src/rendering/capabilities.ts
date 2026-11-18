@@ -13,12 +13,15 @@
 export interface CapabilityProbe {
   webgl2(): boolean;
   pointerLock(): boolean;
+  /** v0.6 Pass 058: a touch screen with no mouse or trackpad at all. */
+  touchOnly(): boolean;
   audio(): boolean;
   storage(): boolean;
 }
 export interface Capabilities {
   webgl2: boolean;
   pointerLock: boolean;
+  touchOnly: boolean;
   audio: boolean;
   storage: boolean;
 }
@@ -34,6 +37,7 @@ export function detectCapabilities(probe: CapabilityProbe): Capabilities {
   return {
     webgl2: safe(() => probe.webgl2()),
     pointerLock: safe(() => probe.pointerLock()),
+    touchOnly: safe(() => probe.touchOnly()),
     audio: safe(() => probe.audio()),
     storage: safe(() => probe.storage()),
   };
@@ -43,12 +47,16 @@ export const CAPABILITY_MESSAGES = {
     'This aquarium needs WebGL 2, which this browser has turned off or does not support. Try a current version of Chrome, Safari, Firefox or Edge, with hardware acceleration enabled.',
   pointerLock:
     'This browser cannot capture the mouse, which Cozy Diver needs for looking around. Try a current desktop version of Chrome, Safari, Firefox or Edge.',
+  touch:
+    'Cozy Diver needs a mouse or trackpad for now: touch controls are planned. On a tablet, connecting a mouse or trackpad works; otherwise, visit on a computer.',
 } as const;
 /** The message to show before entry, if any: fatal when nothing can be drawn. */
 export function capabilityNotice(
   c: Capabilities,
 ): { message: string; fatal: boolean } | null {
   if (!c.webgl2) return { message: CAPABILITY_MESSAGES.webgl2, fatal: true };
+  // A touch-only device: say so plainly (it is the reason, not the browser).
+  if (c.touchOnly) return { message: CAPABILITY_MESSAGES.touch, fatal: false };
   if (!c.pointerLock)
     return { message: CAPABILITY_MESSAGES.pointerLock, fatal: false };
   return null;
@@ -67,6 +75,9 @@ export function browserProbe(): CapabilityProbe {
       typeof HTMLCanvasElement !== 'undefined' &&
       typeof HTMLCanvasElement.prototype.requestPointerLock === 'function' &&
       'pointerLockElement' in document,
+    touchOnly: () =>
+      matchMedia('(any-pointer: coarse)').matches &&
+      !matchMedia('(any-pointer: fine)').matches,
     audio: () => typeof globalThis.AudioContext === 'function',
     storage: () => {
       const key = 'cozy-diver.probe';

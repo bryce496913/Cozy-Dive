@@ -9,6 +9,7 @@ import {
 const all: CapabilityProbe = {
   webgl2: () => true,
   pointerLock: () => true,
+  touchOnly: () => false,
   audio: () => true,
   storage: () => true,
 };
@@ -19,6 +20,7 @@ describe('browser capabilities (Pass 056)', () => {
     expect(c).toEqual({
       webgl2: true,
       pointerLock: true,
+      touchOnly: false,
       audio: true,
       storage: true,
     });
@@ -56,6 +58,18 @@ describe('browser capabilities (Pass 056)', () => {
       message: CAPABILITY_MESSAGES.pointerLock,
       fatal: false,
     });
+  });
+  it('explains a touch-only device plainly (Pass 058)', () => {
+    for (const pointerLock of [true, false])
+      expect(
+        capabilityNotice(
+          detectCapabilities({
+            ...all,
+            touchOnly: () => true,
+            pointerLock: () => pointerLock,
+          }),
+        ),
+      ).toEqual({ message: CAPABILITY_MESSAGES.touch, fatal: false });
   });
   it('stays quiet about optional audio and storage', () => {
     expect(
