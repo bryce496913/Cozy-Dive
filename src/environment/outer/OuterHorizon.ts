@@ -41,7 +41,10 @@ function random(seed: number): () => number {
 }
 
 export function outerHorizon(): {
-  silhouettes: { geometry: (seed: number) => import('three').BufferGeometry; at: Placement[] }[];
+  silhouettes: {
+    geometry: (seed: number) => import('three').BufferGeometry;
+    at: Placement[];
+  }[];
   passers: PasserPath[];
 } {
   const rand = random(53101),
@@ -55,10 +58,26 @@ export function outerHorizon(): {
       // From the deep (about 44 m down) to between 12 m below and 4 m above the reef top.
       h = 32 + rand() * 16,
       r = 4 + rand() * 7;
-    pinnacles.push({ x, y: -OUTER.dropOff.depth - 6, z, sx: r, sy: h, sz: r, yaw: rand() * 6.3 });
+    pinnacles.push({
+      x,
+      y: -OUTER.dropOff.depth - 6,
+      z,
+      sx: r,
+      sy: h,
+      sz: r,
+      yaw: rand() * 6.3,
+    });
   }
   // A long far ridge across the deep.
-  ridges.push({ x: 0, y: -OUTER.dropOff.depth, z: g.z - 85, sx: 220, sy: 24, sz: 30, yaw: 0 });
+  ridges.push({
+    x: 0,
+    y: -OUTER.dropOff.depth,
+    z: g.z - 85,
+    sx: 220,
+    sy: 24,
+    sz: 30,
+    yaw: 0,
+  });
   // The reef running on to either side, along the wall's line, past the swimmer's reach.
   for (const side of [-1, 1])
     for (let k = 0; k < 3; k++) {
@@ -75,11 +94,35 @@ export function outerHorizon(): {
     }
   const passers: PasserPath[] = [
     // A whale, far out and slow, the long way round.
-    { kind: 'whale', centre: { x: 0, y: 4, z: g.z - 70 }, rx: 75, rz: 18, speed: 0.012, scale: 14, phase: 0.6 },
+    {
+      kind: 'whale',
+      centre: { x: 0, y: 4, z: g.z - 70 },
+      rx: 75,
+      rz: 18,
+      speed: 0.012,
+      scale: 14,
+      phase: 0.6,
+    },
     // A manta, gliding along a nearer but still distant path.
-    { kind: 'manta', centre: { x: 10, y: -2, z: g.z - 40 }, rx: 50, rz: 8, speed: -0.02, scale: 5, phase: 2.4 },
+    {
+      kind: 'manta',
+      centre: { x: 10, y: -2, z: g.z - 40 },
+      rx: 50,
+      rz: 8,
+      speed: -0.02,
+      scale: 5,
+      phase: 2.4,
+    },
     // A school, out past the side of the reef.
-    { kind: 'school', centre: { x: -60, y: 2, z: -60 }, rx: 10, rz: 14, speed: 0.03, scale: 9, phase: 1.1 },
+    {
+      kind: 'school',
+      centre: { x: -60, y: 2, z: -60 },
+      rx: 10,
+      rz: 14,
+      speed: 0.03,
+      scale: 9,
+      phase: 1.1,
+    },
   ];
   return {
     silhouettes: [

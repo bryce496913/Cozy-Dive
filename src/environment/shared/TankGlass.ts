@@ -31,14 +31,40 @@ export const GLASS = {
   bar: 0.4,
 } as const;
 
+/**
+ * v0.6 Pass 052B (open-ocean freedom): how visible a frameless pane is at `distance` m from it:
+ * fully near it (where it explains why the swimmer stops), fading to a faint trace from a few
+ * metres off, so from the reef the blue reads as open water.
+ */
+export function glassFade(distance: number): number {
+  const t = Math.min(1, Math.max(0, (distance - 1) / 7));
+  return 0.08 + 0.92 * (1 - t * t * (3 - 2 * t));
+}
+export interface GlassOptions {
+  /** Posts and bars (a display tank's frame). Default true. */
+  readonly frame?: boolean;
+  /** Fade with distance from the eye (see `glassFade`; call `update`). Default false. */
+  readonly fade?: boolean;
+}
+
 export class TankGlass {
   readonly root = new THREE.Group();
   private readonly geometries: THREE.BufferGeometry[] = [];
   private readonly materials: THREE.Material[] = [];
+  private readonly glassMaterial: THREE.MeshBasicMaterial;
+  private readonly panes: readonly GlassPane[];
+  private readonly fades: boolean;
   private disposed = false;
 
-  constructor(panes: readonly GlassPane[], name = 'Tank glass') {
+  constructor(
+    panes: readonly GlassPane[],
+    name = 'Tank glass',
+    options: GlassOptions = {},
+  ) {
     this.root.name = name;
+    this.panes = panes;
+    this.fades = options.fade ?? false;
+    const framed = options.frame ?? true;
     const glass = this.own(
         new THREE.MeshBasicMaterial({
           name: `${name} panes`,
@@ -57,6 +83,7 @@ export class TankGlass {
           metalness: 0.35,
         }),
       );
+    this.glassMaterial = glass;
     for (const p of panes) {
       const holder = new THREE.Group();
       holder.position.set(p.x, p.y, p.z);
@@ -92,6 +119,7 @@ export class TankGlass {
       pane.name = `${name} pane`;
       pane.renderOrder = 3;
       holder.add(pane);
+      if (!framed) continue;
       // Frame posts between panes, and at each end.
       const posts = Math.max(1, Math.round(p.width / GLASS.postEvery));
       for (let k = 0; k <= posts; k++) {
@@ -114,6 +142,18 @@ export class TankGlass {
         this.add(holder, bg, frame, `${name} bar`);
       }
     }
+  }
+  /** Fade the panes by the eye's distance from the nearest one (if fading). Allocation-free. */
+  update(eye: Readonly<THREE.Vector3>): void {
+    if (this.disposed || !this.fades) return;
+    let near = Infinity;
+    for (const p of this.panes) {
+      // Distance from the pane's plane (its normal is +z turned by its yaw).
+      const nx = Math.sin(p.yaw),
+        nz = Math.cos(p.yaw);
+      near = Math.min(near, Math.abs((eye.x - p.x) * nx + (eye.z - p.z) * nz));
+    }
+    this.glassMaterial.opacity = glassFade(near);
   }
   private add(
     holder: THREE.Group,

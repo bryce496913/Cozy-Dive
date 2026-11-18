@@ -80,7 +80,8 @@ export const OUTER = {
     side: 2.5,
     // Ease over the first metre, then settle through the 2 m stop band at the viewing edge.
     past: 1,
-    down: -6,
+    // v0.6 Pass 052B (open-ocean freedom): room to drift further down the wall (was -6).
+    down: -9,
     depth: 7,
     up: 12,
     rise: 5,
@@ -96,7 +97,9 @@ export const OUTER = {
    * Swimming eases over the last `ease` m before the glass and stops `gap` m from it.
    */
   glass: {
-    z: -59.4,
+    // v0.6 Pass 052B: 4 m further out over the drop-off (was -59.4), so the swimmer can hang out
+    // over the blue. Everything beyond the glass (lanes, encounters) is measured from here.
+    z: -63.4,
     halfWidth: 32.5,
     bottom: -24,
     top: 18,
@@ -201,11 +204,13 @@ export const KELP = {
   // v0.6 Pass 041: a smaller tank, about 48 m wide and 50 m deep.
   walls: { x: 24, farZ: -60 },
   /** Where swimming eases to a hover, short of the walls. */
+  // v0.6 Pass 052B: full speed until close to the rock (easing began 5.5 m short of the walls),
+  // then a short ease; solid colliders just inside the walls' rocky face stop the swimmer.
   reach: {
-    halfWidth: 18.5,
-    side: 2,
-    far: -54.5,
-    past: 2,
+    halfWidth: 20.8,
+    side: 1,
+    far: -56.8,
+    past: 1,
     up: 17,
     rise: 4,
     down: 0.6,
@@ -343,7 +348,8 @@ export const ICE = {
    * Swimming eases to a hover from `inset` m short of the walls and `up` m below the ice, slowing to
    * a crawl over `band` m, then stopping within 2 m more: about 2 m short of the ice.
    */
-  ease: { inset: 5, band: 1.2, up: 5.7 },
+  // v0.6 Pass 052B: the slowing starts 3.6 m from the icebergs (was 5); their colliders stop you.
+  ease: { inset: 3.6, band: 1.2, up: 5.7 },
   /** Very clear, cold blue water: the far icebergs show faintly at the end of the tank. */
   fog: 0.026,
   water: 0x1d4f78,

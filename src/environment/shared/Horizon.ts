@@ -69,7 +69,8 @@ export function ridgeGeometry(seed: number): THREE.BufferGeometry {
   for (let i = 0; i < p.count; i++) {
     const x = p.getX(i),
       y = Math.max(0, p.getY(i)),
-      bump = 1 + 0.35 * Math.sin(x * 9 + seed) + 0.2 * Math.sin(x * 23 + seed * 2);
+      bump =
+        1 + 0.35 * Math.sin(x * 9 + seed) + 0.2 * Math.sin(x * 23 + seed * 2);
     p.setXYZ(i, x, y * 2 * bump, p.getZ(i) * 0.6);
   }
   return bare(g);
@@ -83,7 +84,12 @@ export function stalkGeometry(seed: number): THREE.BufferGeometry {
     sp = stem.getAttribute('position');
   for (let i = 0; i < sp.count; i++) {
     const y = sp.getY(i) + 0.5;
-    sp.setXYZ(i, sp.getX(i) + lean * y + 0.03 * Math.sin(y * 9 + seed), y, sp.getZ(i));
+    sp.setXYZ(
+      i,
+      sp.getX(i) + lean * y + 0.03 * Math.sin(y * 9 + seed),
+      y,
+      sp.getZ(i),
+    );
   }
   parts.push(bare(stem));
   // Blades along it, as flat diamonds, alternating sides.
@@ -127,11 +133,22 @@ function mantaShape(): THREE.BufferGeometry {
   const g = new THREE.BufferGeometry();
   // Two flattened wedges (top and bottom) meeting at the wing tips.
   const v = [
-    [0.3, 0, 0], [0, 0.03, 0.5], [-0.15, 0, 0], [0, -0.03, 0.5],
-    [0, 0.03, -0.5], [0, -0.03, -0.5], [-0.6, 0, 0],
+    [0.3, 0, 0],
+    [0, 0.03, 0.5],
+    [-0.15, 0, 0],
+    [0, -0.03, 0.5],
+    [0, 0.03, -0.5],
+    [0, -0.03, -0.5],
+    [-0.6, 0, 0],
   ];
   const tri = [0, 1, 2, 0, 2, 4, 0, 3, 2, 0, 2, 5, 2, 6, 1, 2, 4, 6];
-  g.setAttribute('position', new THREE.Float32BufferAttribute(tri.flatMap((i) => v[i]), 3));
+  g.setAttribute(
+    'position',
+    new THREE.Float32BufferAttribute(
+      tri.flatMap((i) => v[i]),
+      3,
+    ),
+  );
   return g;
 }
 /** A loose school of small fish shapes (unit spread), drawn as one mesh. */
@@ -202,7 +219,11 @@ export class Horizon {
       const pieces = kind.at.map((a, i) => {
         const g = kind.geometry(53000 + k * 97 + i * 13);
         e.set(0, a.yaw, 0);
-        m.compose(pos.set(a.x, a.y, a.z), q.setFromEuler(e), scl.set(a.sx, a.sy, a.sz));
+        m.compose(
+          pos.set(a.x, a.y, a.z),
+          q.setFromEuler(e),
+          scl.set(a.sx, a.sy, a.sz),
+        );
         return g.applyMatrix4(m);
       });
       if (!pieces.length) return;
@@ -245,8 +266,16 @@ export class Horizon {
         // Heading along the path (its tangent); +x is the shape's nose.
         dx = -Math.sin(a) * path.rx * Math.sign(path.speed),
         dz = Math.cos(a) * path.rz * Math.sign(path.speed);
-      mesh.position.set(x, path.centre.y + 0.6 * Math.sin(this.time * 0.05 + path.phase), z);
-      mesh.rotation.set(0, Math.atan2(-dz, dx), 0.04 * Math.sin(this.time * 0.3 + path.phase));
+      mesh.position.set(
+        x,
+        path.centre.y + 0.6 * Math.sin(this.time * 0.05 + path.phase),
+        z,
+      );
+      mesh.rotation.set(
+        0,
+        Math.atan2(-dz, dx),
+        0.04 * Math.sin(this.time * 0.3 + path.phase),
+      );
     }
   }
   dispose(): void {

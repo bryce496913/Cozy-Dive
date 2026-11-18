@@ -18,7 +18,12 @@ const output = process.env.COZY_OUTPUT || '/tmp/cozy053-edges';
 fs.mkdirSync(output, { recursive: true });
 const browser = await chromium.launch({
   executablePath: process.env.COZY_CHROMIUM || undefined,
-  args: ['--no-sandbox', '--disable-dev-shm-usage', '--enable-unsafe-swiftshader', '--use-angle=swiftshader'],
+  args: [
+    '--no-sandbox',
+    '--disable-dev-shm-usage',
+    '--enable-unsafe-swiftshader',
+    '--use-angle=swiftshader',
+  ],
 });
 const report = { errors: [], edges: [], wildlife: {} };
 try {
@@ -32,17 +37,33 @@ try {
     if (m.type() === 'error') report.errors.push(m.text());
   });
   await page.addInitScript(() =>
-    localStorage.setItem('cozy-diver.settings.v3', JSON.stringify({ reducedMotion: true })),
+    localStorage.setItem(
+      'cozy-diver.settings.v3',
+      JSON.stringify({ reducedMotion: true }),
+    ),
   );
   await page.route('**/src/main.ts*', async (route) => {
     const r = await route.fetch();
-    await route.fulfill({ response: r, body: (await r.text()) + '\nwindow.__cozy=app;cancelAnimationFrame(app.frame);' });
+    await route.fulfill({
+      response: r,
+      body:
+        (await r.text()) +
+        '\nwindow.__cozy=app;cancelAnimationFrame(app.frame);',
+    });
   });
   await page.goto(process.env.COZY_URL || 'http://127.0.0.1:5173');
   await page.waitForFunction(() => window.__cozy?.tankEditor);
-  await page.evaluate(() => Promise.all([window.__cozy.world.prepared, window.__cozy.office.prepared]));
-  await page.getByRole('button', { name: 'Enter the Water', exact: true }).click();
-  await page.waitForFunction(() => !!document.pointerLockElement && document.querySelector('#overlay').hidden);
+  await page.evaluate(() =>
+    Promise.all([window.__cozy.world.prepared, window.__cozy.office.prepared]),
+  );
+  await page
+    .getByRole('button', { name: 'Enter the Water', exact: true })
+    .click();
+  await page.waitForFunction(
+    () =>
+      !!document.pointerLockElement &&
+      document.querySelector('#overlay').hidden,
+  );
   const step = (count = 1) =>
     page.evaluate(async (count) => {
       const a = window.__cozy;
@@ -56,7 +77,17 @@ try {
         cancelAnimationFrame(a.frame);
       }
       const p = a.state.position;
-      return { world: a.waterWorld, x: p.x, y: p.y, z: p.z, speed: Math.hypot(a.state.velocity.x, a.state.velocity.y, a.state.velocity.z) };
+      return {
+        world: a.waterWorld,
+        x: p.x,
+        y: p.y,
+        z: p.z,
+        speed: Math.hypot(
+          a.state.velocity.x,
+          a.state.velocity.y,
+          a.state.velocity.z,
+        ),
+      };
     }, count);
   const state = () =>
     page.evaluate(() => {
@@ -125,13 +156,23 @@ try {
         b = w.bounds,
         r = a.world.renderer.info.render;
       return {
-        inside: p.x > b.min.x && p.x < b.max.x && p.y > b.min.y && p.y < b.max.y && p.z > b.min.z && p.z < b.max.z,
+        inside:
+          p.x > b.min.x &&
+          p.x < b.max.x &&
+          p.y > b.min.y &&
+          p.y < b.max.y &&
+          p.z > b.min.z &&
+          p.z < b.max.z,
         finite: [p.x, p.y, p.z].every(Number.isFinite),
         calls: r.calls,
         triangles: r.triangles,
       };
     }, world);
-    const travelled = Math.hypot(last.x - start.x, last.y - start.y, last.z - start.z);
+    const travelled = Math.hypot(
+      last.x - start.x,
+      last.y - start.y,
+      last.z - start.z,
+    );
     await page.screenshot({ path: path.join(output, `${world}-${name}.png`) });
     const row = {
       world,
@@ -144,11 +185,19 @@ try {
     };
     report.edges.push(row);
     log(`${world} ${name}: travelled ${row.travelled} m`);
-    assert(info.inside && info.finite, `${world} ${name}: the swimmer stays inside valid space`);
+    assert(
+      info.inside && info.finite,
+      `${world} ${name}: the swimmer stays inside valid space`,
+    );
     return row;
   };
-  const log = (m) => console.log(`[${new Date().toISOString().slice(11, 19)}] ${m}`);
-  const round = (p) => ({ x: +p.x.toFixed(2), y: +p.y.toFixed(2), z: +p.z.toFixed(2) });
+  const log = (m) =>
+    console.log(`[${new Date().toISOString().slice(11, 19)}] ${m}`);
+  const round = (p) => ({
+    x: +p.x.toFixed(2),
+    y: +p.y.toFixed(2),
+    z: +p.z.toFixed(2),
+  });
 
   log('in the tank');
   // Tank → outer reef.
@@ -162,8 +211,8 @@ try {
   log('reef prepared');
   await step(60);
   // The outer reef's edges: out over the blue, down the wall, the two sides, up, and the cliff.
-  await edge('outer', 'blue', { x: 2, y: 2, z: -50 }, 0, 0);
-  await edge('outer', 'down-the-wall', { x: 2, y: -1, z: -56 }, 0, -0.9);
+  await edge('outer', 'blue', { x: 2, y: 6, z: -50 }, 0, 0);
+  await edge('outer', 'down-the-wall', { x: 2, y: 3, z: -58.5 }, 0, -1.2);
   await edge('outer', 'left-side', { x: -24, y: 3, z: -45 }, Math.PI / 2, 0);
   await edge('outer', 'right-side', { x: 24, y: 3, z: -45 }, -Math.PI / 2, 0);
   await edge('outer', 'up', { x: 0, y: 7, z: -45 }, 0, 1.1);
@@ -173,12 +222,24 @@ try {
   report.wildlife.outer = await page.evaluate(() => {
     const o = window.__cozy.outer,
       glass = o.glass && window.__cozy.outer.constructor ? null : null,
-      cruisers = [...(o.creatures?.cruisers ?? []), ...(o.visitors?.creatures.cruisers ?? [])],
+      cruisers = [
+        ...(o.creatures?.cruisers ?? []),
+        ...(o.visitors?.creatures.cruisers ?? []),
+      ],
       fish = o.schools?.fish.simulation.fish ?? [];
     void glass;
     return {
-      cruisers: cruisers.map((c) => ({ id: c.species.id, z: +c.position.z.toFixed(2), x: +c.position.x.toFixed(2), y: +c.position.y.toFixed(2) })),
-      fish: { count: fish.length, minZ: Math.min(...fish.map((f) => f.position.z)), maxAbsX: Math.max(...fish.map((f) => Math.abs(f.position.x))) },
+      cruisers: cruisers.map((c) => ({
+        id: c.species.id,
+        z: +c.position.z.toFixed(2),
+        x: +c.position.x.toFixed(2),
+        y: +c.position.y.toFixed(2),
+      })),
+      fish: {
+        count: fish.length,
+        minZ: Math.min(...fish.map((f) => f.position.z)),
+        maxAbsX: Math.max(...fish.map((f) => Math.abs(f.position.x))),
+      },
     };
   });
   // Outer reef → kelp forest.
@@ -209,7 +270,16 @@ try {
   assert.deepEqual(report.errors, []);
   report.ok = true;
 } finally {
-  fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify(report, null, 2));
-  console.log(JSON.stringify({ ok: report.ok, errors: report.errors.length, edges: report.edges.length }));
+  fs.writeFileSync(
+    path.join(output, 'report.json'),
+    JSON.stringify(report, null, 2),
+  );
+  console.log(
+    JSON.stringify({
+      ok: report.ok,
+      errors: report.errors.length,
+      edges: report.edges.length,
+    }),
+  );
   await browser.close();
 }

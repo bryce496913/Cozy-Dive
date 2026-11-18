@@ -117,7 +117,8 @@ describe('Pass 026 outer seabed and edges', () => {
     // The glass stands a few metres past the lip, over the drop, inside the swimmer's reach of the
     // sides' glass too.
     expect(g.z).toBeLessThan(lip - 2);
-    expect(g.z).toBeGreaterThan(lip - 5);
+    // v0.6 Pass 052B: 4 m further out, so the swimmer can hang out over the drop (was lip - 3.4).
+    expect(g.z).toBeGreaterThan(lip - 9);
     expect(g.halfWidth).toBeGreaterThan(r.halfWidth);
     expect(easeFactor(-1, 3)).toBe(1);
   });

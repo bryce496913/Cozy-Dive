@@ -90,6 +90,9 @@ export function wallRockLayout(): Boulder[] {
   return out;
 }
 
+/** v0.6 Pass 052B: how far inside the side and far walls' line their colliders start (m). */
+export const KELP_WALL_FACE = 1.2;
+
 export class KelpEnvironment {
   readonly root = new THREE.Group();
   readonly colliders: readonly ConvexCollider[];
@@ -420,7 +423,23 @@ export class KelpEnvironment {
       y = KELP.tunnel.y,
       z0 = KELP.tunnel.wallZ,
       z1 = z0 + 1.4;
+    // v0.6 Pass 052B: the side and far walls are solid just inside their rocky face, so the rock
+    // itself stops the swimmer (the easing now starts only a few metres short of it).
+    const w = KELP.walls,
+      face = KELP_WALL_FACE;
     return [
+      boxCollider(
+        [w.x - face, b.min.y - 1, w.farZ - 4],
+        [b.max.x + 1, b.max.y + 1, z0],
+      ),
+      boxCollider(
+        [b.min.x - 1, b.min.y - 1, w.farZ - 4],
+        [-w.x + face, b.max.y + 1, z0],
+      ),
+      boxCollider(
+        [b.min.x - 1, b.min.y - 1, b.min.z - 1],
+        [b.max.x + 1, b.max.y + 1, w.farZ + face],
+      ),
       boxCollider([b.min.x - 1, b.min.y - 1, z0], [-R, b.max.y + 1, z1]),
       boxCollider([R, b.min.y - 1, z0], [b.max.x + 1, b.max.y + 1, z1]),
       boxCollider([-R, y + R, z0], [R, b.max.y + 1, z1]),
