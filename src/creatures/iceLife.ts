@@ -279,7 +279,9 @@ export class AdelieGroup {
       swimTo(
         this.swims[i],
         ahead.x + side * Math.cos(this.time + i),
-        ahead.y - 0.15 * i,
+        // A little below the one ahead (v0.6 Pass 053: a constant step; it was 0.15 m × its
+        // place in line, which, added up along eight penguins, trailed the line 4 m downward).
+        ahead.y - 0.15,
         ahead.z + side * Math.sin(this.time + i),
         ADELIE.speed * 1.15,
         dt,

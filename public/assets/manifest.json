@@ -1654,13 +1654,13 @@
   {
     "id": "sea-otter",
     "file": "assets/models/creatures/sea-otter.glb",
-    "sha256": "4f3a5d5a58f568566350aec91910866bab5004b3fb2886b0055a78fe9bde2141",
+    "sha256": "04eb70fc43f4b83af68041002fe988e44d1ebfee4a7302c9050199413b6f457c",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 402904,
+    "bytes": 859780,
     "visualPrimitives": 2,
-    "visualTriangles": 8370,
+    "visualTriangles": 16838,
     "collisionTriangles": 0,
     "materials": 1,
     "images": [
@@ -1670,7 +1670,7 @@
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 90935
+        "encodedBytes": 242866
       },
       {
         "name": "creature_otter_base",
@@ -1678,7 +1678,7 @@
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 18041
+        "encodedBytes": 37468
       },
       {
         "name": "creature_otter_orm",
@@ -1686,10 +1686,10 @@
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 1292
+        "encodedBytes": 1238
       }
     ],
-    "geometryAccessorBytes": 205872,
+    "geometryAccessorBytes": 412464,
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"

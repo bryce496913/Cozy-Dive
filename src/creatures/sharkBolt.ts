@@ -97,6 +97,10 @@ export class SharkBolt {
     this.yaw = spot.yaw;
     this.phase = phase;
   }
+  /** Whether it is lying at rest (a getter, so it is read fresh after `update`). */
+  get resting(): boolean {
+    return this.mood === 'rest';
+  }
   /** Startle it, if it is resting and calm and the swimmer is close. True if it bolts. */
   startle(eye: Readonly<Vec3>): boolean {
     const p = this.position;
@@ -141,8 +145,7 @@ export class SharkBolt {
     if (this.mood === 'rest') return;
     const p = this.position;
     // Where it wants to go.
-    let ax = 0,
-      az = 0;
+    let ax: number, az: number;
     if (this.mood === 'settle') {
       ax = this.spot.x - p.x;
       az = this.spot.z - p.z;
