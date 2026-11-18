@@ -75,6 +75,7 @@ import {
 import { Interface, type ExperienceMode } from '../ui/Interface';
 import { installDeepFog } from '../rendering/deepFog';
 import { applyFieldOfView } from '../rendering/fieldOfView';
+import { VERSION, diagnostics } from '../config/release';
 import {
   browserProbe,
   capabilityNotice,
@@ -363,6 +364,26 @@ export class Application {
         { signal: this.abort.signal },
       );
       this.ui.setWelcome(welcomeFor(this.onboarding));
+      // v0.8 Pass 060: what a tester may choose to paste into feedback (no identifiers).
+      const renderer = this.world.renderer;
+      this.ui.setDiagnostics(() => {
+        const gl = renderer.getContext(),
+          info = gl.getExtension('WEBGL_debug_renderer_info');
+        return diagnostics({
+          version: VERSION,
+          userAgent: navigator.userAgent,
+          renderer: String(
+            info
+              ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL)
+              : gl.getParameter(gl.RENDERER),
+          ),
+          viewport: [innerWidth, innerHeight],
+          pixelRatio: +renderer.getPixelRatio().toFixed(2),
+          frame: this.frameMeter.summary
+            ? formatFrameSummary(this.frameMeter.summary)
+            : null,
+        });
+      });
       this.ui.setLoading(true);
       const world = this.world;
       void Promise.all([world.prepared, this.office.prepared])
@@ -1017,7 +1038,35 @@ export class Application {
       /* Storage unavailable: this visit still works; the next is treated as a first one. */
     }
   }
+  /**
+   * v0.8 Pass 060: the frame loop, guarded. An unexpected error used to stop the loop silently,
+   * leaving a frozen picture with the mouse still captured. Now the page lets go of the mouse,
+   * goes quiet and says so calmly, with a Reload button. Saved preferences, sightings and the
+   * tank are written as they change, so nothing is lost.
+   */
   private tick = (now: number): void => {
+    try {
+      this.frameStep(now);
+    } catch (error) {
+      this.halt(error);
+    }
+  };
+  private halted = false;
+  private halt(error: unknown): void {
+    if (this.halted) return;
+    this.halted = true;
+    cancelAnimationFrame(this.frame);
+    if (document.pointerLockElement) document.exitPointerLock();
+    this.audio?.setActive(false);
+    this.officeAudio?.setActive(false);
+    this.ui.showError(
+      'Something went wrong and the water stopped. Your tank, sightings and settings are saved. Reload to dive back in.',
+      true,
+      true,
+    );
+    console.error('Cozy Diver stopped after an unexpected error.', error);
+  }
+  private frameStep = (now: number): void => {
     if (this.disposed || !this.world || !this.controls) return;
     const dt = this.previous
       ? Math.max(

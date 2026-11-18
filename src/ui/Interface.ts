@@ -2,6 +2,7 @@ import type { AudioStatus } from '../audio/AudioSystem';
 import { SWIM_SPEED, type Settings } from './settings';
 import type { Welcome } from './onboarding';
 import { keepFocusIn } from './focus';
+import { FEEDBACK_URL, VERSION } from '../config/release';
 import { FIELD_OF_VIEW } from '../rendering/fieldOfView';
 
 const wave =
@@ -50,6 +51,8 @@ export class Interface {
   private readonly seenPanel: HTMLElement;
   private readonly seenToggle: HTMLButtonElement;
   private fatalMessage = '';
+  /** v0.8 Pass 060: what "Beta feedback" shows (filled when opened). */
+  private diagnostics: () => string = () => `Cozy Diver ${VERSION}`;
 
   constructor(
     readonly root: HTMLElement,
@@ -87,6 +90,13 @@ export class Interface {
         <label for="master-volume">Master volume <output id="master-volume-value"></output></label><input id="master-volume" type="range" min="0" max="100" step="1" />
         <p id="audio-status" role="status">Audio begins when you enter. Press M while swimming to mute.</p>
         <p class="save-status" id="save-status" role="status">Preferences saved on this device.</p>
+        <details class="feedback" id="feedback"><summary>Beta feedback</summary>
+          <p>Thank you for trying Cozy Diver. Tell us what felt calm, and what got in the way. Nothing is sent automatically; the details below are only what you choose to paste.</p>
+          <label for="feedback-details">Your browser and graphics</label><textarea id="feedback-details" rows="4" readonly></textarea>
+          <div class="feedback-actions"><button type="button" id="copy-details">Copy details</button><a id="feedback-link" href="${FEEDBACK_URL}" target="_blank" rel="noopener noreferrer">Open the feedback form ↗</a></div>
+          <p class="copy-status" id="copy-status" role="status"></p>
+        </details>
+        <p class="build" id="build">Cozy Diver ${VERSION} · beta · <a href="${import.meta.env.BASE_URL}third-party-notices.txt" target="_blank" rel="noopener">Notices</a></p>
       </aside>
       <aside class="settings-panel seen-panel" id="seen-panel" aria-labelledby="seen-heading" hidden>
         <div class="panel-heading"><h2 id="seen-heading">Seen out there.</h2><button id="close-seen" aria-label="Close the list of things seen">×</button></div>
@@ -124,6 +134,39 @@ export class Interface {
     this.get('reload').addEventListener('click', () => location.reload(), {
       signal,
     });
+    // v0.8 Pass 060: beta feedback, filled only when the tester opens it.
+    const feedback = this.get<HTMLDetailsElement>('feedback'),
+      details = this.get<HTMLTextAreaElement>('feedback-details');
+    feedback.addEventListener(
+      'toggle',
+      () => {
+        if (feedback.open) details.value = this.diagnostics();
+      },
+      { signal },
+    );
+    this.get('copy-details').addEventListener(
+      'click',
+      () => {
+        details.value = this.diagnostics();
+        const done = (ok: boolean) =>
+          (this.get('copy-status').textContent = ok
+            ? 'Copied. Paste it into your note.'
+            : 'Select the text above and copy it.');
+        if (navigator.clipboard?.writeText)
+          navigator.clipboard.writeText(details.value).then(
+            () => done(true),
+            () => {
+              details.select();
+              done(false);
+            },
+          );
+        else {
+          details.select();
+          done(false);
+        }
+      },
+      { signal },
+    );
     const toggle = root.querySelector<HTMLButtonElement>('.settings-toggle')!;
     const setOpen = (open: boolean): void => {
       this.settingsPanel.hidden = !open;
@@ -361,6 +404,10 @@ export class Interface {
   /** v0.6 Pass 054: a quiet note while the first scene is still settling (entry works throughout). */
   setLoading(loading: boolean): void {
     this.get('load-note').hidden = !loading || !!this.fatalMessage;
+  }
+  /** v0.8 Pass 060: the source of the feedback details (browser, graphics, frame time). */
+  setDiagnostics(provider: () => string): void {
+    this.diagnostics = provider;
   }
   /** Pass 022: the optional frame-time readout; null hides it. Writes only on change. */
   setFrameTime(text: string | null): void {
