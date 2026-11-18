@@ -63,6 +63,8 @@ export interface Welcome {
   intro: string;
   /** The choice offered first (focused, and the primary button). */
   primary: ExperienceMode;
+  /** The start screen's small corner label (v0.6 Pass 057). */
+  label: string;
 }
 export function welcomeFor(state: Onboarding): Welcome {
   return state.visited
@@ -71,6 +73,7 @@ export function welcomeFor(state: Onboarding): Welcome {
         title: 'Back to the <em>water.</em>',
         intro: 'Everything is where you left it.<br>Pick up wherever you like.',
         primary: state.last,
+        label: 'WELCOME BACK',
       }
     : {
         eyebrow: 'YOUR FIRST DIVE',
@@ -78,6 +81,7 @@ export function welcomeFor(state: Onboarding): Welcome {
         intro:
           'A quiet room, a little tank, and a whole reef inside it.<br>No rush. No destination. Just you and the water.',
         primary: 'office',
+        label: '01 / FIRST DIVE',
       };
 }
 

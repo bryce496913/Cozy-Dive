@@ -1,6 +1,8 @@
 import type { AudioStatus } from '../audio/AudioSystem';
 import { SWIM_SPEED, type Settings } from './settings';
 import type { Welcome } from './onboarding';
+import { keepFocusIn } from './focus';
+import { FIELD_OF_VIEW } from '../rendering/fieldOfView';
 
 const wave =
   '<svg viewBox="0 0 40 26" fill="none" aria-hidden="true"><path d="M2 8c6-8 12 8 18 0s12 8 18 0M2 18c6-8 12 8 18 0s12 8 18 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
@@ -76,7 +78,9 @@ export class Interface {
         <label for="sensitivity">Mouse sensitivity <output id="sensitivity-value"></output></label><input id="sensitivity" type="range" min="0.25" max="2.5" step="0.05" />
         <label for="speed">Swimming speed <output id="speed-value"></output></label><input id="speed" type="range" min="${SWIM_SPEED.min}" max="${SWIM_SPEED.max}" step="${SWIM_SPEED.step}" />
         <label for="swimming-feel">Swimming feel</label><select id="swimming-feel"><option value="relaxed">Relaxed</option><option value="natural">Natural</option><option value="responsive">Responsive</option></select>
-        <label class="check"><input id="reduced-motion" type="checkbox" />Reduced camera motion</label><p>Direct mouse-look, with plant and particle motion still. Breathing buoyancy and subtle swimming sway are suppressed.</p>
+        <label for="field-of-view">Field of view <output id="field-of-view-value"></output></label><input id="field-of-view" type="range" min="${FIELD_OF_VIEW.min}" max="${FIELD_OF_VIEW.max}" step="${FIELD_OF_VIEW.step}" aria-describedby="field-of-view-note" /><p id="field-of-view-note">A wider view can feel more comfortable if first-person motion makes you queasy.</p>
+        <label class="check"><input id="invert-look" type="checkbox" />Invert up and down look</label>
+        <label class="check"><input id="reduced-motion" type="checkbox" aria-describedby="reduced-motion-note" />Reduced camera motion</label><p id="reduced-motion-note">Direct mouse-look, with plant and particle motion still. Breathing buoyancy and subtle swimming sway are suppressed, and transitions are shorter and calmer.</p>
         <label class="check"><input id="audio-enabled" type="checkbox" />Ambient audio</label>
         <label class="check"><input id="frame-time" type="checkbox" />Show frame time</label><p>A small readout of frame time and frame rate, for checking performance on this device.</p>
         <label for="master-volume">Master volume <output id="master-volume-value"></output></label><input id="master-volume" type="range" min="0" max="100" step="1" />
@@ -140,6 +144,7 @@ export class Interface {
       'keydown',
       (event) => {
         if (event.key === 'Escape') setOpen(false);
+        else keepFocusIn(this.settingsPanel, event);
       },
       { signal },
     );
@@ -166,6 +171,7 @@ export class Interface {
       'keydown',
       (event) => {
         if (event.key === 'Escape') setSeenOpen(false);
+        else keepFocusIn(this.seenPanel, event);
       },
       { signal },
     );
@@ -182,6 +188,8 @@ export class Interface {
     const sensitivity = this.get<HTMLInputElement>('sensitivity'),
       speed = this.get<HTMLInputElement>('speed'),
       reduced = this.get<HTMLInputElement>('reduced-motion'),
+      fieldOfView = this.get<HTMLInputElement>('field-of-view'),
+      invertLook = this.get<HTMLInputElement>('invert-look'),
       frameTime = this.get<HTMLInputElement>('frame-time'),
       audio = this.get<HTMLInputElement>('audio-enabled'),
       volume = this.get<HTMLInputElement>('master-volume'),
@@ -191,6 +199,8 @@ export class Interface {
     sensitivity.value = String(settings.sensitivity);
     speed.value = String(settings.speed);
     reduced.checked = settings.reducedMotion;
+    fieldOfView.value = String(settings.fieldOfView);
+    invertLook.checked = settings.invertLook;
     frameTime.checked = settings.frameTime;
     audio.checked = settings.audioEnabled;
     volume.value = String(Math.round(settings.masterVolume * 100));
@@ -200,6 +210,9 @@ export class Interface {
       this.get('speed-value').textContent =
         `${Number(speed.value).toFixed(2)} m/s`;
       this.get('master-volume-value').textContent = `${volume.value}%`;
+      const fov = Number(fieldOfView.value);
+      this.get('field-of-view-value').textContent =
+        fov === 0 ? 'Standard' : `${fov > 0 ? '+' : '\u2212'}${Math.abs(fov)}°`;
       mute.textContent = audio.checked ? 'Mute audio' : 'Enable audio';
       mute.setAttribute('aria-pressed', String(!audio.checked));
       mute.title = audio.checked ? 'Mute audio (M)' : 'Enable audio (M)';
@@ -215,6 +228,8 @@ export class Interface {
           audioEnabled: audio.checked,
           masterVolume: Number(volume.value) / 100,
           frameTime: frameTime.checked,
+          fieldOfView: Number(fieldOfView.value),
+          invertLook: invertLook.checked,
         });
     };
     for (const input of [
@@ -222,6 +237,8 @@ export class Interface {
       speed,
       reduced,
       frameTime,
+      fieldOfView,
+      invertLook,
       feel,
       audio,
       volume,
@@ -260,7 +277,7 @@ export class Interface {
     this.get('controls').innerHTML =
       mode === 'office'
         ? '<span><kbd>W A S D</kbd> walk</span><span><kbd>MOUSE</kbd> look</span><span><kbd>ESC</kbd> pause</span>'
-        : '<span><kbd>W A S D</kbd> swim</span><span><kbd>MOUSE</kbd> look</span><span>Look up/down + <kbd>W / S</kbd> change depth</span><span><kbd>ESC</kbd> pause</span>';
+        : '<span><kbd>W A S D</kbd> swim</span><span><kbd>MOUSE</kbd> look</span><span>Look up/down + <kbd>W / S</kbd> change depth</span><span><kbd>M</kbd> mute</span><span><kbd>ESC</kbd> pause</span>';
     this.get('entry-note').textContent =
       mode === 'office'
         ? 'Walk with W A S D and look around with the mouse.'
@@ -329,6 +346,8 @@ export class Interface {
     );
     this.root.querySelector('h1')!.innerHTML = welcome.title;
     this.root.querySelector('.intro')!.innerHTML = welcome.intro;
+    // v0.6 Pass 057: the corner label no longer calls a return visit a "first dive".
+    this.root.querySelector('.scene-label small')!.textContent = welcome.label;
     const water = welcome.primary === 'aquarium';
     this.enter.classList.toggle('secondary', !water);
     this.office.classList.toggle('secondary', water);

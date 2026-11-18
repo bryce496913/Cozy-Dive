@@ -74,6 +74,7 @@ import {
 } from '../player/walking';
 import { Interface, type ExperienceMode } from '../ui/Interface';
 import { installDeepFog } from '../rendering/deepFog';
+import { applyFieldOfView } from '../rendering/fieldOfView';
 import {
   browserProbe,
   capabilityNotice,
@@ -498,6 +499,7 @@ export class Application {
     this.tuning.feel = this.settings.swimmingFeel;
     this.tuning.reducedMotion = this.settings.reducedMotion;
     if (this.controls) {
+      this.controls.invertLook = this.settings.invertLook;
       this.controls.sensitivity = this.settings.sensitivity;
       this.controls.reducedMotion = this.settings.reducedMotion;
     }
@@ -1024,6 +1026,11 @@ export class Application {
       : 0;
     this.previous = now;
     this.measureFrame(now);
+    // v0.6 Pass 057: the field-of-view preference, on whichever cameras may draw this frame
+    // (worlds load later with their own cameras; this only touches one that differs).
+    const fov = this.settings.fieldOfView;
+    if (this.office) applyFieldOfView(this.office.camera, fov);
+    applyFieldOfView(this.water().camera, fov);
     if (this.dive) {
       this.tickDive(dt);
       this.frame = requestAnimationFrame(this.tick);

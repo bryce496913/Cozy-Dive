@@ -135,7 +135,7 @@ select {
   max-width: 560px;
 }
 .eyebrow {
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 3px;
   color: #c0d9b9;
   margin: 0 0 27px;
@@ -249,7 +249,7 @@ h1 em {
   visibility: hidden;
 }
 .entry-note {
-  font-size: 10px;
+  font-size: 11.5px;
   letter-spacing: 0.7px;
   color: #a4c2b5;
   margin: 15px 0 0;
@@ -307,7 +307,7 @@ h1 em {
   flex-wrap: wrap;
   gap: 17px;
   color: #b7cdc1;
-  font-size: 10px;
+  font-size: 11px;
   align-items: center;
 }
 .controls > span {
@@ -406,7 +406,7 @@ kbd {
   color: #a6c2b8;
 }
 .settings-panel .save-status {
-  font-size: 10px;
+  font-size: 11px;
   border-top: 1px solid #c8dbce22;
   padding-top: 14px;
   margin-top: 20px;
