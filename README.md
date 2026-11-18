@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.6 / Pass 048 — Antarctic rare encounters (`0.6.0-rc.10`)** is a first-person, browser-based aquarium prototype. Start in a small glass-walled office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15` and v0.3 (Office & Dive Transition) at `0.3.0-rc.1`. No scores, timers, combat, accounts, or external asset services.
+A quiet little world beneath the surface. **v0.6 / Pass 050 — v0.4 and v0.5 acceptance (`0.6.0-rc.11`)** is a first-person, browser-based aquarium prototype. Start in a small glass-walled office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15` and v0.3 (Office & Dive Transition) at `0.3.0-rc.1`. No scores, timers, combat, accounts, or external asset services.
 
 ## Stack and requirements
 
@@ -356,6 +356,10 @@ Every embedded texture is now KTX2/Basis with a full mip chain, re-encoded from 
 ### v0.2 Pass 017 candidate
 
 Fish beyond 14 body lengths switch to a morphing distance level (about 1.8k instead of 12.7k triangles), cutting the spawn view by 28%. Every shipped model is Draco-compressed with WebP textures, so the production startup download falls from about 53 MB to about 17 MB, with no visible change. The Draco decoder is served locally. See [validation](docs/VALIDATION_V02_PASS_017.md).
+
+### v0.6 Pass 050 — v0.4 and v0.5 acceptance
+
+v0.4 (First Passage) and v0.5 (Personalization) are prepared for the macOS play-through. They are acceptance-ready, not accepted. One fix: your tank's save is never quietly emptied. Additions or little visitors that cannot be shown on this visit (not yet unlocked, or no longer fitting) are kept and come back later, and a save from a newer version is left alone. New tests cover all eight passage crossings. See [the acceptance report and checklist](docs/ACCEPTANCE_V04_V05.md).
 
 ### v0.6 Pass 040 — Release candidate
 
