@@ -20,7 +20,7 @@ export const OUTER_HORIZON = {
   clear: 16,
   /** A dark shade of the blue, and how faint (0..1). */
   colour: 0x0a2f48,
-  opacity: 0.26,
+  opacity: 0.2,
 } as const;
 
 type Placement = {
