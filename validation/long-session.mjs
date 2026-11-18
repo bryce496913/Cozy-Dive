@@ -10,8 +10,8 @@ import { browserScale, recordBrowserScale } from './browser-scale.mjs';
  * build time (`app.buildTimes`). Checks:
  *   - each world, and all of them together, within its memory budget (`BUDGET`, measured here and
  *     given about a quarter's headroom);
- *   - after each release the counts are back to the tank's (nothing left behind), and the second
- *     time round matches the first (no growth);
+ *   - after each release the counts are within the shared asset cache's bounded retention of the
+ *     tank's (Pass 055), and the second time round matches the first (no growth);
  *   - each world's preparation settles (ready or partial) and is disposed when released;
  *   - no page errors.
  */
@@ -122,6 +122,8 @@ try {
     ice: { geometries: 80, textures: 12 },
     all: { geometries: 1900, textures: 220 },
   };
+  /** v0.6 Pass 055: the cache's bounded retention after release (see docs/ACCEPTANCE_V06.md). */
+  const RETAINED = { geometries: 220, textures: 100 };
   const memory = () =>
     page.evaluate(() => {
       const m = window.__cozy.world.renderer.info.memory;
@@ -271,12 +273,19 @@ try {
       assert(p === 'ready' || p === 'partial', `prepared (${p})`);
     for (const p of r.released)
       assert.equal(p, 'disposed', 'released worlds are disposed');
-    assert.deepEqual(
-      r.afterRelease,
-      report.tank,
-      `back to the tank's GPU memory (loop ${loop + 1})`,
+    // v0.6 Pass 055: released worlds leave the fish they borrowed in the tank's asset cache (by
+    // design, bounded); what matters is that it stays within RETAINED and does not grow.
+    within(
+      diff(r.afterRelease, report.tank),
+      RETAINED,
+      `after release (loop ${loop + 1})`,
     );
   });
+  assert.deepEqual(
+    report.loops[1].afterRelease,
+    report.loops[0].afterRelease,
+    'no growth after release, the second time round',
+  );
   assert.deepEqual(
     report.loops[1].all,
     report.loops[0].all,
