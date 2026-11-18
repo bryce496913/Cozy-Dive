@@ -69,7 +69,8 @@ describe('v0.6 Pass 047: everyday life under the ice', () => {
       );
       for (const s of g.swims) {
         inside(s.pose.position, 0.9, 0.7);
-        expect(s.pose.position.y).toBeGreaterThan(ICE.ceiling - 5);
+        // v0.6 Pass 052: lower down, where the swimmer is (4 to 7.5 m under the ice, swerving lower from a swimmer).
+        expect(s.pose.position.y).toBeGreaterThan(ICE.ceiling - 10);
       }
     }
     expect(moved / 120).toBeGreaterThan(1);

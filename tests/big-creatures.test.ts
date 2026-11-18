@@ -121,6 +121,12 @@ describe('Pass 025 cruising routes', () => {
           species.clearance - 0.05,
         );
         expect(Math.abs(p.x)).toBeLessThan(OUTER.reef.maxX - 6);
+        if (species.id === 'green-sea-turtle') {
+          // v0.6 Pass 052: the turtles live on the reef top, inside the tank's glass.
+          expect(p.z).toBeGreaterThan(OUTER.glass.z + 2);
+          expect(p.z).toBeLessThan(OUTER.cliffZ - 4);
+          continue;
+        }
         // Pass 026: out in the blue, past the reef's lip, within reach of the eye.
         expect(p.z).toBeLessThan(OUTER.dropOff.start);
         expect(p.z).toBeGreaterThan(OUTER.bounds.min.z + 6);

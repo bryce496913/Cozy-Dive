@@ -9,7 +9,7 @@ import type { ConvexCollider } from '../../player/collision';
 import { boxCollider } from '../passage/Crevice';
 import {
   icicles,
-  mouthRocks,
+  mouthRocks as tunnelMouthRocks,
   rockTubeColliders,
   rockTubeGeometry,
 } from '../shared/RockTube';
@@ -183,7 +183,7 @@ export class CaveEnvironment {
     // v0.6 Pass 052 (playtest: "the tunnel to the ice needs to be better designed"): boulders
     // heaped round its mouth (frosted a little), and icicles hanging in its colder half.
     this.add(
-      mouthRocks(backTube, backMouthZ() + 0.1, 1, 0.25, 12, 52110),
+      tunnelMouthRocks(backTube, backMouthZ() + 0.1, 1, 0.25, 12, 52110),
       tunnel,
       'Cave back tunnel mouth',
     );

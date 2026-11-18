@@ -177,7 +177,7 @@ export class RestingSharks {
       r.root.rotation.set(b.bank, b.yaw, b.pitch);
       r.yaw = b.yaw;
       creatureStroke(r.near, r, b.effort);
-      if (b.mood === 'rest') {
+      if (b.resting) {
         // Just settled: lie there, level.
         r.rest = b.position.y;
         r.root.rotation.set(0, b.yaw, 0);
