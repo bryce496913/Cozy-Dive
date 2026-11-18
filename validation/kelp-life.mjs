@@ -64,9 +64,7 @@ try {
         !!document.pointerLockElement &&
         document.querySelector('#overlay').hidden,
     );
-  await page
-    .getByRole('button', { name: 'Enter the Water', exact: true })
-    .click();
+  await page.getByRole('button', { name: 'Dive In', exact: true }).click();
   await locked();
   const step = (count = 1) =>
     page.evaluate(async (count) => {

@@ -53,6 +53,16 @@ import { seenList } from '../discovery/sights';
 import { OfficeAmbience } from '../audio/OfficeAmbience';
 import { OFFICE, OFFICE_FOOTPRINTS } from '../config/office';
 import { FrameMeter, formatFrameSummary } from '../ui/frameMeter';
+import {
+  FIRST_VISIT,
+  createSwimHint,
+  loadOnboarding,
+  saveOnboarding,
+  stepSwimHint,
+  welcomeFor,
+  type Onboarding,
+  type SwimHint,
+} from '../ui/onboarding';
 
 /** Pass 022: seconds in the office before the first-visit hint appears. */
 const HINT_DELAY = 4;
@@ -128,6 +138,9 @@ export class Application {
   private visits = 0;
   /** Seconds walked in the office this visit, before the first-visit hint appears. */
   private officeVisit = 0;
+  /** v0.6 Pass 054: earlier visits (greeting, first choice) and the one-time swim hint. */
+  private onboarding!: Onboarding;
+  private swimHint!: SwimHint;
   private readonly frameMeter = new FrameMeter();
   private lastFrameAt = 0;
   /** v0.3 Pass 021: the dive or surfacing in progress, if any. */
@@ -223,6 +236,12 @@ export class Application {
       this.changeSettings,
       this.returnToTank,
     );
+    try {
+      this.onboarding = loadOnboarding(localStorage);
+    } catch {
+      this.onboarding = { ...FIRST_VISIT };
+    }
+    this.swimHint = createSwimHint(this.onboarding.swimHint);
     // v0.6 Pass 033: the number of the next visit to the outer reef (0 without storage).
     try {
       this.visits = loadVisits(localStorage);
@@ -329,6 +348,14 @@ export class Application {
         },
         { signal: this.abort.signal },
       );
+      this.ui.setWelcome(welcomeFor(this.onboarding));
+      this.ui.setLoading(true);
+      const world = this.world;
+      void Promise.all([world.prepared, this.office.prepared])
+        .catch(() => undefined)
+        .then(() => {
+          if (!this.disposed) this.ui.setLoading(false);
+        });
       this.frame = requestAnimationFrame(this.tick);
     } catch (error) {
       this.audio?.dispose();
@@ -434,7 +461,7 @@ export class Application {
     this.audio?.setActive(false);
     this.officeAudio?.setActive(false);
     this.ui.showError(
-      'Mouse capture was not granted. Click Enter again, or allow pointer lock in your browser.',
+      'Mouse capture was not granted. Choose Enter the Office or Dive In again, or allow mouse capture for this page in your browser.',
     );
   };
   private changeSettings = (settings: Settings): void => {
@@ -942,6 +969,38 @@ export class Application {
     if (summary) this.ui.setFrameTime(formatFrameSummary(summary));
     else if (!this.frameMeter.summary) this.ui.setFrameTime('measuring…');
   }
+  /**
+   * v0.6 Pass 054: the first swim's hint (in the water, unpaused). When it has run its course it is
+   * stored, so it never shows again; storage failures only mean it may show once more.
+   */
+  private stepSwimHint(dt: number): boolean {
+    if (this.swimHint.done) return false;
+    const input = this.controls!.input,
+      shows = stepSwimHint(
+        this.swimHint,
+        document.hidden ? 0 : dt,
+        input.forward !== 0 || input.right !== 0,
+      );
+    if (this.swimHint.done) {
+      this.onboarding.swimHint = true;
+      this.saveOnboarding();
+    }
+    return shows;
+  }
+  /** v0.6 Pass 054: the player has entered a space; next visit greets them back and offers it first. */
+  private remember(): void {
+    if (this.onboarding.visited && this.onboarding.last === this.mode) return;
+    this.onboarding.visited = true;
+    this.onboarding.last = this.mode;
+    this.saveOnboarding();
+  }
+  private saveOnboarding(): void {
+    try {
+      saveOnboarding(localStorage, this.onboarding);
+    } catch {
+      /* Storage unavailable: this visit still works; the next is treated as a first one. */
+    }
+  }
   private tick = (now: number): void => {
     if (this.disposed || !this.world || !this.controls) return;
     const dt = this.previous
@@ -971,8 +1030,11 @@ export class Application {
               : null
           : canSurface(pose.y, this.waterWorld)
             ? 'surface'
-            : null,
+            : this.stepSwimHint(dt)
+              ? 'swim'
+              : null,
     );
+    if (this.controls.locked) this.remember();
     this.manageOuter(dt);
     this.manageKelp(dt);
     this.manageCave(dt);

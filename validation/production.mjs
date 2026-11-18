@@ -58,7 +58,7 @@ try {
     0,
   );
   assert.equal(await page.evaluate(() => !!document.pointerLockElement), false);
-  await page.getByRole('button', { name: 'Enter the Water' }).click();
+  await page.getByRole('button', { name: 'Dive In' }).click();
   await page.waitForFunction(
     () =>
       !!document.pointerLockElement &&

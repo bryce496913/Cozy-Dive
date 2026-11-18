@@ -151,7 +151,7 @@ try {
   };
   const enter = async () => {
     await page
-      .getByRole('button', { name: /^(Enter|Return to) the Water$/ })
+      .getByRole('button', { name: /^(Dive In|Return to the Water)$/ })
       .click();
     await page.waitForFunction(() => !!document.pointerLockElement);
     await step();

@@ -52,9 +52,7 @@ try {
   await page.waitForFunction(
     () => window.__cozy?.world?.renderer.info.render.calls > 0,
   );
-  await page
-    .getByRole('button', { name: 'Enter the Water', exact: true })
-    .click();
+  await page.getByRole('button', { name: 'Dive In', exact: true }).click();
   await page.waitForFunction(
     () =>
       !!document.pointerLockElement &&
@@ -184,7 +182,7 @@ try {
   await noLock.evaluate(() => {
     window.__cozy.world.renderer.domElement.requestPointerLock = undefined;
   });
-  await noLock.getByRole('button', { name: 'Enter the Water' }).click();
+  await noLock.getByRole('button', { name: 'Dive In' }).click();
   await noLock.waitForFunction(() =>
     document.body.textContent.includes('Mouse capture is unavailable'),
   );
@@ -202,7 +200,7 @@ try {
     window.__cozy.world.renderer.domElement.requestPointerLock = () =>
       Promise.reject(new Error('Controlled denial'));
   });
-  await rejectedLock.getByRole('button', { name: 'Enter the Water' }).click();
+  await rejectedLock.getByRole('button', { name: 'Dive In' }).click();
   await rejectedLock.waitForFunction(() =>
     document.body.textContent.includes('Mouse capture was not granted'),
   );
@@ -212,7 +210,7 @@ try {
   const lost = await makeFailurePage();
   await lost.goto(url);
   await lost.waitForFunction(() => window.__cozy?.world);
-  await lost.getByRole('button', { name: 'Enter the Water' }).click();
+  await lost.getByRole('button', { name: 'Dive In' }).click();
   await lost.waitForFunction(
     () =>
       !!document.pointerLockElement &&

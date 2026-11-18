@@ -179,7 +179,7 @@ COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy020-office node validation/o
 
 - **Start:** the start screen opens in the office.
 - **Walking:** real Enter, pointer lock, held W and mouse look walk the player at a fixed eye height inside the room, with the depth readout hidden.
-- **Switching:** pause → Enter the Water → swim → back to the office works, and repeated switches leave GPU geometry and texture counts unchanged.
+- **Switching:** pause → Dive In → swim → back to the office works, and repeated switches leave GPU geometry and texture counts unchanged.
 - **Views:** fixed-camera captures of the room, the live miniature tank, the desk and window, and the shelf, with draw calls, triangles and CPU submit time.
 
 ## Pass 021 dive

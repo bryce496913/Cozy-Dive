@@ -197,6 +197,39 @@ h1 em {
   flex-wrap: wrap;
   gap: 12px;
 }
+/* v0.6 Pass 054: each choice says, in one quiet line, where it leads. */
+.entry-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 260px;
+}
+.entry-choice small {
+  font-size: 11px;
+  line-height: 1.5;
+  letter-spacing: 0.3px;
+  color: #a4c2b5;
+}
+.entry-choice small[hidden] {
+  display: none;
+}
+.load-note {
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  color: #a4c2b5;
+  margin: 10px 0 0;
+  animation: load-breathe 2.4s ease-in-out infinite;
+}
+@keyframes load-breathe {
+  50% {
+    opacity: 0.55;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .load-note {
+    animation: none;
+  }
+}
 .enter.secondary {
   background: transparent;
   color: #d6e3bb;

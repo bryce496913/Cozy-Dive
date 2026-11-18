@@ -65,7 +65,7 @@ try {
   await page.evaluate(() =>
     cancelAnimationFrame(window.__visualBenchmark.app.frame),
   );
-  await page.getByRole('button', { name: 'Enter the Water' }).click();
+  await page.getByRole('button', { name: 'Dive In' }).click();
   await page.waitForFunction(
     () =>
       !!document.pointerLockElement &&

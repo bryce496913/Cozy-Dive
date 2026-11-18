@@ -1,5 +1,6 @@
 import type { AudioStatus } from '../audio/AudioSystem';
 import { SWIM_SPEED, type Settings } from './settings';
+import type { Welcome } from './onboarding';
 
 const wave =
   '<svg viewBox="0 0 40 26" fill="none" aria-hidden="true"><path d="M2 8c6-8 12 8 18 0s12 8 18 0M2 18c6-8 12 8 18 0s12 8 18 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
@@ -24,7 +25,7 @@ export function isAudioMuteShortcut(
 export const SIGHTING_NOTE = { shown: 4200, fade: 900 } as const;
 /** Where the player is: the office (v0.3) or inside the aquarium. */
 /** In-world prompts: the E actions, and the first-visit hint. */
-export type Prompt = 'dive' | 'surface' | 'hint';
+export type Prompt = 'dive' | 'surface' | 'hint' | 'swim';
 export type ExperienceMode = 'office' | 'aquarium';
 export class Interface {
   private readonly abort = new AbortController();
@@ -60,11 +61,12 @@ export class Interface {
       <div class="scene" id="scene"></div><div class="vignette" aria-hidden="true"></div>
       <header class="topbar"><a class="brand" href="./" aria-label="Cozy Diver home">${wave}<span>COZY DIVER</span></a><span class="edition">A LITTLE WORLD. A LITTLE PEACE.</span><div class="preferences"><button id="audio-toggle" class="audio-toggle" type="button" aria-pressed="false">Mute audio</button><button class="settings-toggle" aria-expanded="false" aria-controls="settings-panel">Settings <span aria-hidden="true">⚙</span></button></div></header>
       <main class="overlay" id="overlay"><div class="welcome">
-        <p class="eyebrow"><span></span> YOUR FIRST DIVE</p>
+        <p class="eyebrow" id="eyebrow"><span></span> YOUR FIRST DIVE</p>
         <h1>Let the world<br>drift <em>away.</em></h1>
         <p class="intro">A quiet room, a little tank, and a whole reef inside it.<br>No rush. No destination. Just you and the water.</p>
-        <div class="entry-actions"><button class="enter" id="office">Enter the Office ${arrow}</button><button class="enter secondary" id="enter">Enter the Water ${arrow}</button><button class="enter secondary" id="return-tank" hidden>Return to the tank ${arrow}</button></div>
+        <div class="entry-actions"><div class="entry-choice"><button class="enter" id="office" aria-describedby="office-note">Enter the Office ${arrow}</button><small id="office-note">Walk around the room, then dive into the tank.</small></div><div class="entry-choice"><button class="enter" id="enter" aria-describedby="enter-note">Dive In ${arrow}</button><small id="enter-note">Go straight into the water.</small></div><button class="enter secondary" id="return-tank" hidden>Return to the tank ${arrow}</button></div>
         <p class="entry-note" id="entry-note">Walk with W A S D and look around with the mouse.</p>
+        <p class="load-note" id="load-note" aria-live="polite" hidden>Settling the water…</p>
         <button class="seen-toggle" id="seen-toggle" type="button" aria-expanded="false" aria-controls="seen-panel" hidden>Seen in the outer waters</button>
         <p class="status" id="status" role="status" aria-live="polite"></p>
       </div><div class="scene-label"><span class="label-line"></span><span>THE SUNLIT REEF AQUARIUM<small>01 / FIRST DIVE</small></span></div></main>
@@ -277,7 +279,10 @@ export class Interface {
         'The world can wait.<br>Your quiet corner is right where you left it.';
       const inOffice = this.mode === 'office';
       this.office.innerHTML = `${inOffice ? 'Return to the Office' : 'Enter the Office'} ${arrow}`;
-      this.enter.innerHTML = `${inOffice ? 'Enter the Water' : 'Return to the Water'} ${arrow}`;
+      this.enter.innerHTML = `${inOffice ? 'Dive In' : 'Return to the Water'} ${arrow}`;
+      // The captions describe a first choice; on the pause screen the labels say it all.
+      this.get('office-note').hidden = true;
+      this.get('enter-note').hidden = true;
       // The way back to where you were is the primary action.
       this.office.classList.toggle('secondary', !inOffice);
       this.enter.classList.toggle('secondary', inOffice);
@@ -302,8 +307,32 @@ export class Interface {
           ? '<kbd>E</kbd> Return to the office'
           : prompt === 'hint'
             ? 'Walk up to the tank and look into it to dive in'
-            : '';
-    element.classList.toggle('is-hint', prompt === 'hint');
+            : prompt === 'swim'
+              ? 'Look up or down and swim to change depth \u00b7 <kbd>ESC</kbd> pause'
+              : '';
+    element.classList.toggle('is-hint', prompt === 'hint' || prompt === 'swim');
+  }
+  /**
+   * v0.6 Pass 054: the start screen's greeting, and which choice comes first (the primary button,
+   * focused so Enter starts it). Only before the first entry; the pause screen has its own words.
+   */
+  setWelcome(welcome: Welcome): void {
+    // The eyebrow's first child is its decorative line; the words follow it.
+    const eyebrow = this.get('eyebrow');
+    eyebrow.replaceChildren(
+      eyebrow.firstElementChild ?? '',
+      ` ${welcome.eyebrow}`,
+    );
+    this.root.querySelector('h1')!.innerHTML = welcome.title;
+    this.root.querySelector('.intro')!.innerHTML = welcome.intro;
+    const water = welcome.primary === 'aquarium';
+    this.enter.classList.toggle('secondary', !water);
+    this.office.classList.toggle('secondary', water);
+    if (!this.enter.disabled) (water ? this.enter : this.office).focus();
+  }
+  /** v0.6 Pass 054: a quiet note while the first scene is still settling (entry works throughout). */
+  setLoading(loading: boolean): void {
+    this.get('load-note').hidden = !loading || !!this.fatalMessage;
   }
   /** Pass 022: the optional frame-time readout; null hides it. Writes only on change. */
   setFrameTime(text: string | null): void {
@@ -406,6 +435,7 @@ export class Interface {
       this.enter.disabled = true;
       this.office.disabled = true;
       this.enter.textContent = 'Water temporarily unavailable';
+      this.get('load-note').hidden = true;
     }
   }
   audioStatus(status: AudioStatus): void {

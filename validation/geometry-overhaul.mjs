@@ -59,9 +59,7 @@ try {
   await page.evaluate(() =>
     Promise.all([window.__cozy.world.prepared, window.__cozy.office.prepared]),
   );
-  await page
-    .getByRole('button', { name: 'Enter the Water', exact: true })
-    .click();
+  await page.getByRole('button', { name: 'Dive In', exact: true }).click();
   await page.waitForFunction(() => !!document.pointerLockElement);
   await page.evaluate(() => cancelAnimationFrame(window.__cozy.frame));
   for (const kind of process.env.COZY_GEOMETRY_PROBE
@@ -285,9 +283,7 @@ try {
     await fallback.evaluate(() => window.__cozy.world.authored.ready),
     false,
   );
-  await fallback
-    .getByRole('button', { name: 'Enter the Water', exact: true })
-    .click();
+  await fallback.getByRole('button', { name: 'Dive In', exact: true }).click();
   await fallback.waitForFunction(() => !!document.pointerLockElement);
   assert.equal(
     await fallback.evaluate(

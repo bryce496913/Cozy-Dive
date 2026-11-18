@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.6 / Pass 053 — Visual consistency (`0.6.0-rc.15`)** is a first-person, browser-based aquarium prototype. Start in a small glass-walled office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15` and v0.3 (Office & Dive Transition) at `0.3.0-rc.1`. No scores, timers, combat, accounts, or external asset services.
+A quiet little world beneath the surface. **v0.6 / Pass 054 — Frictionless onboarding (`0.6.0-rc.16`)** is a first-person, browser-based aquarium prototype. Start in a small glass-walled office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15` and v0.3 (Office & Dive Transition) at `0.3.0-rc.1`. No scores, timers, combat, accounts, or external asset services.
 
 ## Stack and requirements
 
@@ -13,7 +13,7 @@ npm install
 npm run dev
 ```
 
-Open the address printed by Vite. Click **Enter the Water** to give the canvas mouse capture. Escape pauses swimming and shows the resume overlay. Settings are accessible before entering or while paused.
+Open the address printed by Vite. Click **Dive In** (or **Enter the Office**) to give the canvas mouse capture. Escape pauses swimming and shows the resume overlay. Settings are accessible before entering or while paused.
 
 For an existing lockfile in CI or a clean checkout, use `npm ci`.
 
@@ -356,6 +356,16 @@ Every embedded texture is now KTX2/Basis with a full mip chain, re-encoded from 
 ### v0.2 Pass 017 candidate
 
 Fish beyond 14 body lengths switch to a morphing distance level (about 1.8k instead of 12.7k triangles), cutting the spawn view by 28%. Every shipped model is Draco-compressed with WebP textures, so the production startup download falls from about 53 MB to about 17 MB, with no visible change. The Draco decoder is served locally. See [validation](docs/VALIDATION_V02_PASS_017.md).
+
+### v0.6 Pass 054 — Instant relaxation and frictionless onboarding
+
+- **Two described choices:** **Enter the Office** (walk around, then dive into the tank) or **Dive In** (straight into the water; it was "Enter the Water"). The first is focused, so Enter starts.
+- **Welcome back:** returning visitors are greeted as such, with the place they last went offered first.
+- **A one-time swim hint** in the water: look up or down to change depth, Esc to pause. It goes as soon as you are swimming.
+- **A quiet "Settling the water…"** while the scene loads, and gentler error wording.
+- **Storage:** all of it is stored locally and tolerates blocked storage.
+
+See [onboarding](docs/ONBOARDING.md).
 
 ### v0.6 Pass 053 — Visual consistency
 

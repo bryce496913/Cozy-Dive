@@ -77,9 +77,7 @@ try {
   await page.evaluate(() =>
     Promise.all([window.__cozy.world.prepared, window.__cozy.office.prepared]),
   );
-  await page
-    .getByRole('button', { name: 'Enter the Water', exact: true })
-    .click();
+  await page.getByRole('button', { name: 'Dive In', exact: true }).click();
   await page.waitForFunction(() => !!document.pointerLockElement);
   await page.evaluate(() => cancelAnimationFrame(window.__cozy.frame));
   // Body, jaw, lure and mirrored feet use the same authored skin. A nested lure must
