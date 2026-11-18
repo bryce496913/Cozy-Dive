@@ -488,7 +488,8 @@ export const ASSET_REGISTRY = {
     path: 'assets/models/creatures/polar-bear.glb',
     requiredNodes: ['PolarBear_Root', 'Body', 'Body_LOD1'],
     minDimension: 1.8,
-    maxDimension: 2.7,
+    // v0.6 Pass 052B: it measures 2.8 m loaded (its legs and LOD included), so it never loaded.
+    maxDimension: 3.1,
     requireMorphs: true,
   },
   toothfish: {

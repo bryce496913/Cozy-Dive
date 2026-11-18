@@ -2,11 +2,8 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { ICE } from '../../config/passage';
 import type { Vec3 } from '../../config/world';
-import {
-  anemoneColumn,
-  anemoneCrown,
-  starGeometry,
-} from '../kelp/KelpDressing';
+import { anemoneColumn, anemoneCrown } from '../kelp/KelpDressing';
+import { seaStarShape } from '../kelp/KelpShapes';
 import { iceFloor } from './IceTerrain';
 
 /**
@@ -320,7 +317,8 @@ export class IceGarden {
     }
     // Sea stars: red and orange, a few very large.
     const stars = kind(
-      starGeometry(),
+      // v0.6 Pass 053: the rebuilt sea star (it was a flat extruded star).
+      seaStarShape(),
       new THREE.MeshStandardMaterial({
         name: 'Antarctic sea stars',
         color: 0xffffff,

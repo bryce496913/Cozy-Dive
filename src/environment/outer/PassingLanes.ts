@@ -31,6 +31,8 @@ interface Group {
   /** The loop's nearest reach towards the glass, members' sides and bodies included (z, m). */
   readonly reach: number;
   wait: number;
+  /** v0.6 Pass 052B: it lives inside the tank (its loop is not shifted). */
+  readonly fixed: boolean;
 }
 
 /** The nearest the group's loop comes to the glass (z): its route, lanes and body size. */
@@ -53,6 +55,8 @@ export class PassingLanes {
     cruisers: readonly Cruiser[],
     groupOf: readonly number[],
     seed = 37011,
+    /** v0.6 Pass 052B: groups that live inside the tank, by group index (never moved). */
+    residents: readonly boolean[] = [],
   ) {
     this.seed = seed >>> 0;
     const byGroup = new Map<number, Cruiser[]>();
@@ -61,8 +65,12 @@ export class PassingLanes {
       list.push(c);
       byGroup.set(groupOf[i], list);
     });
-    for (const members of byGroup.values()) {
-      const g: Group = { members, reach: loopReach(members), wait: 0 };
+    for (const [index, members] of byGroup) {
+      const reach = loopReach(members),
+        // v0.6 Pass 052B: a group that lives inside the tank (the turtles, on the reef top) is not
+        // a passer in the blue: it keeps its own loop (a lane shift carried it out past the glass).
+        fixed = !!residents[index];
+      const g: Group = { members, reach, wait: 0, fixed };
       this.groups.push(g);
       // Start each one in a lane of its own, chosen now (everything starts out of sight).
       this.choose(g, this.random() < LANES.closeChance, true);
@@ -79,6 +87,7 @@ export class PassingLanes {
     return (close ? glass - LANES.close : glass - LANES.far) - g.reach;
   }
   private choose(g: Group, close: boolean, snap: boolean): void {
+    if (g.fixed) return;
     const shift = this.shiftFor(this.groups.indexOf(g), close);
     for (const m of g.members) m.setLane(shift, snap);
     g.wait = LANES.hold[0] + this.random() * (LANES.hold[1] - LANES.hold[0]);

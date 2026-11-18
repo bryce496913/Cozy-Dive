@@ -28,6 +28,7 @@ import { OUTER_SIGHTS } from '../discovery/sights';
 import { PassingLanes } from '../environment/outer/PassingLanes';
 import { WallVisitors } from '../environment/outer/WallVisitors';
 import { TankGlass } from '../environment/shared/TankGlass';
+import { createOuterHorizon } from '../environment/outer/OuterHorizon';
 import { WATER_LIGHT, WaterDome } from '../environment/outer/WaterDome';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
 import type { FishHabitat } from '../fish/FishHabitat';
@@ -77,36 +78,30 @@ export class OuterWatersScene implements WaterWorld {
   readonly reef: OuterReef;
   /** v0.6 Pass 032: the cleft at the cliff's foot, the way on to the kelp forest. */
   readonly cleft = new OuterCleft();
-  /** v0.6 Pass 036: the display tank's glass: the back wall past the lip, and the sides. */
+  /**
+   * v0.6 Pass 036: the display tank's glass. v0.6 Pass 052B (open-ocean freedom): only the back
+   * window remains, out over the drop-off, frameless and fading in only as you come close, so
+   * from the reef the blue reads as open ocean; the reef runs on at the sides (no side glass).
+   */
   readonly glass = new TankGlass(
     (() => {
-      const g = OUTER.glass,
-        h = g.top - g.bottom,
-        y = (g.top + g.bottom) / 2,
-        depth = g.z - OUTER.cliffZ;
+      const g = OUTER.glass;
       return [
-        // A frame bar just below the reef's lip, where the window meets the reef.
         {
           x: 0,
-          y,
+          y: (g.top + g.bottom) / 2,
           z: g.z,
           width: g.halfWidth * 2,
-          height: h,
+          height: g.top - g.bottom,
           yaw: 0,
-          bars: [-1.2],
         },
-        ...[-1, 1].map((side) => ({
-          x: side * g.halfWidth,
-          y,
-          z: OUTER.cliffZ + depth / 2,
-          width: Math.abs(depth),
-          height: h,
-          yaw: Math.PI / 2,
-        })),
       ];
     })(),
     'Outer reef glass',
+    { frame: false, fade: true },
   );
+  /** v0.6 Pass 052B: far silhouettes and distant passers, implying the wider ocean. */
+  readonly horizon = createOuterHorizon();
   schools?: OuterSchools;
   /** v0.4 Pass 025: sharks, eagle rays and a turtle (absent if their models cannot load). */
   creatures?: OuterCreatures;
@@ -167,6 +162,7 @@ export class OuterWatersScene implements WaterWorld {
       this.environment.root,
       this.cleft.root,
       this.glass.root,
+      this.horizon.root,
     );
     // The same kinds and number of lights as the tank, so most shader programs are shared with
     // it and need no new compilation (programs are keyed by light counts).
@@ -325,7 +321,12 @@ export class OuterWatersScene implements WaterWorld {
     this.scene.add(this.schools.root);
     if (loaded) {
       this.scene.add(creatures.root);
-      this.lanes = new PassingLanes(creatures.cruisers, creatures.groupOf);
+      this.lanes = new PassingLanes(
+        creatures.cruisers,
+        creatures.groupOf,
+        undefined,
+        creatures.residents,
+      );
     }
     if (visiting) {
       // Nobody has come yet; they are hidden from the first frame after the warm-up below.
@@ -420,6 +421,8 @@ export class OuterWatersScene implements WaterWorld {
     for (let i = 0; i < this.lights.length; i++)
       this.lights[i].intensity = this.brightness[i] * dim;
     this.background.copy(this.dome.horizon);
+    this.glass.update(this.camera.position);
+    this.horizon.update(dt, active);
     this.reef.update(this.camera.position, dt, reducedMotion);
     this.schools?.update(dt, active, reducedMotion, player, this.camera);
     this.lanes?.update(dt, active, this.camera.position);
@@ -447,6 +450,7 @@ export class OuterWatersScene implements WaterWorld {
     this.environment.undress();
     this.cleft.dispose();
     this.glass.dispose();
+    this.horizon.dispose();
     this.schools?.dispose();
     this.creatures?.dispose();
     this.visitors?.dispose();

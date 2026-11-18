@@ -20,6 +20,8 @@ export function laneWeight(x: number, z: number): number {
 export const laneCentre = (z: number): number =>
   KELP.forest.lane.x + 3 * Math.sin(z * 0.06);
 
+/** Where the seabed starts to rise towards the far wall (z), fixed since Pass 036. */
+const KELP_FAR_RISE = -54.5 - 6;
 /** Seabed height (m) at (x, z): rocky swells, a sandy lane, rising to the wall and the sides. */
 export function kelpFloor(x: number, z: number): number {
   const swell =
@@ -28,7 +30,9 @@ export function kelpFloor(x: number, z: number): number {
       0.2 * Math.sin(x * 0.37 + z * 0.29 + 2.1),
     wall = 1.4 * smooth((z - (KELP.tunnel.wallZ - 7)) / 7),
     sides = 3 * smooth((Math.abs(x) - KELP.walls.x + 2) / 8),
-    far = 2.5 * smooth((KELP.reach.far - 6 - z) / 14);
+    // (The far rise is fixed where the reach used to end, so Pass 052B's longer reach leaves the
+    // ground unchanged.)
+    far = 2.5 * smooth((KELP_FAR_RISE - z) / 14);
   return (
     0.2 +
     swell * (1 - 0.7 * laneWeight(x, z)) -

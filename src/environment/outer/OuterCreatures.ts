@@ -107,6 +107,11 @@ export interface CruiseGroup {
   readonly members: readonly CruiserPlacement[];
   /** v0.6 Pass 032: a colour multiplied into the model's own (e.g. the bat ray's dark back). */
   readonly tint?: number;
+  /**
+   * v0.6 Pass 052B: it lives inside the tank (on the reef top), not out in the blue, so its loop
+   * is never moved onto a passing lane.
+   */
+  readonly resident?: boolean;
 }
 /** An oval of `n` waypoints at height `y(x, z)`, travelled anticlockwise seen from above. */
 export function oval(
@@ -177,6 +182,7 @@ export const OUTER_CRUISERS: readonly CruiseGroup[] = [
     // blue. A slow loop low over the coral on the left of the reef top (lifted over any taller
     // reef by the route), well clear of the tunnel's mouth and the glass.
     species: 'green-sea-turtle',
+    resident: true,
     scale: 1.2,
     waypoints: oval(-11, -45, 9, 4.5, (x) => 3.4 + 0.3 * Math.sin(x * 0.2)),
     members: [{ start: 0, side: 0, up: 0, phase: 0.8 }],
@@ -184,6 +190,7 @@ export const OUTER_CRUISERS: readonly CruiseGroup[] = [
   {
     // A second turtle on its own loop over the right of the reef top, with its own glide rhythm.
     species: 'green-sea-turtle',
+    resident: true,
     scale: 1.05,
     waypoints: oval(12, -47, 8, 4, (x) => 3.8 + 0.3 * Math.sin(x * 0.2 + 1)),
     members: [{ start: 20, side: 0, up: 0, phase: 3.7 }],
@@ -231,6 +238,8 @@ export class OuterCreatures {
   readonly ready: Promise<boolean>;
   /** v0.6 Pass 033: which group each cruiser belongs to (by index into the groups given). */
   readonly groupOf: readonly number[];
+  /** v0.6 Pass 052B: which groups live inside the tank (by group index). */
+  readonly residents: readonly boolean[];
   private rigs: Rig[] = [];
   private leases: AssetLease[] = [];
   private readonly eye = new THREE.Vector3();
@@ -249,6 +258,7 @@ export class OuterCreatures {
     this.cruisers = outerCruisers(obstacles, groups);
     this.tints = groups.flatMap((g) => g.members.map(() => g.tint));
     this.groupOf = groups.flatMap((g, i) => g.members.map(() => i));
+    this.residents = groups.map((g) => !!g.resident);
     this.ready = this.load();
   }
   private async load(): Promise<boolean> {

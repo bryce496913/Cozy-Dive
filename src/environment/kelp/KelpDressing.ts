@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { seaStarShape, urchinShape } from './KelpShapes';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { KELP } from '../../config/passage';
 import { createRockGeometry } from '../RockGeometry';
@@ -54,48 +55,6 @@ function merge(parts: THREE.BufferGeometry[]): THREE.BufferGeometry {
   return m;
 }
 
-/** A purple urchin: a dark test bristling with long spines (white tips catch the light). */
-export function urchinGeometry(): THREE.BufferGeometry {
-  const parts = [
-      solid(new THREE.IcosahedronGeometry(0.06, 1), 0.2, 0.06, 0.22),
-    ],
-    dirs = new THREE.IcosahedronGeometry(1, 1).getAttribute('position'),
-    up = new THREE.Vector3(0, 1, 0),
-    d = new THREE.Vector3(),
-    q = new THREE.Quaternion();
-  for (let i = 0; i < dirs.count; i += 2) {
-    d.set(dirs.getX(i), dirs.getY(i), dirs.getZ(i)).normalize();
-    if (d.y < -0.4) continue;
-    const spine = new THREE.ConeGeometry(0.008, 0.11, 3);
-    spine.translate(0, 0.055 + 0.05, 0);
-    q.setFromUnitVectors(up, d);
-    spine.applyQuaternion(q);
-    parts.push(solid(spine, 0.32, 0.12, 0.38));
-  }
-  const m = merge(parts);
-  m.scale(1, 0.75, 1);
-  return m;
-}
-/** A five-armed sea star lying flat, its arms tapering and slightly raised at the middle. */
-export function starGeometry(): THREE.BufferGeometry {
-  const shape = new THREE.Shape(),
-    arms = 5;
-  for (let i = 0; i <= arms * 2; i++) {
-    const a = (i / (arms * 2)) * Math.PI * 2,
-      r = i % 2 ? 0.035 : 0.11;
-    if (i === 0) shape.moveTo(Math.cos(a) * r, Math.sin(a) * r);
-    else shape.lineTo(Math.cos(a) * r, Math.sin(a) * r);
-  }
-  const g = new THREE.ExtrudeGeometry(shape, {
-    depth: 0.018,
-    bevelEnabled: true,
-    bevelThickness: 0.01,
-    bevelSize: 0.01,
-    bevelSegments: 1,
-  });
-  g.rotateX(-Math.PI / 2);
-  return merge([solid(g, 1, 1, 1)]);
-}
 /** An anemone: a short column and a crown of tentacles (tentacles are drawn by `anemoneCrown`). */
 export function anemoneColumn(): THREE.BufferGeometry {
   const col = new THREE.CylinderGeometry(0.07, 0.09, 0.09, 12, 1, false);
@@ -234,7 +193,8 @@ export class KelpDressing {
 
     // Urchins: clusters at boulder feet, a few scattered on the open rock.
     const urchins = this.instanced(
-      urchinGeometry(),
+      // v0.6 Pass 053: the rebuilt urchin and sea star.
+      urchinShape(),
       material,
       DRESSING.urchins,
       'Sea urchins',
@@ -265,7 +225,7 @@ export class KelpDressing {
       [0.95, 0.65, 0.2],
     ];
     const stars = this.instanced(
-      starGeometry(),
+      seaStarShape(),
       material,
       DRESSING.stars,
       'Sea stars',
