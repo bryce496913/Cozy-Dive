@@ -19,13 +19,18 @@ import path from 'node:path';
 const { chromium } = await import(process.env.COZY_PLAYWRIGHT || 'playwright');
 const output = process.env.COZY_OUTPUT || '/tmp/cozy059';
 fs.mkdirSync(output, { recursive: true });
+// COZY_HARDWARE=1 uses the machine's GPU (on a real laptop) instead of SwiftShader;
+// COZY_CHROMIUM points at a particular browser build.
 const browser = await chromium.launch({
+  executablePath: process.env.COZY_CHROMIUM || undefined,
+  headless: process.env.COZY_HEADFUL !== '1',
   args: [
     '--no-sandbox',
     '--disable-dev-shm-usage',
-    '--enable-unsafe-swiftshader',
-    '--use-angle=swiftshader',
     '--enable-precise-memory-info',
+    ...(process.env.COZY_HARDWARE
+      ? []
+      : ['--enable-unsafe-swiftshader', '--use-angle=swiftshader']),
   ],
 });
 const report = { errors: [], worlds: {} };
