@@ -74,7 +74,7 @@ describe('little visitors catalog and migration', () => {
     expect(m.babies).toEqual([]);
     expect(m.items).toEqual([]);
   });
-  it('migrates version 1, preserves decorations, and saves both in version 2', () => {
+  it('migrates version 1, preserves decorations, and saves both in version 3 (Pass 051)', () => {
     const s = store(
       JSON.stringify({ version: 1, items: [decoration], babies: ids }),
     );
@@ -83,7 +83,7 @@ describe('little visitors catalog and migration', () => {
       babies: [],
     });
     expect(saveTank(s, [decoration], ids)).toBe(true);
-    expect(JSON.parse(s.getItem()!).version).toBe(2);
+    expect(JSON.parse(s.getItem()!).version).toBe(3);
     expect(loadTankState(s, seen, context)).toEqual({
       items: [decoration],
       babies: ids,

@@ -3,12 +3,30 @@ import type { BigCreatureId } from '../config/creatures';
 import type { Sighting, JournalStore } from '../discovery/journal';
 import { AQUARIUM, type Vec3 } from '../config/world';
 import type { ConvexCollider } from '../player/collision';
+import type { SpeciesId } from '../fish/FishSpecies';
+import {
+  NO_FISH,
+  addFish,
+  fishRoom,
+  readFish,
+  removeFish,
+  type FishRoom,
+  type TankFishCounts,
+} from './fishCatalog';
 
 export const TANK_KEY = 'cozy-diver.tank.v1';
+/** v0.6 Pass 051: the save format written now (1 and 2 are read and migrated). */
+export const TANK_SAVE_VERSION = 3;
 export const TANK_CAP = 20;
+/**
+ * v0.6 Pass 051: the catalog's decoration groups. Items with an empty `sighting` already grow in
+ * the tank (its algae, rock and stone), so they are offered from the start; the rest once seen.
+ */
+export type TankCategory = 'coral-plant' | 'rock-decoration';
 export const TANK_ITEMS = [
   {
     kind: 'boulder',
+    category: 'coral-plant',
     sighting: 'coral:boulder',
     label: 'Boulder coral',
     node: 'Coral_Massive_0',
@@ -18,6 +36,7 @@ export const TANK_ITEMS = [
   },
   {
     kind: 'branching',
+    category: 'coral-plant',
     sighting: 'coral:branching',
     label: 'Branching coral',
     node: 'Coral_Branching_0',
@@ -27,6 +46,7 @@ export const TANK_ITEMS = [
   },
   {
     kind: 'plate',
+    category: 'coral-plant',
     sighting: 'coral:plate',
     label: 'Plate coral',
     node: 'Coral_Plate_0',
@@ -36,6 +56,7 @@ export const TANK_ITEMS = [
   },
   {
     kind: 'soft',
+    category: 'coral-plant',
     sighting: 'coral:soft',
     label: 'Soft coral',
     node: 'Soft_Coral_0',
@@ -45,6 +66,7 @@ export const TANK_ITEMS = [
   },
   {
     kind: 'sea-fan',
+    category: 'coral-plant',
     sighting: 'coral:sea-fan',
     label: 'Sea fan',
     node: 'Sea_Fan_0',
@@ -54,6 +76,7 @@ export const TANK_ITEMS = [
   },
   {
     kind: 'seagrass',
+    category: 'coral-plant',
     sighting: 'plant:seagrass',
     label: 'Seagrass patch',
     node: 'Turtle_Grass_0',
@@ -64,6 +87,7 @@ export const TANK_ITEMS = [
   {
     // v0.6 Pass 032: seen in the kelp forest. A small stand of kelp, built in code (no library node).
     kind: 'kelp',
+    category: 'coral-plant',
     sighting: 'plant:giant-kelp',
     label: 'Kelp',
     node: '',
@@ -74,12 +98,84 @@ export const TANK_ITEMS = [
   {
     // v0.6 Pass 034: seen in the sea cave. A small limestone arch, built in code (no library node).
     kind: 'arch',
+    category: 'rock-decoration',
     sighting: 'place:sea-cave',
     label: 'Limestone arch',
     node: '',
     width: 1.2,
     depth: 0.55,
     height: 0.9,
+  },
+  {
+    // v0.6 Pass 051: more from the authored reef library (no new assets).
+    kind: 'branching-tall',
+    category: 'coral-plant',
+    sighting: 'coral:branching',
+    label: 'Tall branching coral',
+    node: 'Coral_Branching_1',
+    width: 0.8,
+    depth: 0.4,
+    height: 1.2,
+  },
+  {
+    kind: 'plate-tiered',
+    category: 'coral-plant',
+    sighting: 'coral:plate',
+    label: 'Tiered plate coral',
+    node: 'Coral_Plate_1',
+    width: 0.85,
+    depth: 0.8,
+    height: 1.15,
+  },
+  {
+    kind: 'caulerpa',
+    category: 'coral-plant',
+    sighting: '',
+    label: 'Caulerpa',
+    node: 'Caulerpa_0',
+    width: 0.45,
+    depth: 0.26,
+    height: 1,
+  },
+  {
+    kind: 'halimeda',
+    category: 'coral-plant',
+    sighting: '',
+    label: 'Halimeda',
+    node: 'Halimeda_0',
+    width: 0.4,
+    depth: 0.4,
+    height: 0.85,
+  },
+  {
+    kind: 'red-algae',
+    category: 'coral-plant',
+    sighting: '',
+    label: 'Red algae',
+    node: 'Red_Algae_0',
+    width: 0.5,
+    depth: 0.46,
+    height: 0.95,
+  },
+  {
+    kind: 'reef-rock',
+    category: 'rock-decoration',
+    sighting: '',
+    label: 'Reef rock',
+    node: 'Rock_1',
+    width: 1,
+    depth: 1,
+    height: 1.15,
+  },
+  {
+    kind: 'stone',
+    category: 'rock-decoration',
+    sighting: '',
+    label: 'Smooth stone',
+    node: 'Pebble_0',
+    width: 0.5,
+    depth: 0.5,
+    height: 0.55,
   },
 ] as const;
 export type TankKind = (typeof TANK_ITEMS)[number]['kind'];
@@ -92,7 +188,9 @@ export interface TankItem {
 export const tankDefinition = (kind: TankKind) =>
   TANK_ITEMS.find((i) => i.kind === kind)!;
 export function unlockedItems(seen: readonly Sighting[]) {
-  return TANK_ITEMS.filter((i) => seen.some((s) => s.id === i.sighting));
+  return TANK_ITEMS.filter(
+    (i) => i.sighting === '' || seen.some((s) => s.id === i.sighting),
+  );
 }
 export interface KeepOut {
   readonly name: string;
@@ -223,7 +321,7 @@ function loadItems(
       !data ||
       typeof data !== 'object' ||
       !('version' in data) ||
-      (data.version !== 1 && data.version !== 2) ||
+      (data.version !== 1 && data.version !== 2 && data.version !== 3) ||
       !('items' in data) ||
       !Array.isArray(data.items)
     )
@@ -284,7 +382,7 @@ export function loadTankState(
       data &&
       typeof data === 'object' &&
       'version' in data &&
-      data.version === 2 &&
+      (data.version === 2 || data.version === 3) &&
       'babies' in data &&
       Array.isArray(data.babies)
     ) {
@@ -319,6 +417,8 @@ export function loadTank(
 export interface KeptEntries {
   readonly items: readonly unknown[];
   readonly babies: readonly string[];
+  /** v0.6 Pass 051: added fish of species not offered this visit. */
+  readonly fish?: Readonly<Record<string, number>>;
   /** The save is from a newer version; it is left untouched. */
   readonly newer: boolean;
 }
@@ -327,14 +427,16 @@ export const NO_KEPT: KeptEntries = { items: [], babies: [], newer: false };
 export function keptEntries(
   store: JournalStore,
   loaded: Readonly<TankSave>,
+  seen: readonly Sighting[] = [],
 ): KeptEntries {
   try {
     const data: unknown = JSON.parse(store.getItem(TANK_KEY) ?? 'null');
     if (!data || typeof data !== 'object' || !('version' in data))
       return NO_KEPT;
-    if (typeof data.version === 'number' && data.version > 2)
+    if (typeof data.version === 'number' && data.version > TANK_SAVE_VERSION)
       return { ...NO_KEPT, newer: true };
-    if (data.version !== 1 && data.version !== 2) return NO_KEPT;
+    if (data.version !== 1 && data.version !== 2 && data.version !== 3)
+      return NO_KEPT;
     const ids = new Set(loaded.items.map((i) => i.id)),
       items: unknown[] = [];
     if ('items' in data && Array.isArray(data.items))
@@ -352,7 +454,11 @@ export function keptEntries(
         items.push(raw);
       }
     const babies: string[] = [];
-    if (data.version === 2 && 'babies' in data && Array.isArray(data.babies))
+    if (
+      (data.version === 2 || data.version === 3) &&
+      'babies' in data &&
+      Array.isArray(data.babies)
+    )
       for (const raw of data.babies)
         if (
           typeof raw === 'string' &&
@@ -361,9 +467,28 @@ export function keptEntries(
           !babies.includes(raw)
         )
           babies.push(raw);
-    return { items, babies, newer: false };
+    const fish =
+      data.version === 3 && 'fish' in data
+        ? readFish(data.fish, seen).kept
+        : {};
+    return { items, babies, fish, newer: false };
   } catch {
     return NO_KEPT;
+  }
+}
+/** v0.6 Pass 051: the added fish saved with the tank (version 3; none before). */
+export function loadTankFish(
+  store: JournalStore,
+  seen: readonly Sighting[],
+): TankFishCounts {
+  try {
+    const data: unknown = JSON.parse(store.getItem(TANK_KEY) ?? 'null');
+    if (!data || typeof data !== 'object' || !('version' in data))
+      return NO_FISH;
+    if (data.version !== 3 || !('fish' in data)) return NO_FISH;
+    return readFish(data.fish, seen).counts;
+  } catch {
+    return NO_FISH;
   }
 }
 export function saveTank(
@@ -371,6 +496,7 @@ export function saveTank(
   items: readonly TankItem[],
   babies: readonly BigCreatureId[] = [],
   kept: Readonly<KeptEntries> = NO_KEPT,
+  fish: TankFishCounts = NO_FISH,
 ): boolean {
   if (kept.newer) return false;
   try {
@@ -378,7 +504,8 @@ export function saveTank(
     store.setItem(
       TANK_KEY,
       JSON.stringify({
-        version: 2,
+        version: TANK_SAVE_VERSION,
+        fish: { ...kept.fish, ...fish },
         items: [
           ...items,
           ...kept.items.filter(
@@ -402,25 +529,64 @@ export function saveTank(
   }
 }
 /** Transactions retain the original item while moving; cancellation never loses it. */
+/** v0.6 Pass 051: one undoable state of the tank (what you added, not the preview). */
+interface TankSnapshot {
+  readonly items: readonly TankItem[];
+  readonly babies: readonly BigCreatureId[];
+  readonly fish: TankFishCounts;
+}
+/** How many changes Undo can step back through. */
+export const UNDO_DEPTH = 20;
+/** One turn step (30°); Shift turns the other way. */
+export const TURN_STEP = Math.PI / 6;
 export class TankCatalog {
   private list: readonly TankItem[];
   private animals: readonly BigCreatureId[];
+  private school: TankFishCounts;
+  private readonly history: TankSnapshot[] = [];
   preview: TankItem | null = null;
   constructor(
     items: readonly TankItem[],
     readonly context: PlacementContext,
     babies: readonly BigCreatureId[] = [],
+    fish: TankFishCounts = NO_FISH,
   ) {
     this.list = items;
     this.animals = [...new Set(babies)]
       .filter((id) => TANK_BABIES.some((b) => b.id === id))
       .slice(0, BABY_CAP);
+    this.school = { ...fish };
   }
   get items() {
     return this.list;
   }
   get babies() {
     return this.animals;
+  }
+  /** v0.6 Pass 051: added fish by species. */
+  get fish(): TankFishCounts {
+    return this.school;
+  }
+  get canUndo(): boolean {
+    return this.history.length > 0;
+  }
+  private remember() {
+    this.history.push({
+      items: this.list,
+      babies: this.animals,
+      fish: this.school,
+    });
+    if (this.history.length > UNDO_DEPTH) this.history.shift();
+  }
+  /** Step back one change (placing, moving, removing, or adding/returning an animal). */
+  undo(): boolean {
+    const last = this.history.pop();
+    if (!last) return false;
+    this.list = last.items;
+    this.animals = last.babies;
+    this.school = last.fish;
+    this.preview = null;
+    return true;
   }
   addBaby(id: BigCreatureId, seen: readonly Sighting[]): boolean {
     if (
@@ -429,11 +595,29 @@ export class TankCatalog {
       !unlockedBabies(seen).some((b) => b.id === id)
     )
       return false;
+    this.remember();
     this.animals = [...this.animals, id];
     return true;
   }
   removeBaby(id: BigCreatureId) {
+    if (!this.animals.includes(id)) return;
+    this.remember();
     this.animals = this.animals.filter((b) => b !== id);
+  }
+  /** v0.6 Pass 051: add one fish of a species, if it is offered and there is room. */
+  addFish(species: SpeciesId, seen: readonly Sighting[]): FishRoom {
+    const room = fishRoom(this.school, species, seen);
+    if (!room.ok) return room;
+    this.remember();
+    this.school = addFish(this.school, species, seen) ?? this.school;
+    return room;
+  }
+  /** Return one added fish of a species to the sea. */
+  removeFish(species: SpeciesId): boolean {
+    if (!(this.school[species] ?? 0)) return false;
+    this.remember();
+    this.school = removeFish(this.school, species);
+    return true;
   }
   begin(kind: TankKind, id = `tank-${crypto.randomUUID()}`): boolean {
     if (this.list.length >= TANK_CAP) return false;
@@ -446,12 +630,17 @@ export class TankCatalog {
     this.preview = { ...item, position: { ...item.position } };
     return true;
   }
-  turn() {
-    if (this.preview)
+  /** Turn the preview a step (anticlockwise seen from above; `-1` turns back). */
+  turn(direction: 1 | -1 = 1) {
+    if (this.preview) {
+      const full = Math.PI * 2;
       this.preview = {
         ...this.preview,
-        rotation: (this.preview.rotation + Math.PI / 6) % (Math.PI * 2),
+        rotation:
+          (((this.preview.rotation + direction * TURN_STEP) % full) + full) %
+          full,
       };
+    }
   }
   aim(position: Readonly<Vec3>) {
     if (this.preview)
@@ -463,11 +652,10 @@ export class TankCatalog {
     );
   }
   place(): boolean {
-    if (!this.preview || !this.valid) return false;
-    this.list = [
-      ...this.list.filter((i) => i.id !== this.preview!.id),
-      this.preview,
-    ];
+    const preview = this.preview;
+    if (!preview || !this.valid) return false;
+    this.remember();
+    this.list = [...this.list.filter((i) => i.id !== preview.id), preview];
     this.preview = null;
     return true;
   }
@@ -475,12 +663,18 @@ export class TankCatalog {
     this.preview = null;
   }
   remove(id: string) {
-    this.list = this.list.filter((i) => i.id !== id);
+    if (this.list.some((i) => i.id === id)) {
+      this.remember();
+      this.list = this.list.filter((i) => i.id !== id);
+    }
     if (this.preview?.id === id) this.cancel();
   }
+  /** Restore the original tank: every addition, visitor and added fish goes; Undo is cleared. */
   reset() {
     this.animals = [];
     this.list = [];
+    this.school = {};
+    this.history.length = 0;
     this.cancel();
   }
 }

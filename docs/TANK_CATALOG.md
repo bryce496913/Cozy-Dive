@@ -32,6 +32,82 @@ The editor owns its DOM/listeners and the decoration instance. The decoration ow
 
 ## Saving and reset
 
-`cozy-diver.tank.v1` now holds version 2, decoration ids/kinds/positions/rotations and baby species ids. Pass 029 version 1 saves migrate without losing decorations. Loading drops malformed, duplicate, unsupported, undiscovered or invalid placements independently. Unavailable storage leaves the editor usable for the visit. Settings offers **Restore the original tank**, followed by explicit confirmation; it clears additions and returns animals to the sea while preserving sightings and preferences. Reset is immediate even while paused; ordinary returns fade on simulation time.
+`cozy-diver.tank.v1` now holds version 3 (Pass 051): decoration ids/kinds/positions/rotations, baby species ids and added-fish counts by species. Pass 029 version 1 and Pass 030 version 2 saves migrate without losing anything; they simply have no fish yet. Entries a visit cannot show (not yet seen, or no longer fitting) are kept and written back (Pass 050), and a save from a newer version is never overwritten. Loading drops malformed, duplicate, unsupported, undiscovered or invalid placements independently. Unavailable storage leaves the editor usable for the visit. Settings offers **Restore the original tank**, followed by explicit confirmation; it clears additions and returns animals to the sea while preserving sightings and preferences. Reset is immediate even while paused; ordinary returns fade on simulation time.
 
 Conservative clearance can reject visually tempting spaces near homes or narrow rocks. This intentionally keeps the established swimming paths and animal habitats usable. GPU and comfort acceptance still require target-device testing.
+
+## Pass 051: full aquarium personalization
+
+The catalog is data-driven and grouped. Nothing costs anything and nothing needs looking after: there is no feeding, death, water quality, currency or timer. The only limit is room in the tank.
+
+### Inventory
+
+**Schooling fish** (`src/config/tankFish.ts`). These join the tank's own school of their kind.
+
+| Fish                | Offered                | Most added                   |
+| ------------------- | ---------------------- | ---------------------------- |
+| Blue-green chromis  | from the start         | 12                           |
+| Pajama cardinalfish | from the start         | 6                            |
+| Blue tang           | once seen (outer reef) | 3 (a small group of its own) |
+
+**Aquarium fish.** Each keeps a territory of its own.
+
+| Fish                    | Offered                | Most added |
+| ----------------------- | ---------------------- | ---------- |
+| Firefish                | from the start         | 4          |
+| Yellow assessor         | from the start         | 2          |
+| Royal gramma            | from the start         | 2          |
+| Threadfin butterflyfish | once seen (outer reef) | 2 (pairs)  |
+| Moorish idol            | once seen (outer reef) | 2 (pairs)  |
+
+At most **24 added fish** in all (`TANK_FISH_CAP`).
+
+**Little visitors.** Unchanged: blacktip pup, baby eagle ray and turtle hatchling, one of each.
+
+**Plants and corals.**
+
+- **Unlocked by a sighting:** boulder, branching, plate and soft coral, sea fan, seagrass, kelp. Two new variants come with sightings already made: **tall branching coral** (with branching coral) and **tiered plate coral** (with plate coral).
+- **From the start**, because they already grow in the tank: **caulerpa**, **halimeda** and **red algae**.
+
+**Rocks and decorations.**
+
+- **Limestone arch:** once the sea cave is seen.
+- **From the start:** **reef rock** and **smooth stone**.
+
+All new decorations are nodes of the existing authored reef library: no new assets or downloads. The six tank ornaments (boat, chest, filter and the others) stay unique. They carry named creature homes and effects, so copies would conflict with those homes.
+
+**Not for this tank.** Once seen, these are listed with a gentle reason:
+
+- **The anemone's clownfish family:** already in place.
+- **Too big:** parrotfish, humphead wrasse, bigeye trevally and great barracuda.
+- **Cool kelp-forest water:** garibaldi, kelp bass, blacksmith and señorita.
+- **The dark of a sea cave:** glassy sweeper, soldierfish and flashlight fish.
+- **Freezing polar water:** icefish and bald notothen.
+
+### Living fish, not decorations
+
+`TankFish` (`src/environment/TankFish.ts`) gives the added fish one population on the ordinary fish simulation. It uses the same species definitions, habitat, obstacle avoidance, territories, diver reactions and behaviour as the tank's own fish, and the same authored rigs (`AuthoredSchool`). If those rigs cannot load, it falls back to the simple fish.
+
+The tank's home fish are passed to the added population's schooling as one-way **companions** (`FishSchooling`):
+
+- **Schooling:** added chromis and cardinalfish see the home fish as neighbours. They keep apart from them, align with them and close up with them, so they join the existing school.
+- **The home fish:** nothing feeds back into their simulation. They move exactly as they did before. A test proves this: the home fish's positions are identical, to the last bit, with and without added fish.
+- **Ids:** added fish's ids start after the home fish's.
+
+`TankFish` is created lazily, so an unpersonalized tank pays nothing. It is owned by the underwater scene and updated after the home fish. The office drives that same update for its miniature, so added fish swim there too.
+
+When the counts change, the population is rebuilt (only from the catalog, never per frame):
+
+- **Stale loads:** a rig load that is overtaken by a newer change is discarded, and its leases are released.
+- **No room:** if the tank cannot seat a new population, nothing changes, and a calm note says there is no open water just now.
+
+Placement checks and the one-time re-seat after an edit cover both populations.
+
+### Placing and changing
+
+- **Turning:** **R** turns 30° and **Shift+R** turns back.
+- **Undo:** **Z** (or **Undo** in the panel) steps back through the last 20 changes: placing, moving, removing, and adding or returning a fish or a visitor.
+- **Cancelling:** with a preview showing, **Z** or **Escape** cancels; a cancelled move keeps the original.
+- **Adding fish:** adding or returning a fish keeps the panel open, with focus on the same button, so several can be added from the keyboard.
+- **Gentle limits:** an unavailable **Add one** is disabled and its reason is read with it, for example "The tank has all the royal gramma it suits."
+- **Restore the original tank:** also returns the added fish to the sea and clears Undo. Sightings and settings stay.

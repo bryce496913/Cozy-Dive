@@ -1,3 +1,4 @@
+import type { TankFish } from '../environment/TankFish';
 import type { TankBabies } from '../environment/TankBabies';
 import type { TankDecoration } from '../environment/TankDecoration';
 import { AuthoredAquarium } from '../environment/AuthoredAquarium';
@@ -52,6 +53,8 @@ export class UnderwaterScene implements WaterWorld {
   readonly reef: AuthoredReef;
   decoration?: TankDecoration;
   babies?: TankBabies;
+  /** v0.6 Pass 051: fish the swimmer added to the tank (owned here once created). */
+  tankFish?: TankFish;
   /** v0.4 Pass 024: the reef library's loader (the outer reef leases from the same cache). */
   readonly reefLoader: AssetLoader;
   /** Resolves once authored libraries settle and their programs are compiled. */
@@ -303,6 +306,8 @@ export class UnderwaterScene implements WaterWorld {
       }
     }
     this.aquarium.update(time, reducedMotion, dt, active, player);
+    // After the home fish move, so the added fish school with where they are now.
+    this.tankFish?.update(dt, active, reducedMotion, player, camera);
     this.authored.update(camera);
     this.decoration?.update(camera);
     this.presentation?.update();
@@ -357,6 +362,8 @@ export class UnderwaterScene implements WaterWorld {
     this.outlook.dispose();
     this.babies?.dispose();
     this.babies = undefined;
+    this.tankFish?.dispose();
+    this.tankFish = undefined;
     this.reef.dispose();
     this.authored.dispose();
     this.aquarium.dispose();

@@ -119,9 +119,10 @@ describe('Pass 034 the sea cave', () => {
       'Whitetip reef shark',
     );
     expect(
-      unlockedItems([
-        { id: 'place:sea-cave', first: '2026-11-15T00:00:00Z' },
-      ]).map((i) => i.kind),
+      unlockedItems([{ id: 'place:sea-cave', first: '2026-11-15T00:00:00Z' }])
+        // Pass 051: beside the tank's own starters, which need no sighting.
+        .filter((i) => i.sighting)
+        .map((i) => i.kind),
     ).toEqual(['arch']);
     env.dispose();
   });

@@ -83,6 +83,10 @@ export const ASSET_REGISTRY = {
       'Rock_5',
       'Pebble_0',
       'Coral_Branching_0',
+      // v0.6 Pass 051: tank catalog decorations.
+      'Coral_Branching_1',
+      'Coral_Plate_1',
+      'Rock_1',
       'Coral_Massive_0',
       'Coral_Massive_0_LOD1',
       'Coral_Plate_0',

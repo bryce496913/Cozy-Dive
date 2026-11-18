@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.6 / Pass 050 — v0.4 and v0.5 acceptance (`0.6.0-rc.11`)** is a first-person, browser-based aquarium prototype. Start in a small glass-walled office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15` and v0.3 (Office & Dive Transition) at `0.3.0-rc.1`. No scores, timers, combat, accounts, or external asset services.
+A quiet little world beneath the surface. **v0.6 / Pass 051 — Full aquarium personalization (`0.6.0-rc.12`)** is a first-person, browser-based aquarium prototype. Start in a small glass-walled office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15` and v0.3 (Office & Dive Transition) at `0.3.0-rc.1`. No scores, timers, combat, accounts, or external asset services.
 
 ## Stack and requirements
 
@@ -357,6 +357,18 @@ Every embedded texture is now KTX2/Basis with a full mip chain, re-encoded from 
 
 Fish beyond 14 body lengths switch to a morphing distance level (about 1.8k instead of 12.7k triangles), cutting the spawn view by 28%. Every shipped model is Draco-compressed with WebP textures, so the production startup download falls from about 53 MB to about 17 MB, with no visible change. The Draco decoder is served locally. See [validation](docs/VALIDATION_V02_PASS_017.md).
 
+### v0.6 Pass 051 — Full aquarium personalization
+
+Make the tank your own. Pause in the tank and choose **For your tank**:
+
+- **Fish:** add fish, not just visitors. Chromis and cardinalfish join the tank's schools. Firefish, assessors and grammas each settle into a home of their own. Blue tang, butterflyfish and Moorish idols join once you have seen them on the outer reef.
+- **Living, not decorations:** they swim with the same behaviour as the tank's own fish, and appear in the office miniature too.
+- **Limits:** a gentle note says when the tank has enough. Fish that don't suit a home tank (too big, or from cold, dark or polar water) are listed with the reason.
+- **Decorations:** more corals, algae, a reef rock and a smooth stone. **Shift+R** turns back, and **Z** or **Undo** steps back a change.
+- **Saving:** everything saves on this device, and older saves carry over. **Restore the original tank** returns it all to the sea, while your sightings stay.
+
+See [the tank catalog](docs/TANK_CATALOG.md#pass-051-full-aquarium-personalization) and [validation](docs/VALIDATION_V06_PASS_051.md).
+
 ### v0.6 Pass 050 — v0.4 and v0.5 acceptance
 
 v0.4 (First Passage) and v0.5 (Personalization) are prepared for the macOS play-through. They are acceptance-ready, not accepted. One fix: your tank's save is never quietly emptied. Additions or little visitors that cannot be shown on this visit (not yet unlocked, or no longer fitting) are kept and come back later, and a save from a newer version is left alone. New tests cover all eight passage crossings. See [the acceptance report and checklist](docs/ACCEPTANCE_V04_V05.md).
@@ -441,4 +453,4 @@ See [release-candidate validation](docs/VALIDATION_V05_PASS_031.md).
 
 ### v0.5 Passes 029–030 — The tank catalog and little visitors
 
-Discover corals and seagrass beyond the tank, then pause inside the aquarium and choose **For your tank**. Aim a preview at sand or rock, **R** turns, **F** places, and **Escape** cancels. Look at an addition to **G** move or **X** remove it. Additions save on this device and appear in the office miniature. Seeing the outer reef’s shark, eagle ray or turtle also unlocks one small visitor of that kind: choose **Add to the tank**, or **Return it to the sea**. They swim calmly around the scenery, with room for the swimmer and fish. Settings can restore the original tank, including returning visitors, after confirmation.
+Discover corals and seagrass beyond the tank, then pause inside the aquarium and choose **For your tank**. Aim a preview at sand or rock, **R** turns (**Shift+R** back), **F** places, and **Escape** or **Z** cancels; **Z** also undoes the last change. Look at an addition to **G** move or **X** remove it. Additions save on this device and appear in the office miniature. Seeing the outer reef’s shark, eagle ray or turtle also unlocks one small visitor of that kind: choose **Add to the tank**, or **Return it to the sea**. They swim calmly around the scenery, with room for the swimmer and fish. Settings can restore the original tank, including returning visitors, after confirmation.

@@ -82,7 +82,8 @@ describe('v0.4/v0.5 acceptance: saves are never quietly emptied', () => {
     const moved = { ...boulder, position: { x: 8, y: 0, z: 8 } };
     expect(saveTank(s, [moved], loaded.babies, kept)).toBe(true);
     expect(s.saved).toEqual({
-      version: 2,
+      version: 3,
+      fish: {},
       items: [moved, coral],
       babies,
     });
@@ -94,7 +95,7 @@ describe('v0.4/v0.5 acceptance: saves are never quietly emptied', () => {
       kept = keptEntries(s, loaded);
     expect(kept.items).toEqual([boulder, coral]);
     expect(saveTank(s, [], [], kept)).toBe(true);
-    expect((s.saved as { version: number }).version).toBe(2);
+    expect((s.saved as { version: number }).version).toBe(3);
     expect(loadTankState(s, everything, context).items).toEqual([
       boulder,
       coral,
@@ -102,7 +103,7 @@ describe('v0.4/v0.5 acceptance: saves are never quietly emptied', () => {
   });
 
   it('never overwrites a save from a newer version', () => {
-    const newer = { version: 3, items: [boulder], babies, fish: ['x'] };
+    const newer = { version: 4, items: [boulder], babies, fish: ['x'] };
     const s = store(newer);
     const loaded = loadTankState(s, everything, context),
       kept = keptEntries(s, loaded);

@@ -7,17 +7,20 @@ import type { Sighting } from '../discovery/journal';
 import {
   TankCatalog,
   keptEntries,
+  loadTankFish,
   loadTankState,
   NO_KEPT,
   type KeptEntries,
-  unlockedBabies,
   saveTank,
-  unlockedItems,
   itemCollider,
   targetTankItem,
   type TankKind,
 } from './catalog';
 import { tankContext } from './TankContext';
+import { TankFish } from '../environment/TankFish';
+import type { SpeciesId } from '../fish/FishSpecies';
+import type { FishEntity } from '../fish/FishEntity';
+import { renderCatalog } from './TankCatalogPanel';
 import { TankDecoration } from '../environment/TankDecoration';
 import { insideRock, safeFishPosition } from '../fish/FishHabitat';
 
@@ -82,7 +85,7 @@ export class TankEditor {
     this.reset.disabled = true;
     this.confirmation.hidden = true;
     this.confirmation.innerHTML =
-      '<p>Remove your added corals and plants, and return the little visitors to the sea? Your sightings stay.</p><button type="button" data-confirm>Restore tank</button><button type="button" data-cancel>Keep my tank</button>';
+      '<p>Remove your added corals, plants and stones, and return the added fish and little visitors to the sea? Your sightings and settings stay.</p><button type="button" data-confirm>Restore tank</button><button type="button" data-cancel>Keep my tank</button>';
     root
       .querySelector('#settings-panel')!
       .append(this.reset, this.confirmation);
@@ -122,6 +125,7 @@ export class TankEditor {
         this.kept = this.kept.newer ? this.kept : NO_KEPT;
         this.world.babies?.dispose();
         this.world.babies = undefined;
+        this.fishChanged(false);
         this.changed();
         this.confirmation.hidden = true;
         this.reset.focus();
@@ -164,15 +168,17 @@ export class TankEditor {
           return d === undefined ? base(x, z) : 13 - d;
         };
         const actual = { ...context, surface };
-        let saved: ReturnType<typeof loadTankState> = { items: [], babies: [] };
+        let saved: ReturnType<typeof loadTankState> = { items: [], babies: [] },
+          fish: ReturnType<typeof loadTankFish> = {};
         try {
           saved = loadTankState(localStorage, this.seen(), actual);
-          this.kept = keptEntries(localStorage, saved);
+          fish = loadTankFish(localStorage, this.seen());
+          this.kept = keptEntries(localStorage, saved, this.seen());
         } catch {
           /* unavailable storage */
         }
         if (this.disposed) return;
-        this.model = new TankCatalog(saved.items, actual, saved.babies);
+        this.model = new TankCatalog(saved.items, actual, saved.babies, fish);
         this.reset.disabled = false;
         if (this.kept.newer)
           this.notice.textContent =
@@ -184,6 +190,7 @@ export class TankEditor {
           this.notice.textContent =
             'Tank details could not load. You can keep exploring and your saved additions are unchanged.';
         this.babiesChanged(false);
+        this.fishChanged(false);
       })
       .catch((error) => {
         if (!this.disposed) {
@@ -193,49 +200,87 @@ export class TankEditor {
         }
       });
   }
-  private open() {
+  private open(focusKey?: string) {
     if (!this.current?.eligible || this.current.active || !this.model) return;
     this.root.querySelector<HTMLElement>('#settings-panel')!.hidden = true;
     this.root.querySelector<HTMLElement>('#seen-panel')!.hidden = true;
-    this.panel.replaceChildren();
-    const h = document.createElement('h2');
-    h.textContent = 'For your tank';
-    const close = document.createElement('button');
-    close.textContent = 'Close';
-    close.onclick = () => this.close();
-    this.panel.append(h, close);
-    const items = unlockedItems(this.seen()),
-      animals = unlockedBabies(this.seen());
-    if (!items.length && !animals.length) {
-      const p = document.createElement('p');
-      p.textContent = 'Things you see beyond the tank can find a home here.';
-      this.panel.append(p);
-    }
-    for (const item of items) {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.textContent = item.label;
-      b.disabled = !this.artReady;
-      b.onclick = () => this.choose(item.kind);
-      this.panel.append(b);
-    }
-    for (const animal of animals) {
-      const row = document.createElement('section'),
-        name = document.createElement('h3'),
-        button = document.createElement('button');
-      row.setAttribute('aria-label', animal.label);
-      name.textContent = animal.label;
-      button.type = 'button';
-      button.textContent = this.model.babies.includes(animal.id)
-        ? 'Return it to the sea'
-        : 'Add to the tank';
-      button.onclick = () => this.chooseBaby(animal.id);
-      row.append(name, button);
-      this.panel.append(row);
-    }
+    const focus = renderCatalog(
+      this.panel,
+      this.model,
+      this.seen(),
+      this.artReady,
+      {
+        choose: (kind) => this.choose(kind),
+        baby: (id) => this.chooseBaby(id),
+        fish: (species, add) => this.chooseFish(species, add),
+        undo: () => {
+          this.undo();
+          this.open('undo');
+        },
+        close: () => this.close(),
+      },
+      focusKey,
+    );
     this.panel.hidden = false;
     this.toggle.setAttribute('aria-expanded', 'true');
-    close.focus();
+    focus.focus();
+  }
+  /** Both fish populations: the tank's own and the ones the swimmer added. */
+  private allFish(): readonly FishEntity[] {
+    const home = this.world.aquarium.fish.simulation.fish,
+      added = this.world.tankFish?.bodies ?? [];
+    return added.length ? [...home, ...added] : home;
+  }
+  /** v0.6 Pass 051: add or return one fish, staying in the panel (focus kept on the button). */
+  private chooseFish(species: SpeciesId, add: boolean) {
+    if (!this.current?.eligible || this.current.active || !this.model) return;
+    if (add) {
+      const room = this.model.addFish(species, this.seen());
+      if (!room.ok) {
+        this.notice.textContent = room.reason;
+        return;
+      }
+    } else if (!this.model.removeFish(species)) return;
+    this.notice.textContent = '';
+    if (!this.fishChanged()) this.model.undo();
+    this.open(`fish-${add ? 'add' : 'remove'}-${species}`);
+  }
+  /**
+   * Rebuild the added fish for the model's counts. If the tank cannot seat them, nothing changes
+   * and false is returned (the caller steps the model back).
+   */
+  private fishChanged(persist = true): boolean {
+    if (!this.model) return false;
+    const counts = this.model.fish;
+    if (!this.world.tankFish && Object.keys(counts).length) {
+      const fish = new TankFish(
+        this.world.authored.loader,
+        this.world.aquarium.fish.simulation.habitat,
+        this.world.aquarium.fish.simulation.fish,
+        (message) => {
+          if (!this.disposed) this.notice.textContent = message;
+        },
+      );
+      this.world.tankFish = fish;
+      this.world.aquarium.root.add(fish.root);
+    }
+    if (this.world.tankFish && !this.world.tankFish.set(counts)) return false;
+    if (persist) this.persist();
+    return true;
+  }
+  /** Step back one change and bring everything in line with it. */
+  private undo() {
+    const m = this.model;
+    if (!m?.undo()) return;
+    this.decoration.showPreview(null, false);
+    this.changed(false);
+    if (!m.babies.length) {
+      this.world.babies?.dispose();
+      this.world.babies = undefined;
+    }
+    this.babiesChanged(false);
+    this.fishChanged(false);
+    this.persist();
   }
   private close() {
     this.panel.hidden = true;
@@ -296,6 +341,7 @@ export class TankEditor {
         this.model.items,
         this.model.babies,
         this.kept,
+        this.model.fish,
       );
     } catch {
       /* unavailable storage */
@@ -314,7 +360,7 @@ export class TankEditor {
     this.colliders = next;
     // Restored items can occupy water where a fish was initialized before assets settled.
     // Re-seat only obstructed fish, once per edit, never during simulation frames.
-    for (const f of this.world.aquarium.fish.simulation.fish) {
+    for (const f of this.allFish()) {
       const habitat = this.world.aquarium.fish.simulation.habitat;
       if (safeFishPosition(f.position, f.radius, habitat)) continue;
       let found = false;
@@ -414,14 +460,20 @@ export class TankEditor {
       this.decoration.showPreview(model.preview, ok);
       this.setHint(
         ok
-          ? 'R turn · F or click to place · Esc cancel'
+          ? 'R turn (Shift+R back) · F or click to place · Z or Esc cancel'
           : model.valid
             ? 'Wait for the fish to pass · Esc cancel'
             : 'Too close to rock, the sand channel or a fish route — look for open sand · Esc cancel',
       );
     } else {
       this.decoration.showPreview(null, false);
-      this.setHint(this.selected ? 'G move · X remove' : '');
+      this.setHint(
+        this.selected
+          ? `G move · X remove${model.canUndo ? ' · Z undo' : ''}`
+          : model.canUndo
+            ? 'Z undo'
+            : '',
+      );
     }
   }
   /** Try spots in widening rings around (x, z), and keep the first one that is valid. */
@@ -441,13 +493,16 @@ export class TankEditor {
   private canPlace() {
     const m = this.model;
     if (!m?.preview || !m.valid) return false;
-    const collider = itemCollider(m.preview),
-      q = this.world.aquarium;
+    const collider = itemCollider(m.preview);
     if (this.world.babies?.intersects(collider)) return false;
     if (this.current && insideRock(this.current.eye, 0.65, collider))
       return false;
-    return !q.fish.simulation.fish.some((f) =>
-      insideRock(f.position, f.radius + 0.1, collider),
+    // Checked against both populations without building a combined list (runs while aiming).
+    const clear = (f: FishEntity) =>
+      !insideRock(f.position, f.radius + 0.1, collider);
+    return (
+      this.world.aquarium.fish.simulation.fish.every(clear) &&
+      (this.world.tankFish?.bodies ?? []).every(clear)
     );
   }
   private setHint(text: string) {
@@ -472,7 +527,12 @@ export class TankEditor {
     if (!this.model) return;
     const m = this.model;
     if (m.preview && e.code === 'KeyR') {
-      m.turn();
+      m.turn(e.shiftKey ? -1 : 1);
+      e.preventDefault();
+    } else if (e.code === 'KeyZ') {
+      // Z: with a preview, put it down unplaced (a move keeps the original); otherwise undo.
+      if (m.preview) m.cancel();
+      else this.undo();
       e.preventDefault();
     } else if (m.preview && e.code === 'KeyF') {
       if (this.canPlace() && m.place()) this.changed();

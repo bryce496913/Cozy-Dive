@@ -36,13 +36,28 @@ const store = () => {
   };
 };
 describe('gentle tank catalog', () => {
-  it('lists only discovered plants/corals and ignores animal sightings', () => {
-    expect(unlockedItems([])).toEqual([]);
+  it('lists the tank’s own starters plus discovered plants/corals, ignoring animal sightings', () => {
+    // v0.6 Pass 051: algae, reef rock and stone already grow in the tank, so they are offered from the start.
+    const starters = TANK_ITEMS.filter((i) => i.sighting === '');
+    expect(starters.map((i) => i.kind)).toEqual([
+      'caulerpa',
+      'halimeda',
+      'red-algae',
+      'reef-rock',
+      'stone',
+    ]);
+    expect(unlockedItems([])).toEqual(starters);
     expect(
       unlockedItems([{ id: 'species:green-sea-turtle', first: '' }]),
-    ).toEqual([]);
+    ).toEqual(starters);
     for (const i of TANK_ITEMS)
-      expect(unlockedItems([{ id: i.sighting, first: '' }])).toEqual([i]);
+      if (i.sighting)
+        expect(unlockedItems([{ id: i.sighting, first: '' }])).toEqual(
+          [
+            ...TANK_ITEMS.filter((o) => o.sighting === i.sighting),
+            ...starters,
+          ].sort((a, b) => TANK_ITEMS.indexOf(a) - TANK_ITEMS.indexOf(b)),
+        );
   });
   it('keeps glass, channel, surface, vertical bounds and nonfinite entries clear', () => {
     expect(validPlacement(item, [], context)).toBe(true);
