@@ -114,7 +114,17 @@ The software frame times are seconds, not milliseconds of a real GPU. They only 
 - Unit tests: 709 pass; typecheck, lint and build are clean.
 - `validation/onboarding.mjs` (Pass 054): 8 of 8 scenarios.
 - `validation/visual-tour.mjs` (Pass 053): 15 views across all five worlds, no errors.
-- REGRESSION_PLACEHOLDER
+- **Earlier browser harnesses,** re-run on this revision (same setup):
+
+  | Harness                    | Time   | Result |
+  | -------------------------- | ------ | ------ |
+  | `dive.mjs`                 | 13 min | pass   |
+  | `dive-interrupt.mjs`       | 13 min | pass   |
+  | `office.mjs`               | 5 min  | pass   |
+  | `runtime-fixes.mjs`        | 1 min  | pass   |
+  | `tank-personalization.mjs` | 4 min  | pass   |
+
+  The per-world harnesses (outer reef, kelp, cave, ice, rare encounters) were not all re-run individually. Their worlds, passages and release are covered end to end by `acceptance.mjs`, and their behaviour by the unit tests.
 
 ### Not exercised by this run
 
