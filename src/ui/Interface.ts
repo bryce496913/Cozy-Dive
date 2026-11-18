@@ -341,7 +341,8 @@ export class Interface {
       .setAttribute('aria-expanded', 'false');
     this.seenPanel.hidden = true;
     this.seenToggle.setAttribute('aria-expanded', 'false');
-    if (!locked && entered) {
+    // v0.8 Pass 060: after a failure, the screen stays as the failure left it (no pause wording).
+    if (!locked && entered && !this.fatalMessage) {
       this.root.querySelector('h1')!.innerHTML =
         'Stay a little<br><em>longer.</em>';
       this.root.querySelector('.intro')!.innerHTML =
@@ -357,7 +358,9 @@ export class Interface {
       this.enter.classList.toggle('secondary', inOffice);
     }
     this.status.textContent = this.fatalMessage;
-    if (!locked && entered)
+    const reload = this.get<HTMLButtonElement>('reload');
+    if (!reload.hidden) reload.focus();
+    else if (!locked && entered)
       (this.mode === 'office' ? this.office : this.enter).focus();
   }
   /**
@@ -513,6 +516,18 @@ export class Interface {
       const button = this.get<HTMLButtonElement>('reload');
       button.hidden = false;
       button.focus();
+      // A fresh page fixes this: say so plainly, and offer only that.
+      this.root.querySelector('h1')!.innerHTML =
+        'The water has<br><em>stopped.</em>';
+      this.root.querySelector('.intro')!.innerHTML =
+        'Nothing you made or found is lost.<br>Reload the page to dive back in.';
+      this.root.querySelector<HTMLElement>('.entry-actions')!.hidden = true;
+      this.get('entry-note').hidden = true;
+      this.get('eyebrow').lastChild!.textContent = ' ALL IS SAVED';
+      // Nothing else to start from here (the tank and seen lists open again after reloading).
+      this.root
+        .querySelectorAll<HTMLElement>('.welcome .seen-toggle')
+        .forEach((e) => (e.hidden = true));
     }
     if (fatal) {
       this.fatalMessage = message;

@@ -922,3 +922,12 @@ kbd {
 .build a {
   color: inherit;
 }
+/* v0.8 Pass 060: short windows (a laptop with the browser not full screen, under 700 px of
+   height) have the same problem as phones: start below the header and scroll. */
+@media (max-height: 700px) {
+  .overlay {
+    align-items: flex-start;
+    overflow-y: auto;
+    padding-top: 96px;
+  }
+}
