@@ -92,7 +92,10 @@ export class TankDecoration {
               d.kind === 'soft' ||
               d.kind === 'sea-fan' ||
               d.kind === 'seagrass' ||
-              d.kind === 'kelp'
+              d.kind === 'kelp' ||
+              d.kind === 'caulerpa' ||
+              d.kind === 'halimeda' ||
+              d.kind === 'red-algae'
             ) {
               geometry = authoredPlantGeometry(geometry, {
                 sway: 0.04,

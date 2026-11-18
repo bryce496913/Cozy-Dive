@@ -177,7 +177,8 @@ try {
       parts: t.pieces.length,
     })),
   );
-  assert.equal(report.templates.length, 8);
+  // Pass 051: 15 decorations (7 more from the reef library).
+  assert.equal(report.templates.length, 15);
   assert(
     report.templates.every((t) =>
       t.size.every((v) => Number.isFinite(v) && v > 0),
@@ -188,8 +189,12 @@ try {
   await page
     .getByRole('button', { name: 'For your tank', exact: true })
     .click();
-  // Eight items (Pass 032 adds the kelp stand, Pass 034 the limestone arch) and Close.
-  assert.equal(await page.locator('.tank-catalog button').count(), 9);
+  // Every decoration is offered: the eight seen, the two coral variants they unlock, and the
+  // tank's five starters (Pass 051 groups them, beside the fish and Close/Undo).
+  assert.equal(
+    await page.locator('.tank-catalog [data-key^="item-"]').count(),
+    15,
+  );
   await shot('catalog');
   await page.getByRole('button', { name: 'Close', exact: true }).click();
   const spots = await page.evaluate(async () => {

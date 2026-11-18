@@ -20,6 +20,8 @@ export function spawnFish(
   species = FISH_SPECIES,
   seed: number = FISH_TIMING.seed,
   player: Vec3 = SPAWN,
+  /** v0.6 Pass 051: the first id, so a second population's ids never collide with the first's. */
+  firstId = 0,
 ): FishEntity[] {
   let randomState = seed >>> 0;
   const random = (): number => {
@@ -177,7 +179,7 @@ export function spawnFish(
       }
       const initialSpeed = headingClear ? speed : 0;
       fish.push({
-        id: fish.length,
+        id: firstId + fish.length,
         species: config,
         size,
         shelter: home ? { ...home } : undefined,

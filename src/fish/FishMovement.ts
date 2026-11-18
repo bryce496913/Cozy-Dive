@@ -524,9 +524,11 @@ export class FishSimulation {
   constructor(
     fish: FishEntity[],
     readonly habitat: FishHabitat,
+    /** v0.6 Pass 051: fish of another population that these school with (never moved here). */
+    companions: readonly FishEntity[] = [],
   ) {
     this.fish = fish;
-    this.schooling = new FishSchooling(fish);
+    this.schooling = new FishSchooling(fish, companions);
   }
   get alpha(): number {
     return this.accumulator / FISH_TIMING.step;

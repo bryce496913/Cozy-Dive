@@ -213,7 +213,12 @@ describe('Pass 032 kelp forest: life and discovery', () => {
     const seen = [
       { id: 'plant:giant-kelp', first: '2026-11-14T00:00:00.000Z' },
     ];
-    expect(unlockedItems(seen).map((i) => i.kind)).toEqual(['kelp']);
+    // Pass 051: beside the tank's own starters (algae, rock, stone), which need no sighting.
+    expect(
+      unlockedItems(seen)
+        .filter((i) => i.sighting)
+        .map((i) => i.kind),
+    ).toEqual(['kelp']);
   });
   it('eases swimming to a hover at its edges, as the outer waters do', () => {
     const r = KELP.reach,
