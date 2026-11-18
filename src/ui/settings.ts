@@ -1,5 +1,6 @@
 import type { SwimmingFeel } from '../config/world';
 import { FIELD_OF_VIEW } from '../rendering/fieldOfView';
+import type { GraphicsDetail } from '../rendering/graphicsDetail';
 export interface Settings {
   swimmingFeel: SwimmingFeel;
   sensitivity: number;
@@ -13,6 +14,8 @@ export interface Settings {
   fieldOfView: number;
   /** v0.6 Pass 057: moving the mouse up looks down. */
   invertLook: boolean;
+  /** v0.6 Pass 059: full detail (default) or lighter (a lower resolution cap). */
+  graphics: GraphicsDetail;
 }
 export interface SettingsStore {
   getItem(key: string): string | null;
@@ -48,6 +51,7 @@ export const DEFAULT_SETTINGS: Settings = {
   frameTime: false,
   fieldOfView: FIELD_OF_VIEW.default,
   invertLook: false,
+  graphics: 'full',
 };
 const numberInRange = (
   value: unknown,
@@ -110,6 +114,7 @@ export function validateSettings(value: unknown): Settings {
       typeof data.invertLook === 'boolean'
         ? data.invertLook
         : DEFAULT_SETTINGS.invertLook,
+    graphics: data.graphics === 'lighter' ? 'lighter' : 'full',
   };
 }
 export function loadSettings(

@@ -116,29 +116,4 @@ describe('gradual warm-up (Pass 059)', () => {
     expect(r.draws.length).toBe(1);
     expect(r.draws[0].length).toBe(WARM_UP.firstChunk);
   });
-  it('draws hidden objects (creatures still to come) and hides them again', async () => {
-    const r = new RecordingRenderer(),
-      { scene, camera, meshes } = world(10);
-    const group = new THREE.Group(),
-      later = new THREE.Mesh(
-        new THREE.BoxGeometry(),
-        new THREE.MeshBasicMaterial(),
-      );
-    group.visible = false;
-    group.add(later);
-    scene.add(group);
-    meshes[4].visible = false;
-    const lamp = new THREE.PointLight();
-    lamp.visible = false;
-    scene.add(lamp);
-    await renderGradually(asRenderer(r), scene, camera, () => true, noWait);
-    const drawn = new Set(r.draws.flat());
-    expect(drawn.has(later)).toBe(true);
-    expect(drawn.has(meshes[4])).toBe(true);
-    expect(group.visible).toBe(false);
-    expect(meshes[4].visible).toBe(false);
-    // Hidden lights are not switched on for the warm-up.
-    expect(lamp.visible).toBe(false);
-    expect(r.lightsSeen.every((n) => n === 1)).toBe(true);
-  });
 });

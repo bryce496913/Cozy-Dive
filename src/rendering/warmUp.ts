@@ -54,35 +54,6 @@ export function revealLodLevels(root: THREE.Object3D): () => void {
 }
 
 /**
- * v0.6 Pass 059: show every hidden object in `root` for a synchronous traversal: creatures that
- * arrive later (wall visitors, rare encounters), hand-switched near and far models, and the like.
- * They were skipped by the warm-up, so they compiled and uploaded on first sight, mid-swim (the
- * steady-state stalls in the outer reef). Returns a function that hides them again.
- */
-export function revealHidden(root: THREE.Object3D): () => void {
-  const hidden: THREE.Object3D[] = [];
-  root.traverse((object) => {
-    // Lights stay as they are: a different light count would build different programs.
-    if (!object.visible && !(object instanceof THREE.Light)) {
-      object.visible = true;
-      hidden.push(object);
-    }
-  });
-  return () => {
-    for (const object of hidden) object.visible = false;
-  };
-}
-/** Both: every LOD level and every hidden object. */
-function revealAll(root: THREE.Object3D): () => void {
-  const lods = revealLodLevels(root),
-    rest = revealHidden(root);
-  return () => {
-    rest();
-    lods();
-  };
-}
-
-/**
  * v0.6 Pass 059: how the warm-up is spread over frames. Each frame uploads or draws only as much
  * as fits in `budgetMs`, so preparing a world no longer stalls one frame for half a second.
  */
@@ -96,7 +67,7 @@ const corner = new THREE.Vector4(),
 /** Every object a full draw would reach (LOD levels revealed), in traversal order. */
 function drawables(scene: THREE.Object3D): THREE.Object3D[] {
   const out: THREE.Object3D[] = [],
-    restore = revealAll(scene);
+    restore = revealLodLevels(scene);
   try {
     scene.traverseVisible((o) => {
       if (
@@ -150,7 +121,7 @@ function drawPart(
     }
   });
   camera.layers.set(WARM_LAYER);
-  const restore = revealAll(scene),
+  const restore = revealLodLevels(scene),
     target = renderer.getRenderTarget(),
     scissorTest = renderer.getScissorTest();
   renderer.getViewport(savedViewport);
@@ -246,7 +217,7 @@ export async function warmUpScene(
   alive: () => boolean = () => true,
   frame: FrameWait = nextFrame,
 ): Promise<void> {
-  const restore = revealAll(scene);
+  const restore = revealLodLevels(scene);
   let compiled: Promise<unknown> | undefined;
   try {
     // compileAsync collects and starts every program synchronously, so levels can be

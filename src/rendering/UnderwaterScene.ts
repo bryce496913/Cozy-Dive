@@ -5,6 +5,7 @@ import { AuthoredAquarium } from '../environment/AuthoredAquarium';
 import { AuthoredReef } from '../environment/AuthoredReef';
 import { TankOutlook } from './TankOutlook';
 import { warmUpScene } from './warmUp';
+import { pixelRatioFor, type GraphicsDetail } from './graphicsDetail';
 import { findSeahorseGrip } from '../creatures/discoveries/SeahorseGrip';
 import { SEAHORSE_SCALE } from '../creatures/discoveries/Seahorse';
 import { AssetLoader } from '../assets/AssetLoader';
@@ -37,6 +38,8 @@ export interface Presentation {
 
 export class UnderwaterScene implements WaterWorld {
   readonly scene = new THREE.Scene();
+  /** v0.6 Pass 059: see `setDetail`. */
+  private detail: GraphicsDetail = 'full';
   readonly camera = new THREE.PerspectiveCamera(64, 1, 0.08, 80);
   /** v0.4 Pass 023: the tank as a swimmable world (nothing in it counts as a new sighting). */
   readonly id = 'aquarium' as const;
@@ -91,7 +94,9 @@ export class UnderwaterScene implements WaterWorld {
       antialias: true,
       powerPreference: 'high-performance',
     });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+    this.renderer.setPixelRatio(
+      pixelRatioFor(window.devicePixelRatio, this.detail),
+    );
     this.renderer.setClearColor(0x17555b);
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -233,9 +238,17 @@ export class UnderwaterScene implements WaterWorld {
       height = this.host.clientHeight;
     this.camera.aspect = width / Math.max(1, height);
     this.camera.updateProjectionMatrix();
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+    this.renderer.setPixelRatio(
+      pixelRatioFor(window.devicePixelRatio, this.detail),
+    );
     this.renderer.setSize(width, height);
   };
+  /** v0.6 Pass 059: the graphics detail preference (resolution cap); applied at once. */
+  setDetail(detail: GraphicsDetail): void {
+    if (detail === this.detail) return;
+    this.detail = detail;
+    this.resize();
+  }
   render(
     time: number,
     reducedMotion: boolean,

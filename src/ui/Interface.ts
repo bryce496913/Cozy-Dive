@@ -82,6 +82,7 @@ export class Interface {
         <label class="check"><input id="invert-look" type="checkbox" />Invert up and down look</label>
         <label class="check"><input id="reduced-motion" type="checkbox" aria-describedby="reduced-motion-note" />Reduced camera motion</label><p id="reduced-motion-note">Direct mouse-look, with plant and particle motion still. Breathing buoyancy and subtle swimming sway are suppressed, and transitions are shorter and calmer.</p>
         <label class="check"><input id="audio-enabled" type="checkbox" />Ambient audio</label>
+        <label for="graphics-detail">Graphics detail</label><select id="graphics-detail" aria-describedby="graphics-note"><option value="full">Full detail</option><option value="lighter">Lighter</option></select><p id="graphics-note">Lighter draws at a lower resolution, for smoother swimming on modest graphics. Every creature and scene stays the same.</p>
         <label class="check"><input id="frame-time" type="checkbox" />Show frame time</label><p>A small readout of frame time and frame rate, for checking performance on this device.</p>
         <label for="master-volume">Master volume <output id="master-volume-value"></output></label><input id="master-volume" type="range" min="0" max="100" step="1" />
         <p id="audio-status" role="status">Audio begins when you enter. Press M while swimming to mute.</p>
@@ -190,6 +191,7 @@ export class Interface {
       reduced = this.get<HTMLInputElement>('reduced-motion'),
       fieldOfView = this.get<HTMLInputElement>('field-of-view'),
       invertLook = this.get<HTMLInputElement>('invert-look'),
+      graphics = this.get<HTMLSelectElement>('graphics-detail'),
       frameTime = this.get<HTMLInputElement>('frame-time'),
       audio = this.get<HTMLInputElement>('audio-enabled'),
       volume = this.get<HTMLInputElement>('master-volume'),
@@ -201,6 +203,7 @@ export class Interface {
     reduced.checked = settings.reducedMotion;
     fieldOfView.value = String(settings.fieldOfView);
     invertLook.checked = settings.invertLook;
+    graphics.value = settings.graphics;
     frameTime.checked = settings.frameTime;
     audio.checked = settings.audioEnabled;
     volume.value = String(Math.round(settings.masterVolume * 100));
@@ -230,6 +233,7 @@ export class Interface {
           frameTime: frameTime.checked,
           fieldOfView: Number(fieldOfView.value),
           invertLook: invertLook.checked,
+          graphics: graphics.value === 'lighter' ? 'lighter' : 'full',
         });
     };
     for (const input of [
@@ -239,6 +243,7 @@ export class Interface {
       frameTime,
       fieldOfView,
       invertLook,
+      graphics,
       feel,
       audio,
       volume,
