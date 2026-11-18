@@ -41,6 +41,8 @@ describe('settings', () => {
       audioEnabled: true,
       masterVolume: 0.3,
       frameTime: false,
+      fieldOfView: 0,
+      invertLook: false,
     });
     expect(
       validateSettings({
@@ -100,6 +102,8 @@ it('migrates old preferences and validates swimming feel', () => {
     audioEnabled: true,
     masterVolume: 0.3,
     frameTime: false,
+    fieldOfView: 0,
+    invertLook: false,
   });
   for (const swimmingFeel of ['relaxed', 'natural', 'responsive'] as const) {
     expect(saveSettings(store, { ...DEFAULT_SETTINGS, swimmingFeel })).toBe(
@@ -143,4 +147,29 @@ it('swims at 60% of the v1 scale and migrates v1 and v2 saves onto it', () => {
   saveSettings(both, { ...DEFAULT_SETTINGS, speed: 2.4 });
   expect(loadSettings(both).speed).toBe(2.4);
   expect(both.getItem(SETTINGS_KEY)).not.toBeNull();
+});
+
+describe('comfort settings (Pass 057)', () => {
+  it('clamps the field of view to whole degrees within its range', () => {
+    expect(validateSettings({ fieldOfView: 40 }).fieldOfView).toBe(16);
+    expect(validateSettings({ fieldOfView: -40 }).fieldOfView).toBe(-8);
+    expect(validateSettings({ fieldOfView: 5.6 }).fieldOfView).toBe(6);
+    expect(validateSettings({ fieldOfView: 'wide' }).fieldOfView).toBe(0);
+    expect(validateSettings({ fieldOfView: NaN }).fieldOfView).toBe(0);
+  });
+  it('keeps invert look only when it is a real boolean', () => {
+    expect(validateSettings({ invertLook: true }).invertLook).toBe(true);
+    expect(validateSettings({ invertLook: 'true' }).invertLook).toBe(false);
+    expect(validateSettings({}).invertLook).toBe(false);
+  });
+  it('round-trips both through storage', () => {
+    const data = new Map<string, string>();
+    const store = {
+      getItem: (k: string) => data.get(k) ?? null,
+      setItem: (k: string, v: string) => void data.set(k, v),
+    };
+    const s = { ...DEFAULT_SETTINGS, fieldOfView: 10, invertLook: true };
+    expect(saveSettings(store, s)).toBe(true);
+    expect(loadSettings(store)).toEqual(s);
+  });
 });

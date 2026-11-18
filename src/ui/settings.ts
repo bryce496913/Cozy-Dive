@@ -1,4 +1,5 @@
 import type { SwimmingFeel } from '../config/world';
+import { FIELD_OF_VIEW } from '../rendering/fieldOfView';
 export interface Settings {
   swimmingFeel: SwimmingFeel;
   sensitivity: number;
@@ -8,6 +9,10 @@ export interface Settings {
   masterVolume: number;
   /** Pass 022: an unobtrusive frame-time readout, for measuring performance (off by default). */
   frameTime: boolean;
+  /** v0.6 Pass 057: degrees added to the designed field of view (comfort). */
+  fieldOfView: number;
+  /** v0.6 Pass 057: moving the mouse up looks down. */
+  invertLook: boolean;
 }
 export interface SettingsStore {
   getItem(key: string): string | null;
@@ -41,6 +46,8 @@ export const DEFAULT_SETTINGS: Settings = {
   audioEnabled: true,
   masterVolume: 0.3,
   frameTime: false,
+  fieldOfView: FIELD_OF_VIEW.default,
+  invertLook: false,
 };
 const numberInRange = (
   value: unknown,
@@ -91,6 +98,18 @@ export function validateSettings(value: unknown): Settings {
       typeof data.frameTime === 'boolean'
         ? data.frameTime
         : DEFAULT_SETTINGS.frameTime,
+    fieldOfView: Math.round(
+      numberInRange(
+        data.fieldOfView,
+        FIELD_OF_VIEW.min,
+        FIELD_OF_VIEW.max,
+        DEFAULT_SETTINGS.fieldOfView,
+      ),
+    ),
+    invertLook:
+      typeof data.invertLook === 'boolean'
+        ? data.invertLook
+        : DEFAULT_SETTINGS.invertLook,
   };
 }
 export function loadSettings(

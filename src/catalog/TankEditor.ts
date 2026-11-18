@@ -1,4 +1,5 @@
 import { TankBabies } from '../environment/TankBabies';
+import { keepFocusIn } from '../ui/focus';
 import { TankBabyHabitat } from '../environment/TankBabyHabitat';
 import type { BigCreatureId } from '../config/creatures';
 import * as THREE from 'three';
@@ -139,7 +140,7 @@ export class TankEditor {
         if (e.key === 'Escape') {
           e.stopPropagation();
           this.close();
-        }
+        } else keepFocusIn(this.panel, e);
       },
       { signal },
     );

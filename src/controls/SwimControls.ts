@@ -18,6 +18,8 @@ export class SwimControls {
   private readonly abort = new AbortController();
   readonly input: SwimInput = { forward: 0, right: 0 };
   sensitivity = 1;
+  /** v0.6 Pass 057: moving the mouse up looks down. */
+  invertLook = false;
   reducedMotion = false;
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -53,7 +55,11 @@ export class SwimControls {
       -PITCH_LIMIT,
       Math.min(
         PITCH_LIMIT,
-        this.targetPitch - event.movementY * 0.0016 * this.sensitivity,
+        this.targetPitch -
+          event.movementY *
+            0.0016 *
+            this.sensitivity *
+            (this.invertLook ? -1 : 1),
       ),
     );
   };
