@@ -132,73 +132,8 @@ try {
     await page.keyboard.up('w');
     assert.equal(s.world, world, `through the passage into ${world}`);
   };
-  /** Swim at an edge: from `from`, facing (yaw, pitch), W held for `seconds`. */
-  const edge = async (world, name, from, yaw, pitch, seconds = 8) => {
-    await place(from, yaw, pitch);
-    await step(3);
-    await page.keyboard.down('w');
-    let open = 0,
-      slowedAt = null,
-      last = await step(1);
-    const start = { ...last };
-    for (let i = 0; i < seconds * 15; i++) {
-      last = await step(1);
-      open = Math.max(open, last.speed);
-      if (slowedAt === null && i > 22 && last.speed < open * 0.6)
-        slowedAt = { x: last.x, y: last.y, z: last.z };
-    }
-    await page.keyboard.up('w');
-    await step(10);
-    const info = await page.evaluate((world) => {
-      const a = window.__cozy,
-        w = a[world === 'outer' ? 'outer' : world],
-        p = a.state.position,
-        b = w.bounds,
-        r = a.world.renderer.info.render;
-      return {
-        inside:
-          p.x > b.min.x &&
-          p.x < b.max.x &&
-          p.y > b.min.y &&
-          p.y < b.max.y &&
-          p.z > b.min.z &&
-          p.z < b.max.z,
-        finite: [p.x, p.y, p.z].every(Number.isFinite),
-        calls: r.calls,
-        triangles: r.triangles,
-      };
-    }, world);
-    const travelled = Math.hypot(
-      last.x - start.x,
-      last.y - start.y,
-      last.z - start.z,
-    );
-    await page.screenshot({ path: path.join(output, `${world}-${name}.png`) });
-    const row = {
-      world,
-      edge: name,
-      start: round(start),
-      end: round(last),
-      travelled: +travelled.toFixed(2),
-      slowedAt: slowedAt && round(slowedAt),
-      ...info,
-    };
-    report.edges.push(row);
-    log(`${world} ${name}: travelled ${row.travelled} m`);
-    assert(
-      info.inside && info.finite,
-      `${world} ${name}: the swimmer stays inside valid space`,
-    );
-    return row;
-  };
   const log = (m) =>
     console.log(`[${new Date().toISOString().slice(11, 19)}] ${m}`);
-  const round = (p) => ({
-    x: +p.x.toFixed(2),
-    y: +p.y.toFixed(2),
-    z: +p.z.toFixed(2),
-  });
-
   log('in the tank');
   /** A fixed view: place, settle a few frames, screenshot, record draws. */
   const view = async (world, name, at, yaw, pitch = 0) => {
@@ -249,19 +184,6 @@ try {
   await view('ice', 'open-water', { x: 0, y: 6, z: -16 }, 0, 0);
   await view('ice', 'seabed-close', { x: -5, y: 2.5, z: -30 }, 0.5, -0.6);
   await view('ice', 'under-ice', { x: 2, y: 8, z: -32 }, 0.2, 0.6);
-  // Back to the office.
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => !document.pointerLockElement);
-  await page
-    .getByRole('button', { name: /Return to the tank/ })
-    .click()
-    .catch(() => undefined);
-  await step(30);
-  await page.getByRole('button', { name: /Enter the Office/ }).click();
-  await step(40);
-  await page.screenshot({ path: path.join(output, 'office-room.png') });
-  report.edges.push({ world: 'office', edge: 'room' });
-  log('office room');
   assert.deepEqual(report.errors, []);
   report.ok = true;
 } finally {

@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import {
+  combJellyShape,
+  krillShape,
+  seaButterflyShape,
+} from './IceCritterShapes';
 import { ICE } from '../../config/passage';
 import type { Vec3 } from '../../config/world';
 import { driftAt, krillAt, type IceLimits } from '../../creatures/iceLife';
@@ -48,57 +52,6 @@ function painted(
   out.setAttribute('color', new THREE.Float32BufferAttribute(c, 3));
   return out;
 }
-function merged(parts: THREE.BufferGeometry[]): THREE.BufferGeometry {
-  const g = mergeGeometries(parts, false)!;
-  parts.forEach((p) => p.dispose());
-  g.computeVertexNormals();
-  return g;
-}
-/** A krill: a slim, slightly bent pink shrimp with black eyes, facing +z (about 4 cm long). */
-export function krillGeometry(): THREE.BufferGeometry {
-  const body = new THREE.CapsuleGeometry(0.004, 0.032, 3, 6);
-  body.rotateX(Math.PI / 2);
-  const parts = [painted(body, [0.95, 0.45, 0.42])];
-  for (const s of [-1, 1]) {
-    const eye = new THREE.SphereGeometry(0.003, 5, 4);
-    eye.translate(s * 0.003, 0.002, 0.018);
-    parts.push(painted(eye, [0.05, 0.03, 0.03]));
-  }
-  const tail = new THREE.ConeGeometry(0.004, 0.012, 4);
-  tail.rotateX(-Math.PI / 2);
-  tail.translate(0, 0, -0.024);
-  parts.push(painted(tail, [0.98, 0.55, 0.5]));
-  return merged(parts);
-}
-/** A sea butterfly: a tiny pale shell with two translucent orange wing lobes (unit ≈ 1 cm). */
-export function butterflyGeometry(): THREE.BufferGeometry {
-  const shell = new THREE.SphereGeometry(0.004, 8, 6);
-  shell.scale(1, 1.4, 1);
-  const parts = [painted(shell, [0.9, 0.88, 0.8])];
-  for (const s of [-1, 1]) {
-    const wing = new THREE.CircleGeometry(0.007, 10);
-    wing.scale(1, 0.6, 1);
-    wing.rotateY(Math.PI / 2);
-    wing.translate(s * 0.006, 0.004, 0);
-    parts.push(painted(wing, [0.98, 0.62, 0.3]));
-  }
-  return merged(parts);
-}
-/** A comb jelly: a clear oval with eight comb rows running pole to pole (unit ≈ 5 cm). */
-export function jellyGeometry(): THREE.BufferGeometry {
-  const body = new THREE.SphereGeometry(0.025, 16, 12);
-  body.scale(1, 1.35, 1);
-  const parts = [painted(body, [0.85, 0.92, 0.95])];
-  for (let k = 0; k < 8; k++) {
-    const row = new THREE.TorusGeometry(0.026, 0.0016, 4, 18, Math.PI * 0.8);
-    row.rotateZ(-Math.PI * 0.4);
-    row.scale(1, 1.35, 1);
-    row.rotateY((k / 8) * Math.PI * 2);
-    parts.push(painted(row, [1, 1, 1]));
-  }
-  return merged(parts);
-}
-
 interface Spider {
   at: Vec3;
   heading: number;
@@ -194,17 +147,18 @@ export class IceCritters {
       this.root.add(mesh);
       return mesh;
     };
-    this.krill = instanced(krillGeometry(), lit, CRITTERS.krill, 'Krill swarm');
+    this.krill = instanced(krillShape(), lit, CRITTERS.krill, 'Krill swarm');
     for (let i = 0; i < CRITTERS.krill; i++)
       this.krillPositions.push({ x: 0, y: 0, z: 0 });
     this.butterflies = instanced(
-      butterflyGeometry(),
+      // v0.6 Pass 053: the rebuilt sea butterflies, comb jellies and krill.
+      seaButterflyShape(),
       lit,
       CRITTERS.butterflies,
       'Sea butterflies',
     );
     this.jellies = instanced(
-      jellyGeometry(),
+      combJellyShape(),
       clear,
       CRITTERS.jellies,
       'Comb jellies',

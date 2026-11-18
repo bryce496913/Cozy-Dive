@@ -16,6 +16,8 @@ function shaded(
   g: THREE.BufferGeometry,
   tone: (p: THREE.Vector3) => number,
 ): THREE.BufferGeometry {
+  // Every part needs the same attributes to merge: normals for those built without them.
+  if (!g.getAttribute('normal')) g.computeVertexNormals();
   const out = g.index ? g.toNonIndexed() : g;
   if (out !== g) g.dispose();
   for (const name of Object.keys(out.attributes))

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { spanishShawlGeometry } from './SpanishShawl';
 import type { Vec3 } from '../../config/world';
 import type { SightCandidate } from '../../discovery/journal';
 import { KELP_SIGHTS } from '../../discovery/sights';
@@ -28,48 +28,6 @@ export const CRITTERS = {
   /** Crabs sidle round their stalk from a swimmer within this distance (m). */
   wary: 1.6,
 } as const;
-
-function painted(
-  g: THREE.BufferGeometry,
-  rgb: readonly [number, number, number],
-): THREE.BufferGeometry {
-  const out = g.index ? g.toNonIndexed() : g;
-  if (out !== g) g.dispose();
-  for (const name of Object.keys(out.attributes))
-    if (name !== 'position' && name !== 'normal') out.deleteAttribute(name);
-  const n = out.getAttribute('position').count,
-    c = new Float32Array(n * 3);
-  for (let i = 0; i < n; i++) c.set(rgb, i * 3);
-  out.setAttribute('color', new THREE.Float32BufferAttribute(c, 3));
-  return out;
-}
-/** A Spanish shawl, facing +z, its foot at y 0 (about 7 cm long before scaling). */
-export function nudibranchGeometry(): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [];
-  const body = new THREE.SphereGeometry(1, 12, 8);
-  body.scale(0.012, 0.007, 0.035);
-  body.translate(0, 0.007, 0);
-  parts.push(painted(body, [0.42, 0.28, 0.78]));
-  // Orange cerata in clusters down its back.
-  for (let i = 0; i < 14; i++) {
-    const z = -0.025 + (i / 13) * 0.045,
-      side = i % 2 ? 1 : -1,
-      c = new THREE.ConeGeometry(0.003, 0.012, 5);
-    c.rotateZ(side * 0.5);
-    c.translate(side * 0.006, 0.016, z);
-    parts.push(painted(c, [0.98, 0.45, 0.08]));
-  }
-  for (const side of [-1, 1]) {
-    const r = new THREE.ConeGeometry(0.0025, 0.012, 5);
-    r.rotateX(-0.3);
-    r.translate(side * 0.004, 0.017, 0.03);
-    parts.push(painted(r, [0.85, 0.12, 0.1]));
-  }
-  const g = mergeGeometries(parts, false)!;
-  parts.forEach((p) => p.dispose());
-  g.computeVertexNormals();
-  return g;
-}
 
 interface Slug {
   readonly boulder: Boulder;
@@ -121,7 +79,8 @@ export class KelpCritters {
   ) {
     this.root.name = 'Kelp critters';
     this.slugMesh = new THREE.InstancedMesh(
-      nudibranchGeometry(),
+      // v0.6 Pass 053: the rebuilt Spanish shawl.
+      spanishShawlGeometry(),
       this.material,
       CRITTERS.nudibranchs,
     );

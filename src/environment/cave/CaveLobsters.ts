@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { spinyLobsterBody } from './SpinyLobster';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { SightCandidate } from '../../discovery/journal';
 import { CAVE_SIGHTS } from '../../discovery/sights';
@@ -102,86 +103,6 @@ export function limb(
   return part(g, color[0], color[1], color[2]);
 }
 
-/** The body, facing +z, its underside at y 0 (about 0.45 m long). */
-export function lobsterBody(): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [],
-    v = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
-  // Carapace: a long rounded shell, with spines along its top and sides.
-  const shell = new THREE.SphereGeometry(1, 14, 10);
-  shell.scale(0.065, 0.055, 0.12);
-  shell.translate(0, 0.07, 0.07);
-  parts.push(part(shell, ...SHELL));
-  for (let i = 0; i < 9; i++) {
-    const z = 0.0 + i * 0.022,
-      side = (i % 3) - 1,
-      spine = new THREE.ConeGeometry(0.006, 0.022, 4);
-    spine.rotateZ(-side * 0.6);
-    spine.translate(side * 0.035, 0.12 - Math.abs(side) * 0.012, z);
-    parts.push(part(spine, ...DARK));
-  }
-  // The two big horns over the eyes, and the eyes on short stalks.
-  for (const side of [-1, 1]) {
-    const horn = new THREE.ConeGeometry(0.016, 0.07, 6);
-    horn.rotateX(Math.PI / 2.4);
-    horn.rotateZ(-side * 0.25);
-    horn.translate(side * 0.028, 0.12, 0.2);
-    parts.push(part(horn, ...SHELL));
-    parts.push(
-      limb(
-        v(side * 0.018, 0.09, 0.18),
-        v(side * 0.035, 0.105, 0.2),
-        0.006,
-        0.005,
-        DARK,
-      ),
-    );
-    const eye = new THREE.SphereGeometry(0.011, 8, 6);
-    eye.translate(side * 0.038, 0.108, 0.205);
-    parts.push(part(eye, 0.04, 0.03, 0.03));
-  }
-  // The tail: six segments, alternate ones pale-spotted, with little side lappets.
-  for (let i = 0; i < 6; i++) {
-    const w = 0.058 - i * 0.004,
-      seg = new THREE.SphereGeometry(
-        1,
-        12,
-        6,
-        0,
-        Math.PI * 2,
-        0,
-        Math.PI * 0.6,
-      );
-    seg.scale(w, 0.038 - i * 0.002, 0.03);
-    seg.translate(0, 0.04 - i * 0.002, -0.06 - i * 0.042);
-    parts.push(tinted(seg, i % 2 ? PALE : SHELL));
-    for (const side of [-1, 1]) {
-      const lap = new THREE.BoxGeometry(0.012, 0.025, 0.03);
-      lap.translate(side * w, 0.03, -0.06 - i * 0.042);
-      parts.push(part(lap, ...DARK));
-    }
-  }
-  // The tail fan: five flaps spread wide.
-  for (let k = -2; k <= 2; k++) {
-    const flap = new THREE.BoxGeometry(0.035, 0.006, 0.07);
-    flap.translate(0, 0, -0.035);
-    flap.rotateY(k * 0.38);
-    flap.translate(0, 0.03, -0.31);
-    parts.push(tinted(flap, k === 0 ? SHELL : DARK));
-  }
-  // Five pairs of walking legs, jointed, banded: out and up from the body, then down to the rock.
-  for (const side of [-1, 1])
-    for (let i = 0; i < 5; i++) {
-      const z = 0.14 - i * 0.035,
-        hip = v(side * 0.04, 0.045, z),
-        knee = v(side * (0.11 + i * 0.005), 0.08, z + 0.02 - i * 0.01),
-        foot = v(side * (0.16 + i * 0.006), 0.0, z + 0.04 - i * 0.02);
-      parts.push(limb(hip, knee, 0.008, 0.006, LEG));
-      parts.push(limb(knee, foot, 0.006, 0.003, i % 2 ? PALE : LEG));
-    }
-  // Small mouthparts under the head.
-  parts.push(limb(v(0, 0.04, 0.17), v(0, 0.02, 0.22), 0.01, 0.004, DARK));
-  return merged(parts);
-}
 /** The two long antennae from a pivot at the head (origin), facing +z: thick spiny bases, long whips. */
 export function lobsterAntennae(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
@@ -370,7 +291,8 @@ export class CaveLobsters {
   constructor(spots: readonly LobsterSpot[]) {
     this.root.name = 'Spiny lobsters';
     this.bodies = new THREE.InstancedMesh(
-      lobsterBody(),
+      // v0.6 Pass 053: the rebuilt spiny lobster.
+      spinyLobsterBody(),
       this.material,
       spots.length,
     );
