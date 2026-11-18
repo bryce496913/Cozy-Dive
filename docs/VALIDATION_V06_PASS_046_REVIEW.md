@@ -30,7 +30,7 @@ Date: November 17, 2026. From the code review after Pass 046. No merge or releas
   - kelp forest: 270–425 ms;
   - sea cave: 180–270 ms;
   - under the ice: 160–200 ms.
-  The environment builds dominated, at 100–140 ms each.
+    The environment builds dominated, at 100–140 ms each.
 - **Changes:**
   - **Staged builds:** the kelp forest, sea cave and under the ice now build via `static build()`, one piece per frame (`StagedBuild`): environment, kelp, dressing, light, grotto, the scene. Each piece is timed (`buildStats`), and the build stops and disposes what it built if no longer wanted.
   - **Creature systems:** set up one per frame too.

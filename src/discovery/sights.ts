@@ -79,6 +79,27 @@ export const ICE_SIGHTS = {
   anemone: { id: 'species:antarctic-anemone', label: 'Antarctic anemone' },
   star: { id: 'species:antarctic-sea-star', label: 'Antarctic sea star' },
   feather: { id: 'species:feather-star', label: 'Feather star' },
+  // v0.6 Pass 047
+  emperor: { id: 'species:emperor-penguin', label: 'Emperor penguin' },
+  adelie: { id: 'species:adelie-penguin', label: 'Adélie penguin' },
+  weddell: { id: 'species:weddell-seal', label: 'Weddell seal' },
+  krill: { id: 'species:antarctic-krill', label: 'Antarctic krill' },
+  icefish: { id: 'species:blackfin-icefish', label: 'Icefish' },
+  notothen: { id: 'species:bald-notothen', label: 'Bald notothen' },
+  seaSpider: { id: 'species:giant-sea-spider', label: 'Giant sea spider' },
+  ribbonWorm: { id: 'species:ribbon-worm', label: 'Ribbon worm' },
+  seaButterfly: { id: 'species:sea-butterfly', label: 'Sea butterfly' },
+  combJelly: { id: 'species:comb-jelly', label: 'Comb jelly' },
+  // v0.6 Pass 048: the rare ones
+  leopardSeal: { id: 'species:leopard-seal', label: 'Leopard seal' },
+  minke: { id: 'species:minke-whale', label: 'Minke whale' },
+  orca: { id: 'species:killer-whale', label: 'Killer whale' },
+  toothfish: {
+    id: 'species:antarctic-toothfish',
+    label: 'Antarctic toothfish',
+  },
+  squid: { id: 'species:colossal-squid', label: 'Colossal squid' },
+  polarBear: { id: 'species:polar-bear', label: 'Polar bear' },
 } as const satisfies Record<string, Sight>;
 
 /** v0.6 Pass 042: what else the outer reef shows, now and then, out in the blue. */

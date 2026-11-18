@@ -6,6 +6,9 @@ import { caveNooks } from '../src/environment/cave/CaveNooks';
 import { RestingSharks } from '../src/environment/cave/RestingSharks';
 import { CAVE_LIFE } from '../src/environment/cave/CaveLife';
 import { KelpVisitors } from '../src/environment/kelp/KelpVisitors';
+import { IceLife } from '../src/environment/ice/IceLife';
+import { IceRare } from '../src/environment/ice/IceRare';
+import { iceLimits } from '../src/creatures/iceLife';
 import { SeaLion } from '../src/environment/kelp/SeaLion';
 import { BarracudaSchool } from '../src/environment/outer/BarracudaSchool';
 import { ReefLife } from '../src/environment/outer/ReefLife';
@@ -48,6 +51,21 @@ const parts: [string, (l: AssetLoader) => Part][] = [
   ],
   ['cave visitors', (l) => new CaveVisitors(l, caveNooks(14))],
   ['resting sharks', (l) => new RestingSharks(CAVE_LIFE.resting, l)],
+  // v0.6 Pass 047
+  [
+    'under-ice life',
+    (l) => new IceLife(l, () => 0, [{ x: -5, y: 0, z: -30, size: 1 }]),
+  ],
+  // v0.6 Pass 048
+  [
+    'under-ice rare encounters',
+    (l) =>
+      new IceRare(
+        l,
+        iceLimits(() => 0),
+        [],
+      ),
+  ],
 ];
 
 describe('v0.6 Pass 046 review: let go while still loading', () => {

@@ -646,6 +646,8 @@ export class Application {
         /* Unavailable storage: visits still change within this session. */
       }
     }
+    // v0.6 Pass 048: each arrival under the ice starts its rare encounters over (none at once).
+    if (id === 'ice' && this.waterWorld !== 'ice') this.ice?.arrive();
     this.waterWorld = id;
     // Return to the tank is offered from either of the waters beyond it.
     this.ui.setOuter(id !== 'aquarium');
@@ -1053,6 +1055,9 @@ export class Application {
         this.controls.locked,
         this.playerPresence,
       );
+    // v0.6 Pass 047: the Weddell seal's call, heard where it is.
+    const call = this.waterWorld === 'ice' ? this.ice?.life?.call : undefined;
+    if (call) this.audio?.call(call);
     this.frame = requestAnimationFrame(this.tick);
   };
   /** Walk the office and draw it with the live miniature aquarium. */
