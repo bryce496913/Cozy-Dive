@@ -74,6 +74,11 @@ import {
 } from '../player/walking';
 import { Interface, type ExperienceMode } from '../ui/Interface';
 import { installDeepFog } from '../rendering/deepFog';
+import {
+  browserProbe,
+  capabilityNotice,
+  detectCapabilities,
+} from '../rendering/capabilities';
 import { loadVisits, saveVisits } from '../creatures/wallVisitors';
 import {
   DEFAULT_SETTINGS,
@@ -255,6 +260,13 @@ export class Application {
     }
     this.tracker = new SightingTracker(this.sightings);
     this.ui.setSeen(seenList(this.sightings));
+    // v0.6 Pass 056: try what the page needs before building anything (no browser sniffing).
+    const notice = capabilityNotice(detectCapabilities(browserProbe()));
+    if (notice?.fatal) {
+      this.ui.showError(notice.message, true);
+      return;
+    }
+    if (notice) this.ui.showError(notice.message);
     try {
       this.world = new UnderwaterScene(this.ui.sceneHost, () => {
         if (document.pointerLockElement) document.exitPointerLock();
@@ -262,6 +274,7 @@ export class Application {
         this.audio?.setActive(false);
         this.ui.showError(
           'The graphics connection was interrupted. Reload this page to return to the water.',
+          true,
           true,
         );
       });

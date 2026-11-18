@@ -69,6 +69,7 @@ export class Interface {
         <p class="load-note" id="load-note" aria-live="polite" hidden>Settling the water…</p>
         <button class="seen-toggle" id="seen-toggle" type="button" aria-expanded="false" aria-controls="seen-panel" hidden>Seen in the outer waters</button>
         <p class="status" id="status" role="status" aria-live="polite"></p>
+        <button class="enter secondary reload" id="reload" type="button" hidden>Reload</button>
       </div><div class="scene-label"><span class="label-line"></span><span>THE SUNLIT REEF AQUARIUM<small>01 / FIRST DIVE</small></span></div></main>
       <aside class="settings-panel" id="settings-panel" aria-label="Experience settings" hidden>
         <div class="panel-heading"><h2>Make yourself at home.</h2><button id="close-settings" aria-label="Close settings">×</button></div>
@@ -113,6 +114,9 @@ export class Interface {
     this.enter.addEventListener('click', () => onEnter('aquarium'), { signal });
     this.office.addEventListener('click', () => onEnter('office'), { signal });
     this.get('return-tank').addEventListener('click', () => onReturnToTank(), {
+      signal,
+    });
+    this.get('reload').addEventListener('click', () => location.reload(), {
       signal,
     });
     const toggle = root.querySelector<HTMLButtonElement>('.settings-toggle')!;
@@ -428,8 +432,17 @@ export class Interface {
       ? 'Preferences saved on this device.'
       : 'Storage unavailable. Preferences apply for this visit.';
   }
-  showError(message: string, fatal = false): void {
+  /**
+   * A message on the start screen. `fatal` disables entry; `reload` (v0.6 Pass 056) also offers a
+   * Reload button, for failures a fresh page can fix, such as a lost graphics context.
+   */
+  showError(message: string, fatal = false, reload = false): void {
     this.status.textContent = message;
+    if (reload) {
+      const button = this.get<HTMLButtonElement>('reload');
+      button.hidden = false;
+      button.focus();
+    }
     if (fatal) {
       this.fatalMessage = message;
       this.enter.disabled = true;

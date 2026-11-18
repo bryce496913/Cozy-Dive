@@ -43,6 +43,8 @@ select {
   display: none !important;
 }
 #app {
+  /* v0.6 Pass 056: vh first, for browsers before small-viewport units (2022). */
+  height: 100vh;
   height: 100svh;
   min-height: 600px;
   position: relative;
@@ -348,6 +350,8 @@ kbd {
   padding: 24px;
   z-index: 4;
   box-shadow: 0 15px 60px #001d2680;
+  /* Safari before 18 needs the prefix. */
+  -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
 }
 .panel-heading {
@@ -533,6 +537,7 @@ kbd {
   font-size: 11px;
 }
 .settings-panel {
+  max-height: calc(100vh - 110px);
   max-height: calc(100dvh - 110px);
   overflow-y: auto;
 }
@@ -811,4 +816,8 @@ kbd {
   padding-left: 1.1rem;
   font-size: 12px;
   color: #b9d0c6;
+}
+/* v0.6 Pass 056: offered when a fresh page can fix a failure (a lost graphics context). */
+.reload {
+  margin-top: 14px;
 }
