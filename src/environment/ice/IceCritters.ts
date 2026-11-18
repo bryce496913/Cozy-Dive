@@ -55,7 +55,7 @@ function merged(parts: THREE.BufferGeometry[]): THREE.BufferGeometry {
   return g;
 }
 /** A krill: a slim, slightly bent pink shrimp with black eyes, facing +z (about 4 cm long). */
-function krillGeometry(): THREE.BufferGeometry {
+export function krillGeometry(): THREE.BufferGeometry {
   const body = new THREE.CapsuleGeometry(0.004, 0.032, 3, 6);
   body.rotateX(Math.PI / 2);
   const parts = [painted(body, [0.95, 0.45, 0.42])];
@@ -71,7 +71,7 @@ function krillGeometry(): THREE.BufferGeometry {
   return merged(parts);
 }
 /** A sea butterfly: a tiny pale shell with two translucent orange wing lobes (unit ≈ 1 cm). */
-function butterflyGeometry(): THREE.BufferGeometry {
+export function butterflyGeometry(): THREE.BufferGeometry {
   const shell = new THREE.SphereGeometry(0.004, 8, 6);
   shell.scale(1, 1.4, 1);
   const parts = [painted(shell, [0.9, 0.88, 0.8])];
@@ -85,7 +85,7 @@ function butterflyGeometry(): THREE.BufferGeometry {
   return merged(parts);
 }
 /** A comb jelly: a clear oval with eight comb rows running pole to pole (unit ≈ 5 cm). */
-function jellyGeometry(): THREE.BufferGeometry {
+export function jellyGeometry(): THREE.BufferGeometry {
   const body = new THREE.SphereGeometry(0.025, 16, 12);
   body.scale(1, 1.35, 1);
   const parts = [painted(body, [0.85, 0.92, 0.95])];
