@@ -49,8 +49,9 @@ export const RARE_IDS: readonly RareId[] = [
 
 export const RARE = {
   /** Seconds before the first can come, and between one leaving and the next coming. */
-  first: [70, 140] as const,
-  gap: [90, 180] as const,
+  // v0.6 Pass 052 (playtest: "there are no creatures"): the first comes sooner, and they come more often.
+  first: [25, 55] as const,
+  gap: [45, 90] as const,
   /** Nothing appears within this distance of the swimmer (m): out of sight in the far water. */
   hidden: 24,
 } as const;

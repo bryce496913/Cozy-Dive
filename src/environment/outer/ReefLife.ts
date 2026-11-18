@@ -41,7 +41,9 @@ export const TREVALLY: CirclingConfig = {
   radius: [0.8, 2.4],
   height: 4,
   speed: 1.5,
-  out: 9.5,
+  // v0.6 Pass 052 (playtest): closer to the glass (was 9.5 m): the ball's near edge (2.4 m radius,
+  // 1 m drift, half a body) is about a metre beyond the glass.
+  out: 5,
   spots: [
     { x: -10, y: 2 },
     { x: 2, y: -1 },
@@ -59,10 +61,12 @@ export const TREVALLY: CirclingConfig = {
 };
 /** Body lengths (m) the scripted fish are drawn at, matching their authored models. */
 const LENGTH = {
-  parrotfish: 1.1,
+  // v0.6 Pass 052 (playtest): the bumphead parrotfish at twice its former size.
+  parrotfish: 2.2,
   wrasse: 2.4,
   trevally: 0.9,
-  bannerfish: 0.55,
+  // v0.6 Pass 052 (playtest): half the size (twice as many).
+  bannerfish: 0.28,
 } as const;
 /** The sunfish's scale on its authored 1.2 m body (about 2.2 m long, 3 m fin to fin). */
 const SUNFISH_SCALE = 1.8;
@@ -159,7 +163,8 @@ export class ReefLife {
     this.octopus = new Octopus(
       den,
       near,
-      (x, z) => top(x, z, 0.15),
+      // v0.6 Pass 052: it walks on the seabed (the reef's tops lifted it into mid water).
+      (x, z) => seabedHeight(x, z),
       (x, z) => top(x, z, 0.1) - seabedHeight(x, z) > 0.2,
       { sand: 0xc7b28c, rock: 0x7c6c58, alarm: 0x5a2016 },
       OUTER_SIGHTS.octopus,

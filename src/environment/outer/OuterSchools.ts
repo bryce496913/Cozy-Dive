@@ -35,6 +35,7 @@ const LIBRARY: Readonly<Partial<Record<SpeciesId, AssetId>>> = {
   'threadfin-butterflyfish': 'butterflyfish',
   'moorish-idol': 'moorishIdol',
   'flashlight-fish': 'chromis',
+  'antarctic-silverfish': 'chromis',
 };
 /** v0.6 Pass 032: species drawn on another's rig in a colour of their own. */
 const RECOLOR: Readonly<Partial<Record<SpeciesId, number>>> = {
@@ -45,6 +46,8 @@ const RECOLOR: Readonly<Partial<Record<SpeciesId, number>>> = {
   senorita: 0xe0b23a,
   soldierfish: 0xc23a22,
   'flashlight-fish': 0x1d2126,
+  // v0.6 Pass 052: bright silver-blue.
+  'antarctic-silverfish': 0xc3d3dc,
 };
 /** Outer schools switch to their light rigs at this many body lengths. */
 export const OUTER_FISH_DETAIL = 8;

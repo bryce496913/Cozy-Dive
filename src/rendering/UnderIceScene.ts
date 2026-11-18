@@ -8,6 +8,9 @@ import { IceEnvironment } from '../environment/ice/IceEnvironment';
 import { IceGarden } from '../environment/ice/IceGarden';
 import { IceLife } from '../environment/ice/IceLife';
 import { IceRare } from '../environment/ice/IceRare';
+import { IceExtras } from '../environment/ice/IceExtras';
+import { iceHabitat, iceSpecies } from '../environment/ice/IceSchools';
+import { OuterSchools } from '../environment/outer/OuterSchools';
 import { iceLimits } from '../creatures/iceLife';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
 import { easeInIce, iceFloor } from '../environment/ice/IceTerrain';
@@ -69,6 +72,9 @@ export class UnderIceScene implements WaterWorld {
   life?: IceLife;
   /** v0.6 Pass 048: its rare encounters. */
   rare?: IceRare;
+  /** v0.6 Pass 052: its detail and drifting life, and its mid-water school. */
+  readonly extras: IceExtras;
+  schools?: OuterSchools;
   private disposed = false;
 
   /**
@@ -91,9 +97,19 @@ export class UnderIceScene implements WaterWorld {
           'garden',
           () => new IceGarden(environment.stones),
         ),
+        // v0.6 Pass 052: more detail and life (brinicles, seabed life, jellyfish, salps).
+        extras = await stage.step(
+          'detail',
+          () => new IceExtras(environment.stones),
+        ),
         scene = await stage.step(
           'scene',
-          () => new UnderIceScene(renderer, libraries, { environment, garden }),
+          () =>
+            new UnderIceScene(renderer, libraries, {
+              environment,
+              garden,
+              extras,
+            }),
         );
       scene.buildStats = stage.stats;
       return scene;
@@ -105,14 +121,25 @@ export class UnderIceScene implements WaterWorld {
   constructor(
     private readonly renderer: THREE.WebGLRenderer,
     libraries: IceLibraries,
-    parts: { readonly environment: IceEnvironment; readonly garden: IceGarden },
+    parts: {
+      readonly environment: IceEnvironment;
+      readonly garden: IceGarden;
+      readonly extras: IceExtras;
+    },
   ) {
     this.environment = parts.environment;
+    this.extras = parts.extras;
     this.scene.name = 'Under the ice';
     this.scene.background = new THREE.Color(ICE.water);
     this.scene.fog = new THREE.FogExp2(ICE.water, ICE.fog);
     this.garden = parts.garden;
-    this.scene.add(this.environment.root, this.garden.root, this.snow.points);
+    this.scene.add(
+      this.environment.root,
+      this.garden.root,
+      this.extras.root,
+      this.snow.points,
+    );
+    this.sightings.push(...this.extras.sightings);
     // The same kinds and number of lights as the tank: a cold sky light (the ice glowing above,
     // the seabed dark below), the sun low and pale through the ice, and a blue fill.
     const sky = new THREE.HemisphereLight(0xdff2ff, 0x2a3442, 1.25),
@@ -190,12 +217,23 @@ export class UnderIceScene implements WaterWorld {
     this.life = life;
     const rare = new IceRare(fish, iceLimits(ground), this.sightings);
     this.rare = rare;
+    const schools = new OuterSchools(iceHabitat(), iceSpecies(), fish);
+    this.schools = schools;
     await Promise.all([
       this.preparation.track('wildlife', life.ready),
       this.preparation.track('rare encounters', rare.ready),
+      this.preparation.track('schools', schools.ready),
     ]);
     if (this.disposed) return false;
-    this.scene.add(life.root, rare.root);
+    this.scene.add(life.root, rare.root, schools.root);
+    // The school counts as seen from close by its leading fish (it carries its sighting with it).
+    const lead = schools.fish.simulation.fish[0];
+    if (lead)
+      this.sightings.push({
+        ...ICE_SIGHTS.silverfish,
+        position: lead.position,
+        radius: 4,
+      });
     this.sightings.push(...life.sightings);
     await warmUpScene(this.renderer, this.scene, this.camera);
     if (this.disposed) return false;
@@ -235,10 +273,12 @@ export class UnderIceScene implements WaterWorld {
     }
     this.environment.update(dt, active, reducedMotion);
     this.garden.update(dt, active, reducedMotion);
+    this.extras.update(dt, active, reducedMotion, player);
     // Only once warmed up, so everything is drawn (and compiled) in the warm-up first.
     if (this.ready) {
       this.life?.update(dt, active, reducedMotion, player, this.camera);
       this.rare?.update(dt, active, reducedMotion, player, this.camera);
+      this.schools?.update(dt, active, reducedMotion, player, this.camera);
     }
     this.snow.update(dt, active, reducedMotion, this.camera.position);
     this.renderer.render(this.scene, this.camera);
@@ -251,6 +291,8 @@ export class UnderIceScene implements WaterWorld {
     this.garden.dispose();
     this.life?.dispose();
     this.rare?.dispose();
+    this.schools?.dispose();
+    this.extras.dispose();
     this.snow.dispose();
     this.environment.dispose();
     this.lights.forEach((l) => l.dispose());

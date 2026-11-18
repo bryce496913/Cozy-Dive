@@ -102,7 +102,7 @@ describe('Pass 051: the catalog is data-driven and grouped', () => {
       false,
     );
     for (const label of [
-      'Parrotfish',
+      'Bumphead parrotfish',
       'Humphead wrasse',
       'Garibaldi',
       'Icefish',

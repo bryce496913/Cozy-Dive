@@ -7,7 +7,12 @@ import { CAVE, CAVE_FRAME, PASSAGE } from '../../config/passage';
 import type { Vec3 } from '../../config/world';
 import type { ConvexCollider } from '../../player/collision';
 import { boxCollider } from '../passage/Crevice';
-import { rockTubeColliders, rockTubeGeometry } from '../shared/RockTube';
+import {
+  icicles,
+  mouthRocks,
+  rockTubeColliders,
+  rockTubeGeometry,
+} from '../shared/RockTube';
 import { createRockGeometry, rockShape } from '../RockGeometry';
 import { rockCollider } from '../rockCollider';
 import { caveFloor, chamberDepth, wallLumps, wallPoint } from './CaveTerrain';
@@ -171,8 +176,22 @@ export class CaveEnvironment {
         from: backMouthZ() + 0.3,
         to: back.endZ - 3,
         dark: back.endZ,
+        // v0.6 Pass 052: frost creeping over the rock as the tunnel nears the ice.
+        frost: { from: backMouthZ() - 1, to: back.endZ + 0.5 },
       };
     this.add(rockTubeGeometry(backTube), tunnel, 'Cave back tunnel');
+    // v0.6 Pass 052 (playtest: "the tunnel to the ice needs to be better designed"): boulders
+    // heaped round its mouth (frosted a little), and icicles hanging in its colder half.
+    this.add(
+      mouthRocks(backTube, backMouthZ() + 0.1, 1, 0.25, 12, 52110),
+      tunnel,
+      'Cave back tunnel mouth',
+    );
+    this.add(
+      icicles(backTube, (backMouthZ() + back.endZ) / 2, back.endZ + 0.4, 30),
+      tunnel,
+      'Cave back tunnel icicles',
+    );
     // Its far end fades into darkness (beyond the threshold, where the swap has happened).
     const backCap = new THREE.CircleGeometry(back.radius + 0.4, 24);
     backCap.translate(back.x, back.y, backTube.to);
@@ -457,8 +476,17 @@ export class CaveEnvironment {
       colors: number[] = [];
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i),
-        z = pos.getZ(i);
-      pos.setY(i, caveFloor(x, z));
+        z = pos.getZ(i),
+        // v0.6 Pass 052 (playtest: "a weird square texture at the entrance"): the sheet is square
+        // and reaches past the cavern's wall; at the front its banked-up edge stood above the
+        // tunnel's floor, a square of sand inside the tunnel's mouth. Beyond the wall it now
+        // drops well down, out of sight under the rock.
+        rim =
+          (Math.abs((x - c.x) / c.rx) ** c.squareness +
+            Math.abs((z - c.z) / c.rz) ** c.squareness) **
+          (1 / c.squareness),
+        tuck = 4 * smooth(1, 1.06, rim);
+      pos.setY(i, caveFloor(x, z) - tuck);
       const lit = 1 - smooth(2, 9, Math.hypot(x - s.x, z - s.z)),
         speck =
           0.04 * Math.sin(x * 0.9 + z * 0.6) * Math.sin(x * 0.5 - z * 1.1),

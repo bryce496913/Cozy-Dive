@@ -16,10 +16,17 @@ import { createPose, PosedFish } from '../outer/PosedFish';
 import { SoloCreature } from '../outer/SoloCreature';
 import { createRockGeometry } from '../RockGeometry';
 import { Octopus } from '../shared/Octopus';
-import { lobsterDen, limb, merged, tinted } from './CaveLobsters';
-import { caveHabitat, caveObstacles } from './CaveLife';
+import { limb, merged, tinted } from './CaveLobsters';
+import { OCTOPUS_DEN, octopusDenGeometry } from '../shared/OctopusDen';
+import { CAVE_LIFE, caveHabitat, caveObstacles } from './CaveLife';
 import type { CaveNooks } from './CaveNooks';
-import { caveFloor } from './CaveTerrain';
+import { caveFloor, wallDistance } from './CaveTerrain';
+import { CAVE } from '../../config/passage';
+import {
+  SharkBolt,
+  type BoltWorld,
+  type RestSpot,
+} from '../../creatures/sharkBolt';
 
 /**
  * v0.6 Pass 045: the sea cave's newer life:
@@ -34,7 +41,19 @@ import { caveFloor } from './CaveTerrain';
  *   - two lionfish on boulder tops, fanning their fins and spines at a swimmer who comes close.
  * Each part loads on its own and is left out if it cannot. Owns everything it creates.
  */
-const LION = { rays: 20, scale: 1.6 } as const;
+/**
+ * v0.6 Pass 052 (playtest: "the lionfish needs more detail"): 13 dorsal spines and 8 rays in each
+ * pectoral fan (was 8 and 6).
+ */
+/** v0.6 Pass 052: the nurse shark keeps low for this far (m) as it slips from under its ledge,
+ * and goes home once the swimmer has been beyond `homeClear` m for `homeAfter` s. */
+const NURSE = { slipOut: 2.2, homeClear: 9, homeAfter: 25 } as const;
+/**
+ * v0.6 Pass 052: the moray's crack (an outcrop built like the octopus's den): its size, and how far
+ * its mouth sits behind the moray's head, so the head rests just inside the crack.
+ */
+const MORAY_CRACK = { scale: 2.4, back: 0.4 } as const;
+const LION = { dorsal: 13, pectoral: 8, rays: 13 + 2 * 8, scale: 1.6 } as const;
 
 /** A cleaner shrimp facing +z, its legs at y 0 (about 6 cm before scaling): red and white. */
 function shrimpGeometry(): THREE.BufferGeometry {
@@ -70,65 +89,156 @@ function shrimpGeometry(): THREE.BufferGeometry {
   }
   return merged(parts);
 }
+/** Lionfish stripes: broad red-brown bands with fine ones between, on cream (z along the body). */
+function lionStripe(x: number, y: number, z: number): [number, number, number] {
+  // The bands lean back a little and curve over the head; a fine band between each broad one.
+  const t = z * 95 + Math.sin(y * 30) * 0.8 + Math.abs(x) * 20,
+    broad = Math.sin(t) > 0.35,
+    fine = Math.abs(Math.sin(t * 2 + 1.6)) > 0.93,
+    throat = y < 0.03 && z > 0.02;
+  if (throat) return [0.96, 0.9, 0.82];
+  if (broad) return [0.6, 0.14, 0.08];
+  if (fine) return [0.45, 0.12, 0.08];
+  return [0.97, 0.9, 0.8];
+}
+/** A thin fin membrane: a fan of triangles from `base`, spotted, see-through (alpha in the material). */
+function finFan(
+  base: THREE.Vector3,
+  tips: readonly THREE.Vector3[],
+): THREE.BufferGeometry {
+  const pos: number[] = [],
+    col: number[] = [];
+  for (let i = 0; i < tips.length - 1; i++) {
+    const a = tips[i],
+      b = tips[i + 1];
+    // Both faces, so the fin shows from either side whatever the material's culling.
+    pos.push(base.x, base.y, base.z, a.x, a.y, a.z, b.x, b.y, b.z);
+    pos.push(base.x, base.y, base.z, b.x, b.y, b.z, a.x, a.y, a.z);
+    for (let k = 0; k < 6; k++) {
+      const spot = (i + k) % 3 === 0 ? 0.35 : 1;
+      col.push(0.85 * spot, 0.62 * spot, 0.5 * spot);
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  g.computeVertexNormals();
+  return g;
+}
 /** A lionfish body facing +z, its belly at y 0 (about 30 cm before scaling), with head tentacles. */
 function lionBody(): THREE.BufferGeometry {
-  const body = new THREE.SphereGeometry(1, 16, 10);
-  body.scale(0.035, 0.05, 0.13);
-  body.translate(0, 0.05, 0);
+  // A deep, compressed body: big head, deepest behind it, tapering to a slim tail stalk.
+  const body = new THREE.SphereGeometry(1, 28, 18),
+    bp = body.getAttribute('position');
+  for (let i = 0; i < bp.count; i++) {
+    const x = bp.getX(i),
+      y = bp.getY(i),
+      z = bp.getZ(i),
+      // Depth along the body (z from +1 snout to -1 tail).
+      deep =
+        0.75 + 0.35 * Math.cos((z - 0.25) * 1.7) - 0.45 * Math.max(0, -z - 0.4),
+      wide = 0.8 + 0.25 * Math.cos((z - 0.2) * 1.5);
+    bp.setXYZ(i, x * 0.034 * wide, y * 0.056 * deep, z * 0.13);
+  }
+  body.translate(0, 0.055, 0);
   const g = body.toNonIndexed();
   body.dispose();
   const pos = g.getAttribute('position'),
     col = new Float32Array(pos.count * 3);
-  for (let i = 0; i < pos.count; i++) {
-    // Bold vertical bands, red-brown and cream, narrowing towards the tail.
-    const z = pos.getZ(i),
-      band = Math.sin(z * 110 + Math.sin(pos.getY(i) * 40)) > 0.1;
-    col.set(band ? [0.62, 0.16, 0.1] : [0.95, 0.88, 0.78], i * 3);
-  }
+  for (let i = 0; i < pos.count; i++)
+    col.set(lionStripe(pos.getX(i), pos.getY(i) - 0.055, pos.getZ(i)), i * 3);
   g.deleteAttribute('uv');
   g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-  const parts = [g];
-  // A tail fan and fleshy tentacles over the eyes.
-  const tail = new THREE.ConeGeometry(0.035, 0.07, 8);
-  tail.rotateX(-Math.PI / 2);
-  tail.scale(0.3, 1, 1);
-  tail.translate(0, 0.05, -0.15);
-  parts.push(tinted(tail, [0.9, 0.85, 0.78]));
+  const parts = [g],
+    v = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
+  // Soft dorsal, anal and tail fins: spotted see-through fans.
+  parts.push(
+    finFan(v(0, 0.1, -0.06), [
+      v(0, 0.11, -0.02),
+      v(0, 0.16, -0.05),
+      v(0, 0.17, -0.09),
+      v(0, 0.15, -0.12),
+      v(0, 0.1, -0.13),
+    ]),
+    finFan(v(0, 0.015, -0.07), [
+      v(0, 0.01, -0.03),
+      v(0, -0.04, -0.07),
+      v(0, -0.045, -0.1),
+      v(0, 0.01, -0.12),
+    ]),
+    finFan(v(0, 0.055, -0.13), [
+      v(0, 0.1, -0.17),
+      v(0, 0.11, -0.21),
+      v(0, 0.08, -0.235),
+      v(0, 0.03, -0.235),
+      v(0, 0.0, -0.21),
+      v(0, 0.01, -0.17),
+    ]),
+  );
+  // A big-lipped mouth.
+  const lips = new THREE.TorusGeometry(0.012, 0.004, 5, 10);
+  lips.scale(1.1, 0.8, 1);
+  lips.translate(0, 0.045, 0.128);
+  parts.push(tinted(lips, [0.7, 0.3, 0.22]));
   for (const s of [-1, 1]) {
-    const eye = new THREE.SphereGeometry(0.008, 6, 4);
-    eye.translate(s * 0.024, 0.07, 0.09);
-    parts.push(tinted(eye, [0.08, 0.06, 0.05]));
-    const t = new THREE.ConeGeometry(0.004, 0.03, 4);
-    t.translate(s * 0.02, 0.1, 0.08);
-    parts.push(tinted(t, [0.75, 0.25, 0.15]));
+    // Glossy eyes in a red ring, a stripe running through each.
+    const ring = new THREE.SphereGeometry(0.012, 10, 8);
+    ring.translate(s * 0.022, 0.075, 0.085);
+    parts.push(tinted(ring, [0.55, 0.12, 0.07]));
+    const eye = new THREE.SphereGeometry(0.0085, 10, 8);
+    eye.translate(s * 0.028, 0.076, 0.088);
+    parts.push(tinted(eye, [0.04, 0.03, 0.03]));
+    // Banded, fleshy tentacles over the eyes, and small tabs below the mouth.
+    for (let k = 0; k < 3; k++) {
+      const seg = new THREE.ConeGeometry(0.004 - k * 0.001, 0.014, 5);
+      seg.translate(s * 0.02, 0.098 + k * 0.012, 0.082 - k * 0.003);
+      parts.push(tinted(seg, k % 2 ? [0.95, 0.88, 0.8] : [0.7, 0.2, 0.12]));
+    }
+    const tab = new THREE.ConeGeometry(0.003, 0.012, 4);
+    tab.rotateX(Math.PI);
+    tab.translate(s * 0.012, 0.028, 0.11);
+    parts.push(tinted(tab, [0.9, 0.8, 0.72]));
+    // Pelvic fins below, spotted.
+    parts.push(
+      finFan(v(s * 0.01, 0.01, 0.04), [
+        v(s * 0.02, -0.03, 0.03),
+        v(s * 0.03, -0.045, -0.01),
+        v(s * 0.02, -0.03, -0.04),
+      ]),
+    );
   }
   return merged(parts);
 }
-/** One fin ray (spine), its base at the origin, pointing up +y (1 unit long): banded. */
+/** One fin ray (spine), its base at the origin, pointing up +y (1 unit long): finely banded. */
 function rayGeometry(): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [];
-  for (let k = 0; k < 4; k++) {
-    const seg = new THREE.CylinderGeometry(
-      0.008 * (1 - k / 4) + 0.002,
-      0.008 * (1 - (k - 1) / 4) + 0.002,
-      0.25,
-      4,
-      1,
-    );
-    seg.translate(0, 0.125 + k * 0.25, 0);
-    parts.push(tinted(seg, k % 2 ? [0.95, 0.88, 0.8] : [0.6, 0.15, 0.1]));
+  const parts: THREE.BufferGeometry[] = [],
+    bands = 8;
+  for (let k = 0; k < bands; k++) {
+    const r0 = 0.008 * (1 - k / bands) + 0.0015,
+      r1 = 0.008 * (1 - (k + 1) / bands) + 0.0015,
+      seg = new THREE.CylinderGeometry(r1, r0, 1 / bands, 5, 1);
+    seg.translate(0, (k + 0.5) / bands, 0);
+    parts.push(tinted(seg, k % 2 ? [0.96, 0.9, 0.82] : [0.62, 0.15, 0.09]));
   }
-  // A thin, tapering sliver of membrane trailing each ray, joined at its base.
-  const web = new THREE.BufferGeometry();
-  web.setAttribute(
-    'position',
-    new THREE.Float32BufferAttribute(
-      [0, 0.05, 0, 0, 0.75, 0, 0, 0.4, -0.06],
-      3,
-    ),
-  );
-  web.computeVertexNormals();
-  parts.push(tinted(web, [0.85, 0.6, 0.5]));
+  // The membrane trailing each ray: wider, from its base to two-thirds up, banded like the ray.
+  const web: number[] = [],
+    tone: number[] = [],
+    steps = 6;
+  for (let k = 0; k < steps; k++) {
+    const y0 = 0.04 + (k / steps) * 0.66,
+      y1 = 0.04 + ((k + 1) / steps) * 0.66,
+      w0 = 0.09 * (1 - k / steps),
+      w1 = 0.09 * (1 - (k + 1) / steps);
+    web.push(0, y0, 0, 0, y1, 0, 0, y0 - 0.03, -w0);
+    web.push(0, y1, 0, 0, y1 - 0.03, -w1, 0, y0 - 0.03, -w0);
+    const c = k % 2 ? [0.95, 0.85, 0.75] : [0.75, 0.32, 0.24];
+    for (let n = 0; n < 6; n++) tone.push(c[0], c[1], c[2]);
+  }
+  const membrane = new THREE.BufferGeometry();
+  membrane.setAttribute('position', new THREE.Float32BufferAttribute(web, 3));
+  membrane.setAttribute('color', new THREE.Float32BufferAttribute(tone, 3));
+  membrane.computeVertexNormals();
+  parts.push(membrane);
   return merged(parts);
 }
 
@@ -143,6 +253,15 @@ export class CaveVisitors {
   moray?: Moray;
   private readonly nursePose = createPose();
   private nurse?: SoloCreature;
+  /**
+   * v0.6 Pass 052 (playtest: "the zebra shark needs to be scared away like the other sharks"): the
+   * nurse shark startles and bolts like the resting whitetips (see `SharkBolt`): it slips out
+   * from under its ledge, dashes off and settles on open sand, and goes home under the ledge
+   * once the swimmer has been gone a while.
+   */
+  private readonly nurseBolt: SharkBolt;
+  private readonly nurseHome: RestSpot;
+  private nurseAway = 0;
   private turtleBody?: SoloCreature;
   private cleanerFish?: PosedFish;
   private readonly geometries: THREE.BufferGeometry[] = [];
@@ -238,19 +357,28 @@ export class CaveVisitors {
       mesh.name = 'Cave ledge';
       this.root.add(mesh);
     }
-    // The moray's crack: a dark hole under a hood of rock, low in the wall.
+    // The moray's crack. v0.6 Pass 052 (playtest: "the moray eel and the cave are broken"): it was
+    // the lobsters' thin open hood hung on the wall at the moray's height, floating above the
+    // banked sand with gaps behind it. Now a solid outcrop of rock rises from the sand against the
+    // wall, its deep dark crack at the moray's head and its back sunk into the wall, hiding the body.
     const mo = nooks.moray,
-      denGeometry = lobsterDen();
+      denScale = MORAY_CRACK.scale,
+      pocketMid = OCTOPUS_DEN.mouth.high * 0.6 * denScale,
+      base = mo.mouth.y - pocketMid,
+      ground = caveFloor(mo.mouth.x, mo.mouth.z),
+      denGeometry = octopusDenGeometry(
+        Math.max(0, (base - ground) / denScale + 0.15),
+      );
     this.geometries.push(denGeometry);
-    const den = new THREE.Mesh(denGeometry, critters);
+    const den = new THREE.Mesh(denGeometry, rock);
     den.name = 'Moray crack';
     den.position.set(
-      mo.mouth.x - mo.axis.x * 0.05,
-      mo.mouth.y - 0.3,
-      mo.mouth.z - mo.axis.z * 0.05,
+      mo.mouth.x - mo.axis.x * MORAY_CRACK.back,
+      base,
+      mo.mouth.z - mo.axis.z * MORAY_CRACK.back,
     );
     den.rotation.y = Math.atan2(mo.axis.x, mo.axis.z);
-    den.scale.setScalar(1.7);
+    den.scale.setScalar(denScale);
     this.root.add(den);
     try {
       this.moray = new Moray(caveHabitat(), [], mo);
@@ -270,6 +398,18 @@ export class CaveVisitors {
     this.nursePose.position.y = nooks.nurse.at.y;
     this.nursePose.position.z = nooks.nurse.at.z;
     this.nursePose.yaw = nooks.nurse.yaw;
+    this.nurseHome = {
+      x: nooks.nurse.at.x,
+      z: nooks.nurse.at.z,
+      yaw: nooks.nurse.yaw,
+    };
+    this.nurseBolt = new SharkBolt(
+      this.nurseHome,
+      nooks.nurse.at.y,
+      nooks.nurse.at.y - caveFloor(nooks.nurse.at.x, nooks.nurse.at.z),
+      1.3,
+      NURSE.slipOut,
+    );
     // Cleaner shrimps, and the soldierfish that visits them.
     const st = nooks.station;
     this.cleaning = new CleaningVisit(createPose(), st.patch, st.out, st.home);
@@ -291,7 +431,8 @@ export class CaveVisitors {
     this.octopus = new Octopus(
       o,
       nooks.octopusRocks,
-      (x, z) => caveObstacles(x, z, 0.15),
+      // v0.6 Pass 052: it walks on the cave floor, never over the tops of boulders.
+      (x, z) => caveFloor(x, z),
       (x, z) => caveObstacles(x, z, 0.1) - caveFloor(x, z) > 0.2,
       { sand: 0xb9ae95, rock: 0x9d927d, alarm: 0x5a2016 },
       OUTER_SIGHTS.octopus,
@@ -503,20 +644,20 @@ export class CaveVisitors {
           ox: number,
           oy: number,
           oz: number;
-        if (r < 8) {
+        if (r < LION.dorsal) {
           // Dorsal spines along the back: swept back at rest, raised and splayed when alarmed.
-          const u = r / 7;
+          const u = r / (LION.dorsal - 1);
           ox = 0;
-          oy = 0.09;
-          oz = 0.07 - u * 0.15;
+          oy = 0.1;
+          oz = 0.075 - u * 0.15;
           rx = -0.9 * (1 - sp) - 0.15 + 0.1 * u * sp;
           rz = 0;
-          len = 0.11 + 0.05 * Math.sin(u * Math.PI);
+          len = 0.11 + 0.06 * Math.sin(u * Math.PI);
         } else {
           // Pectoral fans either side: folded back along the body at rest, a wide fan when alarmed.
-          const j = (r - 8) % 6,
-            side = r < 14 ? 1 : -1,
-            u = j / 5;
+          const j = (r - LION.dorsal) % LION.pectoral,
+            side = r < LION.dorsal + LION.pectoral ? 1 : -1,
+            u = j / (LION.pectoral - 1);
           ox = side * 0.03;
           oy = 0.04;
           oz = 0.04;
@@ -556,18 +697,77 @@ export class CaveVisitors {
       this.turtle.update(step);
       this.cleaning.update(step);
       for (const l of this.lionfish) l.update(step, player);
-      // The nurse shark sleeps, its tail stirring slowly; a close swimmer sets it sweeping.
-      const n = this.nursePose.position,
-        e = player.position,
-        near =
-          player.active && Math.hypot(e.x - n.x, e.y - n.y, e.z - n.z) < 2.2;
-      this.nursePose.effort =
-        (near ? 0.35 : 0.08) * Math.sin(this.time * (near ? 1.2 : 0.35));
+      this.nurseUpdate(step, reducedMotion, player);
     }
     this.moray?.update(dt, active, reducedMotion, player);
     this.octopus.update(dt, active, reducedMotion, player);
     this.place();
   }
+  /** The nurse shark: asleep (its tail stirring slowly), or startled, bolting and settling. */
+  private nurseUpdate(
+    step: number,
+    reducedMotion: boolean,
+    player: PlayerPresence,
+  ): void {
+    const b = this.nurseBolt,
+      eye = player.active ? player.position : undefined,
+      pose = this.nursePose;
+    if (eye) b.startle(eye);
+    b.update(step, this.nurseWorld, reducedMotion, eye);
+    if (b.mood === 'rest') {
+      pose.effort = 0.08 * Math.sin(this.time * 0.35);
+      pose.pitch = 0;
+      pose.roll = 0;
+      // Resting away from home: once the swimmer has been well away a while, go home.
+      const away =
+        Math.hypot(
+          b.position.x - this.nurseHome.x,
+          b.position.z - this.nurseHome.z,
+        ) > 0.5;
+      const gone =
+        !eye ||
+        Math.hypot(eye.x - this.nurseHome.x, eye.z - this.nurseHome.z) >
+          NURSE.homeClear;
+      this.nurseAway = away && gone ? this.nurseAway + step : 0;
+      if (this.nurseAway > NURSE.homeAfter) {
+        this.nurseAway = 0;
+        b.goTo(this.nurseHome);
+      }
+    } else {
+      pose.effort = b.effort;
+      pose.pitch = b.pitch;
+      pose.roll = b.bank;
+    }
+    pose.position.x = b.position.x;
+    pose.position.y = b.position.y;
+    pose.position.z = b.position.z;
+    pose.yaw = b.yaw;
+  }
+  /** The cave as the nurse shark sees it while it swims. */
+  private readonly nurseWorld: BoltWorld = {
+    floor: (x, z) => caveFloor(x, z),
+    over: (x, z, radius) => caveObstacles(x, z, radius),
+    avoid: (p, push) => {
+      const c = CAVE.chamber;
+      if (wallDistance(p) < 3) {
+        push.x += (c.x - p.x) * 0.08;
+        push.z += (c.z - p.z) * 0.08;
+      }
+    },
+    settleAt: (eye) => {
+      let best: RestSpot = this.nurseHome,
+        far = -Infinity;
+      for (const s of CAVE_LIFE.settle) {
+        const d = eye ? Math.hypot(s.x - eye.x, s.z - eye.z) : 0;
+        // Beside the whitetips' places (never on top of one that has settled there).
+        if (d > far) {
+          far = d;
+          best = { x: s.x + 1.6, z: s.z + 1.2, yaw: s.yaw + 0.4 };
+        }
+      }
+      return best;
+    },
+  };
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;

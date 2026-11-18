@@ -28,7 +28,9 @@ export type SpeciesId =
   | 'bigeye-trevally'
   | 'humphead-wrasse'
   /** v0.6 Pass 045: the sea cave's small dark fish with glowing light organs. */
-  | 'flashlight-fish';
+  | 'flashlight-fish'
+  /** v0.6 Pass 052: the big shimmering school under the ice (never in the tank). */
+  | 'antarctic-silverfish';
 export interface SchoolingTuning {
   readonly enabled: boolean;
   readonly spacing: number;

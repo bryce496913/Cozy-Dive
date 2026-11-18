@@ -66,7 +66,7 @@ export class IceLife {
       .filter(
         (s) => Math.abs(s.x) < ICE.walls.x - 5 && s.z < ICE.tunnel.wallZ - 8,
       )
-      .slice(0, 6)
+      .slice(0, 12)
       .map((s) => ({ x: s.x + s.size, y: s.y, z: s.z + s.size * 0.5 }));
     this.icefish = new IcefishRest(
       createPose,

@@ -173,17 +173,19 @@ export const OUTER_CRUISERS: readonly CruiseGroup[] = [
     ],
   },
   {
-    // Along the wall's face below the lip.
+    // v0.6 Pass 052 (playtest): the turtles live on the reef, inside the tank, not out in the
+    // blue. A slow loop low over the coral on the left of the reef top (lifted over any taller
+    // reef by the route), well clear of the tunnel's mouth and the glass.
     species: 'green-sea-turtle',
     scale: 1.2,
-    waypoints: oval(-10, -63.5, 14, 3.5, (x) => -4.5 + 0.3 * Math.sin(x * 0.1)),
+    waypoints: oval(-11, -45, 9, 4.5, (x) => 3.4 + 0.3 * Math.sin(x * 0.2)),
     members: [{ start: 0, side: 0, up: 0, phase: 0.8 }],
   },
   {
-    // A second turtle follows a separate, deeper loop, with an independent glide rhythm.
+    // A second turtle on its own loop over the right of the reef top, with its own glide rhythm.
     species: 'green-sea-turtle',
     scale: 1.05,
-    waypoints: oval(8, -64, 12, 3.5, (x) => -6 + 0.3 * Math.sin(x * 0.1 + 1)),
+    waypoints: oval(12, -47, 8, 4, (x) => 3.8 + 0.3 * Math.sin(x * 0.2 + 1)),
     members: [{ start: 20, side: 0, up: 0, phase: 3.7 }],
   },
 ];

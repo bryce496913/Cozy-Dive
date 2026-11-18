@@ -123,7 +123,11 @@ export const UNSUITED_FISH: readonly UnsuitedFish[] = [
     label: 'Ocellaris clownfish',
     reason: 'The anemone already hosts its clownfish family.',
   },
-  { sighting: 'species:parrotfish', label: 'Parrotfish', reason: tooBig },
+  {
+    sighting: 'species:parrotfish',
+    label: 'Bumphead parrotfish',
+    reason: tooBig,
+  },
   {
     sighting: 'species:humphead-wrasse',
     label: 'Humphead wrasse',
