@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.6 / Pass 054 — Frictionless onboarding (`0.6.0-rc.16`)** is a first-person, browser-based aquarium prototype. Start in a small glass-walled office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15` and v0.3 (Office & Dive Transition) at `0.3.0-rc.1`. No scores, timers, combat, accounts, or external asset services.
+A quiet little world beneath the surface. **v0.6 / Pass 055 — Full-world acceptance (`0.6.0-rc.17`, acceptance-ready)** is a first-person, browser-based aquarium prototype. Start in a small glass-walled office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15` and v0.3 (Office & Dive Transition) at `0.3.0-rc.1`. No scores, timers, combat, accounts, or external asset services.
 
 ## Stack and requirements
 
@@ -356,6 +356,17 @@ Every embedded texture is now KTX2/Basis with a full mip chain, re-encoded from 
 ### v0.2 Pass 017 candidate
 
 Fish beyond 14 body lengths switch to a morphing distance level (about 1.8k instead of 12.7k triangles), cutting the spawn view by 28%. Every shipped model is Draco-compressed with WebP textures, so the production startup download falls from about 53 MB to about 17 MB, with no visible change. The Draco decoder is served locally. See [validation](docs/VALIDATION_V02_PASS_017.md).
+
+### v0.6 Pass 055 — Full-world acceptance
+
+- **The whole journey, automated:** `validation/acceptance.mjs` passes all 65 checks.
+  - Office → dive → every world → back through every passage, twice (the second time with reduced motion).
+  - Rapid turn-backs, a paused passage, and the release of every world.
+  - The tank, preferences, journal and onboarding survive a relaunch.
+- **No growing GPU resources:** a borrowed-fish cache stays at a fixed size.
+- **v0.6 is acceptance-ready, not yet accepted:** it waits on the real-device checklist (Mac, Chrome and Safari).
+
+See [the acceptance report](docs/ACCEPTANCE_V06.md).
 
 ### v0.6 Pass 054 — Instant relaxation and frictionless onboarding
 
