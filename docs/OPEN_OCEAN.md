@@ -1,4 +1,4 @@
-# Open-ocean freedom and boundaries (Pass 053)
+# Open-ocean freedom and boundaries (Pass 052B)
 
 This pass makes the outer waters feel bigger and freer without making them unbounded. Each world keeps a finite, collision-safe swimming space, and loading is unchanged: one world at a time, prepared through its passage. What changes is how those limits **look and feel**:
 

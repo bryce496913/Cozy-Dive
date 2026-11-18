@@ -50,13 +50,16 @@ function tube(
   colour: RGB,
   tip?: RGB,
 ) {
-  const curve = new THREE.CatmullRomCurve3(points),
-    g = new THREE.TubeGeometry(curve, 8, 1, 6, false),
+  // Few segments: there are about sixty of these on each of 26 slugs.
+  const segments = 4,
+    sides = 4,
+    curve = new THREE.CatmullRomCurve3(points),
+    g = new THREE.TubeGeometry(curve, segments, 1, sides, false),
     p = g.getAttribute('position'),
-    count = p.count / 7;
+    count = p.count / (sides + 1);
   // Taper: scale each ring towards its centre point.
   for (let i = 0; i < p.count; i++) {
-    const ring = Math.floor(i / 7) / Math.max(1, count - 1),
+    const ring = Math.floor(i / (sides + 1)) / Math.max(1, count - 1),
       centre = curve.getPointAt(Math.min(1, ring)),
       r = r0 + (r1 - r0) * ring;
     p.setXYZ(
@@ -81,7 +84,7 @@ const v = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 export function spanishShawlGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
   // The body: slender, deepest just behind the head, tapering to a pointed tail.
-  const body = new THREE.SphereGeometry(1, 20, 10),
+  const body = new THREE.SphereGeometry(1, 14, 8),
     bp = body.getAttribute('position');
   for (let i = 0; i < bp.count; i++) {
     const z = bp.getZ(i),
@@ -96,7 +99,7 @@ export function spanishShawlGeometry(): THREE.BufferGeometry {
   body.translate(0, 0.007, 0);
   parts.push(coloured(body, BODY));
   // The foot's flared margin, paler, just above the ground.
-  const foot = new THREE.SphereGeometry(1, 20, 4);
+  const foot = new THREE.SphereGeometry(1, 14, 3);
   foot.scale(0.011, 0.0015, 0.037);
   foot.translate(0, 0.0015, -0.002);
   parts.push(coloured(foot, FOOT));

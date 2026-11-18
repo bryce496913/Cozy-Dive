@@ -57,13 +57,13 @@ export function krillShape(): THREE.BufferGeometry {
   const pink: RGB = [0.95, 0.45, 0.4],
     clear: RGB = [0.98, 0.7, 0.62],
     parts: THREE.BufferGeometry[] = [];
-  const shell = new THREE.SphereGeometry(1, 8, 6);
+  const shell = new THREE.SphereGeometry(1, 6, 4);
   shell.scale(0.0045, 0.0045, 0.009);
   shell.translate(0, 0.001, 0.011);
   parts.push(paint(shell, pink));
   // Five abdominal segments, tapering and bending gently down.
   for (let i = 0; i < 5; i++) {
-    const seg = new THREE.SphereGeometry(1, 7, 5),
+    const seg = new THREE.SphereGeometry(1, 5, 4),
       r = 0.0042 - i * 0.0005;
     seg.scale(r, r, 0.0042);
     seg.translate(0, -i * i * 0.0004, -0.002 - i * 0.0055);
@@ -80,7 +80,7 @@ export function krillShape(): THREE.BufferGeometry {
   }
   for (const s of [-1, 1]) {
     // Big stalked black eyes.
-    const eye = new THREE.SphereGeometry(0.0022, 6, 4);
+    const eye = new THREE.SphereGeometry(0.0022, 4, 3);
     eye.translate(s * 0.0035, 0.0022, 0.019);
     parts.push(paint(eye, [0.03, 0.02, 0.02]));
     // Long antennae.
@@ -94,12 +94,12 @@ export function krillShape(): THREE.BufferGeometry {
     );
   }
   // A fringe of swimming legs under the thorax.
-  for (let k = 0; k < 4; k++)
+  for (let k = 0; k < 3; k++)
     for (const s of [-1, 1])
       parts.push(
         stick(
-          v(s * 0.0015, -0.003, 0.012 - k * 0.0035),
-          v(s * 0.004, -0.008, 0.01 - k * 0.0035),
+          v(s * 0.0015, -0.003, 0.012 - k * 0.0045),
+          v(s * 0.004, -0.008, 0.01 - k * 0.0045),
           0.0006,
           clear,
         ),

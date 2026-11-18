@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.6 / Pass 052B — Open-ocean freedom (`0.6.0-rc.14`)** is a first-person, browser-based aquarium prototype. Start in a small glass-walled office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15` and v0.3 (Office & Dive Transition) at `0.3.0-rc.1`. No scores, timers, combat, accounts, or external asset services.
+A quiet little world beneath the surface. **v0.6 / Pass 053 — Visual consistency (`0.6.0-rc.15`)** is a first-person, browser-based aquarium prototype. Start in a small glass-walled office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15` and v0.3 (Office & Dive Transition) at `0.3.0-rc.1`. No scores, timers, combat, accounts, or external asset services.
 
 ## Stack and requirements
 
@@ -356,6 +356,18 @@ Every embedded texture is now KTX2/Basis with a full mip chain, re-encoded from 
 ### v0.2 Pass 017 candidate
 
 Fish beyond 14 body lengths switch to a morphing distance level (about 1.8k instead of 12.7k triangles), cutting the spawn view by 28%. Every shipped model is Draco-compressed with WebP textures, so the production startup download falls from about 53 MB to about 17 MB, with no visible change. The Draco decoder is served locally. See [validation](docs/VALIDATION_V02_PASS_017.md).
+
+### v0.6 Pass 053 — Visual consistency
+
+- **An art audit of every world** against the creature standard, ranked by how visible each gap is.
+- **Rebuilt in code:**
+  - the kelp forest's sea stars (also used under the ice), purple urchins and Spanish shawl nudibranchs;
+  - the sea cave's spiny lobsters;
+  - the krill, sea butterflies and comb jellies under the ice.
+- **Same draw calls:** the new shapes are trimmed to their instance counts. Triangles rise by 13–22% in the kelp forest, cave and ice.
+- **Lighting:** reviewed; the per-world moods are kept.
+
+See [the audit](docs/VISUAL_AUDIT_V06.md).
 
 ### v0.6 Pass 052B — Open-ocean freedom
 
