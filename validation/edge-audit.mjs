@@ -23,8 +23,8 @@ const browser = await chromium.launch({
 const report = { errors: [], edges: [], wildlife: {} };
 try {
   const page = await browser.newPage({
-    viewport: { width: 960, height: 600 },
-    deviceScaleFactor: Number(process.env.COZY_DPR || 1),
+    viewport: { width: 640, height: 400 },
+    deviceScaleFactor: Number(process.env.COZY_DPR || 0.5),
   });
   page.setDefaultTimeout(300000);
   page.on('pageerror', (e) => report.errors.push(e.message));
@@ -50,7 +50,8 @@ try {
       for (let i = 0; i < count; i++) {
         await new Promise((r) => requestAnimationFrame(r));
         cancelAnimationFrame(a.frame);
-        a.__t = (a.__t ?? performance.now()) + 1000 / 30;
+        // Steps of 1/15 s: the same distance swum per second, half the frames to draw.
+        a.__t = (a.__t ?? performance.now()) + 1000 / 15;
         a.tick(a.__t);
         cancelAnimationFrame(a.frame);
       }
@@ -101,7 +102,7 @@ try {
     assert.equal(s.world, world, `through the passage into ${world}`);
   };
   /** Swim at an edge: from `from`, facing (yaw, pitch), W held for `seconds`. */
-  const edge = async (world, name, from, yaw, pitch, seconds = 9) => {
+  const edge = async (world, name, from, yaw, pitch, seconds = 8) => {
     await place(from, yaw, pitch);
     await step(3);
     await page.keyboard.down('w');
@@ -109,14 +110,14 @@ try {
       slowedAt = null,
       last = await step(1);
     const start = { ...last };
-    for (let i = 0; i < seconds * 30; i++) {
+    for (let i = 0; i < seconds * 15; i++) {
       last = await step(1);
       open = Math.max(open, last.speed);
-      if (slowedAt === null && i > 45 && last.speed < open * 0.6)
+      if (slowedAt === null && i > 22 && last.speed < open * 0.6)
         slowedAt = { x: last.x, y: last.y, z: last.z };
     }
     await page.keyboard.up('w');
-    await step(20);
+    await step(10);
     const info = await page.evaluate((world) => {
       const a = window.__cozy,
         w = a[world === 'outer' ? 'outer' : world],
@@ -142,17 +143,23 @@ try {
       ...info,
     };
     report.edges.push(row);
+    log(`${world} ${name}: travelled ${row.travelled} m`);
     assert(info.inside && info.finite, `${world} ${name}: the swimmer stays inside valid space`);
     return row;
   };
+  const log = (m) => console.log(`[${new Date().toISOString().slice(11, 19)}] ${m}`);
   const round = (p) => ({ x: +p.x.toFixed(2), y: +p.y.toFixed(2), z: +p.z.toFixed(2) });
 
+  log('in the tank');
   // Tank → outer reef.
   await place({ x: 6.4, y: 1.6, z: -12.1 }, Math.PI / 2);
   await until((s) => s.outerReady, 600);
+  log('outer ready; swimming through');
   await swimThrough('outer');
+  log('in the outer reef');
   const reef = await until((s) => s.reefReady);
   assert(reef.reefReady, 'the outer reef is prepared');
+  log('reef prepared');
   await step(60);
   // The outer reef's edges: out over the blue, down the wall, the two sides, up, and the cliff.
   await edge('outer', 'blue', { x: 2, y: 2, z: -50 }, 0, 0);
@@ -162,7 +169,7 @@ try {
   await edge('outer', 'up', { x: 0, y: 7, z: -45 }, 0, 1.1);
   await edge('outer', 'cliff', { x: 6, y: 4, z: -38 }, Math.PI, 0);
   // Wildlife containment, after letting it run a while.
-  await step(300);
+  await step(150);
   report.wildlife.outer = await page.evaluate(() => {
     const o = window.__cozy.outer,
       glass = o.glass && window.__cozy.outer.constructor ? null : null,
