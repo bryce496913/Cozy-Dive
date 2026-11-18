@@ -18,11 +18,12 @@ import { iceFloor } from './IceTerrain';
  */
 export const GARDEN = {
   seed: 46201,
-  sponges: 60,
-  corals: 70,
-  anemones: 50,
-  stars: 60,
-  feathers: 28,
+  // v0.6 Pass 052 (playtest: "a lot more life ... more detail"): a far denser garden.
+  sponges: 110,
+  corals: 120,
+  anemones: 90,
+  stars: 110,
+  feathers: 50,
 } as const;
 
 function random(seed: number): () => number {

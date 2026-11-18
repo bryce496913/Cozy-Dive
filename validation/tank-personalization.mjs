@@ -160,7 +160,7 @@ try {
     .locator('.tank-catalog-group li')
     .allTextContents();
   assert(
-    unsuited.some((t) => t.startsWith('Parrotfish')) &&
+    unsuited.some((t) => t.startsWith('Bumphead parrotfish')) &&
       unsuited.some((t) => t.startsWith('Garibaldi')),
   );
   const add = (species) =>

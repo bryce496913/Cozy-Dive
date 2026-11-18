@@ -93,14 +93,17 @@ const school: readonly CruiserPlacement[] = [
  * the great hammerhead and the school of scalloped hammerheads deepest, beside the wall's face.
  */
 export const WALL_VISITORS: Readonly<Record<WallVisitorId, CruiseGroup>> = {
+  // v0.6 Pass 052 (playtest): fewer passes for the whale and the whale shark. Their near lanes are
+  // unchanged (z -66.5), but they turn far out and come back well beyond sight, so each loop shows
+  // one pass (the far lane was faintly visible) and takes about 40% longer.
   'humpback-whale': {
     species: 'humpback-whale',
-    waypoints: stadium(0, -72.5, 50, 6, (x) => 10 + 0.5 * Math.sin(x * 0.05)),
+    waypoints: stadium(0, -88.5, 50, 22, (x) => 10 + 0.5 * Math.sin(x * 0.05)),
     members: alone,
   },
   'whale-shark': {
     species: 'whale-shark',
-    waypoints: stadium(-3, -70.5, 46, 4, (x) => 5 + 0.4 * Math.sin(x * 0.07)),
+    waypoints: stadium(-3, -86.5, 46, 20, (x) => 5 + 0.4 * Math.sin(x * 0.07)),
     members: alone,
   },
   'manta-ray': {

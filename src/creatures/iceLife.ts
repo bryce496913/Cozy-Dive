@@ -62,9 +62,10 @@ const dist = (a: Readonly<Vec3>, b: Readonly<Vec3>) =>
 // ------------------------------------------------------------------ emperor penguins
 
 export const EMPEROR = {
-  count: 2,
+  // v0.6 Pass 052 (playtest: "there are no creatures"): more of them, diving far more often.
+  count: 6,
   /** Seconds between dives (each penguin), and its speeds down and up (m/s). */
-  every: [35, 80] as const,
+  every: [10, 26] as const,
   down: 2.6,
   up: 3.6,
   /** How deep the swoop goes (m over the seabed), and how far it carries (m). */
@@ -224,9 +225,10 @@ export class EmperorDives {
 // ------------------------------------------------------------------ Adélie penguins
 
 export const ADELIE = {
-  count: 4,
+  // v0.6 Pass 052: a bigger group, zipping lower down, where the swimmer is.
+  count: 8,
   speed: 2.1,
-  depth: [1.6, 3.2] as const,
+  depth: [4, 7.5] as const,
 } as const;
 
 /** A leader zipping on a looping course just under the ice, the others close behind it. */
@@ -293,7 +295,8 @@ export class AdelieGroup {
 
 export const WEDDELL = {
   /** Hangs this far under the ice by its hole (m), and drifts round it (m). */
-  hang: 3,
+  // v0.6 Pass 052: lower, within sight of a swimmer (was 3 m under the ice).
+  hang: 5.5,
   drift: 2.5,
   /** Seconds between breaths, and up in the hole; seconds between calls. */
   breath: [60, 110] as const,
@@ -429,7 +432,8 @@ export class WeddellSeal {
 // ------------------------------------------------------------------ icefish
 
 export const ICEFISH = {
-  count: 6,
+  // v0.6 Pass 052: twice as many.
+  count: 12,
   every: [20, 45] as const,
   hop: [2, 4] as const,
   wary: 2,
@@ -520,7 +524,8 @@ export class IcefishRest {
 
 // ------------------------------------------------------------------ bald notothens
 
-export const NOTOTHEN = { count: 14, wary: 2.2 } as const;
+// v0.6 Pass 052: more of them.
+export const NOTOTHEN = { count: 24, wary: 2.2 } as const;
 
 /** Small fish in the hollows under the ice: hovering, darting, pressing up into the ice when wary. */
 export class Notothens {

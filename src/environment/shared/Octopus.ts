@@ -3,13 +3,13 @@ import type { Vec3 } from '../../config/world';
 import { OCTOPUS, OctopusMind, type OctopusDen } from '../../creatures/octopus';
 import type { SightCandidate } from '../../discovery/journal';
 import type { PlayerPresence } from '../../fish/FishDiverReaction';
-import { lobsterDen } from '../cave/CaveLobsters';
+import { octopusDenGeometry } from './OctopusDen';
 
 /**
  * v0.6 Pass 043: an octopus, built and animated in code. A soft, wrinkled mantle with two raised
  * eyes, and eight tapering arms whose curls ripple as it rests and reach and trail as it creeps;
  * its skin takes on the colour of sand or rock and flushes dark when it is startled. It lives in a
- * den (the lobsters' den: a dark hole under a hood of rock). The arms are one small mesh rewritten
+ * den: v0.6 Pass 052, a solid mound of rock with a deep dark pocket (was the lobsters' open hood). The arms are one small mesh rewritten
  * each frame (no allocations). Owns its GPU resources.
  */
 const ARMS = 8,
@@ -69,9 +69,9 @@ export class Octopus {
       vertexColors: true,
       roughness: 0.9,
     });
-    this.den = new THREE.Mesh(lobsterDen(), this.denMaterial);
+    this.den = new THREE.Mesh(octopusDenGeometry(), this.denMaterial);
     this.den.name = 'Octopus den';
-    this.den.position.set(den.x, den.y - 0.02, den.z);
+    this.den.position.set(den.x, den.y - 0.03, den.z);
     this.den.rotation.y = den.yaw;
     this.den.scale.setScalar(size * 0.9);
     // The mantle: a soft bag behind the head, with raised eyes in front.

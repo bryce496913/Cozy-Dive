@@ -100,6 +100,22 @@ export const ICE_SIGHTS = {
   },
   squid: { id: 'species:colossal-squid', label: 'Colossal squid' },
   polarBear: { id: 'species:polar-bear', label: 'Polar bear' },
+  // v0.6 Pass 052: more life under the ice
+  jellyfish: {
+    id: 'species:antarctic-jellyfish',
+    label: 'Antarctic jellyfish',
+  },
+  salp: { id: 'species:salp', label: 'Salp chain' },
+  urchin: { id: 'species:antarctic-sea-urchin', label: 'Antarctic sea urchin' },
+  brittleStar: { id: 'species:brittle-star', label: 'Brittle star' },
+  cucumber: { id: 'species:sea-cucumber', label: 'Sea cucumber' },
+  scallop: { id: 'species:antarctic-scallop', label: 'Antarctic scallop' },
+  seaPen: { id: 'species:sea-pen', label: 'Sea pen' },
+  isopod: { id: 'species:giant-isopod', label: 'Giant isopod' },
+  silverfish: {
+    id: 'species:antarctic-silverfish',
+    label: 'Antarctic silverfish',
+  },
 } as const satisfies Record<string, Sight>;
 
 /** v0.6 Pass 042: what else the outer reef shows, now and then, out in the blue. */
@@ -112,7 +128,7 @@ export const OUTER_SIGHTS = {
     label: 'Threadfin butterflyfish',
   },
   idol: { id: 'species:moorish-idol', label: 'Moorish idol' },
-  parrotfish: { id: 'species:parrotfish', label: 'Parrotfish' },
+  parrotfish: { id: 'species:parrotfish', label: 'Bumphead parrotfish' },
   octopus: { id: 'species:octopus', label: 'Day octopus' },
   wrasse: { id: 'species:humphead-wrasse', label: 'Humphead wrasse' },
   trevally: { id: 'species:bigeye-trevally', label: 'Bigeye trevally' },

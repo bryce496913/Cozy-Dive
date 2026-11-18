@@ -5,6 +5,8 @@ import type { ConvexCollider } from '../../player/collision';
 import { boxCollider } from '../passage/Crevice';
 import { rockShape } from '../RockGeometry';
 import {
+  icicles,
+  mouthRocks,
   rockTubeColliders,
   rockTubeGeometry,
   type Tube,
@@ -74,8 +76,21 @@ function iceColours(g: THREE.BufferGeometry, deep = 0.5): void {
       y = p.getY(i),
       z = p.getZ(i),
       n = 0.5 + 0.5 * Math.sin(x * 1.3 + y * 0.7) * Math.sin(z * 1.1 - y * 0.5),
-      blue = deep * (0.35 + 0.65 * n);
-    c.setXYZ(i, 0.86 - 0.32 * blue, 0.93 - 0.18 * blue, 0.98 - 0.04 * blue);
+      // v0.6 Pass 052 (playtest: "everything needs more detail"): layers of deep blue,
+      // compressed ice; dark dirt bands in the basal ice near the seabed; pale vertical melt
+      // flutes; and white rime up under the sea ice.
+      layer =
+        Math.max(0, Math.sin(y * 2.1 + 0.4 * Math.sin(x * 0.35 + z * 0.3))) **
+        6,
+      flute = Math.max(0, Math.sin(x * 3.1 + z * 2.7)) ** 8,
+      dirt =
+        Math.max(0, 1 - y / 1.6) * Math.max(0, Math.sin(y * 9 + x * 0.6)) ** 4,
+      rime = Math.min(1, Math.max(0, (y - (ICE.ceiling - 1.5)) / 1.5)),
+      blue = Math.min(1, deep * (0.35 + 0.65 * n) + 0.45 * layer),
+      r = 0.86 - 0.32 * blue + 0.06 * flute - 0.35 * dirt + 0.1 * rime,
+      g = 0.93 - 0.18 * blue + 0.04 * flute - 0.38 * dirt + 0.06 * rime,
+      b = 0.98 - 0.04 * blue + 0.02 * flute - 0.42 * dirt + 0.02 * rime;
+    c.setXYZ(i, r, g, b);
   }
   c.needsUpdate = true;
 }
@@ -191,10 +206,18 @@ export class IceEnvironment {
         k = Math.min(1, Math.max(0, (r - t.radius - 0.2) / 1.2));
       wp.setZ(i, t.wallZ - bulge * k - 0.4 * k);
       const tone =
-        0.2 +
-        0.06 * Math.sin(x * 1.3 + y * 2.1) +
-        0.08 * Math.max(0, Math.sin(y * 0.5 + x * 0.2));
-      wc.push(tone, tone * 0.98, tone * 1.02);
+          0.2 +
+          0.06 * Math.sin(x * 1.3 + y * 2.1) +
+          0.08 * Math.max(0, Math.sin(y * 0.5 + x * 0.2)),
+        // v0.6 Pass 052: frosted higher up and on the bulges, rimed white under the sea ice.
+        frost =
+          Math.min(1, Math.max(0, (y - t.y) / (top - t.y))) * 0.7 +
+          0.3 * Math.max(0, Math.sin(x * 0.9 + y * 0.7)) * k;
+      wc.push(
+        tone * (1 - 0.1 * frost) + 0.3 * frost,
+        tone + 0.38 * frost,
+        tone * 1.02 + 0.5 * frost,
+      );
     }
     wall.setAttribute('color', new THREE.Float32BufferAttribute(wc, 3));
     const wi = wall.getIndex()!,
@@ -206,8 +229,11 @@ export class IceEnvironment {
         cx += wp.getX(wi.getX(f + k)) / 3;
         cy += wp.getY(wi.getX(f + k)) / 3;
       }
+      // v0.6 Pass 052 (playtest: "the entrance into the ice area needs to be fixed"): wound to face
+      // into the waters under the ice (it faced the other way, so from inside it was not drawn and
+      // the tunnel's outside showed through).
       if (Math.hypot(cx, cy - t.y) > t.radius + 0.1)
-        kept.push(wi.getX(f), wi.getX(f + 1), wi.getX(f + 2));
+        kept.push(wi.getX(f), wi.getX(f + 2), wi.getX(f + 1));
     }
     wall.setIndex(kept);
     wall.computeVertexNormals();
@@ -221,9 +247,36 @@ export class IceEnvironment {
       from: t.startZ + 0.2,
       to: t.wallZ - 0.3,
       dark: ICE_FRAME.origin.z,
+      // v0.6 Pass 052: frost on the rock thickening towards the ice.
+      frost: { from: ICE_FRAME.origin.z - 1, to: t.wallZ },
     };
     this.add(rockTubeGeometry(tube), rock, 'Ice tunnel');
+    // v0.6 Pass 052: the mouth into the waters under the ice: frosted boulders heaped round it,
+    // icicles hanging over it and in the tunnel's last stretch.
+    this.add(
+      mouthRocks(tube, t.wallZ - 0.2, -1, 0.85, 14, 52130),
+      rock,
+      'Ice tunnel mouth',
+    );
+    this.add(
+      icicles(tube, ICE_FRAME.origin.z - 2, t.wallZ - 0.1, 34, 52140),
+      ice,
+      'Ice tunnel icicles',
+    );
+    this.add(
+      icicles(
+        { x: 0, y: t.y, radius: t.radius + 0.75 },
+        t.wallZ - 0.6,
+        t.wallZ - 0.3,
+        22,
+        52150,
+      ),
+      ice,
+      'Ice mouth icicles',
+    );
     const cap = new THREE.CircleGeometry(t.radius + 0.3, 24);
+    // v0.6 Pass 052: facing back down the tunnel (it faced away, so looking back it was not drawn).
+    cap.rotateY(Math.PI);
     cap.translate(0, t.y, t.startZ + 0.2);
     cap.setAttribute(
       'color',
@@ -256,7 +309,8 @@ export class IceEnvironment {
     // and rising up through the sea ice.
     const blocks: THREE.BufferGeometry[] = [];
     const block = (x: number, z: number, sx: number, sz: number, k: number) => {
-      const g = lump(46100 + (k % 12) * 17, k % 4, 1),
+      // v0.6 Pass 052: more facets (detail 2, was 1).
+      const g = lump(46100 + (k % 12) * 17, k % 4, 2),
         h = top + 6 + rand() * 4;
       g.scale(sx, h, sz);
       g.rotateY((rand() - 0.5) * 0.5);

@@ -118,10 +118,11 @@ export const PARROT: GrazeConfig = {
   /** Bites per coral, seconds between them, and hovering height above the coral (m). */
   bites: [3, 6] as const,
   every: 1.3,
-  above: 0.45,
+  // v0.6 Pass 052: twice the size, so it hovers higher over the coral and shies a little sooner.
+  above: 0.9,
   /** Moves on to another coral within this distance (m); shies from a swimmer this close. */
   range: 14,
-  shy: 1.8,
+  shy: 2.6,
 };
 
 type GrazeState = 'swim' | 'graze';
@@ -361,7 +362,19 @@ export const CLEANING = {
    * pane (posts every 8 m from x -32.5) and above the frame bar at y -1.2, in clear view.
    */
   station: { x: 3.5, y: 2.2, out: 3 },
-  bannerfish: 12,
+  /** v0.6 Pass 052 (playtest): twice as many, at half the size. */
+  bannerfish: 24,
+  /**
+   * v0.6 Pass 052: while they wait, pairs spread this far apart along the glass (m), wandering
+   * this much about their place (x, y), so the group reads as loose and scattered.
+   */
+  spread: { pairs: 2.6, wander: 2, rise: 2.4 },
+  /**
+   * v0.6 Pass 052: the sunfish starts to come up out of sight while the bannerfish pull together
+   * (it reaches this depth by the end of the gathering, still far below what can be seen), so
+   * they are schooled at the station before it is visible.
+   */
+  gatherTop: -28,
   /** The sunfish hovers this far beyond the station (m), and rises from (and sinks to) `deep`. */
   sunfishOut: 1.8,
   deep: -42,
@@ -369,9 +382,12 @@ export const CLEANING = {
   first: [120, 240] as const,
   every: [240, 420] as const,
   chance: 0.15,
-  /** Seconds the bannerfish gather first (the sign), the sunfish rises, is cleaned, and sinks. */
-  gather: 45,
-  rise: 40,
+  /**
+   * Seconds: the sunfish starts up from the deep while the bannerfish gather (the sign), then
+   * rises the rest of the way, is cleaned, and sinks.
+   */
+  gather: 30,
+  rise: 35,
   clean: [150, 210] as const,
   sink: 40,
   /** Its tilt while being cleaned (radians), and its size (m long). */
@@ -429,15 +445,30 @@ export class CleaningEncounter {
       z: this.station.z - CLEANING.sunfishOut,
     };
   }
-  /** Bannerfish `i`'s loose home while idle: in pairs, spread along the glass round the station. */
+  /**
+   * Bannerfish `i`'s loose home while idle: in pairs, spread widely along the glass round the
+   * station (v0.6 Pass 052: further apart, and at varied heights).
+   */
   private home(i: number, t: number, out: Vec3): Vec3 {
     const pair = Math.floor(i / 2),
-      side = i % 2 ? 0.5 : -0.5,
+      side = i % 2 ? 0.35 : -0.35,
       pairs = Math.ceil(CLEANING.bannerfish / 2),
-      x0 = this.station.x + (pair - (pairs - 1) / 2) * 3.2;
-    out.x = x0 + 1.4 * Math.sin(t * 0.07 + pair * 1.9) + side;
-    out.y = this.station.y + 1.6 * Math.sin(t * 0.05 + pair * 2.7) + side * 0.3;
-    out.z = this.station.z - 1.2 + 0.9 * Math.sin(t * 0.06 + pair) + side * 0.2;
+      { pairs: gap, wander, rise } = CLEANING.spread,
+      x0 = this.station.x + (pair - (pairs - 1) / 2) * gap,
+      y0 = this.station.y + rise * Math.sin(pair * 2.3);
+    out.x = x0 + wander * Math.sin(t * 0.07 + pair * 1.9) + side;
+    out.y = y0 + wander * 0.6 * Math.sin(t * 0.05 + pair * 2.7) + side * 0.3;
+    out.z = this.station.z - 1.2 + 1.2 * Math.sin(t * 0.06 + pair) + side * 0.2;
+    return out;
+  }
+  /** Bannerfish `i`'s place in the tight, milling school at the station. */
+  private schooled(i: number, out: Vec3): Vec3 {
+    const st = this.station,
+      a = (i / CLEANING.bannerfish) * Math.PI * 2 + this.time * 0.25,
+      ring = i % 2 ? 0.75 : 0.45;
+    out.x = st.x + Math.cos(a) * ring;
+    out.y = st.y + 0.3 * Math.sin(a * 2 + i);
+    out.z = st.z + Math.sin(a) * ring * 0.7;
     return out;
   }
   update(dt: number): void {
@@ -456,16 +487,28 @@ export class CleaningEncounter {
           else this.wait = this.rand.between(CLEANING.every);
         }
         break;
-      case 'gathering':
-        if (this.clock > CLEANING.gather) {
+      case 'gathering': {
+        // v0.6 Pass 052: the sunfish starts up from the deep (out of sight) as they gather.
+        const k = Math.min(1, this.clock / CLEANING.gather),
+          to = this.sunfishAt(
+            CLEANING.deep + (CLEANING.gatherTop - CLEANING.deep) * k * k,
+          );
+        sp.x = to.x;
+        sp.z = to.z;
+        sun.v.y = (to.y - sp.y) / dt;
+        sp.y = to.y;
+        if (k >= 1) {
           this.state = 'rising';
           this.clock = 0;
         }
         break;
+      }
       case 'rising': {
         const k = Math.min(1, this.clock / CLEANING.rise),
-          e = k * k * (3 - 2 * k),
-          to = this.sunfishAt(CLEANING.deep + (st.y - CLEANING.deep) * e);
+          e = k * (2 - k),
+          to = this.sunfishAt(
+            CLEANING.gatherTop + (st.y - CLEANING.gatherTop) * e,
+          );
         sp.x = to.x;
         sp.z = to.z;
         sun.v.y = (to.y - sp.y) / dt;
@@ -512,12 +555,20 @@ export class CleaningEncounter {
       let speed = 0.35;
       if (this.state === 'idle' || this.state === 'sinking')
         this.home(i, this.time, scratch);
-      else if (this.state === 'gathering' || this.state === 'rising') {
-        // Schooled tight at the station, milling slowly: the sign.
-        const a = (i / CLEANING.bannerfish) * Math.PI * 2 + this.time * 0.25;
-        scratch.x = st.x + Math.cos(a) * 0.7;
-        scratch.y = st.y + 0.3 * Math.sin(a * 2 + i);
-        scratch.z = st.z + Math.sin(a) * 0.5;
+      else if (this.state === 'gathering') {
+        // v0.6 Pass 052: from their scattered places to the tight school, as the sunfish starts
+        // up: the sign, complete before it can be seen.
+        const k = Math.min(1, this.clock / (CLEANING.gather * 0.8)),
+          e = k * k * (3 - 2 * k),
+          home = this.home(i, this.time, this.spare);
+        this.schooled(i, scratch);
+        scratch.x = home.x + (scratch.x - home.x) * e;
+        scratch.y = home.y + (scratch.y - home.y) * e;
+        scratch.z = home.z + (scratch.z - home.z) * e;
+        speed = 0.75;
+      } else if (this.state === 'rising') {
+        // Schooled tight at the station, milling slowly while it comes up.
+        this.schooled(i, scratch);
         speed = 0.6;
       } else {
         // Picking at the sunfish's sides: darting in to its skin and out again.
@@ -536,6 +587,7 @@ export class CleaningEncounter {
     });
   }
   private readonly target: Vec3 = { x: 0, y: 0, z: 0 };
+  private readonly spare: Vec3 = { x: 0, y: 0, z: 0 };
 }
 
 // ------------------------------------------------------------------ a rare close pass

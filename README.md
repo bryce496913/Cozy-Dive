@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.6 / Pass 051 — Full aquarium personalization (`0.6.0-rc.12`)** is a first-person, browser-based aquarium prototype. Start in a small glass-walled office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15` and v0.3 (Office & Dive Transition) at `0.3.0-rc.1`. No scores, timers, combat, accounts, or external asset services.
+A quiet little world beneath the surface. **v0.6 / Pass 052 — Play-test fixes across the outer waters (`0.6.0-rc.13`)** is a first-person, browser-based aquarium prototype. Start in a small glass-walled office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15` and v0.3 (Office & Dive Transition) at `0.3.0-rc.1`. No scores, timers, combat, accounts, or external asset services.
 
 ## Stack and requirements
 
@@ -356,6 +356,30 @@ Every embedded texture is now KTX2/Basis with a full mip chain, re-encoded from 
 ### v0.2 Pass 017 candidate
 
 Fish beyond 14 body lengths switch to a morphing distance level (about 1.8k instead of 12.7k triangles), cutting the spawn view by 28%. Every shipped model is Draco-compressed with WebP textures, so the production startup download falls from about 53 MB to about 17 MB, with no visible change. The Draco decoder is served locally. See [validation](docs/VALIDATION_V02_PASS_017.md).
+
+### v0.6 Pass 052 — Play-test fixes across the outer waters
+
+- **Outer reef:**
+  - The turtles live on the reef top inside the tank.
+  - Twice as many bannerfish, at half the size: they wait scattered along the glass, and pull together before the sunfish comes into view.
+  - The bumphead parrotfish is twice the size.
+  - The whale and whale shark pass far less often.
+  - The bigeye trevally ball comes close to the glass.
+  - The octopus keeps to the seabed and eases home, and its den is now a solid rock mound with a dark pocket.
+- **Kelp forest:** a bigger harbour seal and a newly modelled sea otter.
+- **Sea cave:**
+  - The square of sand poking into the entrance tunnel is gone.
+  - Crabs and lionfish are rebuilt in much more detail.
+  - The moray lives in a solid rock outcrop.
+  - The nurse shark startles and bolts like the whitetips, and every startled shark now flinches, turns and dashes off properly.
+  - The tunnel to the ice is frosted, with icicles and boulders round its mouth.
+- **Under the ice:**
+  - The entrance is fixed (its rock wall faced the wrong way).
+  - There is far more life where you swim: more penguins and fish, a lower Weddell seal, rare visitors sooner, a big school of Antarctic silverfish, jellyfish and salp chains.
+  - The seabed is richer: brinicles, platelet ice, scallop beds, urchins, brittle stars, sea cucumbers, sea pens and giant isopods.
+  - The icebergs are more detailed.
+
+See [the record](docs/VALIDATION_V06_PASS_052.md).
 
 ### v0.6 Pass 051 — Full aquarium personalization
 

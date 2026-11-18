@@ -46,6 +46,9 @@ export const SHEEPHEAD: GrazeConfig = {
 };
 const LENGTH = { sheephead: 0.95, seaBass: 2.2 } as const;
 
+/** v0.6 Pass 052 (playtest: "the seal can be bigger"): a big adult harbour seal (about 2.4 m). */
+export const SEAL_SCALE = 1.5;
+
 export class KelpVisitors {
   readonly root = new THREE.Group();
   readonly sightings: SightCandidate[] = [];
@@ -118,8 +121,9 @@ export class KelpVisitors {
     id: AssetId,
     pose: ReturnType<typeof createPose>,
     name: string,
+    scale = 1,
   ): Promise<SoloCreature> {
-    const body = new SoloCreature(this.loader, id, pose, 1, name, 16);
+    const body = new SoloCreature(this.loader, id, pose, scale, name, 16);
     // v0.6 Pass 046 review: tracked from the start, so a body still loading when the visitors are let go
     // is disposed with them (and releases its model), and never added afterwards.
     this.pending.add(body);
@@ -165,6 +169,7 @@ export class KelpVisitors {
           'harbourSeal',
           this.seal.pose,
           'Harbour seal',
+          SEAL_SCALE,
         );
         // Shy: seen from its watching distance.
         this.sightings.push({

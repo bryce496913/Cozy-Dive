@@ -8,6 +8,10 @@ import type { PlayerPresence } from '../fish/FishDiverReaction';
  * out over the bottom to one of the rocks nearby, sits there a while, and creeps home. It takes on
  * the colour of what it is on (`blend`: 0 sand, 1 rock). If the swimmer comes close it hurries
  * home and pulls right into its den, flushing dark, and comes out again only once they have gone.
+ *
+ * v0.6 Pass 052 (playtest: it floated in mid water, then jumped back to its den): it keeps to the
+ * floor it is given (the seabed, never the tops of corals or rock hoods), visits the foot of each
+ * rock rather than its middle, and eases into and out of its pace.
  */
 export const OCTOPUS = {
   /** Creeping and hurrying speeds (m/s). */
@@ -24,6 +28,11 @@ export const OCTOPUS = {
   tuck: 0.55,
   /** How quickly its colour follows what it is on (s⁻¹). */
   colour: 0.8,
+  /**
+   * v0.6 Pass 052: how quickly its pace follows the speed it wants (s⁻¹): it gathers itself and
+   * jets home over a second or so rather than leaping off at once.
+   */
+  pace: 2.2,
 } as const;
 
 export type OctopusMood = 'den' | 'out' | 'sit' | 'home' | 'hidden';
@@ -50,15 +59,33 @@ export class OctopusMind {
   private calm = 0;
   private seed: number;
 
+  /** Where it sits by each rock: at the rock's foot, on the side towards the den. */
+  private readonly feet: readonly Readonly<Vec3>[];
   constructor(
     readonly den: OctopusDen,
-    private readonly rocks: readonly Readonly<Vec3>[],
+    rocks: readonly Readonly<Vec3>[],
+    /** The floor it walks on (the seabed, not the tops of what stands on it). */
     private readonly ground: (x: number, z: number) => number,
     /** Whether (x, z) is on rock (rather than sand). */
     private readonly onRock: (x: number, z: number) => boolean,
     seed = 43051,
   ) {
     this.seed = seed >>> 0;
+    this.feet = rocks.map((r) => {
+      const dx = den.x - r.x,
+        dz = den.z - r.z,
+        d = Math.hypot(dx, dz) || 1;
+      let x = r.x,
+        z = r.z;
+      for (let k = 0; k < 40 && onRock(x, z); k++) {
+        x += (dx / d) * 0.1;
+        z += (dz / d) * 0.1;
+      }
+      // A little further out, so its arms rest against the rock rather than in it.
+      x += (dx / d) * 0.15;
+      z += (dz / d) * 0.15;
+      return { x, y: ground(x, z), z };
+    });
     this.position = { x: den.x, y: den.y, z: den.z };
     this.heading = den.yaw;
     this.wait = this.between(OCTOPUS.denTime);
@@ -70,15 +97,17 @@ export class OctopusMind {
   private between(r: readonly [number, number]): number {
     return r[0] + this.random() * (r[1] - r[0]);
   }
-  /** Move towards (x, z) at `speed`; true once there. */
+  /** Move towards (x, z) at up to `speed`, easing its pace; true once there. */
   private go(x: number, z: number, speed: number, dt: number): boolean {
     const p = this.position,
       dx = x - p.x,
       dz = z - p.z,
-      d = Math.hypot(dx, dz);
-    this.speed = d > 0.05 ? speed : 0;
+      d = Math.hypot(dx, dz),
+      // Slow down over the last stretch, so it settles rather than stops dead.
+      want = d > 0.05 ? Math.min(speed, 0.15 + d * 1.2) : 0;
+    this.speed += (want - this.speed) * (1 - Math.exp(-OCTOPUS.pace * dt));
     if (d > 1e-6) {
-      const step = Math.min(d, speed * dt);
+      const step = Math.min(d, this.speed * dt);
       p.x += (dx / d) * step;
       p.z += (dz / d) * step;
       const want = Math.atan2(dx, dz),
@@ -88,11 +117,11 @@ export class OctopusMind {
         );
       this.heading += turn * (1 - Math.exp(-4 * dt));
     }
-    // On the bottom by its den (the den sits on the sand), over rock and sand elsewhere.
-    const atDen = Math.hypot(p.x - this.den.x, p.z - this.den.z) < 0.8;
-    p.y +=
-      ((atDen ? this.den.y : this.ground(p.x, p.z)) - p.y) *
-      (1 - Math.exp(-8 * dt));
+    // On the floor all the way, blending onto its den's floor as it nears it (no step).
+    const near = Math.hypot(p.x - this.den.x, p.z - this.den.z),
+      k = Math.min(1, Math.max(0, (near - 0.3) / 1.2)),
+      floor = this.den.y + (this.ground(p.x, p.z) - this.den.y) * k;
+    p.y += (floor - p.y) * (1 - Math.exp(-8 * dt));
     return d < 0.08;
   }
   update(dt: number, player?: PlayerPresence): void {
@@ -115,13 +144,13 @@ export class OctopusMind {
         this.go(this.den.x, this.den.z, OCTOPUS.creep, dt);
         this.heading += (this.den.yaw - this.heading) * (1 - Math.exp(-2 * dt));
         this.wait -= dt;
-        if (this.wait <= 0 && this.rocks.length) {
-          this.target = Math.floor(this.random() * this.rocks.length);
+        if (this.wait <= 0 && this.feet.length) {
+          this.target = Math.floor(this.random() * this.feet.length);
           this.mood = 'out';
         }
         break;
       case 'out': {
-        const r = this.rocks[this.target];
+        const r = this.feet[this.target];
         if (this.go(r.x, r.z, OCTOPUS.creep, dt)) {
           this.mood = 'sit';
           this.wait = this.between(OCTOPUS.sitTime);
@@ -129,7 +158,7 @@ export class OctopusMind {
         break;
       }
       case 'sit':
-        this.speed = 0;
+        this.speed *= Math.exp(-6 * dt);
         this.wait -= dt;
         if (this.wait <= 0) this.mood = 'home';
         break;
@@ -154,7 +183,7 @@ export class OctopusMind {
         break;
       }
       case 'hidden':
-        this.speed = 0;
+        this.speed *= Math.exp(-6 * dt);
         this.calm = gone ? this.calm - dt : OCTOPUS.calm;
         if (this.calm <= 0) {
           this.mood = 'den';

@@ -220,6 +220,8 @@ describe('v0.6 Pass 046 review: building a world a piece per frame', () => {
     expect(Object.keys(scene!.buildStats!.pieces)).toEqual([
       'ice and rock',
       'garden',
+      // v0.6 Pass 052: the extra detail and drifting life.
+      'detail',
       'scene',
     ]);
     expect(scene!.buildStats!.longest).toBeLessThanOrEqual(
