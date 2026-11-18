@@ -3,7 +3,7 @@ import { browserScale, recordBrowserScale } from './browser-scale.mjs';
  *
  *   COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy023-passage node validation/passage.mjs
  *
- * Enter the Water (real pointer lock), place the swimmer outside the hidden crevice facing in, wait
+ * Dive In (real pointer lock), place the swimmer outside the hidden crevice facing in, wait
  * for the outer waters to load, then hold W: the swimmer swims through the crack and, past the
  * threshold, continues in the outer waters' tunnel without any break (the frames either side of
  * the swap are captured). Steering along the tunnel reaches open water; swimming back returns to
@@ -289,7 +289,7 @@ try {
   for (let i = 0; i < 60; i++) await step(1);
   await page.keyboard.press('Escape');
   await paused();
-  await page.getByRole('button', { name: /the Water/ }).click();
+  await page.getByRole('button', { name: /Dive In|the Water/ }).click();
   await locked();
   let back = await step(1);
   for (

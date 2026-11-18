@@ -5,7 +5,7 @@
  * 1. Start screen opens in the office; both world programs/textures are prepared.
  * 2. "Enter the Office" -> pointer lock -> held W and mouse look actually walk the player, who stays
  *    inside the room and outside furniture; the depth readout is hidden.
- * 3. Escape pauses (overlay offers "Return to the Office" and "Enter the Water"); entering the
+ * 3. Escape pauses (overlay offers "Return to the Office" and "Dive In"); entering the
  *    water fades to swimming (Pass 022); pausing and "Enter the Office" fades back.
  * 4. Switching back and forth does not grow GPU geometry/texture counts (no leaks).
  * 5. Fixed-camera views of the room, desk, window, glass front and the live miniature tank, with draw

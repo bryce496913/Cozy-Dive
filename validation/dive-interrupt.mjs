@@ -84,7 +84,7 @@ try {
   const choose = async (space) => {
     await page
       .getByRole('button', {
-        name: space === 'office' ? /the Office/ : /the Water/,
+        name: space === 'office' ? /the Office/ : /Dive In|the Water/,
       })
       .click();
     await locked();
