@@ -72,9 +72,7 @@ try {
         !document.querySelector('#overlay').hidden,
     );
   const enterWater = async () => {
-    await page
-      .getByRole('button', { name: 'Enter the Water', exact: true })
-      .click();
+    await page.getByRole('button', { name: 'Dive In', exact: true }).click();
     await locked();
   };
   await enterWater();

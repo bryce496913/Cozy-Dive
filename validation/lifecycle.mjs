@@ -81,7 +81,7 @@ import fs from 'node:fs';
     assert.equal(await page.locator('#swimming-feel').inputValue(), 'relaxed');
     await page.screenshot({ path: '/tmp/cozy-audio-settings.png' });
     await page.getByRole('button', { name: 'Close settings' }).click();
-    await page.getByRole('button', { name: 'Enter the Water' }).click();
+    await page.getByRole('button', { name: 'Dive In' }).click();
     await page
       .waitForFunction(
         () =>
@@ -260,7 +260,7 @@ import fs from 'node:fs';
     for (let i = 0; i < 4; i++) {
       await page
         .getByRole('button', {
-          name: i ? 'Return to the Water' : 'Enter the Water',
+          name: i ? 'Return to the Water' : 'Dive In',
         })
         .click();
       await page.waitForFunction(
@@ -486,7 +486,7 @@ import fs from 'node:fs';
     });
     await failure.goto(process.env.COZY_URL || 'http://127.0.0.1:5173');
     await failure.waitForFunction(() => window.__cozy?.world);
-    await failure.getByRole('button', { name: 'Enter the Water' }).click();
+    await failure.getByRole('button', { name: 'Dive In' }).click();
     await failure.waitForFunction(
       () =>
         !!document.pointerLockElement &&

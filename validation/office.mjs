@@ -103,9 +103,7 @@ try {
   await page
     .getByRole('button', { name: 'Return to the Office', exact: true })
     .waitFor();
-  await page
-    .getByRole('button', { name: 'Enter the Water', exact: true })
-    .click();
+  await page.getByRole('button', { name: 'Dive In', exact: true }).click();
   await settle(page);
   await switched('aquarium');
   report.swimMode = await page.evaluate(() => window.__cozy.mode);
@@ -123,9 +121,7 @@ try {
     await switched('office');
     await page.waitForTimeout(500);
     await page.keyboard.press('Escape');
-    await page
-      .getByRole('button', { name: 'Enter the Water', exact: true })
-      .click();
+    await page.getByRole('button', { name: 'Dive In', exact: true }).click();
     await settle(page);
     await switched('aquarium');
     await page.waitForTimeout(500);

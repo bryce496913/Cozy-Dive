@@ -50,7 +50,7 @@ try {
   );
   assert.equal(models.length, 12); // 10 normal-scene libraries + showcase chromis and Acropora
   assert.equal(await p.locator('#compare').isEnabled(), true);
-  await p.getByRole('button', { name: 'Enter the Water' }).click();
+  await p.getByRole('button', { name: 'Dive In' }).click();
   await p.waitForFunction(
     () =>
       !!document.pointerLockElement &&

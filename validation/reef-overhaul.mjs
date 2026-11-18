@@ -85,9 +85,7 @@ try {
     true,
   );
   report.loadMs = Date.now() - started;
-  await page
-    .getByRole('button', { name: 'Enter the Water', exact: true })
-    .click();
+  await page.getByRole('button', { name: 'Dive In', exact: true }).click();
   await page.waitForFunction(() => !!document.pointerLockElement);
   await page.evaluate(() => cancelAnimationFrame(window.__cozy.frame));
   report.inventory = await page.evaluate(
@@ -331,7 +329,7 @@ try {
     );
     await fallback.evaluate(() => window.__cozy.world.prepared);
     await fallback
-      .getByRole('button', { name: 'Enter the Water', exact: true })
+      .getByRole('button', { name: 'Dive In', exact: true })
       .click();
     await fallback.waitForFunction(() => !!document.pointerLockElement);
     report.fallback = await fallback.evaluate(() => ({

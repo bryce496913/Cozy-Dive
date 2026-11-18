@@ -67,7 +67,7 @@ const stats = (values) => {
     );
     await page.screenshot({ path: path.join(output, 'preview.png') });
     await page.evaluate(() => cancelAnimationFrame(window.__cozy.frame));
-    await page.getByRole('button', { name: 'Enter the Water' }).click();
+    await page.getByRole('button', { name: 'Dive In' }).click();
     await page.waitForFunction(
       () =>
         !!document.pointerLockElement &&
@@ -406,7 +406,7 @@ const stats = (values) => {
       await page.waitForFunction(
         () => window.__cozy?.world?.renderer.info.render.calls > 0,
       );
-      await page.getByRole('button', { name: 'Enter the Water' }).click();
+      await page.getByRole('button', { name: 'Dive In' }).click();
       await page.waitForFunction(
         () =>
           !!document.pointerLockElement &&

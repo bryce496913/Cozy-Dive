@@ -115,7 +115,7 @@ try {
   // Fresh first entry avoids a transition unrelated to the outer-water action guard.
   await load();
   console.log('Office pause/audio passed; water ready');
-  await enter('Enter the Water');
+  await enter('Dive In');
   await page.evaluate(() => {
     const a = window.__cozy;
     Object.assign(a.state.position, { x: 6.4, y: 1.6, z: -12.1 });

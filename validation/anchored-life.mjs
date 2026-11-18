@@ -50,9 +50,7 @@ try {
     () => window.__cozy.world.authored.ready,
   );
   assert.equal(authored, true);
-  await page
-    .getByRole('button', { name: 'Enter the Water', exact: true })
-    .click();
+  await page.getByRole('button', { name: 'Dive In', exact: true }).click();
   await page.waitForFunction(
     () =>
       !!document.pointerLockElement &&
