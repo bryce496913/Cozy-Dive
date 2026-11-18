@@ -264,5 +264,8 @@ export class IceLife {
     this.notothenFish?.dispose();
     this.critters.dispose();
     this.root.clear();
+    // v0.6 Pass 059: fish found only under the ice leave the shared cache with their world.
+    this.loader.evictUnused('icefish');
+    this.loader.evictUnused('notothen');
   }
 }

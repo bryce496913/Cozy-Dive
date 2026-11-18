@@ -43,6 +43,7 @@ describe('settings', () => {
       frameTime: false,
       fieldOfView: 0,
       invertLook: false,
+      graphics: 'full',
     });
     expect(
       validateSettings({
@@ -104,6 +105,7 @@ it('migrates old preferences and validates swimming feel', () => {
     frameTime: false,
     fieldOfView: 0,
     invertLook: false,
+    graphics: 'full',
   });
   for (const swimmingFeel of ['relaxed', 'natural', 'responsive'] as const) {
     expect(saveSettings(store, { ...DEFAULT_SETTINGS, swimmingFeel })).toBe(

@@ -235,6 +235,8 @@ export class IceRare {
     this.pending.clear();
     for (const list of this.bodies.values()) list.forEach((b) => b.dispose());
     this.toothfish?.dispose();
+    // v0.6 Pass 059: the toothfish is found only here; let its model go with the world.
+    this.loader.evictUnused('toothfish');
     this.geometries.forEach((g) => g.dispose());
     this.eyeMaterial.dispose();
     this.mantleMaterial.dispose();

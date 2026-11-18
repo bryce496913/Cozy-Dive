@@ -498,6 +498,7 @@ export class Application {
     this.tuning.speed = this.settings.speed;
     this.tuning.feel = this.settings.swimmingFeel;
     this.tuning.reducedMotion = this.settings.reducedMotion;
+    this.world?.setDetail(this.settings.graphics);
     if (this.controls) {
       this.controls.invertLook = this.settings.invertLook;
       this.controls.sensitivity = this.settings.sensitivity;
