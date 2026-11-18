@@ -25,6 +25,9 @@ import { KelpCritters } from './KelpCritters';
 import { laneCentre } from './KelpTerrain';
 import type { Boulder } from './KelpEnvironment';
 
+/** v0.6 Pass 059: assets used only by the kelp forest's visitors (evicted when they go). */
+const KELP_ONLY = ['giantSeaBass', 'sheephead'] as const;
+
 /**
  * v0.6 Pass 044: the kelp forest's newer life (its leopard sharks swim with the rays):
  *   - a sea otter floating on its back at the surface, diving now and then for an urchin;
@@ -291,5 +294,8 @@ export class KelpVisitors {
     this.critters.dispose();
     this.puffs.dispose();
     this.root.clear();
+    // v0.6 Pass 059: these fish live only here (the tank cannot keep them), so once released
+    // their decoded models leave the shared cache rather than staying on the GPU.
+    for (const id of KELP_ONLY) this.loader.evictUnused(id);
   }
 }

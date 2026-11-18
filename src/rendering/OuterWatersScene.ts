@@ -245,7 +245,12 @@ export class OuterWatersScene implements WaterWorld {
   }
   /** Stage one: the tunnel and cliff, so the swimmer can cross into the outer waters. */
   private async prepareTunnel(): Promise<boolean> {
-    await warmUpScene(this.renderer, this.scene, this.camera);
+    await warmUpScene(
+      this.renderer,
+      this.scene,
+      this.camera,
+      () => !this.disposed,
+    );
     if (this.disposed) return false;
     this.ready = true;
     return true;
@@ -360,7 +365,12 @@ export class OuterWatersScene implements WaterWorld {
     // v0.6 Pass 041: while the swimmer is in the tunnel, upload every coral and rock at every
     // detail level (one copy of each drawn in the warm-up), so none pops in on first sight.
     this.reef.primeAll();
-    await warmUpScene(this.renderer, this.scene, this.camera);
+    await warmUpScene(
+      this.renderer,
+      this.scene,
+      this.camera,
+      () => !this.disposed,
+    );
     if (this.disposed) return false;
     this.reef.resort(this.camera.position);
     prep.settle();

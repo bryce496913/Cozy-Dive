@@ -235,7 +235,12 @@ export class UnderIceScene implements WaterWorld {
         radius: 4,
       });
     this.sightings.push(...life.sightings);
-    await warmUpScene(this.renderer, this.scene, this.camera);
+    await warmUpScene(
+      this.renderer,
+      this.scene,
+      this.camera,
+      () => !this.disposed,
+    );
     if (this.disposed) return false;
     this.preparation.settle();
     this.ready = true;

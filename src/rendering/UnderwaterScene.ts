@@ -146,7 +146,12 @@ export class UnderwaterScene implements WaterWorld {
         try {
           // Compile every program (hidden LOD levels too) and upload every texture behind the
           // status, so nothing pops in when first seen while swimming (Pass 019).
-          await warmUpScene(this.renderer, this.scene, this.camera);
+          await warmUpScene(
+            this.renderer,
+            this.scene,
+            this.camera,
+            () => !this.disposed,
+          );
         } catch (error) {
           console.warn('Cozy Diver: shader warm-up skipped.', error);
         } finally {

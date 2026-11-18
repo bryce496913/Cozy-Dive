@@ -300,7 +300,12 @@ export class KelpForestScene implements WaterWorld {
         position: bass[i].position,
         radius: 1.6,
       });
-    await warmUpScene(this.renderer, this.scene, this.camera);
+    await warmUpScene(
+      this.renderer,
+      this.scene,
+      this.camera,
+      () => !this.disposed,
+    );
     if (this.disposed) return false;
     prep.settle();
     this.ready = true;
