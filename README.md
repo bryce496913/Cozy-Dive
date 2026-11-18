@@ -1,6 +1,6 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.6 / Pass 057 — Accessibility and motion comfort (`0.6.0-rc.19`, acceptance-ready)** is a first-person, browser-based aquarium prototype. Start in a small glass-walled office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15` and v0.3 (Office & Dive Transition) at `0.3.0-rc.1`. No scores, timers, combat, accounts, or external asset services.
+A quiet little world beneath the surface. **v0.6 / Pass 058 — Mobile feasibility (`0.6.0-rc.20`, acceptance-ready)** is a first-person, browser-based aquarium prototype. Start in a small glass-walled office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15` and v0.3 (Office & Dive Transition) at `0.3.0-rc.1`. No scores, timers, combat, accounts, or external asset services.
 
 ## Stack and requirements
 
@@ -356,6 +356,15 @@ Every embedded texture is now KTX2/Basis with a full mip chain, re-encoded from 
 ### v0.2 Pass 017 candidate
 
 Fish beyond 14 body lengths switch to a morphing distance level (about 1.8k instead of 12.7k triangles), cutting the spawn view by 28%. Every shipped model is Draco-compressed with WebP textures, so the production startup download falls from about 53 MB to about 17 MB, with no visible change. The Draco decoder is served locally. See [validation](docs/VALIDATION_V02_PASS_017.md).
+
+### v0.6 Pass 058 — Mobile and touch: feasibility (Phase A)
+
+- **A feasibility report** measured in device emulation: layout, downloads, memory and render budgets. It lists the blockers (no pointer lock on phones; render and memory budgets), proposes targets and a simple touch design, and recommends Phase B after Pass 059's quality tier.
+- **Touch-only devices** now get a plain message explaining that a mouse or trackpad is needed for now.
+- **On phones:** the start screen no longer hides under the header; tap targets are larger and safe areas are respected.
+- **Desktop:** unchanged.
+
+See [mobile feasibility](docs/MOBILE_FEASIBILITY.md).
 
 ### v0.6 Pass 057 — Accessibility, motion comfort and relaxation
 
