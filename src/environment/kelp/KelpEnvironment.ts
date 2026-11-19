@@ -6,7 +6,16 @@ import { boxCollider } from '../passage/Crevice';
 import { rockShape } from '../RockGeometry';
 import { rockCollider } from '../rockCollider';
 import { STALKS } from './KelpStalks';
-import { inGrottoClear, kelpFloor, laneWeight } from './KelpTerrain';
+import {
+  inGrottoClear,
+  kelpFloor,
+  kelpSeabed,
+  laneWeight,
+  overSinkhole,
+  sinkholeDip,
+} from './KelpTerrain';
+import { SINKHOLE } from '../../config/wreck';
+import { shaftColliders, shaftLining } from '../shared/Shaft';
 
 /**
  * v0.6 Pass 032: the kelp forest's ground and walls. The tunnel from the cleft runs straight
@@ -93,6 +102,19 @@ export function wallRockLayout(): Boulder[] {
 /** v0.6 Pass 052B: how far inside the side and far walls' line their colliders start (m). */
 export const KELP_WALL_FACE = 1.2;
 
+/** The seabed's colour at (x, z): pale sand in the lane, darker rubble elsewhere, dark in the sinkhole's funnel. */
+function sandColour(x: number, z: number): [number, number, number] {
+  const lane = laneWeight(x, z),
+    speck = 0.08 * Math.sin(x * 3.1 + z * 2.3) * Math.sin(x * 1.7 - z * 2.9),
+    // Darker rubble and shell grit between the rocks, paler sand in the lane.
+    k =
+      (0.3 + 0.26 * lane + speck) *
+      (1 - 0.85 * (sinkholeDip(x, z) / SINKHOLE.funnel.depth));
+  return [k * 0.98, k * 0.86, k * 0.64];
+}
+/** Sand within this distance of the sinkhole's centre is drawn by its finer collar (m). */
+const COLLAR = SINKHOLE.radius + SINKHOLE.funnel.width + 0.6;
+
 export class KelpEnvironment {
   readonly root = new THREE.Group();
   readonly colliders: readonly ConvexCollider[];
@@ -140,10 +162,53 @@ export class KelpEnvironment {
     this.add(this.seabed(), sand, 'Kelp seabed');
     this.add(this.wallMesh(), this.rock, 'Kelp wall');
     this.add(this.tunnelMesh(), tunnel, 'Kelp tunnel');
+    // The sinkhole down to the shipwreck: a rock-lined shaft, darkening to black below.
+    // Its lining starts under the funnel's lip, so the sand overlaps its top edge.
+    const rim = kelpSeabed(SINKHOLE.x + SINKHOLE.radius, SINKHOLE.z),
+      shaft = {
+        x: SINKHOLE.x,
+        z: SINKHOLE.z,
+        radius: SINKHOLE.radius,
+        top: rim - 0.1,
+        bottom: SINKHOLE.bottom,
+      };
+    this.add(
+      shaftLining(
+        shaft,
+        (y) =>
+          Math.max(0.02, 0.35 * (1 - (rim - y) / (rim - SINKHOLE.threshold))),
+        3,
+      ),
+      this.own(
+        new THREE.MeshStandardMaterial({
+          name: 'Kelp sinkhole',
+          vertexColors: true,
+          roughness: 0.96,
+          side: THREE.BackSide,
+        }),
+      ),
+      'Kelp sinkhole',
+    );
+    const floor = new THREE.CircleGeometry(SINKHOLE.radius + 0.8, 20);
+    floor.rotateX(-Math.PI / 2);
+    floor.translate(SINKHOLE.x, SINKHOLE.bottom, SINKHOLE.z);
+    floor.setAttribute(
+      'color',
+      new THREE.Float32BufferAttribute(
+        new Float32Array(floor.getAttribute('position').count * 3).fill(0.01),
+        3,
+      ),
+    );
+    this.add(floor, sand, 'Kelp sinkhole floor');
     this.boulders = boulderLayout();
     const colliders: ConvexCollider[] = [
       ...this.tunnelColliders(),
       ...this.wallColliders(),
+      // The shaft's rock, just below the sand's rim (so the swimmer glides over the rim and down).
+      ...shaftColliders(
+        { ...shaft, top: rim - 0.4, bottom: SINKHOLE.bottom - 1 },
+        1.4,
+      ),
     ];
     const rocks: THREE.BufferGeometry[] = [],
       m = new THREE.Matrix4(),
@@ -235,17 +300,69 @@ export class KelpEnvironment {
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i),
         z = pos.getZ(i);
-      pos.setY(i, kelpFloor(x, z));
-      const lane = laneWeight(x, z),
-        speck =
-          0.08 * Math.sin(x * 3.1 + z * 2.3) * Math.sin(x * 1.7 - z * 2.9),
-        // Darker rubble and shell grit between the rocks, paler sand in the lane.
-        k = 0.3 + 0.26 * lane + speck;
-      colors.push(k * 0.98, k * 0.86, k * 0.64);
+      pos.setY(i, kelpSeabed(x, z));
+      colors.push(...sandColour(x, z));
     }
     g.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
     g.computeVertexNormals();
-    return g;
+    // Open round the sinkhole: drop the coarse triangles there; a finer collar of sand (drawn
+    // with the seabed) slopes smoothly down to the shaft's round lip instead.
+    const flat = g.toNonIndexed();
+    g.dispose();
+    const p = flat.getAttribute('position'),
+      n = flat.getAttribute('normal'),
+      c = flat.getAttribute('color'),
+      keep: number[] = [],
+      normals: number[] = [],
+      tints: number[] = [];
+    for (let t = 0; t < p.count; t += 3) {
+      let inside = true;
+      for (let k = t; k < t + 3; k++)
+        if (!overSinkhole(p.getX(k), p.getZ(k), COLLAR - SINKHOLE.radius - 0.4))
+          inside = false;
+      if (inside) continue;
+      for (let k = t; k < t + 3; k++) {
+        keep.push(p.getX(k), p.getY(k), p.getZ(k));
+        normals.push(n.getX(k), n.getY(k), n.getZ(k));
+        tints.push(c.getX(k), c.getY(k), c.getZ(k));
+      }
+    }
+    flat.dispose();
+    // The collar: a fine ring from the lip out under the coarse mesh's ragged edge.
+    const ring = new THREE.RingGeometry(
+      SINKHOLE.radius + 0.02,
+      COLLAR + 1.2,
+      56,
+      18,
+    );
+    ring.rotateX(-Math.PI / 2);
+    ring.translate(SINKHOLE.x, 0, SINKHOLE.z);
+    const rp = ring.getAttribute('position');
+    for (let i = 0; i < rp.count; i++) {
+      const x = rp.getX(i),
+        z = rp.getZ(i);
+      // Just under the coarse sand where they overlap, so the coarse mesh wins there.
+      const r = Math.hypot(x - SINKHOLE.x, z - SINKHOLE.z);
+      rp.setY(i, kelpSeabed(x, z) - (r > COLLAR - 0.6 ? 0.03 : 0));
+    }
+    const collar = ring.toNonIndexed();
+    ring.dispose();
+    collar.deleteAttribute('uv');
+    const cp = collar.getAttribute('position');
+    const tint: number[] = [];
+    for (let i = 0; i < cp.count; i++)
+      tint.push(...sandColour(cp.getX(i), cp.getZ(i)));
+    collar.setAttribute('color', new THREE.Float32BufferAttribute(tint, 3));
+    collar.computeVertexNormals();
+    const base = new THREE.BufferGeometry();
+    base.setAttribute('position', new THREE.Float32BufferAttribute(keep, 3));
+    base.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+    base.setAttribute('color', new THREE.Float32BufferAttribute(tints, 3));
+    const out = mergeGeometries([base, collar], false);
+    base.dispose();
+    collar.dispose();
+    if (!out) throw Error('The kelp seabed could not be built');
+    return out;
   }
   /** A rough rock wall across the forest's north side, open only at the tunnel's exit. */
   private wallMesh(): THREE.BufferGeometry {

@@ -140,6 +140,13 @@ export const OUTER_SIGHTS = {
   cleanerWrasse: { id: 'species:cleaner-wrasse', label: 'Cleaner wrasse' },
 } as const satisfies Record<string, Sight>;
 
+/** What the shipwreck shows: the place, and its two spaces inside. */
+export const WRECK_SIGHTS = {
+  place: { id: 'place:shipwreck', label: 'Shipwreck' },
+  hold: { id: 'place:shipwreck-hold', label: "The wreck's cargo hold" },
+  bridge: { id: 'place:shipwreck-bridge', label: "The wreck's bridge" },
+} as const satisfies Record<string, Sight>;
+
 /** Every sight, in the order the "Seen" page lists them when first seen together. */
 export const SIGHTS: readonly Sight[] = [
   ...Object.values(CRUISE_SPECIES).map((s) => ({
@@ -153,6 +160,7 @@ export const SIGHTS: readonly Sight[] = [
   ...Object.values(CAVE_SIGHTS),
   ...Object.values(OUTER_SIGHTS),
   ...Object.values(ICE_SIGHTS),
+  ...Object.values(WRECK_SIGHTS),
 ];
 /** A sight's name, or null for an id this version does not know (kept, but not listed). */
 export function sightLabel(id: string): string | null {
