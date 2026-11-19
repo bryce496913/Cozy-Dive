@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+import type { AssetLoader } from '../assets/AssetLoader';
+import type { PlayerPresence } from '../fish/FishDiverReaction';
+import { WreckLife } from '../environment/wreck/WreckLife';
 import { WRECK, WRECK_FRAME } from '../config/wreck';
 import type { Bounds, Vec3 } from '../config/world';
 import type { SightCandidate } from '../discovery/journal';
@@ -28,6 +31,8 @@ import {
 } from './StagedBuild';
 
 export interface WreckLibraries {
+  /** The tank's fish loader (for the wreck's fish). */
+  readonly fish: AssetLoader;
   readonly soundSpots: number;
 }
 
@@ -79,6 +84,8 @@ export class ShipwreckScene implements WaterWorld {
   private readonly ahead = new THREE.Vector3();
   private ready = false;
   private disposed = false;
+  /** Its fish: the sea bass in the hold, and the schools round the ship. */
+  life?: WreckLife;
 
   static async build(
     renderer: THREE.WebGLRenderer,
@@ -159,7 +166,7 @@ export class ShipwreckScene implements WaterWorld {
       WRECK_FRAME.origin.y,
       WRECK_FRAME.origin.z,
     );
-    this.prepared = this.prepare().then(
+    this.prepared = this.prepare(libraries.fish).then(
       (ok) => ok,
       (error: unknown) => {
         console.error(
@@ -172,9 +179,15 @@ export class ShipwreckScene implements WaterWorld {
       },
     );
   }
-  private async prepare(): Promise<boolean> {
+  private async prepare(fish: AssetLoader): Promise<boolean> {
     await nextFrame();
     if (this.disposed) return false;
+    const life = new WreckLife(fish);
+    this.life = life;
+    await this.preparation.track('wildlife', life.ready);
+    if (this.disposed) return false;
+    this.scene.add(life.root);
+    this.sightings.push(...life.sightings);
     // Compiled with the torch lit, so it never compiles on the way into the ship.
     this.torch.intensity = WRECK.torch.intensity;
     await warmUpScene(
@@ -229,6 +242,7 @@ export class ShipwreckScene implements WaterWorld {
     reducedMotion: boolean,
     dt: number,
     active: boolean,
+    player?: PlayerPresence,
   ): void {
     if (this.disposed) return;
     this.renderer.getDrawingBufferSize(this.size);
@@ -238,6 +252,9 @@ export class ShipwreckScene implements WaterWorld {
       this.camera.updateProjectionMatrix();
     }
     this.light(dt, active);
+    // Only once warmed up, so everything is drawn (and compiled) in the warm-up first.
+    if (this.ready && player)
+      this.life?.update(dt, active, reducedMotion, player, this.camera);
     this.snow.update(dt, active, reducedMotion, this.camera.position);
     this.renderer.render(this.scene, this.camera);
   }
@@ -246,6 +263,7 @@ export class ShipwreckScene implements WaterWorld {
     this.disposed = true;
     this.preparation.dispose();
     this.ready = false;
+    this.life?.dispose();
     this.snow.dispose();
     this.environment.dispose();
     this.lights.forEach((l) => l.dispose());
