@@ -2,7 +2,8 @@
  *
  *   COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy053-edges node validation/edge-audit.mjs
  *
- * Travels tank → outer reef → kelp forest → sea cave → under the ice through each passage (W held,
+ * Travels tank → outer reef → kelp forest (→ down the sinkhole to the shipwreck and back up) →
+ * sea cave → under the ice through each passage (W held,
  * as a player swims), and in each large world swims hard at every boundary: a few seconds of W
  * from just inside it, facing out. At each edge it records how far the swimmer got (and where the
  * slowing began, as the first frame below 60% of open-water speed), checks the swimmer stayed
@@ -97,6 +98,8 @@ try {
         kelpReady: !!a.kelp?.isReady,
         caveReady: !!a.cave?.isReady,
         iceReady: !!a.ice?.isReady,
+        wreckReady: !!a.wreck?.isReady,
+        shade: a.wreck?.shade ?? 0,
       };
     });
   const until = async (test, max = 900) => {
@@ -166,6 +169,31 @@ try {
   await view('kelp', 'forest', { x: 0, y: 6, z: -22 }, 0, 0);
   await view('kelp', 'rocks-close', { x: -10, y: 3, z: -30 }, 0.6, -0.5);
   await view('kelp', 'canopy', { x: 4, y: 10, z: -35 }, 0.3, 0.5);
+  // The sinkhole, hidden in the kelp beside its boulder. (Once the wreck beyond it is ready: its
+  // warm-up draws on frames this harness leaves the game's own loop out of, so a shot taken while
+  // it runs can catch a blank canvas.)
+  await place({ x: -7.5, y: 2.4, z: -43 }, 0.5, -0.45);
+  await until((s) => s.wreckReady);
+  await view('kelp', 'sinkhole', { x: -7.5, y: 2.4, z: -43 }, 0.5, -0.45);
+  // Kelp forest → down the sinkhole → the shipwreck.
+  await place({ x: -10.4, y: -2, z: -47.1 }, 0, -1.45);
+  await swimThrough('wreck');
+  await step(30);
+  await view('wreck', 'shaft-exit', { x: 0, y: 15, z: -26.5 }, 0.3, -0.6);
+  await view('wreck', 'deck', { x: 6, y: 12.5, z: -20 }, 0.55, -0.4);
+  await view('wreck', 'bow', { x: -6, y: 8, z: -58 }, -2.6, 0);
+  await view('wreck', 'side', { x: 9, y: 4.5, z: -33 }, 1.35, 0.05);
+  await view('wreck', 'hold', { x: 0, y: 2.8, z: -27.5 }, 0, -0.05);
+  const hold = await state();
+  assert.ok(hold.shade > 0.8, `dark in the hold (torch on): ${hold.shade}`);
+  await view('wreck', 'deckhouse', { x: 0, y: 7.3, z: -21 }, Math.PI, -0.1);
+  await view('wreck', 'outside-again', { x: 9, y: 9, z: -30 }, 1.2, -0.2);
+  const out = await state();
+  assert.ok(out.shade < 0.2, `light again outside (torch off): ${out.shade}`);
+  // Back up the shaft to the kelp forest.
+  await place({ x: 0, y: 20, z: -26.5 }, 0, 1.45);
+  await swimThrough('kelp');
+  await step(10);
   // Kelp forest → sea cave.
   await place({ x: 15.1, y: 2.8, z: -10 }, -Math.PI / 2);
   await until((s) => s.caveReady);

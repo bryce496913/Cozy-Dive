@@ -4,17 +4,18 @@ _Draft for the owner's approval. The version number and date are filled in at re
 
 ## Welcome
 
-Cozy Diver is a quiet underwater world in your browser. There are no scores, quests, timers or accounts. Start in a small glass office with an aquarium, dive in, and swim at your own pace. A hidden crack leads beyond the tank, to a reef wall over the blue, a kelp forest, a sea cave, and the waters under the Antarctic ice.
+Cozy Diver is a quiet underwater world in your browser. There are no scores, quests, timers or accounts. Start in a small glass office with an aquarium, dive in, and swim at your own pace. A hidden crack leads beyond the tank, to a reef wall over the blue, a kelp forest, a sea cave, the waters under the Antarctic ice, and an old shipwreck at the bottom of a hidden sinkhole.
 
 ## What's in this beta
 
-- **Five places to swim:** the home aquarium, the outer reef, the kelp forest, the sea cave and under the ice, linked by hidden passages, and all of them reachable back home again.
+- **Six places to swim:** the home aquarium, the outer reef, the kelp forest, the sea cave, under the ice and the shipwreck, linked by hidden passages, and all of them reachable back home again.
 - **Wildlife:**
   - reef fish, turtles, sharks and rays;
   - wall visitors such as manta rays and whale sharks;
   - sea lions, otters and seals in the kelp;
   - resting sharks and lobsters in the cave;
-  - penguins, seals and rare visitors under the ice.
+  - penguins, seals (and a pup) and rare visitors under the ice;
+  - a wreck overgrown like the SS Yongala: groupers, trevally, barracuda, turtles and clouds of reef fish, with a torch that comes on by itself inside the ship.
 - **Seen in the outer waters:** a gentle list of what you've come across. Some things you see can come home to your tank.
 - **Your tank:** add fish, corals, plants and stones from the pause screen.
 - **Comfort settings:** mouse sensitivity, swimming speed and feel, reduced camera motion, field of view, invert look, graphics detail (Full or Lighter), volume and mute.
