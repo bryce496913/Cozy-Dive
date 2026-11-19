@@ -169,11 +169,14 @@ try {
   await view('kelp', 'forest', { x: 0, y: 6, z: -22 }, 0, 0);
   await view('kelp', 'rocks-close', { x: -10, y: 3, z: -30 }, 0.6, -0.5);
   await view('kelp', 'canopy', { x: 4, y: 10, z: -35 }, 0.3, 0.5);
-  // The sinkhole, hidden in the kelp beside its boulder.
+  // The sinkhole, hidden in the kelp beside its boulder. (Once the wreck beyond it is ready: its
+  // warm-up draws on frames this harness leaves the game's own loop out of, so a shot taken while
+  // it runs can catch a blank canvas.)
+  await place({ x: -7.5, y: 2.4, z: -43 }, 0.5, -0.45);
+  await until((s) => s.wreckReady);
   await view('kelp', 'sinkhole', { x: -7.5, y: 2.4, z: -43 }, 0.5, -0.45);
   // Kelp forest → down the sinkhole → the shipwreck.
   await place({ x: -10.4, y: -2, z: -47.1 }, 0, -1.45);
-  await until((s) => s.wreckReady);
   await swimThrough('wreck');
   await step(30);
   await view('wreck', 'shaft-exit', { x: 0, y: 15, z: -26.5 }, 0.3, -0.6);

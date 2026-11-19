@@ -47,17 +47,19 @@ function coloured(
 export function patchGeometry(): THREE.BufferGeometry {
   const g = new THREE.CircleGeometry(0.8, 24, 0, Math.PI * 2),
     p = g.getAttribute('position'),
-    c = new Float32Array(p.count * 3);
+    c = new Float32Array(p.count * 4);
   for (let i = 0; i < p.count; i++) {
     const x = p.getX(i),
       y = p.getY(i),
       a = Math.atan2(y, x),
       r = 1 + 0.3 * Math.sin(a * 3 + 1) + 0.15 * Math.sin(a * 7);
     p.setXY(i, x * r, y * r * 0.8);
-    const k = Math.hypot(x, y) < 0.01 ? 0.75 : 1;
-    c[i * 3] = c[i * 3 + 1] = c[i * 3 + 2] = k;
+    // Denser in the middle, fading to nothing at the edge: a soft stain, not a cut-out.
+    const middle = Math.hypot(x, y) < 0.01;
+    c[i * 4] = c[i * 4 + 1] = c[i * 4 + 2] = middle ? 0.85 : 1;
+    c[i * 4 + 3] = middle ? 1 : 0;
   }
-  g.setAttribute('color', new THREE.Float32BufferAttribute(c, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(c, 4));
   // Face down from the ice.
   g.rotateX(Math.PI / 2);
   return g;
@@ -131,12 +133,12 @@ export class IceUnderside {
 
     // Algae film: brown-green patches, just under the ice, none at the holes' rims.
     const patch = patchGeometry();
-    const film = new THREE.MeshStandardMaterial({
+    // Unlit: seen from below, the algae is lit through the ice (a golden-brown stain on the
+    // glow), not by the dim water beneath it (which drew it near-black, like holes).
+    const film = new THREE.MeshBasicMaterial({
       vertexColors: true,
-      roughness: 1,
-      metalness: 0,
       transparent: true,
-      opacity: 0.6,
+      opacity: 0.55,
       depthWrite: false,
       polygonOffset: true,
       polygonOffsetFactor: -2,
@@ -166,7 +168,7 @@ export class IceUnderside {
       const k = rand();
       patches.setColorAt(
         i,
-        colour.setRGB(0.42 + 0.1 * k, 0.36 + 0.08 * k, 0.16 + 0.05 * k),
+        colour.setRGB(0.5 + 0.08 * k, 0.43 + 0.06 * k, 0.2 + 0.04 * k),
       );
     }
     this.s.set(1, 1, 1);
