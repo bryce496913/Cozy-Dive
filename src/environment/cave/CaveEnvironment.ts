@@ -1,3 +1,5 @@
+import { limestoneGeometry } from '../shared/LimestoneGeometry';
+import { HabitatSurface } from '../shared/HabitatSurface';
 import * as THREE from 'three';
 import {
   mergeGeometries,
@@ -92,6 +94,8 @@ export function tunnelMouthZ(): number {
 
 export class CaveEnvironment {
   readonly root = new THREE.Group();
+  private readonly stoneSurface = new HabitatSurface('limestone');
+  private readonly sandSurface = new HabitatSurface('sediment');
   readonly colliders: readonly ConvexCollider[];
   readonly rock: THREE.MeshStandardMaterial;
   /** Where the lobsters' cracks are: low against boulders and the wall (with their outward facing). */
@@ -112,7 +116,7 @@ export class CaveEnvironment {
   constructor() {
     this.root.name = 'Sea cave';
     this.rock = this.own(
-      new THREE.MeshStandardMaterial({
+      this.stoneSurface.material({
         name: 'Cave limestone',
         color: 0xc4b9a6,
         vertexColors: true,
@@ -120,7 +124,7 @@ export class CaveEnvironment {
       }),
     );
     const wall = this.own(
-        new THREE.MeshStandardMaterial({
+        this.stoneSurface.material({
           name: 'Cave wall',
           vertexColors: true,
           roughness: 0.96,
@@ -128,14 +132,14 @@ export class CaveEnvironment {
         }),
       ),
       sand = this.own(
-        new THREE.MeshStandardMaterial({
+        this.sandSurface.material({
           name: 'Cave sand',
           vertexColors: true,
           roughness: 1,
         }),
       ),
       tunnel = this.own(
-        new THREE.MeshStandardMaterial({
+        this.stoneSurface.material({
           name: 'Cave tunnel',
           vertexColors: true,
           roughness: 0.95,
@@ -152,6 +156,7 @@ export class CaveEnvironment {
     this.shaft = this.own(
       new THREE.MeshBasicMaterial({
         name: 'Cave light shaft',
+        opacity: 0.3,
         vertexColors: true,
         transparent: true,
         blending: THREE.AdditiveBlending,
@@ -167,6 +172,18 @@ export class CaveEnvironment {
     this.add(this.shellMesh(), wall, 'Cave wall');
     this.add(this.floorMesh(), sand, 'Cave sand');
     this.add(this.tunnelMesh(mouthZ), tunnel, 'Cave tunnel');
+    this.add(
+      tunnelMouthRocks(
+        { x: 0, y: CAVE.tunnel.y, radius: CAVE.tunnel.radius },
+        mouthZ - 0.1,
+        1,
+        0,
+        14,
+        62010,
+      ),
+      tunnel,
+      'Cave entrance eroded rim',
+    );
     // v0.6 Pass 046: the back tunnel, from the back wall to its threshold (and a little beyond).
     const back = CAVE.backTunnel,
       backTube = {
@@ -235,7 +252,7 @@ export class CaveEnvironment {
       q = new THREE.Quaternion(),
       e = new THREE.Euler();
     CAVE_ROCKS.forEach((r, i) => {
-      const g = rockShape(34100 + (i % 8) * 13, i % 4, 3);
+      const g = limestoneGeometry(34100 + (i % 8) * 13, i % 3);
       g.computeBoundingBox();
       const box = g.boundingBox!,
         size = box.getSize(new THREE.Vector3()),
@@ -499,43 +516,18 @@ export class CaveEnvironment {
   }
   /** Inside-facing tube from just behind its start to the dome, black at the start, lit at the end. */
   private tunnelMesh(mouthZ: number): THREE.BufferGeometry {
-    const t = CAVE.tunnel,
-      from = t.startZ + 0.2,
-      to = mouthZ - 0.3,
-      steps = 36,
-      around = 28,
-      positions: number[] = [],
-      colors: number[] = [],
-      indices: number[] = [];
-    for (let i = 0; i <= steps; i++) {
-      const z = from + ((to - from) * i) / steps,
-        past = CAVE_FRAME.origin.z - z,
-        light = Math.max(
-          0,
-          Math.min(1, (past - 0.4) / (PASSAGE.darkReach + 3)),
-        );
-      for (let j = 0; j <= around; j++) {
-        const a = (j / around) * Math.PI * 2,
-          bump = 0.12 * Math.sin(a * 3 + z * 1.7) * Math.sin(a * 5 - z * 0.9),
-          r = t.radius + bump;
-        positions.push(Math.cos(a) * r, t.y + Math.sin(a) * r, z);
-        const tone =
-          (0.07 + 0.3 * light * light) * (0.85 + 0.15 * Math.sin(a * 7 + z));
-        colors.push(tone, tone * 0.97, tone * 0.9);
-      }
-    }
-    for (let i = 0; i < steps; i++)
-      for (let j = 0; j < around; j++) {
-        const a = i * (around + 1) + j,
-          b = a + around + 1;
-        indices.push(a, b, a + 1, a + 1, b, b + 1);
-      }
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    g.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    g.setIndex(indices);
-    g.computeVertexNormals();
-    return g;
+    const t = CAVE.tunnel;
+    return rockTubeGeometry(
+      {
+        x: 0,
+        y: t.y,
+        radius: t.radius,
+        from: t.startZ + 0.2,
+        to: mouthZ - 0.5,
+        dark: CAVE_FRAME.origin.z,
+      },
+      PASSAGE.darkReach,
+    );
   }
   /** A short rough shaft up through the roof from the hole. */
   private chimneyMesh(top: number): THREE.BufferGeometry {
@@ -706,6 +698,8 @@ export class CaveEnvironment {
     this.root.clear();
     this.geometries.forEach((g) => g.dispose());
     this.materials.forEach((m) => m.dispose());
+    this.stoneSurface.dispose();
+    this.sandSurface.dispose();
   }
 }
 

@@ -50,11 +50,11 @@ export class UnderIceScene implements WaterWorld {
   /** v0.6 Pass 046 review: how long each piece took to build (see `UnderIceScene.build`). */
   buildStats?: BuildStats;
   readonly snow = new MarineSnow({
-    count: 650,
+    count: 380,
     reach: 11,
-    size: 0.035,
+    size: 0.02,
     color: 0xe8f4ff,
-    opacity: 0.55,
+    opacity: 0.3,
     sink: 0.015,
     wander: 0.025,
   });

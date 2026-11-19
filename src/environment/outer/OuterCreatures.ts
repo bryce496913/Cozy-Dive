@@ -1,3 +1,4 @@
+import { creatureClearance } from './CreatureClearance';
 import { creatureStroke } from '../creatureStroke';
 import * as THREE from 'three';
 import type { AssetLease, AssetLoader } from '../../assets/AssetLoader';
@@ -228,6 +229,7 @@ interface Rig {
   readonly left: number;
   readonly right: number;
   isNear: boolean;
+  readonly clearance: number;
 }
 /** Draws the cruisers with their authored models (leased from the shared fish loader). */
 export class OuterCreatures {
@@ -253,6 +255,7 @@ export class OuterCreatures {
     /** v0.6 Pass 032: other waters bring their own creatures and routes. */
     groups: readonly CruiseGroup[] = OUTER_CRUISERS,
     name = 'Outer reef big creatures',
+    private readonly floorY?: number,
   ) {
     this.root.name = name;
     this.cruisers = outerCruisers(obstacles, groups);
@@ -312,6 +315,7 @@ export class OuterCreatures {
         left: keys.Stroke_Left ?? 0,
         right: keys.Stroke_Right ?? 1,
         isNear: true,
+        clearance: creatureClearance(model, cruiser.species.scale),
       };
     });
     for (const c of this.cruisers)
@@ -329,6 +333,8 @@ export class OuterCreatures {
   private place(): void {
     for (const r of this.rigs) {
       const c = r.cruiser;
+      if (this.floorY !== undefined)
+        c.position.y = Math.max(c.position.y, this.floorY + r.clearance);
       r.root.position.set(c.position.x, c.position.y, c.position.z);
       r.root.rotation.set(c.bank, c.yaw, c.pitch);
       creatureStroke(r.near, r, c.effort);

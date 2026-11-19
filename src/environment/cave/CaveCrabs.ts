@@ -1,3 +1,4 @@
+import { benthicGait } from './BenthicGait';
 import * as THREE from 'three';
 import type { Vec3 } from '../../config/world';
 import type { SightCandidate } from '../../discovery/journal';
@@ -236,6 +237,7 @@ interface Crab {
 export class CaveCrabs {
   readonly root = new THREE.Group();
   readonly sightings: SightCandidate[] = [];
+  private readonly gait: THREE.InstancedBufferAttribute;
   private readonly mesh: THREE.InstancedMesh;
   private readonly crabs: Crab[] = [];
   private readonly material = new THREE.MeshStandardMaterial({
@@ -254,7 +256,13 @@ export class CaveCrabs {
 
   constructor(rocks: readonly CaveRock[], count: number) {
     this.root.name = 'Rock crabs';
+    benthicGait(this.material, 0.08);
+    this.gait = new THREE.InstancedBufferAttribute(
+      new Float32Array(count * 2),
+      2,
+    );
     this.mesh = new THREE.InstancedMesh(crabBody(), this.material, count);
+    this.mesh.geometry.setAttribute('legGait', this.gait);
     this.mesh.name = 'Rock crab bodies';
     for (let i = 0; i < count && rocks.length; i++) {
       const rock = rocks[(i * 5) % rocks.length],
@@ -306,9 +314,11 @@ export class CaveCrabs {
       this.q.setFromEuler(this.e);
       this.p.set(c.at.x, c.at.y, c.at.z);
       this.m.compose(this.p, this.q, this.size);
+      this.gait.setXY(i, this.time * 10 + c.phase, moving ? 1 : 0);
       this.mesh.setMatrixAt(i, this.m);
     });
     this.mesh.instanceMatrix.needsUpdate = true;
+    this.gait.needsUpdate = true;
   }
   /** Walk round the rocks, pause, and scuttle round out of sight of a close swimmer. */
   update(

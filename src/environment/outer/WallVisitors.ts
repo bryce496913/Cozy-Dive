@@ -1,3 +1,4 @@
+import { OUTER } from '../../config/passage';
 import * as THREE from 'three';
 import type { AssetLoader } from '../../assets/AssetLoader';
 import {
@@ -172,6 +173,7 @@ export class WallVisitors {
       loader,
       WALL_VISITOR_IDS.map((id) => WALL_VISITORS[id]),
       'Wall visitors',
+      OUTER.glass.bottom,
     );
     this.ready = this.creatures.ready.then((ok) => {
       if (!ok || this.disposed) return false;

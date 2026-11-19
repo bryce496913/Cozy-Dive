@@ -101,9 +101,8 @@ export const OUTER = {
    * Swimming eases over the last `ease` m before the glass and stops `gap` m from it.
    */
   glass: {
-    // v0.6 Pass 052B: 4 m further out over the drop-off (was -59.4), so the swimmer can hang out
-    // over the blue. Everything beyond the glass (lanes, encounters) is measured from here.
-    z: -63.4,
+    // Close to the reef lip; passing lanes and encounter positions follow this plane.
+    z: -59.4,
     halfWidth: 32.5,
     bottom: -24,
     top: 18,
@@ -344,7 +343,7 @@ export const ICE = {
   ceiling: 15,
   /** Breathing holes in the ice: where the light falls through, and the seals come up to breathe. */
   holes: [
-    { x: -6, z: -28, r: 2.2 },
+    { x: -6, z: -28, r: 3.2 },
     { x: 9, z: -42, r: 1.8 },
     { x: -13, z: -50, r: 1.6 },
   ],

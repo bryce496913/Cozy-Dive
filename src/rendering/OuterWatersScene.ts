@@ -306,7 +306,13 @@ export class OuterWatersScene implements WaterWorld {
       outerSpecies(obstacles),
       fishLoader,
     );
-    const creatures = new OuterCreatures(obstacles, fishLoader);
+    const creatures = new OuterCreatures(
+      obstacles,
+      fishLoader,
+      undefined,
+      undefined,
+      OUTER.glass.bottom,
+    );
     this.creatures = creatures;
     const visitors = new WallVisitors(obstacles, fishLoader, this.sightings);
     this.visitors = visitors;

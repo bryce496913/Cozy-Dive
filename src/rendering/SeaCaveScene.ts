@@ -72,11 +72,11 @@ export class SeaCaveScene implements WaterWorld {
   /** v0.6 Pass 035: hanging formations, sun corals, rubble and motes; drifting particles. */
   readonly dressing: CaveDressing;
   readonly snow = new MarineSnow({
-    count: 500,
+    count: 260,
     reach: 10,
-    size: 0.04,
+    size: 0.018,
     color: 0xcfe4e0,
-    opacity: 0.45,
+    opacity: 0.22,
     sink: 0.02,
     wander: 0.03,
   });
@@ -124,7 +124,11 @@ export class SeaCaveScene implements WaterWorld {
         ),
         dressing = await stage.step(
           'detail',
-          () => new CaveDressing(environment.skylightTop),
+          () =>
+            new CaveDressing(
+              environment.skylightTop,
+              environment.root.getObjectByName('Cave boulders'),
+            ),
         ),
         scene = await stage.step(
           'scene',

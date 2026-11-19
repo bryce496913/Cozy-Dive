@@ -281,6 +281,7 @@ export class ReefLife {
           SUNFISH_SCALE,
           'Ocean sunfish',
         );
+        sun.setFloor(OUTER.glass.bottom);
         this.sunfish = sun;
         if (!(await sun.ready) || this.disposed) throw Error('sunfish');
         this.root.add(sun.root);
@@ -299,6 +300,7 @@ export class ReefLife {
           'Great white shark',
           24,
         );
+        shark.setFloor(OUTER.glass.bottom);
         this.shark = shark;
         if (!(await shark.ready) || this.disposed) throw Error('great white');
         this.root.add(shark.root);

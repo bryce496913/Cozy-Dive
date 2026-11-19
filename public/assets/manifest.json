@@ -1928,11 +1928,11 @@
   {
     "id": "nurse-shark",
     "file": "assets/models/creatures/nurse-shark.glb",
-    "sha256": "dbed0cbf952c1be68a278cb3fb5b2537558420e7c360d14cabee30a49cce0957",
+    "sha256": "7793d21d201079e24ff51069a9bb0dd41d51eedea9c08681545ea3da71a6ffa5",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 601180,
+    "bytes": 590064,
     "visualPrimitives": 2,
     "visualTriangles": 14472,
     "collisionTriangles": 0,
@@ -1944,7 +1944,7 @@
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 90935
+        "encodedBytes": 79822
       },
       {
         "name": "creature_nurseshark_base",
@@ -2159,13 +2159,13 @@
   {
     "id": "leopard-seal",
     "file": "assets/models/creatures/leopard-seal.glb",
-    "sha256": "ed40754658cbe8bd32132763a3d4c60430fd44529d8d55cb0152265205e217ef",
+    "sha256": "6341e30baf127fd1462b2832c0d334c6daf43908aa7f4fb97d545df94aab4173",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 434724,
+    "bytes": 446132,
     "visualPrimitives": 2,
-    "visualTriangles": 8806,
+    "visualTriangles": 9084,
     "collisionTriangles": 0,
     "materials": 1,
     "images": [
@@ -2175,7 +2175,7 @@
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 90935
+        "encodedBytes": 88184
       },
       {
         "name": "creature_leopardseal_base",
@@ -2194,7 +2194,7 @@
         "encodedBytes": 1206
       }
     ],
-    "geometryAccessorBytes": 216864,
+    "geometryAccessorBytes": 227856,
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
@@ -2202,13 +2202,13 @@
   {
     "id": "minke-whale",
     "file": "assets/models/creatures/minke-whale.glb",
-    "sha256": "cf4844500bf69733a15d654e7fccc7b235e612a94bad518888251073bd2f0ac6",
+    "sha256": "7a04be893f01ca1870720f5d25c275bea5d613b2cb4ebf2c942cdb5f645c1c25",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 380832,
+    "bytes": 560556,
     "visualPrimitives": 2,
-    "visualTriangles": 9516,
+    "visualTriangles": 14026,
     "collisionTriangles": 0,
     "materials": 1,
     "images": [
@@ -2218,7 +2218,7 @@
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 90935
+        "encodedBytes": 106252
       },
       {
         "name": "creature_minke_base",
@@ -2237,7 +2237,7 @@
         "encodedBytes": 1222
       }
     ],
-    "geometryAccessorBytes": 116760,
+    "geometryAccessorBytes": 172248,
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
@@ -2245,13 +2245,13 @@
   {
     "id": "killer-whale",
     "file": "assets/models/creatures/killer-whale.glb",
-    "sha256": "1e65b9971b1216e468a69b6e1a8610f79a3b2abef56700ffa52145ca41fcc7f6",
+    "sha256": "68a9fdc3cf8e09caba159c62e8b45621901e9c2f014b2b6a79a01fe87c3194ff",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 367864,
+    "bytes": 549172,
     "visualPrimitives": 2,
-    "visualTriangles": 9544,
+    "visualTriangles": 13844,
     "collisionTriangles": 0,
     "materials": 1,
     "images": [
@@ -2261,7 +2261,7 @@
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 90935
+        "encodedBytes": 88184
       },
       {
         "name": "creature_orca_base",
@@ -2280,7 +2280,7 @@
         "encodedBytes": 1199
       }
     ],
-    "geometryAccessorBytes": 117168,
+    "geometryAccessorBytes": 169872,
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
@@ -2288,11 +2288,11 @@
   {
     "id": "polar-bear",
     "file": "assets/models/creatures/polar-bear.glb",
-    "sha256": "287b644fda939536508fc9f2b4f3eeecf739585abca6f2cda86531c6880ca614",
+    "sha256": "1a23b34206dbd6ca9eaa47a95cbd756d206c5fe0b6be5f89aa5f59798e0e85dd",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 411160,
+    "bytes": 432244,
     "visualPrimitives": 2,
     "visualTriangles": 9056,
     "collisionTriangles": 0,
@@ -2304,7 +2304,7 @@
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 90935
+        "encodedBytes": 112022
       },
       {
         "name": "creature_polarbear_base",
