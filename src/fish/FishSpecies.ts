@@ -30,7 +30,9 @@ export type SpeciesId =
   /** v0.6 Pass 045: the sea cave's small dark fish with glowing light organs. */
   | 'flashlight-fish'
   /** v0.6 Pass 052: the big shimmering school under the ice (never in the tank). */
-  | 'antarctic-silverfish';
+  | 'antarctic-silverfish'
+  /** Playtest: the barracuda as a tank guest (it swims as a school creature in the outer reef). */
+  | 'great-barracuda';
 export interface SchoolingTuning {
   readonly enabled: boolean;
   readonly spacing: number;

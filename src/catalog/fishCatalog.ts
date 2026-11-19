@@ -132,13 +132,35 @@ export function guestSpecies(counts: TankFishCounts): readonly FishSpecies[] {
   for (const d of TANK_FISH) {
     const count = counts[d.species] ?? 0;
     if (count <= 0) continue;
+    // Playtest: species with no swimming entry of their own (the big reef fish, the kelp and
+    // cave fish) swim with the chromis' behaviour, on their own rig or a recoloured chromis.
+    const chromis = FISH_SPECIES.find((s) => s.id === 'blue-green-chromis');
     const base =
       FISH_SPECIES.find((s) => s.id === d.species) ??
-      OUTER_EXTRA_SPECIES.find((s) => s.id === d.species);
+      OUTER_EXTRA_SPECIES.find((s) => s.id === d.species) ??
+      (chromis && { ...chromis, id: d.species, name: d.label });
     if (!base) continue;
+    // The rig keeps the size it was built at, and is scaled to the tank length.
+    const length = d.length ?? base.length,
+      k = length / base.length,
+      built =
+        d.modelLength ??
+        (d.length !== undefined
+          ? (base.authoredLength ?? base.length)
+          : base.authoredLength);
     out.push({
       ...base,
       count,
+      length,
+      height: base.height * k,
+      width: base.width * k,
+      authoredLength: built,
+      ...(d.tint !== undefined
+        ? { color: d.tint, backColor: d.tint, finColor: d.tint }
+        : {}),
+      // Big fish range a little more slowly in the tank.
+      speed: length > 0.8 ? base.speed * 0.8 : base.speed,
+      schooling: { ...base.schooling, enabled: d.group === 'schooling' },
       individualScale: undefined,
       hostAnchorId: undefined,
     });

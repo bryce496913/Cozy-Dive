@@ -102,17 +102,36 @@ export class TankFish {
     this.leases = leases;
     const textures = new Map<string, THREE.Texture>();
     let next = 0;
-    ids.forEach((id: SpeciesId, i) => {
-      const school = new AuthoredSchool(
-        fish,
-        leases.slice(next, next + counts[i]),
-        id,
-        textures,
+    try {
+      ids.forEach((id: SpeciesId, i) => {
+        const school = new AuthoredSchool(
+          fish,
+          leases.slice(next, next + counts[i]),
+          id,
+          textures,
+          undefined,
+          undefined,
+          // Playtest: the kelp and cave fish on the chromis rig, in their own colours.
+          fishDefinition(id)?.tint,
+        );
+        next += counts[i];
+        this.schools.push(school);
+        this.root.add(school.root);
+      });
+    } catch (error) {
+      // Playtest: a rig the tank cannot pose (a guest built for another world) falls back to the
+      // simple fish rather than losing every added fish.
+      this.schools.forEach((s) => s.dispose());
+      this.schools = [];
+      this.leases.forEach((l) => l.release());
+      this.leases = [];
+      this.root.add(fish.root);
+      console.warn(
+        'Cozy Diver: an added fish is shown in its simple form.',
+        error,
       );
-      next += counts[i];
-      this.schools.push(school);
-      this.root.add(school.root);
-    });
+      return false;
+    }
     return true;
   }
   update(
