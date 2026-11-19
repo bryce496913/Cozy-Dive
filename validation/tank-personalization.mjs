@@ -153,16 +153,14 @@ try {
     'Aquarium fish',
     'Plants and corals',
     'Rocks and decorations',
-    'Not for this tank',
   ])
     assert(groups.includes(g), `missing group ${g}: ${groups}`);
-  const unsuited = await page
-    .locator('.tank-catalog-group li')
-    .allTextContents();
-  assert(
-    unsuited.some((t) => t.startsWith('Bumphead parrotfish')) &&
-      unsuited.some((t) => t.startsWith('Garibaldi')),
-  );
+  // Playtest: the parrotfish and garibaldi (seen) can now be added, at tank size.
+  for (const species of ['parrotfish', 'garibaldi'])
+    assert(
+      (await page.locator(`[data-key="fish-add-${species}"]`).count()) === 1,
+      `${species} can be added`,
+    );
   const add = (species) =>
     page.locator(`[data-key="fish-add-${species}"]`).click();
   for (let i = 0; i < 6; i++) await add('blue-green-chromis');
