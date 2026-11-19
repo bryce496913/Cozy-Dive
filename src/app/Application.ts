@@ -964,7 +964,10 @@ export class Application {
           (wanted) =>
             ShipwreckScene.build(
               this.world!.renderer,
-              { soundSpots: this.tankSoundSpots.length },
+              {
+                fish: this.world!.authored.loader,
+                soundSpots: this.tankSoundSpots.length,
+              },
               nextFrame,
               wanted,
             ),
