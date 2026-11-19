@@ -1,0 +1,539 @@
+{
+  "errors": [],
+  "views": [
+    {
+      "name": "catalog",
+      "calls": 187,
+      "triangles": 1018541
+    },
+    {
+      "name": "preview",
+      "calls": 20,
+      "triangles": 56658
+    },
+    {
+      "name": "placed-coral",
+      "calls": 42,
+      "triangles": 418492
+    },
+    {
+      "name": "coral-and-seagrass",
+      "calls": 46,
+      "triangles": 473278
+    },
+    {
+      "name": "tank-full",
+      "calls": 77,
+      "triangles": 970452
+    },
+    {
+      "name": "coral-garden",
+      "calls": 186,
+      "triangles": 1196139
+    },
+    {
+      "name": "office-miniature",
+      "calls": 28,
+      "triangles": 59558
+    }
+  ],
+  "templates": [
+    {
+      "kind": "boulder",
+      "size": [1.4148138761520386, 1.2699711248278618, 1.4894511699676514],
+      "parts": 1
+    },
+    {
+      "kind": "branching",
+      "size": [1.3247499465942383, 2.1191467456519604, 0.7653791606426239],
+      "parts": 2
+    },
+    {
+      "kind": "plate",
+      "size": [1.577989935874939, 2.0684783309698105, 1.5223760604858398],
+      "parts": 1
+    },
+    {
+      "kind": "soft",
+      "size": [0.5712672472000122, 1, 0.5354695916175842],
+      "parts": 1
+    },
+    {
+      "kind": "sea-fan",
+      "size": [0.6862802505493164, 1.0027507543563843, 0.1343427300453186],
+      "parts": 1
+    },
+    {
+      "kind": "seagrass",
+      "size": [0.26017895340919495, 0.9741103649139404, 0.3123217523097992],
+      "parts": 1
+    }
+  ],
+  "emptyTankView": {
+    "calls": 179,
+    "triangles": 1007618
+  },
+  "fullTankView": {
+    "calls": 186,
+    "triangles": 1196139
+  },
+  "saved": {
+    "items": [
+      {
+        "id": "tank-c60821d8-b9ff-4107-90c2-7462e6bc18d9",
+        "kind": "boulder",
+        "position": {
+          "x": 15.799999999999997,
+          "y": 0.09585204277135792,
+          "z": -12.050609665440989
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-403c38ef-f382-4788-ac55-4c05d5bb101c",
+        "kind": "seagrass",
+        "position": {
+          "x": 14.199999999999998,
+          "y": 0.018706088329119304,
+          "z": -10.85060966544099
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-89aafbd0-4b70-4842-8b5c-e68bba1eaee9",
+        "kind": "branching",
+        "position": {
+          "x": 15.799999999999997,
+          "y": 0.011720187766916301,
+          "z": -9.65060966544099
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-8c4225c1-dcfd-4821-bf20-fbdefb736670",
+        "kind": "plate",
+        "position": {
+          "x": 4.599999999999999,
+          "y": 0.08538654381817357,
+          "z": -7.25060966544099
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-b19cb8b1-de78-4811-9059-4dc76b33ebda",
+        "kind": "soft",
+        "position": {
+          "x": -8.200000000000001,
+          "y": 0.05235784180291565,
+          "z": -3.65060966544099
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-dd593cfd-ece1-44ea-af97-a2d087c9ab63",
+        "kind": "sea-fan",
+        "position": {
+          "x": -6.600000000000001,
+          "y": -0.004441033138069268,
+          "z": -3.65060966544099
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-12c72d36-1355-4bd5-bda7-afd9380ec3d4",
+        "kind": "boulder",
+        "position": {
+          "x": -16.2,
+          "y": 0.009665104070796106,
+          "z": 4.74939033455901
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-c7692623-dc23-4c99-a722-2a9b3b706e51",
+        "kind": "seagrass",
+        "position": {
+          "x": 12.599999999999998,
+          "y": 0.010061446670132548,
+          "z": 4.74939033455901
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-1f15cdf3-f816-4882-8469-9be268b17792",
+        "kind": "branching",
+        "position": {
+          "x": -9.8,
+          "y": 0.0027653439684111117,
+          "z": 5.949390334559011
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-4105f564-7388-48b4-87e4-20939b307015",
+        "kind": "plate",
+        "position": {
+          "x": -5.000000000000002,
+          "y": 0.005619315552006808,
+          "z": 5.949390334559011
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-c34b4bb6-98c9-420d-b9f5-19c7410d852f",
+        "kind": "soft",
+        "position": {
+          "x": 9.399999999999999,
+          "y": 0.014543995442810112,
+          "z": 5.949390334559011
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-e81d00b9-da93-4225-994c-9bdf07bd17ca",
+        "kind": "sea-fan",
+        "position": {
+          "x": 10.999999999999998,
+          "y": 0.04607102686429086,
+          "z": 5.949390334559011
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-5d08b548-8ad0-4352-a91d-8c78758bc3eb",
+        "kind": "boulder",
+        "position": {
+          "x": -16.2,
+          "y": 0.03990947582820767,
+          "z": 7.14939033455901
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-c69ace1b-d4ca-488f-a37a-f7483cb1d075",
+        "kind": "seagrass",
+        "position": {
+          "x": 14.199999999999998,
+          "y": 0.008812912869500162,
+          "z": 7.14939033455901
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-f68ba999-6ec0-4589-919a-5aee49405310",
+        "kind": "branching",
+        "position": {
+          "x": -14.6,
+          "y": 0.031462493986800434,
+          "z": 8.34939033455901
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-25448857-8819-435d-b464-be26bb029455",
+        "kind": "plate",
+        "position": {
+          "x": -8.200000000000001,
+          "y": 0.0693554810827904,
+          "z": 8.34939033455901
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-dfa86149-262a-47c5-a0e0-cd01751b0d23",
+        "kind": "soft",
+        "position": {
+          "x": 4.599999999999999,
+          "y": 0.028124878896774168,
+          "z": 8.34939033455901
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-3fda74d5-9c77-4b55-8453-78646f7ac0e0",
+        "kind": "sea-fan",
+        "position": {
+          "x": 9.399999999999999,
+          "y": 0.02792810618114616,
+          "z": 8.34939033455901
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-5d185941-a200-4ce4-b066-86514b78e781",
+        "kind": "boulder",
+        "position": {
+          "x": 15.799999999999997,
+          "y": 0.08316423192810586,
+          "z": 8.34939033455901
+        },
+        "rotation": 0
+      },
+      {
+        "id": "tank-df3e9fb6-270b-44ae-963d-7ac25c1dafe8",
+        "kind": "seagrass",
+        "position": {
+          "x": -16.2,
+          "y": 0.08614264697827981,
+          "z": 9.549390334559009
+        },
+        "rotation": 0
+      }
+    ],
+    "memory": {
+      "geometries": 372,
+      "textures": 112
+    }
+  },
+  "reloaded": [
+    {
+      "id": "tank-c60821d8-b9ff-4107-90c2-7462e6bc18d9",
+      "kind": "boulder",
+      "position": {
+        "x": 15.799999999999997,
+        "y": 0.09585204277135792,
+        "z": -12.050609665440989
+      },
+      "rotation": 0
+    },
+    {
+      "id": "tank-403c38ef-f382-4788-ac55-4c05d5bb101c",
+      "kind": "seagrass",
+      "position": {
+        "x": 14.199999999999998,
+        "y": 0.018706088329119304,
+        "z": -10.85060966544099
+      },
+      "rotation": 0
+    },
+    {
+      "id": "tank-89aafbd0-4b70-4842-8b5c-e68bba1eaee9",
+      "kind": "branching",
+      "position": {
+        "x": 15.799999999999997,
+        "y": 0.011720187766916301,
+        "z": -9.65060966544099
+      },
+      "rotation": 0
+    },
+    {
+      "id": "tank-8c4225c1-dcfd-4821-bf20-fbdefb736670",
+      "kind": "plate",
+      "position": {
+        "x": 4.599999999999999,
+        "y": 0.08538654381817357,
+        "z": -7.25060966544099
+      },
+      "rotation": 0
+    },
+    {
+      "id": "tank-b19cb8b1-de78-4811-9059-4dc76b33ebda",
+      "kind": "soft",
+      "position": {
+        "x": -8.200000000000001,
+        "y": 0.05235784180291565,
+        "z": -3.65060966544099
+      },
+      "rotation": 0
+    },
+    {
+      "id": "tank-dd593cfd-ece1-44ea-af97-a2d087c9ab63",
+      "kind": "sea-fan",
+      "position": {
+        "x": -6.600000000000001,
+        "y": -0.004441033138069268,
+        "z": -3.65060966544099
+      },
+      "rotation": 0
+    },
+    {
+      "id": "tank-12c72d36-1355-4bd5-bda7-afd9380ec3d4",
+      "kind": "boulder",
+      "position": {
+        "x": -16.2,
+        "y": 0.009665104070796106,
+        "z": 4.74939033455901
+      },
+      "rotation": 0
+    },
+    {
+      "id": "tank-c7692623-dc23-4c99-a722-2a9b3b706e51",
+      "kind": "seagrass",
+      "position": {
+        "x": 12.599999999999998,
+        "y": 0.010061446670132548,
+        "z": 4.74939033455901
+      },
+      "rotation": 0
+    },
+    {
+      "id": "tank-1f15cdf3-f816-4882-8469-9be268b17792",
+      "kind": "branching",
+      "position": {
+        "x": -9.8,
+        "y": 0.0027653439684111117,
+        "z": 5.949390334559011
+      },
+      "rotation": 0
+    },
+    {
+      "id": "tank-4105f564-7388-48b4-87e4-20939b307015",
+      "kind": "plate",
+      "position": {
+        "x": -5.000000000000002,
+        "y": 0.005619315552006808,
+        "z": 5.949390334559011
+      },
+      "rotation": 0
+    },
+    {
+      "id": "tank-c34b4bb6-98c9-420d-b9f5-19c7410d852f",
+      "kind": "soft",
+      "position": {
+        "x": 9.399999999999999,
+        "y": 0.014543995442810112,
+        "z": 5.949390334559011
+      },
+      "rotation": 0
+    },
+    {
+      "id": "tank-e81d00b9-da93-4225-994c-9bdf07bd17ca",
+      "kind": "sea-fan",
+      "position": {
+        "x": 10.999999999999998,
+        "y": 0.04607102686429086,
+        "z": 5.949390334559011
+      },
+      "rotation": 0
+    },
+    {
+      "id": "tank-5d08b548-8ad0-4352-a91d-8c78758bc3eb",
+      "kind": "boulder",
+      "position": {
+        "x": -16.2,
+        "y": 0.03990947582820767,
+        "z": 7.14939033455901
+      },
+      "rotation": 0
+    },
+    {
+      "id": "tank-c69ace1b-d4ca-488f-a37a-f7483cb1d075",
+      "kind": "seagrass",
+      "position": {
+        "x": 14.199999999999998,
+        "y": 0.008812912869500162,
+        "z": 7.14939033455901
+      },
+      "rotation": 0
+    },
+    {
+      "id": "tank-f68ba999-6ec0-4589-919a-5aee49405310",
+      "kind": "branching",
+      "position": {
+        "x": -14.6,
+        "y": 0.031462493986800434,
+        "z": 8.34939033455901
+      },
+      "rotation": 0
+    },
+    {
+      "id": "tank-25448857-8819-435d-b464-be26bb029455",
+      "kind": "plate",
+      "position": {
+        "x": -8.200000000000001,
+        "y": 0.0693554810827904,
+        "z": 8.34939033455901
+      },
+      "rotation": 0
+    },
+    {
+      "id": "tank-dfa86149-262a-47c5-a0e0-cd01751b0d23",
+      "kind": "soft",
+      "position": {
+        "x": 4.599999999999999,
+        "y": 0.028124878896774168,
+        "z": 8.34939033455901
+      },
+      "rotation": 0
+    },
+    {
+      "id": "tank-3fda74d5-9c77-4b55-8453-78646f7ac0e0",
+      "kind": "sea-fan",
+      "position": {
+        "x": 9.399999999999999,
+        "y": 0.02792810618114616,
+        "z": 8.34939033455901
+      },
+      "rotation": 0
+    },
+    {
+      "id": "tank-5d185941-a200-4ce4-b066-86514b78e781",
+      "kind": "boulder",
+      "position": {
+        "x": 15.799999999999997,
+        "y": 0.08316423192810586,
+        "z": 8.34939033455901
+      },
+      "rotation": 0
+    },
+    {
+      "id": "tank-df3e9fb6-270b-44ae-963d-7ac25c1dafe8",
+      "kind": "seagrass",
+      "position": {
+        "x": -16.2,
+        "y": 0.08614264697827981,
+        "z": 9.549390334559009
+      },
+      "rotation": 0
+    }
+  ],
+  "miniature": {
+    "items": 20,
+    "drawnByBatch": [
+      {
+        "name": "Tank boulder (detail 0)",
+        "count": 0
+      },
+      {
+        "name": "Tank boulder (detail 1)",
+        "count": 4
+      },
+      {
+        "name": "Tank branching (detail 0)",
+        "count": 0
+      },
+      {
+        "name": "Tank branching (detail 1)",
+        "count": 3
+      },
+      {
+        "name": "Tank branching (detail 0)",
+        "count": 3
+      },
+      {
+        "name": "Tank plate (detail 0)",
+        "count": 3
+      },
+      {
+        "name": "Tank soft (detail 0)",
+        "count": 3
+      },
+      {
+        "name": "Tank sea-fan (detail 0)",
+        "count": 3
+      },
+      {
+        "name": "Tank seagrass (detail 0)",
+        "count": 4
+      }
+    ]
+  },
+  "memoryBefore": {
+    "geometries": 365,
+    "textures": 113
+  },
+  "memoryAfter": {
+    "geometries": 365,
+    "textures": 113
+  }
+}

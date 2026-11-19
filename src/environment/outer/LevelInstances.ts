@@ -71,6 +71,22 @@ export class LevelInstances {
       if (mesh.count) mesh.computeBoundingSphere();
     }
   }
+  /**
+   * v0.6 Pass 041: show one copy at every level, so a warm-up draw uploads each level's geometry
+   * and instance buffer before the swimmer can see it (a level first drawn mid-swim popped in).
+   * The next `update` sorts the copies properly again.
+   */
+  primeAll(): void {
+    if (!this.matrices.length) return;
+    for (const mesh of this.meshes) {
+      if (!mesh) continue;
+      mesh.setMatrixAt(0, this.matrices[0]);
+      mesh.count = 1;
+      mesh.instanceMatrix.needsUpdate = true;
+      mesh.visible = true;
+      mesh.computeBoundingSphere();
+    }
+  }
   /** Copies currently drawn at each level (for budgets and tests). */
   counts(): number[] {
     return this.meshes.map((m) => m?.count ?? 0);

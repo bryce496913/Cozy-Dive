@@ -1,3 +1,4 @@
+import type { SightCandidate } from '../../discovery/journal';
 import * as THREE from 'three';
 import { ConvexGeometry } from 'three/addons/geometries/ConvexGeometry.js';
 import type { AssetLease, AssetLoader } from '../../assets/AssetLoader';
@@ -11,6 +12,7 @@ import { createRockGeometry } from '../RockGeometry';
 import { rockCollider } from '../rockCollider';
 import { LevelInstances, type DetailLevel } from './LevelInstances';
 import { seabedHeight } from './OuterTerrain';
+import { ChristmasTreeWorms } from './ChristmasTreeWorms';
 import {
   outerReefLayout,
   type ReefFamily,
@@ -34,15 +36,26 @@ import {
  * soft corals and fans 7-13k. Beyond the last distance a piece is not drawn (fog hides it).
  */
 export const OUTER_DETAIL = {
-  // Pass 026 playtest: the water is less clear (fog 0.06), so nothing is drawn past 32 m and the
-  // far changes happen deep in the haze; the near ones are pushed out a little to pop less.
-  rock: [4.5, 12, 32],
-  /** Massive colonies: full, far level, then a 1.3k-triangle mound in their own colour. */
-  massive: [3, 14, 32],
-  branching: [4, 14],
-  plate: 16,
-  plant: 16,
-  debris: 12,
+  /**
+   * Playtest fix (pop-in entering the outer reef). The murk is unchanged (`OUTER.fog`: about 96%
+   * by 14 m); before, corals, plates and plants stopped being drawn at 14 m and shells at 10 m,
+   * inside the murk you can still see into, so they appeared as the swimmer came out of the
+   * tunnel. Now nothing appears, vanishes or changes shape nearer than `hidden`, where the haze
+   * lets through about 0.1% of a colour (invisible), and cheap stand-ins (rocks' lightest level,
+   * coral mounds) carry on to `drawn`, so the reef is already there long before it can be seen.
+   * The near detail switches (a few metres away) are as before.
+   */
+  hidden: 20,
+  drawn: 30,
+  rock: [4.5, 12, 30],
+  /** Large backdrop silhouettes get extra room for their footprint before disappearing. */
+  backdrop: 36,
+  /** Coral colonies: full, far level, then a 1.3k-triangle mound in their own colour. */
+  massive: [3, 20, 30],
+  branching: [4, 20],
+  plate: 20,
+  plant: 20,
+  debris: 20,
   /** Re-sort when the eye has moved this far, or this often (s). */
   resortDistance: 1.5,
   resortInterval: 0.4,
@@ -138,6 +151,9 @@ export class OuterReef {
   private readonly materials = new Set<THREE.Material>();
   private readonly textures: THREE.Texture[] = [];
   private readonly plantTime = { value: 0 };
+  /** Small, shy worms set into the massive colonies. */
+  private worms?: ChristmasTreeWorms;
+  readonly sightings: SightCandidate[] = [];
   private lease?: AssetLease;
   /** Placements with colonies seated on the rocks (once the rocks' hulls exist). */
   private seated: readonly ReefPlacement[];
@@ -320,7 +336,10 @@ export class OuterReef {
     for (const [t, matrices] of this.groups('backdrop')) {
       this.add(
         `Outer backdrop ${t}`,
-        [{ geometry: this.part(`Rock_${t}_LOD2`).geometry, until: Infinity }],
+        [
+          { geometry: this.part(`Rock_${t}_LOD2`).geometry, until: D.backdrop },
+          { geometry: null, until: Infinity },
+        ],
         backdrop,
         matrices,
       );
@@ -336,12 +355,18 @@ export class OuterReef {
       }),
     );
     massive.vertexColors = true;
+    const colonies: {
+      geometry: THREE.BufferGeometry;
+      matrices: THREE.Matrix4[];
+    }[] = [];
     for (const family of ['branching', 'massive', 'plate'] as const)
       for (const [t, matrices] of this.groups(family)) {
         const name = `${CORAL_NODES[family]}_${t}`;
         for (const suffix of ['', '_Tips']) {
           const near = this.node(name + suffix);
           if (!near) continue;
+          if (family === 'massive' && suffix === '')
+            colonies.push({ geometry: near.geometry, matrices });
           const far = this.node(`${name}${suffix}_LOD1`),
             reach: readonly number[] =
               family === 'massive' ? D.massive : D.branching,
@@ -364,19 +389,23 @@ export class OuterReef {
         }
         // Pass 026: far massive colonies become simple mounds in their colony's own colour (the
         // coral material on the rock-derived mound read as pale stones in the denser reef).
-        if (family === 'massive')
-          this.add(
-            `Outer coral ${name} mound`,
-            [
-              { geometry: null, until: D.massive[1] },
-              { geometry: this.mound(), until: D.massive[2] },
-              { geometry: null, until: Infinity },
-            ],
-            this.moundMaterial(t),
-            matrices,
-          );
+        // Playtest fix: every coral does, from where the haze hides the swap (`hidden`) on to
+        // `drawn`, so the far reef keeps its shape without the full colonies' cost.
+        this.add(
+          `Outer coral ${name} mound`,
+          [
+            { geometry: null, until: D.hidden },
+            { geometry: this.mound(), until: D.drawn },
+            { geometry: null, until: Infinity },
+          ],
+          this.moundMaterial(t),
+          matrices,
+        );
         this.collide(this.hulls(`${name}_Root`), matrices);
       }
+    this.worms = new ChristmasTreeWorms(colonies);
+    this.root.add(this.worms.root);
+    this.sightings.push(...this.worms.sightings);
     // Soft corals, sea fans and seagrass, swaying in the reef's current.
     const tissue = this.plantMaterial('Sea_Fan_0'),
       algae = this.plantMaterial('Caulerpa_0');
@@ -491,12 +520,25 @@ export class OuterReef {
   update(eye: THREE.Vector3, dt: number, reducedMotion: boolean): void {
     if (this.disposed) return;
     if (!reducedMotion) this.plantTime.value += Math.min(dt, 0.1);
+    this.worms?.update(eye, dt, reducedMotion);
     this.sinceSort += dt;
     if (
       this.eye.distanceTo(eye) < OUTER_DETAIL.resortDistance &&
       this.sinceSort < OUTER_DETAIL.resortInterval
     )
       return;
+    this.eye.copy(eye);
+    this.sinceSort = 0;
+    for (const set of this.sets) set.update(eye.x, eye.y, eye.z);
+  }
+  /**
+   * v0.6 Pass 041: show one copy of every piece at every detail level (for the warm-up in the
+   * tunnel, so nothing uploads on first sight), then sort them for `eye` again.
+   */
+  primeAll(): void {
+    for (const set of this.sets) set.primeAll();
+  }
+  resort(eye: THREE.Vector3): void {
     this.eye.copy(eye);
     this.sinceSort = 0;
     for (const set of this.sets) set.update(eye.x, eye.y, eye.z);
@@ -514,6 +556,9 @@ export class OuterReef {
   }
 
   private clear(): void {
+    this.worms?.dispose();
+    this.worms = undefined;
+    this.sightings.length = 0;
     this.sets.forEach((s) => s.dispose());
     this.sets.length = 0;
     this.colliders.length = 0;

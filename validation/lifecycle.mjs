@@ -1,3 +1,4 @@
+import { browserScale, recordBrowserScale } from './browser-scale.mjs';
 const { chromium } = await import(process.env.COZY_PLAYWRIGHT || 'playwright');
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -21,7 +22,7 @@ import fs from 'node:fs';
   // no assertion or measured budget changes. Override with COZY_ACTION_TIMEOUT.
   const openPage = browser.newPage.bind(browser);
   browser.newPage = async (options) => {
-    const page = await openPage(options);
+    const page = await openPage({ ...browserScale(), ...options });
     page.setDefaultTimeout(Number(process.env.COZY_ACTION_TIMEOUT || 240000));
     return page;
   };
@@ -63,6 +64,7 @@ import fs from 'node:fs';
       });
     });
     await page.goto(process.env.COZY_URL || 'http://127.0.0.1:5173');
+    await recordBrowserScale(page);
     await page.waitForFunction(
       () => window.__cozy?.world?.renderer.info.render.calls > 0,
     );
@@ -79,7 +81,7 @@ import fs from 'node:fs';
     assert.equal(await page.locator('#swimming-feel').inputValue(), 'relaxed');
     await page.screenshot({ path: '/tmp/cozy-audio-settings.png' });
     await page.getByRole('button', { name: 'Close settings' }).click();
-    await page.getByRole('button', { name: 'Enter the Water' }).click();
+    await page.getByRole('button', { name: 'Dive In' }).click();
     await page
       .waitForFunction(
         () =>
@@ -258,7 +260,7 @@ import fs from 'node:fs';
     for (let i = 0; i < 4; i++) {
       await page
         .getByRole('button', {
-          name: i ? 'Return to the Water' : 'Enter the Water',
+          name: i ? 'Return to the Water' : 'Dive In',
         })
         .click();
       await page.waitForFunction(
@@ -401,16 +403,14 @@ import fs from 'node:fs';
         // den rock and the new moray head, and v0.3 Pass 020 the office (26 geometries).
         // Pass 023: +8 for the hidden crevice (7 boulder geometries and its dark liner). Pass 026
         // playtest: +7 (6 rocks around its mouth, and darkness veils; the rock tube replaces the liner).
-        // PR #47 (re-authored frogfish): +1, the procedural chin is now its own geometry on the
-        // jaw hinge.
+        // PR #47 adds the procedural fallback jaw alongside the re-authored frogfish.
         assert.equal(snapshot.tropical.geometries, 583);
         // Pass 019 round 2: moray head skin, frogfish camouflage, wreck sand. Pass 023: +2 for the
         // hidden crevice (its fallback rock material, kept for the procedural reef, and its liner;
         // Pass 026 playtest: the darkness veils' material replaces the liner's).
-        // PR #47 (re-authored frogfish): -2. The old frogfish used six materials of its own (eye,
-        // membrane fin, mouth, a stray seahorse skin on its lure and two skin instances); the new one
-        // uses four (iris, mouth and two skin instances).
-        assert.equal(snapshot.tropical.materials, 109);
+        // The re-authored frogfish prunes the old skin palette; its lure shares the
+        // body's tinted skin instead of receiving another clone/tint pass.
+        assert.equal(snapshot.tropical.materials, 108);
         // Pass 023: +12 for the hidden crevice (7 rocks, 5 channel seals); Pass 026 playtest: +6 rocks.
         assert.equal(snapshot.tropical.hulls, 521);
         assert.equal(snapshot.corrections, 0);
@@ -486,7 +486,7 @@ import fs from 'node:fs';
     });
     await failure.goto(process.env.COZY_URL || 'http://127.0.0.1:5173');
     await failure.waitForFunction(() => window.__cozy?.world);
-    await failure.getByRole('button', { name: 'Enter the Water' }).click();
+    await failure.getByRole('button', { name: 'Dive In' }).click();
     await failure.waitForFunction(
       () =>
         !!document.pointerLockElement &&

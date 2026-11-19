@@ -1,0 +1,138 @@
+{
+  "base": "http://127.0.0.1:5196",
+  "errors": [],
+  "interruptions": [
+    {
+      "kind": "dive",
+      "when": "before",
+      "choice": "resume",
+      "pausedIn": "office",
+      "pausedAt": 1.2,
+      "switchAt": 2.35,
+      "ended": "aquarium"
+    },
+    {
+      "kind": "dive",
+      "when": "before",
+      "choice": "cancel",
+      "pausedIn": "office",
+      "pausedAt": 1.2,
+      "switchAt": 2.35,
+      "ended": "office"
+    },
+    {
+      "kind": "dive",
+      "when": "after",
+      "choice": "resume",
+      "pausedIn": "aquarium",
+      "pausedAt": 2.8,
+      "switchAt": 2.35,
+      "ended": "aquarium"
+    },
+    {
+      "kind": "dive",
+      "when": "after",
+      "choice": "cancel",
+      "pausedIn": "aquarium",
+      "pausedAt": 2.8,
+      "switchAt": 2.35,
+      "ended": "office"
+    },
+    {
+      "kind": "surface",
+      "when": "before",
+      "choice": "resume",
+      "pausedIn": "aquarium",
+      "pausedAt": 0.9,
+      "switchAt": 1.74,
+      "ended": "office"
+    },
+    {
+      "kind": "surface",
+      "when": "before",
+      "choice": "cancel",
+      "pausedIn": "aquarium",
+      "pausedAt": 0.9,
+      "switchAt": 1.74,
+      "ended": "aquarium"
+    },
+    {
+      "kind": "surface",
+      "when": "after",
+      "choice": "resume",
+      "pausedIn": "office",
+      "pausedAt": 2.2,
+      "switchAt": 1.74,
+      "ended": "office"
+    },
+    {
+      "kind": "surface",
+      "when": "after",
+      "choice": "cancel",
+      "pausedIn": "office",
+      "pausedAt": 2.2,
+      "switchAt": 1.74,
+      "ended": "aquarium"
+    }
+  ],
+  "hidden": {
+    "outsideRendersWhileHidden": 0,
+    "outsideRendersAfterReturn": 1,
+    "ended": "office"
+  },
+  "cycles": 5,
+  "reducedSurface": {
+    "duration": 0.9,
+    "outsideShown": false,
+    "ended": "office"
+  },
+  "perCycle": [
+    {
+      "geometries": 432,
+      "textures": 113,
+      "programs": 123,
+      "heapMB": 168
+    },
+    {
+      "geometries": 432,
+      "textures": 113,
+      "programs": 123,
+      "heapMB": 164
+    },
+    {
+      "geometries": 432,
+      "textures": 113,
+      "programs": 123,
+      "heapMB": 165
+    },
+    {
+      "geometries": 432,
+      "textures": 113,
+      "programs": 123,
+      "heapMB": 165
+    },
+    {
+      "geometries": 432,
+      "textures": 113,
+      "programs": 123,
+      "heapMB": 165
+    }
+  ],
+  "afterCycles": {
+    "geometries": 432,
+    "textures": 113,
+    "programs": 123
+  },
+  "memory": {
+    "before": {
+      "geometries": 432,
+      "textures": 113,
+      "programs": 123
+    },
+    "after": {
+      "geometries": 432,
+      "textures": 113,
+      "programs": 123
+    }
+  }
+}

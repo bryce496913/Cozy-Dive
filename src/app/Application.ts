@@ -1,3 +1,4 @@
+import { TankEditor } from '../catalog/TankEditor';
 import { AudioSystem } from '../audio/AudioSystem';
 import { AQUARIUM, SPAWN, SWIMMING, type Vec3 } from '../config/world';
 import { SwimControls } from '../controls/SwimControls';
@@ -14,24 +15,33 @@ import { UNDERWATER_HAZE, UnderwaterScene } from '../rendering/UnderwaterScene';
 import {
   DivePath,
   canDive,
-  canSurface,
+  canSurfaceAt,
   interruptedChoice,
   tankDistance,
   type DiveFrame,
   type Pose,
 } from '../player/dive';
 import { OfficeScene } from '../rendering/OfficeScene';
+import { KelpForestScene } from '../rendering/KelpForestScene';
+import { SeaCaveScene } from '../rendering/SeaCaveScene';
+import { UnderIceScene } from '../rendering/UnderIceScene';
+import { ShipwreckScene } from '../rendering/ShipwreckScene';
+import { SINKHOLE } from '../config/wreck';
+import { nextFrame, type BuildStats } from '../rendering/StagedBuild';
 import { OuterWatersScene } from '../rendering/OuterWatersScene';
 import type { WaterWorld } from '../rendering/WaterWorld';
-import { PASSAGE } from '../config/passage';
+import { CLEFT, GROTTO, PASSAGE } from '../config/passage';
 import {
+  cleftDistance,
+  grottoDistance,
+  iceGateDistance,
+  sinkholeDistance,
+  crossing,
   frameTurn,
   mapPoint,
   mapVector,
   mouthDistance,
   passageDarkness,
-  passageFrame,
-  passageTarget,
   returnPose,
   type WaterWorldId,
 } from '../player/passage';
@@ -46,6 +56,16 @@ import { seenList } from '../discovery/sights';
 import { OfficeAmbience } from '../audio/OfficeAmbience';
 import { OFFICE, OFFICE_FOOTPRINTS } from '../config/office';
 import { FrameMeter, formatFrameSummary } from '../ui/frameMeter';
+import {
+  FIRST_VISIT,
+  createSwimHint,
+  loadOnboarding,
+  saveOnboarding,
+  stepSwimHint,
+  welcomeFor,
+  type Onboarding,
+  type SwimHint,
+} from '../ui/onboarding';
 
 /** Pass 022: seconds in the office before the first-visit hint appears. */
 const HINT_DELAY = 4;
@@ -57,6 +77,14 @@ import {
 } from '../player/walking';
 import { Interface, type ExperienceMode } from '../ui/Interface';
 import { installDeepFog } from '../rendering/deepFog';
+import { applyFieldOfView } from '../rendering/fieldOfView';
+import { VERSION, diagnostics } from '../config/release';
+import {
+  browserProbe,
+  capabilityNotice,
+  detectCapabilities,
+} from '../rendering/capabilities';
+import { loadVisits, saveVisits } from '../creatures/wallVisitors';
 import {
   DEFAULT_SETTINGS,
   loadDived,
@@ -89,6 +117,18 @@ export class Application {
   private office?: OfficeScene;
   /** v0.4 Pass 023: the outer waters, while they might be needed. */
   private outer?: OuterWatersScene;
+  /** v0.6 Pass 032: the kelp forest, while it might be needed (reached through the outer reef). */
+  private kelp?: KelpForestScene;
+  private kelpIdle = 0;
+  /** v0.6 Pass 034: the sea cave, while it might be needed (reached through the kelp forest). */
+  private cave?: SeaCaveScene;
+  private caveIdle = 0;
+  /** v0.6 Pass 046: the waters under the ice, while they might be needed (beyond the cave). */
+  private ice?: UnderIceScene;
+  private iceIdle = 0;
+  /** The shipwreck, while it might be needed (down the kelp forest's sinkhole). */
+  private wreck?: ShipwreckScene;
+  private wreckIdle = 0;
   /** Which water world the swimmer is in. */
   private waterWorld: WaterWorldId = 'aquarium';
   /** Seconds the outer waters have been out of range (released after a delay). */
@@ -107,8 +147,13 @@ export class Application {
   private officeTime = 0;
   /** Pass 022: whether the player has ever dived (hides the first-visit hint for good). */
   private dived = false;
+  /** v0.6 Pass 033: the number of the next visit to the outer reef. */
+  private visits = 0;
   /** Seconds walked in the office this visit, before the first-visit hint appears. */
   private officeVisit = 0;
+  /** v0.6 Pass 054: earlier visits (greeting, first choice) and the one-time swim hint. */
+  private onboarding!: Onboarding;
+  private swimHint!: SwimHint;
   private readonly frameMeter = new FrameMeter();
   private lastFrameAt = 0;
   /** v0.3 Pass 021: the dive or surfacing in progress, if any. */
@@ -158,6 +203,20 @@ export class Application {
   private previous = 0;
   private elapsed = 0;
   private disposed = false;
+  /** v0.6 Pass 046 review: worlds being built, and how long each build took (for measurement). */
+  private readonly building = new Set<WaterWorldId>();
+  readonly buildTimes: Partial<
+    Record<
+      WaterWorldId,
+      {
+        longest: number;
+        total: number;
+        elapsed: number;
+        pieces: Record<string, number>;
+      }
+    >
+  > = {};
+  readonly tankEditor?: TankEditor;
   private readonly abort = new AbortController();
   constructor(
     root: HTMLElement,
@@ -191,12 +250,31 @@ export class Application {
       this.returnToTank,
     );
     try {
+      this.onboarding = loadOnboarding(localStorage);
+    } catch {
+      this.onboarding = { ...FIRST_VISIT };
+    }
+    this.swimHint = createSwimHint(this.onboarding.swimHint);
+    // v0.6 Pass 033: the number of the next visit to the outer reef (0 without storage).
+    try {
+      this.visits = loadVisits(localStorage);
+    } catch {
+      this.visits = 0;
+    }
+    try {
       this.sightings = loadJournal(localStorage);
     } catch {
       this.sightings = [];
     }
     this.tracker = new SightingTracker(this.sightings);
     this.ui.setSeen(seenList(this.sightings));
+    // v0.6 Pass 056: try what the page needs before building anything (no browser sniffing).
+    const notice = capabilityNotice(detectCapabilities(browserProbe()));
+    if (notice?.fatal) {
+      this.ui.showError(notice.message, true);
+      return;
+    }
+    if (notice) this.ui.showError(notice.message);
     try {
       this.world = new UnderwaterScene(this.ui.sceneHost, () => {
         if (document.pointerLockElement) document.exitPointerLock();
@@ -205,9 +283,16 @@ export class Application {
         this.ui.showError(
           'The graphics connection was interrupted. Reload this page to return to the water.',
           true,
+          true,
         );
       });
       configureWorld?.(this.world, this.state);
+      this.tankEditor = new TankEditor(
+        root,
+        this.world,
+        () => this.sightings,
+        () => this.enter('aquarium'),
+      );
       this.tankSoundSpots = [
         ...this.world.aquarium.hardscape.formations.map((f) => ({
           x: f.position.x,
@@ -236,6 +321,7 @@ export class Application {
           stopWalking(this.walk);
           this.previous = 0;
           this.ui.setLocked(locked, this.entered);
+          this.tankEditor?.locked(locked);
         },
       );
       this.controls.yaw = this.looks[this.mode].yaw;
@@ -283,12 +369,41 @@ export class Application {
         },
         { signal: this.abort.signal },
       );
+      this.ui.setWelcome(welcomeFor(this.onboarding));
+      // v0.8 Pass 060: what a tester may choose to paste into feedback (no identifiers).
+      const renderer = this.world.renderer;
+      this.ui.setDiagnostics(() => {
+        const gl = renderer.getContext(),
+          info = gl.getExtension('WEBGL_debug_renderer_info');
+        return diagnostics({
+          version: VERSION,
+          userAgent: navigator.userAgent,
+          renderer: String(
+            info
+              ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL)
+              : gl.getParameter(gl.RENDERER),
+          ),
+          viewport: [innerWidth, innerHeight],
+          pixelRatio: +renderer.getPixelRatio().toFixed(2),
+          frame: this.frameMeter.summary
+            ? formatFrameSummary(this.frameMeter.summary)
+            : null,
+        });
+      });
+      this.ui.setLoading(true);
+      const world = this.world;
+      void Promise.all([world.prepared, this.office.prepared])
+        .catch(() => undefined)
+        .then(() => {
+          if (!this.disposed) this.ui.setLoading(false);
+        });
       this.frame = requestAnimationFrame(this.tick);
     } catch (error) {
       this.audio?.dispose();
       this.officeAudio?.dispose();
       this.office?.dispose();
       this.office = undefined;
+      this.tankEditor?.dispose();
       this.world?.dispose();
       this.world = undefined;
       this.ui.showError(
@@ -306,6 +421,7 @@ export class Application {
     const resuming =
       !!this.dive && interruptedChoice(this.dive.path, mode) === 'resume';
     if (this.dive && !resuming) this.cancelDive();
+    if (mode !== this.mode) this.tankEditor?.suspend();
     if (!resuming && mode !== this.mode && !this.entered) {
       // The first entry from the start screen (whose overlay covers the view) is a plain cut.
       this.cut(mode);
@@ -386,7 +502,7 @@ export class Application {
     this.audio?.setActive(false);
     this.officeAudio?.setActive(false);
     this.ui.showError(
-      'Mouse capture was not granted. Click Enter again, or allow pointer lock in your browser.',
+      'Mouse capture was not granted. Choose Enter the Office or Dive In again, or allow mouse capture for this page in your browser.',
     );
   };
   private changeSettings = (settings: Settings): void => {
@@ -409,7 +525,9 @@ export class Application {
     this.tuning.speed = this.settings.speed;
     this.tuning.feel = this.settings.swimmingFeel;
     this.tuning.reducedMotion = this.settings.reducedMotion;
+    this.world?.setDetail(this.settings.graphics);
     if (this.controls) {
+      this.controls.invertLook = this.settings.invertLook;
       this.controls.sensitivity = this.settings.sensitivity;
       this.controls.reducedMotion = this.settings.reducedMotion;
     }
@@ -436,14 +554,28 @@ export class Application {
       document.hidden
     )
       return;
-    const pose = this.pose();
+    let pose = this.pose();
     const kind =
       this.mode === 'office' && canDive(pose)
         ? 'dive'
-        : this.mode === 'aquarium' && canSurface(pose.y, this.waterWorld)
+        : this.mode === 'aquarium' && canSurfaceAt(pose, this.waterWorld)
           ? 'surface'
           : undefined;
     if (!kind) return;
+    // Playtest: from an exit beyond the tank (the outer reef's surface, the cave's skylight, a
+    // hole in the ice), cut to just under the tank's surface; the surfacing wash covers the cut.
+    if (kind === 'surface' && this.waterWorld !== 'aquarium') {
+      Object.assign(this.state.position, {
+        x: 0,
+        y: AQUARIUM.max.y - AQUARIUM.clearance - 0.05,
+        z: AQUARIUM.max.z * 0.4,
+      });
+      this.state.neutralDepth = this.state.position.y;
+      resetSwimming(this.state);
+      this.setWaterWorld('aquarium');
+      pose = this.pose();
+    }
+    this.tankEditor?.suspend();
     event.preventDefault();
     // The key press is a user gesture: unlock the destination's audio now.
     if (kind === 'dive') this.audio?.unlockFromGesture();
@@ -579,18 +711,43 @@ export class Application {
   }
   /** v0.4 Pass 023: the water world the swimmer is in (the tank unless in the outer waters). */
   private water(): WaterWorld {
+    if (this.waterWorld === 'kelp' && this.kelp) return this.kelp;
+    if (this.waterWorld === 'cave' && this.cave) return this.cave;
+    if (this.waterWorld === 'ice' && this.ice) return this.ice;
+    if (this.waterWorld === 'wreck' && this.wreck) return this.wreck;
     return this.waterWorld === 'outer' && this.outer ? this.outer : this.world!;
   }
   private setWaterWorld(id: WaterWorldId): void {
     // Pass 026: entering the outer waters (the tunnel) starts preparing the reef beyond it.
     if (id === 'outer') this.outer?.begin();
+    // v0.6 Pass 033: each entry to the outer reef is a new visit for the wall's visitors.
+    if (id === 'outer' && this.waterWorld !== 'outer' && this.outer) {
+      this.outer.arrive(this.visits);
+      this.visits++;
+      try {
+        saveVisits(localStorage, this.visits);
+      } catch {
+        /* Unavailable storage: visits still change within this session. */
+      }
+    }
+    // v0.6 Pass 048: each arrival under the ice starts its rare encounters over (none at once).
+    if (id === 'ice' && this.waterWorld !== 'ice') this.ice?.arrive();
     this.waterWorld = id;
-    this.ui.setOuter(id === 'outer');
+    // Return to the tank is offered from either of the waters beyond it.
+    this.ui.setOuter(id !== 'aquarium');
     // Pass 024: the soundscape's small sounds come from the current world's places.
     this.audio?.setLocations(
-      id === 'outer' && this.outer
-        ? this.outer.soundSpots
-        : this.tankSoundSpots,
+      id === 'kelp' && this.kelp
+        ? this.kelp.soundSpots
+        : id === 'cave' && this.cave
+          ? this.cave.soundSpots
+          : id === 'ice' && this.ice
+            ? this.ice.soundSpots
+            : id === 'wreck' && this.wreck
+              ? this.wreck.soundSpots
+              : id === 'outer' && this.outer
+                ? this.outer.soundSpots
+                : this.tankSoundSpots,
     );
   }
   /**
@@ -602,13 +759,23 @@ export class Application {
       distance = mouthDistance(this.state.position),
       inTank = this.waterWorld === 'aquarium';
     if (!this.outer) {
-      if (swimming && inTank && distance < PASSAGE.preload)
+      if (swimming && inTank && distance < PASSAGE.preload) {
+        // v0.6 Pass 046 review: measured (its reef dresses itself later, in the tunnel).
+        const begun = performance.now();
         this.outer = new OuterWatersScene(this.world!.renderer, {
           reef: this.world!.reefLoader,
           fish: this.world!.authored.loader,
           plants: this.world!.aquarium.plants.material,
           soundSpots: this.tankSoundSpots.length,
         });
+        const ms = performance.now() - begun;
+        this.buildTimes.outer = {
+          longest: ms,
+          total: ms,
+          elapsed: ms,
+          pieces: { scene: ms },
+        };
+      }
       this.outerIdle = 0;
       return;
     }
@@ -622,18 +789,219 @@ export class Application {
     }
   }
   /**
+   * v0.6 Pass 032: load the kelp forest as the swimmer nears the cleft in the outer reef, and
+   * release it once well away (after a delay); it stays while the swimmer is in it. The outer
+   * waters stay loaded while the swimmer is in the kelp forest, so the way back is seamless.
+   */
+  private manageKelp(dt: number): void {
+    const swimming = this.mode === 'aquarium',
+      inOuter = this.waterWorld === 'outer',
+      distance = inOuter ? cleftDistance(this.state.position) : Infinity;
+    if (!this.kelp) {
+      if (swimming && inOuter && distance < CLEFT.preload && this.outer)
+        this.buildWorld(
+          'kelp',
+          (wanted) =>
+            KelpForestScene.build(
+              this.world!.renderer,
+              {
+                fish: this.world!.authored.loader,
+                soundSpots: this.tankSoundSpots.length,
+              },
+              nextFrame,
+              wanted,
+            ),
+          (scene) => {
+            this.kelp = scene;
+          },
+        );
+      this.kelpIdle = 0;
+      return;
+    }
+    const keep =
+      this.waterWorld === 'kelp' ||
+      // v0.6 Pass 034: kept while in the sea cave beyond it, so the way back is seamless.
+      this.waterWorld === 'cave' ||
+      // v0.6 Pass 046: and under the ice beyond that.
+      this.waterWorld === 'ice' ||
+      // And the shipwreck, down its sinkhole.
+      this.waterWorld === 'wreck' ||
+      (swimming && inOuter && distance < CLEFT.release);
+    this.kelpIdle = keep ? 0 : this.kelpIdle + dt;
+    if (this.kelpIdle > PASSAGE.releaseDelay) {
+      this.kelp.dispose();
+      this.kelp = undefined;
+      this.kelpIdle = 0;
+    }
+  }
+  /**
+   * v0.6 Pass 034: load the sea cave as the swimmer nears the grotto in the kelp forest, and
+   * release it once well away (after a delay); it stays while the swimmer is in it.
+   */
+  private manageCave(dt: number): void {
+    const swimming = this.mode === 'aquarium',
+      inKelp = this.waterWorld === 'kelp',
+      distance = inKelp ? grottoDistance(this.state.position) : Infinity;
+    if (!this.cave) {
+      if (swimming && inKelp && distance < GROTTO.preload && this.kelp)
+        this.buildWorld(
+          'cave',
+          (wanted) =>
+            SeaCaveScene.build(
+              this.world!.renderer,
+              {
+                fish: this.world!.authored.loader,
+                soundSpots: this.tankSoundSpots.length,
+              },
+              nextFrame,
+              wanted,
+            ),
+          (scene) => {
+            this.cave = scene;
+          },
+        );
+      this.caveIdle = 0;
+      return;
+    }
+    const keep =
+      this.waterWorld === 'cave' ||
+      // v0.6 Pass 046: kept while under the ice beyond it, so the way back is seamless.
+      this.waterWorld === 'ice' ||
+      (swimming && inKelp && distance < GROTTO.release);
+    this.caveIdle = keep ? 0 : this.caveIdle + dt;
+    if (this.caveIdle > PASSAGE.releaseDelay) {
+      this.cave.dispose();
+      this.cave = undefined;
+      this.caveIdle = 0;
+    }
+  }
+  /**
+   * v0.6 Pass 046 review: build a world a piece per frame (see `StagedBuild`), once at a time; hand it over
+   * when built, unless the application has closed meanwhile (then it is let go). How long it took,
+   * piece by piece and in all, is kept in `buildTimes`.
+   */
+  private buildWorld<T extends { dispose(): void; buildStats?: BuildStats }>(
+    id: WaterWorldId,
+    build: (wanted: () => boolean) => Promise<T | undefined>,
+    take: (scene: T) => void,
+  ): void {
+    if (this.building.has(id)) return;
+    this.building.add(id);
+    const begun = performance.now();
+    build(() => !this.disposed && this.building.has(id)).then(
+      (scene) => {
+        this.building.delete(id);
+        if (!scene) return;
+        if (this.disposed) {
+          scene.dispose();
+          return;
+        }
+        this.buildTimes[id] = {
+          longest: scene.buildStats?.longest ?? 0,
+          total: scene.buildStats?.total ?? 0,
+          elapsed: performance.now() - begun,
+          pieces: { ...(scene.buildStats?.pieces ?? {}) },
+        };
+        take(scene);
+      },
+      (error: unknown) => {
+        this.building.delete(id);
+        console.error(`Cozy Diver: the ${id} world could not be built.`, error);
+      },
+    );
+  }
+  /**
+   * v0.6 Pass 046: load the waters under the ice as the swimmer nears the cave's back tunnel, and
+   * release them once well away (after a delay); they stay while the swimmer is in them.
+   */
+  private manageIce(dt: number): void {
+    const swimming = this.mode === 'aquarium',
+      inCave = this.waterWorld === 'cave',
+      distance = inCave ? iceGateDistance(this.state.position) : Infinity;
+    if (!this.ice) {
+      if (swimming && inCave && distance < GROTTO.preload && this.cave)
+        this.buildWorld(
+          'ice',
+          (wanted) =>
+            UnderIceScene.build(
+              this.world!.renderer,
+              {
+                fish: this.world!.authored.loader,
+                soundSpots: this.tankSoundSpots.length,
+              },
+              nextFrame,
+              wanted,
+            ),
+          (scene) => {
+            this.ice = scene;
+          },
+        );
+      this.iceIdle = 0;
+      return;
+    }
+    const keep =
+      this.waterWorld === 'ice' ||
+      (swimming && inCave && distance < GROTTO.release);
+    this.iceIdle = keep ? 0 : this.iceIdle + dt;
+    if (this.iceIdle > PASSAGE.releaseDelay) {
+      this.ice.dispose();
+      this.ice = undefined;
+      this.iceIdle = 0;
+    }
+  }
+  /**
+   * Load the shipwreck as the swimmer nears the kelp forest's sinkhole, and release it once well
+   * away (after a delay); it stays while the swimmer is in it.
+   */
+  private manageWreck(dt: number): void {
+    const swimming = this.mode === 'aquarium',
+      inKelp = this.waterWorld === 'kelp',
+      distance = inKelp ? sinkholeDistance(this.state.position) : Infinity;
+    if (!this.wreck) {
+      if (swimming && inKelp && distance < SINKHOLE.preload && this.kelp)
+        this.buildWorld(
+          'wreck',
+          (wanted) =>
+            ShipwreckScene.build(
+              this.world!.renderer,
+              {
+                fish: this.world!.authored.loader,
+                soundSpots: this.tankSoundSpots.length,
+              },
+              nextFrame,
+              wanted,
+            ),
+          (scene) => {
+            this.wreck = scene;
+          },
+        );
+      this.wreckIdle = 0;
+      return;
+    }
+    const keep =
+      this.waterWorld === 'wreck' ||
+      (swimming && inKelp && distance < SINKHOLE.release);
+    this.wreckIdle = keep ? 0 : this.wreckIdle + dt;
+    if (this.wreckIdle > PASSAGE.releaseDelay) {
+      this.wreck.dispose();
+      this.wreck = undefined;
+      this.wreckIdle = 0;
+    }
+  }
+  /**
    * Past the threshold in the crevice (or back out of the tunnel's start), continue in the other
    * world from the identical relative pose: position, velocity, thrust and look all carry across.
    */
   private crossPassage(): void {
-    const target = passageTarget(
-      this.waterWorld,
-      this.state.position,
-      !!this.outer?.isReady,
-    );
-    if (target === this.waterWorld) return;
-    const from = passageFrame(this.waterWorld),
-      to = passageFrame(target),
+    const c = crossing(this.waterWorld, this.state.position, {
+      outer: !!this.outer?.isReady,
+      kelp: !!this.kelp?.isReady,
+      cave: !!this.cave?.isReady,
+      ice: !!this.ice?.isReady,
+      wreck: !!this.wreck?.isReady,
+    });
+    if (!c) return;
+    const { from, to, target } = c,
       s = this.state;
     mapPoint(s.position, from, to, this.mapped);
     s.position.x = this.mapped.x;
@@ -647,7 +1015,7 @@ export class Application {
   }
   /** "Return to the tank" from the pause screen: back outside the crevice, out of darkness. */
   private returnToTank = (): void => {
-    if (this.waterWorld !== 'outer' || !this.controls) return;
+    if (this.waterWorld === 'aquarium' || !this.controls) return;
     if (this.dive) this.cancelDive();
     const pose = returnPose();
     Object.assign(this.state.position, { x: pose.x, y: pose.y, z: pose.z });
@@ -702,7 +1070,67 @@ export class Application {
     if (summary) this.ui.setFrameTime(formatFrameSummary(summary));
     else if (!this.frameMeter.summary) this.ui.setFrameTime('measuring…');
   }
+  /**
+   * v0.6 Pass 054: the first swim's hint (in the water, unpaused). When it has run its course it is
+   * stored, so it never shows again; storage failures only mean it may show once more.
+   */
+  private stepSwimHint(dt: number): boolean {
+    if (this.swimHint.done) return false;
+    const input = this.controls!.input,
+      shows = stepSwimHint(
+        this.swimHint,
+        document.hidden ? 0 : dt,
+        input.forward !== 0 || input.right !== 0,
+      );
+    if (this.swimHint.done) {
+      this.onboarding.swimHint = true;
+      this.saveOnboarding();
+    }
+    return shows;
+  }
+  /** v0.6 Pass 054: the player has entered a space; next visit greets them back and offers it first. */
+  private remember(): void {
+    if (this.onboarding.visited && this.onboarding.last === this.mode) return;
+    this.onboarding.visited = true;
+    this.onboarding.last = this.mode;
+    this.saveOnboarding();
+  }
+  private saveOnboarding(): void {
+    try {
+      saveOnboarding(localStorage, this.onboarding);
+    } catch {
+      /* Storage unavailable: this visit still works; the next is treated as a first one. */
+    }
+  }
+  /**
+   * v0.8 Pass 060: the frame loop, guarded. An unexpected error used to stop the loop silently,
+   * leaving a frozen picture with the mouse still captured. Now the page lets go of the mouse,
+   * goes quiet and says so calmly, with a Reload button. Saved preferences, sightings and the
+   * tank are written as they change, so nothing is lost.
+   */
   private tick = (now: number): void => {
+    try {
+      this.frameStep(now);
+    } catch (error) {
+      this.halt(error);
+    }
+  };
+  private halted = false;
+  private halt(error: unknown): void {
+    if (this.halted) return;
+    this.halted = true;
+    cancelAnimationFrame(this.frame);
+    if (document.pointerLockElement) document.exitPointerLock();
+    this.audio?.setActive(false);
+    this.officeAudio?.setActive(false);
+    this.ui.showError(
+      'Something went wrong and the water stopped. Your tank, sightings and settings are saved. Reload to dive back in.',
+      true,
+      true,
+    );
+    console.error('Cozy Diver stopped after an unexpected error.', error);
+  }
+  private frameStep = (now: number): void => {
     if (this.disposed || !this.world || !this.controls) return;
     const dt = this.previous
       ? Math.max(
@@ -712,6 +1140,11 @@ export class Application {
       : 0;
     this.previous = now;
     this.measureFrame(now);
+    // v0.6 Pass 057: the field-of-view preference, on whichever cameras may draw this frame
+    // (worlds load later with their own cameras; this only touches one that differs).
+    const fov = this.settings.fieldOfView;
+    if (this.office) applyFieldOfView(this.office.camera, fov);
+    applyFieldOfView(this.water().camera, fov);
     if (this.dive) {
       this.tickDive(dt);
       this.frame = requestAnimationFrame(this.tick);
@@ -729,11 +1162,18 @@ export class Application {
             : !this.dived && this.officeVisit > HINT_DELAY
               ? 'hint'
               : null
-          : canSurface(pose.y, this.waterWorld)
+          : canSurfaceAt(pose, this.waterWorld)
             ? 'surface'
-            : null,
+            : this.stepSwimHint(dt)
+              ? 'swim'
+              : null,
     );
+    if (this.controls.locked) this.remember();
     this.manageOuter(dt);
+    this.manageKelp(dt);
+    this.manageCave(dt);
+    this.manageIce(dt);
+    this.manageWreck(dt);
     if (this.mode === 'office' && this.office) {
       this.tickOffice(dt);
       this.frame = requestAnimationFrame(this.tick);
@@ -770,6 +1210,17 @@ export class Application {
       this.crossPassage();
     }
     const water = this.water();
+    this.tankEditor?.update({
+      time: this.elapsed,
+      eligible:
+        this.mode === 'aquarium' &&
+        this.waterWorld === 'aquarium' &&
+        !this.dive,
+      active: this.controls.locked && !document.hidden,
+      eye: this.state.position,
+      yaw: this.controls.yaw,
+      pitch: this.controls.pitch,
+    });
     water.camera.position.set(
       this.state.position.x,
       this.state.position.y,
@@ -801,10 +1252,21 @@ export class Application {
         this.controls.locked,
         this.playerPresence,
       );
+    // v0.6 Pass 047: the Weddell seal's call, heard where it is.
+    const call = this.waterWorld === 'ice' ? this.ice?.life?.call : undefined;
+    if (call) this.audio?.call(call);
     this.frame = requestAnimationFrame(this.tick);
   };
   /** Walk the office and draw it with the live miniature aquarium. */
   private tickOffice(dt: number): void {
+    this.tankEditor?.update({
+      time: this.elapsed,
+      eligible: false,
+      active: false,
+      eye: this.state.position,
+      yaw: 0,
+      pitch: 0,
+    });
     const controls = this.controls!,
       office = this.office!,
       running = controls.locked && !document.hidden;
@@ -838,14 +1300,24 @@ export class Application {
   dispose = (): void => {
     if (this.disposed) return;
     this.disposed = true;
+    this.building.clear();
     cancelAnimationFrame(this.frame);
     this.abort.abort();
     this.audio?.dispose();
     this.officeAudio?.dispose();
     this.controls?.dispose();
     this.office?.dispose();
+    this.kelp?.dispose();
+    this.kelp = undefined;
+    this.cave?.dispose();
+    this.cave = undefined;
+    this.ice?.dispose();
+    this.ice = undefined;
+    this.wreck?.dispose();
+    this.wreck = undefined;
     this.outer?.dispose();
     this.outer = undefined;
+    this.tankEditor?.dispose();
     this.world?.dispose();
     this.ui.dispose();
   };

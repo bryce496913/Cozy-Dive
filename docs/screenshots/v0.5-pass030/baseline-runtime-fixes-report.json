@@ -1,0 +1,22 @@
+{
+  "errors": [],
+  "officePause": {
+    "clocks": {
+      "elapsed": 0.1,
+      "office": 0.1,
+      "fish": 3,
+      "plants": 0.1,
+      "anemone": 0.1,
+      "moray": 0.1,
+      "discoveries": 0.1
+    },
+    "audio": "suspended"
+  },
+  "hiddenOfficeAudio": "suspended; visible paused office stays silent; explicit entry resumes",
+  "outerAction": {
+    "world": "outer",
+    "mode": "aquarium",
+    "transition": false,
+    "promptHidden": true
+  }
+}

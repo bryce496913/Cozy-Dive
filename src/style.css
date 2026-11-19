@@ -43,6 +43,8 @@ select {
   display: none !important;
 }
 #app {
+  /* v0.6 Pass 056: vh first, for browsers before small-viewport units (2022). */
+  height: 100vh;
   height: 100svh;
   min-height: 600px;
   position: relative;
@@ -133,7 +135,7 @@ select {
   max-width: 560px;
 }
 .eyebrow {
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 3px;
   color: #c0d9b9;
   margin: 0 0 27px;
@@ -197,6 +199,39 @@ h1 em {
   flex-wrap: wrap;
   gap: 12px;
 }
+/* v0.6 Pass 054: each choice says, in one quiet line, where it leads. */
+.entry-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 260px;
+}
+.entry-choice small {
+  font-size: 11px;
+  line-height: 1.5;
+  letter-spacing: 0.3px;
+  color: #a4c2b5;
+}
+.entry-choice small[hidden] {
+  display: none;
+}
+.load-note {
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  color: #a4c2b5;
+  margin: 10px 0 0;
+  animation: load-breathe 2.4s ease-in-out infinite;
+}
+@keyframes load-breathe {
+  50% {
+    opacity: 0.55;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .load-note {
+    animation: none;
+  }
+}
 .enter.secondary {
   background: transparent;
   color: #d6e3bb;
@@ -214,7 +249,7 @@ h1 em {
   visibility: hidden;
 }
 .entry-note {
-  font-size: 10px;
+  font-size: 11.5px;
   letter-spacing: 0.7px;
   color: #a4c2b5;
   margin: 15px 0 0;
@@ -272,7 +307,7 @@ h1 em {
   flex-wrap: wrap;
   gap: 17px;
   color: #b7cdc1;
-  font-size: 10px;
+  font-size: 11px;
   align-items: center;
 }
 .controls > span {
@@ -315,6 +350,8 @@ kbd {
   padding: 24px;
   z-index: 4;
   box-shadow: 0 15px 60px #001d2680;
+  /* Safari before 18 needs the prefix. */
+  -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
 }
 .panel-heading {
@@ -369,7 +406,7 @@ kbd {
   color: #a6c2b8;
 }
 .settings-panel .save-status {
-  font-size: 10px;
+  font-size: 11px;
   border-top: 1px solid #c8dbce22;
   padding-top: 14px;
   margin-top: 20px;
@@ -500,12 +537,33 @@ kbd {
   font-size: 11px;
 }
 .settings-panel {
+  max-height: calc(100vh - 110px);
   max-height: calc(100dvh - 110px);
   overflow-y: auto;
 }
 @media (max-width: 600px) {
   .preferences {
     gap: 10px;
+  }
+  /* v0.6 Pass 058: on phone widths the start screen is taller than the screen. Start it below
+     the header and let it scroll, rather than centring it up underneath the header. */
+  .topbar {
+    padding: max(16px, env(safe-area-inset-top)) 20px 0;
+  }
+  .brand {
+    white-space: nowrap;
+    letter-spacing: 2px;
+  }
+  .edition {
+    display: none;
+  }
+  .overlay {
+    align-items: flex-start;
+    overflow-y: auto;
+    padding: 96px 20px 90px;
+  }
+  .scene-label {
+    display: none;
   }
 }
 
@@ -692,4 +750,184 @@ kbd {
   font-size: 11px;
   color: #a6c2b8;
   white-space: nowrap;
+}
+
+.tank-catalog > button,
+.tank-catalog section > button {
+  display: block;
+  margin: 0.75rem 0;
+  padding: 0.65rem 1rem;
+  width: 100%;
+  text-align: left;
+}
+.tank-catalog {
+  overflow-y: auto;
+  max-height: 80vh;
+}
+.tank-catalog > button,
+.tank-catalog section > button {
+  color: #e4eee1;
+  background: rgba(164, 208, 190, 0.08);
+  border: 1px solid rgba(196, 222, 198, 0.28);
+  border-radius: 5px;
+}
+.tank-catalog > button:hover,
+.tank-catalog section > button:hover {
+  background: rgba(164, 208, 190, 0.18);
+}
+
+.tank-catalog section h3 {
+  margin: 1rem 0 0.25rem;
+  font-size: 14px;
+  font-weight: 500;
+}
+.tank-catalog section > button {
+  margin-top: 0.25rem;
+}
+/* v0.6 Pass 051: grouped catalog with fish and visitor rows. */
+.tank-catalog .tank-catalog-group > h3 {
+  margin-top: 1.25rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(196, 222, 198, 0.18);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #a6c2b8;
+}
+.tank-catalog section > div {
+  margin: 0.6rem 0;
+}
+.tank-catalog section h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+.tank-catalog section > div > p {
+  margin: 0.2rem 0 0.4rem;
+  font-size: 12px;
+  color: #b9d0c6;
+}
+.tank-catalog section > div > button {
+  margin: 0.15rem 0.4rem 0.15rem 0;
+  padding: 0.4rem 0.7rem;
+  color: #e4eee1;
+  background: rgba(164, 208, 190, 0.08);
+  border: 1px solid rgba(196, 222, 198, 0.28);
+  border-radius: 5px;
+  font: inherit;
+  font-size: 13px;
+}
+.tank-catalog section > div > button:hover:not(:disabled) {
+  background: rgba(164, 208, 190, 0.18);
+}
+.tank-catalog button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.tank-catalog button:focus-visible {
+  outline: 2px solid #cfe7c4;
+  outline-offset: 2px;
+}
+.tank-catalog .tank-catalog-why {
+  font-style: italic;
+}
+.tank-catalog ul {
+  margin: 0.25rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 12px;
+  color: #b9d0c6;
+}
+/* v0.6 Pass 056: offered when a fresh page can fix a failure (a lost graphics context). */
+.reload {
+  margin-top: 14px;
+}
+/*
+ * v0.6 Pass 058 (mobile groundwork): on notched phones, keep the bars clear of the safe areas
+ * (env() is 0 on desktop), and on touch screens make the header's buttons comfortable tap targets.
+ */
+.topbar {
+  padding-top: max(32px, env(safe-area-inset-top));
+  padding-left: max(42px, env(safe-area-inset-left));
+  padding-right: max(42px, env(safe-area-inset-right));
+}
+.bottom-bar {
+  padding-bottom: max(0px, env(safe-area-inset-bottom));
+}
+@media (pointer: coarse) {
+  .audio-toggle,
+  .settings-toggle,
+  .brand {
+    min-height: 44px;
+  }
+  .audio-toggle,
+  .settings-toggle {
+    min-width: 44px;
+  }
+}
+/* v0.6 Pass 058: keyboard and mouse guidance means nothing on a touch-only screen. */
+@media (hover: none) and (pointer: coarse) {
+  .bottom-bar .controls {
+    display: none;
+  }
+}
+/* v0.8 Pass 060: beta feedback and the build line, quiet at the foot of Settings. */
+.feedback {
+  margin-top: 18px;
+  border-top: 1px solid #9ebdab33;
+  padding-top: 12px;
+}
+.feedback summary {
+  cursor: pointer;
+  color: #cde1d3;
+  font-size: 12px;
+}
+.feedback textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font:
+    11px/1.4 ui-monospace,
+    Menlo,
+    monospace;
+  color: #cde1d3;
+  background: #0b2e2f;
+  border: 1px solid #9ebdab55;
+  border-radius: 4px;
+  padding: 6px;
+  resize: vertical;
+}
+.feedback-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-top: 8px;
+}
+.feedback-actions button {
+  background: transparent;
+  border: 1px solid #9ebdab55;
+  border-radius: 4px;
+  color: #cde1d3;
+  padding: 8px 12px;
+  font-size: 11px;
+}
+.feedback-actions a {
+  color: #d6e3bb;
+  font-size: 12px;
+}
+.build {
+  margin-top: 14px;
+  font-size: 11px;
+  color: #a6c2b8;
+}
+.build a {
+  color: inherit;
+}
+/* v0.8 Pass 060: short windows (a laptop with the browser not full screen, under 700 px of
+   height) have the same problem as phones: start below the header and scroll. */
+@media (max-height: 700px) {
+  .overlay {
+    align-items: flex-start;
+    overflow-y: auto;
+    padding-top: 96px;
+  }
 }

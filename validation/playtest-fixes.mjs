@@ -49,9 +49,7 @@ try {
   report.texturesPrepared = await page.evaluate(
     () => window.__cozy.world.renderer.info.memory.textures,
   );
-  await page
-    .getByRole('button', { name: 'Enter the Water', exact: true })
-    .click();
+  await page.getByRole('button', { name: 'Dive In', exact: true }).click();
   // Wait until entry has fully settled (as visual-benchmark does): a late pointer-lock change
   // clears held keys by design, so pressing W earlier can be silently dropped.
   await page.waitForFunction(

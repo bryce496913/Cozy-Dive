@@ -31,6 +31,8 @@ import {
 import { reefObstacles } from '../src/environment/outer/OuterCreatures';
 import { WATER_LIGHT, depthShade } from '../src/environment/outer/WaterDome';
 import { spawnFish } from '../src/fish/FishSpawner';
+import { FishSimulation } from '../src/fish/FishMovement';
+import { safeFishPosition } from '../src/fish/FishHabitat';
 import type { ConvexCollider } from '../src/player/collision';
 import { createSwimState, integrateSwimming } from '../src/player/swimming';
 import {
@@ -83,23 +85,21 @@ describe('Pass 026 outer seabed and edges', () => {
       v(0, 0, -1),
     ])
       expect(eased(v(0, 3, -45), d)).toEqual(d);
-    // Out over the blue: slower the further past the lip, then stopped.
+    // v0.6 Pass 036: out over the blue at full speed, slowing only over the last metre and a half
+    // before the back glass (which the swimmer-only bounds then stop them at).
+    const g = OUTER.glass,
+      stopZ = g.z + g.gap;
+    expect(-eased(v(0, 0, lip - 1), v(0, 0, -1)).z).toBe(1);
     let previous = 1;
-    for (let past = 0; past <= r.past + r.stop + 1; past += 0.5) {
-      const k = -eased(v(0, 0, lip - past), v(0, 0, -1)).z;
+    for (let left = g.ease + 1; left >= 0; left -= 0.25) {
+      const k = -eased(v(0, 0, stopZ + left), v(0, 0, -1)).z;
       expect(k).toBeLessThanOrEqual(previous + 1e-12);
+      expect(k).toBeGreaterThanOrEqual(0.15);
       previous = k;
     }
-    expect(-eased(v(0, 0, lip - r.past), v(0, 0, -1)).z).toBeCloseTo(
-      r.crawl,
-      9,
-    );
-    expect(eased(v(0, 0, lip - r.past - r.stop), v(0, 0, -1)).z).toBeCloseTo(
-      0,
-      9,
-    );
+    expect(-eased(v(0, 0, stopZ + g.ease + 0.5), v(0, 0, -1)).z).toBe(1);
     // Swimming back towards the reef is never slowed.
-    expect(eased(v(0, 0, lip - r.past - r.stop), v(0, 0, 1)).z).toBe(1);
+    expect(eased(v(0, 0, stopZ), v(0, 0, 1)).z).toBe(1);
     // Down the wall, up high and at both sides alike.
     expect(
       eased(v(0, r.down - r.depth - r.stop, -60), v(0, -1, 0)).y,
@@ -114,9 +114,12 @@ describe('Pass 026 outer seabed and edges', () => {
       expect(eased(v(x, 3, -45), v(side, 0, 0)).x).toBeCloseTo(0, 9);
       expect(eased(v(x, 3, -45), v(-side, 0, 0)).x).toBe(-side);
     }
-    // A little way out over the blue (5-8 m past the lip) before it all but stops.
-    expect(r.past).toBeGreaterThanOrEqual(5);
-    expect(r.past).toBeLessThanOrEqual(8);
+    // The glass stands a few metres past the lip, over the drop, inside the swimmer's reach of the
+    // sides' glass too.
+    expect(g.z).toBeLessThan(lip - 2);
+    // v0.6 Pass 052B: 4 m further out, so the swimmer can hang out over the drop (was lip - 3.4).
+    expect(g.z).toBeGreaterThan(lip - 9);
+    expect(g.halfWidth).toBeGreaterThan(r.halfWidth);
     expect(easeFactor(-1, 3)).toBe(1);
   });
   it('fades into darker blue with depth', () => {
@@ -359,6 +362,7 @@ describe('Pass 024 outer fish', () => {
         rocks,
         interests: outerInterests(layout),
         substrateHeight: seabedHeight,
+        floorHeight: seabedHeight,
       },
       species,
       24024,
@@ -371,4 +375,64 @@ describe('Pass 024 outer fish', () => {
       expect(f.position.z).toBeLessThan(OUTER.cliffZ);
     }
   });
+});
+
+it('adds bounded entrance and wall shoals at reachable swimming depths', () => {
+  const species = outerSpecies(() => -35);
+  // v0.6 Pass 043: 235, plus two clouds of blue tang (62) and five pairs of butterflyfish and idols.
+  expect(species.reduce((sum, s) => sum + s.count, 0)).toBe(307);
+  const wall = OUTER_SCHOOLS.map((s, i) => ({
+    layout: s,
+    species: species[i],
+  })).filter((s) => s.layout.waterLevel !== undefined);
+  expect(wall).toHaveLength(2);
+  for (const s of wall) {
+    // v0.6 Pass 038: they hover by the window, inside the glass, over the lip.
+    expect(s.layout.at.z - s.layout.spread.z).toBeGreaterThan(OUTER.glass.z);
+    expect(s.layout.at.z).toBeLessThan(OUTER.dropOff.start + 1);
+    expect(s.species.region.y).toBe(s.layout.waterLevel);
+    expect(s.species.depth[0]).toBeGreaterThan(OUTER.reach.down);
+    expect(s.species.depth[1]).toBeLessThan(OUTER.reach.up);
+  }
+  for (const s of outerSpecies(() => 8)) {
+    expect(s.region.y).toBeGreaterThan(8);
+    expect(s.depth[0]).toBeGreaterThan(8);
+  }
+});
+
+it('keeps mid-water shoals above rising terrain without teleporting them', () => {
+  const habitat = {
+    bounds: OUTER.bounds,
+    rocks: [],
+    floorHeight: (x: number) => Math.max(-12, Math.min(3, x * 2)),
+  };
+  const species = outerSpecies(() => -35)
+    .filter((_, i) => OUTER_SCHOOLS[i].waterLevel !== undefined)
+    .map((s) => ({
+      ...s,
+      count: 6,
+      region: { x: -4, y: -3, z: -65 },
+      spread: { x: 1, y: 0.5, z: 2 },
+    }));
+  const fish = spawnFish(habitat, species, 24024);
+  const simulation = new FishSimulation(fish, habitat);
+  let unsafe = false,
+    largestStep = 0;
+  for (let frame = 0; frame < 30 * 90; frame++) {
+    const previous = fish.map((f) => ({ ...f.position }));
+    simulation.advance(1 / 30, true);
+    fish.forEach((f, i) => {
+      unsafe ||= !safeFishPosition(f.position, f.radius, habitat);
+      largestStep = Math.max(
+        largestStep,
+        Math.hypot(
+          f.position.x - previous[i].x,
+          f.position.y - previous[i].y,
+          f.position.z - previous[i].z,
+        ),
+      );
+    });
+  }
+  expect(unsafe).toBe(false);
+  expect(largestStep).toBeLessThan(0.1);
 });

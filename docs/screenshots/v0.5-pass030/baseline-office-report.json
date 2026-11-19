@@ -1,0 +1,58 @@
+{
+  "base": "http://127.0.0.1:5200",
+  "errors": [],
+  "warnings": [],
+  "startMode": "office",
+  "depthHidden": true,
+  "walked": 1.26,
+  "eyeHeight": 1.28,
+  "memoryBefore": {
+    "geometries": 432,
+    "textures": 113
+  },
+  "swimMode": "aquarium",
+  "memoryAfter": {
+    "geometries": 432,
+    "textures": 113
+  },
+  "backInOffice": "office",
+  "views": [
+    {
+      "name": "room",
+      "calls": 36,
+      "triangles": 61550,
+      "cpuSubmitMs": [2720.4, 6.9, 8.7]
+    },
+    {
+      "name": "tank",
+      "calls": 25,
+      "triangles": 57974,
+      "cpuSubmitMs": [8.1, 8.3, 8]
+    },
+    {
+      "name": "tank-close",
+      "calls": 24,
+      "triangles": 57972,
+      "cpuSubmitMs": [12.6, 9.1, 7.9]
+    },
+    {
+      "name": "desk",
+      "calls": 31,
+      "triangles": 57864,
+      "cpuSubmitMs": [15.5, 2.9, 4.6]
+    },
+    {
+      "name": "window",
+      "calls": 28,
+      "triangles": 19814,
+      "cpuSubmitMs": [3.1, 6.8, 2.8]
+    },
+    {
+      "name": "glass-front",
+      "calls": 27,
+      "triangles": 60550,
+      "cpuSubmitMs": [12, 5.5, 3.1]
+    }
+  ],
+  "webglErrors": 0
+}

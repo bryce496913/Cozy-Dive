@@ -1,5 +1,9 @@
 import type { AudioStatus } from '../audio/AudioSystem';
 import { SWIM_SPEED, type Settings } from './settings';
+import type { Welcome } from './onboarding';
+import { keepFocusIn } from './focus';
+import { FEEDBACK_URL, VERSION } from '../config/release';
+import { FIELD_OF_VIEW } from '../rendering/fieldOfView';
 
 const wave =
   '<svg viewBox="0 0 40 26" fill="none" aria-hidden="true"><path d="M2 8c6-8 12 8 18 0s12 8 18 0M2 18c6-8 12 8 18 0s12 8 18 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
@@ -24,7 +28,7 @@ export function isAudioMuteShortcut(
 export const SIGHTING_NOTE = { shown: 4200, fade: 900 } as const;
 /** Where the player is: the office (v0.3) or inside the aquarium. */
 /** In-world prompts: the E actions, and the first-visit hint. */
-export type Prompt = 'dive' | 'surface' | 'hint';
+export type Prompt = 'dive' | 'surface' | 'hint' | 'swim';
 export type ExperienceMode = 'office' | 'aquarium';
 export class Interface {
   private readonly abort = new AbortController();
@@ -47,6 +51,8 @@ export class Interface {
   private readonly seenPanel: HTMLElement;
   private readonly seenToggle: HTMLButtonElement;
   private fatalMessage = '';
+  /** v0.8 Pass 060: what "Beta feedback" shows (filled when opened). */
+  private diagnostics: () => string = () => `Cozy Diver ${VERSION}`;
 
   constructor(
     readonly root: HTMLElement,
@@ -60,25 +66,37 @@ export class Interface {
       <div class="scene" id="scene"></div><div class="vignette" aria-hidden="true"></div>
       <header class="topbar"><a class="brand" href="./" aria-label="Cozy Diver home">${wave}<span>COZY DIVER</span></a><span class="edition">A LITTLE WORLD. A LITTLE PEACE.</span><div class="preferences"><button id="audio-toggle" class="audio-toggle" type="button" aria-pressed="false">Mute audio</button><button class="settings-toggle" aria-expanded="false" aria-controls="settings-panel">Settings <span aria-hidden="true">⚙</span></button></div></header>
       <main class="overlay" id="overlay"><div class="welcome">
-        <p class="eyebrow"><span></span> YOUR FIRST DIVE</p>
+        <p class="eyebrow" id="eyebrow"><span></span> YOUR FIRST DIVE</p>
         <h1>Let the world<br>drift <em>away.</em></h1>
         <p class="intro">A quiet room, a little tank, and a whole reef inside it.<br>No rush. No destination. Just you and the water.</p>
-        <div class="entry-actions"><button class="enter" id="office">Enter the Office ${arrow}</button><button class="enter secondary" id="enter">Enter the Water ${arrow}</button><button class="enter secondary" id="return-tank" hidden>Return to the tank ${arrow}</button></div>
+        <div class="entry-actions"><div class="entry-choice"><button class="enter" id="office" aria-describedby="office-note">Enter the Office ${arrow}</button><small id="office-note">Walk around the room, then dive into the tank.</small></div><div class="entry-choice"><button class="enter" id="enter" aria-describedby="enter-note">Dive In ${arrow}</button><small id="enter-note">Go straight into the water.</small></div><button class="enter secondary" id="return-tank" hidden>Return to the tank ${arrow}</button></div>
         <p class="entry-note" id="entry-note">Walk with W A S D and look around with the mouse.</p>
+        <p class="load-note" id="load-note" aria-live="polite" hidden>Settling the water…</p>
         <button class="seen-toggle" id="seen-toggle" type="button" aria-expanded="false" aria-controls="seen-panel" hidden>Seen in the outer waters</button>
         <p class="status" id="status" role="status" aria-live="polite"></p>
+        <button class="enter secondary reload" id="reload" type="button" hidden>Reload</button>
       </div><div class="scene-label"><span class="label-line"></span><span>THE SUNLIT REEF AQUARIUM<small>01 / FIRST DIVE</small></span></div></main>
       <aside class="settings-panel" id="settings-panel" aria-label="Experience settings" hidden>
         <div class="panel-heading"><h2>Make yourself at home.</h2><button id="close-settings" aria-label="Close settings">×</button></div>
         <label for="sensitivity">Mouse sensitivity <output id="sensitivity-value"></output></label><input id="sensitivity" type="range" min="0.25" max="2.5" step="0.05" />
         <label for="speed">Swimming speed <output id="speed-value"></output></label><input id="speed" type="range" min="${SWIM_SPEED.min}" max="${SWIM_SPEED.max}" step="${SWIM_SPEED.step}" />
         <label for="swimming-feel">Swimming feel</label><select id="swimming-feel"><option value="relaxed">Relaxed</option><option value="natural">Natural</option><option value="responsive">Responsive</option></select>
-        <label class="check"><input id="reduced-motion" type="checkbox" />Reduced camera motion</label><p>Direct mouse-look, with plant and particle motion still. Breathing buoyancy and subtle swimming sway are suppressed.</p>
+        <label for="field-of-view">Field of view <output id="field-of-view-value"></output></label><input id="field-of-view" type="range" min="${FIELD_OF_VIEW.min}" max="${FIELD_OF_VIEW.max}" step="${FIELD_OF_VIEW.step}" aria-describedby="field-of-view-note" /><p id="field-of-view-note">A wider view can feel more comfortable if first-person motion makes you queasy.</p>
+        <label class="check"><input id="invert-look" type="checkbox" />Invert up and down look</label>
+        <label class="check"><input id="reduced-motion" type="checkbox" aria-describedby="reduced-motion-note" />Reduced camera motion</label><p id="reduced-motion-note">Direct mouse-look, with plant and particle motion still. Breathing buoyancy and subtle swimming sway are suppressed, and transitions are shorter and calmer.</p>
         <label class="check"><input id="audio-enabled" type="checkbox" />Ambient audio</label>
+        <label for="graphics-detail">Graphics detail</label><select id="graphics-detail" aria-describedby="graphics-note"><option value="full">Full detail</option><option value="lighter">Lighter</option></select><p id="graphics-note">Lighter draws at a lower resolution, for smoother swimming on modest graphics. Every creature and scene stays the same.</p>
         <label class="check"><input id="frame-time" type="checkbox" />Show frame time</label><p>A small readout of frame time and frame rate, for checking performance on this device.</p>
         <label for="master-volume">Master volume <output id="master-volume-value"></output></label><input id="master-volume" type="range" min="0" max="100" step="1" />
         <p id="audio-status" role="status">Audio begins when you enter. Press M while swimming to mute.</p>
         <p class="save-status" id="save-status" role="status">Preferences saved on this device.</p>
+        <details class="feedback" id="feedback"><summary>Beta feedback</summary>
+          <p>Thank you for trying Cozy Diver. Tell us what felt calm, and what got in the way. Nothing is sent automatically; the details below are only what you choose to paste.</p>
+          <label for="feedback-details">Your browser and graphics</label><textarea id="feedback-details" rows="4" readonly></textarea>
+          <div class="feedback-actions"><button type="button" id="copy-details">Copy details</button><a id="feedback-link" href="${FEEDBACK_URL}" target="_blank" rel="noopener noreferrer">Open the feedback form ↗</a></div>
+          <p class="copy-status" id="copy-status" role="status"></p>
+        </details>
+        <p class="build" id="build">Cozy Diver ${VERSION} · beta · <a href="${import.meta.env.BASE_URL}third-party-notices.txt" target="_blank" rel="noopener">Notices</a></p>
       </aside>
       <aside class="settings-panel seen-panel" id="seen-panel" aria-labelledby="seen-heading" hidden>
         <div class="panel-heading"><h2 id="seen-heading">Seen out there.</h2><button id="close-seen" aria-label="Close the list of things seen">×</button></div>
@@ -113,6 +131,42 @@ export class Interface {
     this.get('return-tank').addEventListener('click', () => onReturnToTank(), {
       signal,
     });
+    this.get('reload').addEventListener('click', () => location.reload(), {
+      signal,
+    });
+    // v0.8 Pass 060: beta feedback, filled only when the tester opens it.
+    const feedback = this.get<HTMLDetailsElement>('feedback'),
+      details = this.get<HTMLTextAreaElement>('feedback-details');
+    feedback.addEventListener(
+      'toggle',
+      () => {
+        if (feedback.open) details.value = this.diagnostics();
+      },
+      { signal },
+    );
+    this.get('copy-details').addEventListener(
+      'click',
+      () => {
+        details.value = this.diagnostics();
+        const done = (ok: boolean) =>
+          (this.get('copy-status').textContent = ok
+            ? 'Copied. Paste it into your note.'
+            : 'Select the text above and copy it.');
+        if (navigator.clipboard?.writeText)
+          navigator.clipboard.writeText(details.value).then(
+            () => done(true),
+            () => {
+              details.select();
+              done(false);
+            },
+          );
+        else {
+          details.select();
+          done(false);
+        }
+      },
+      { signal },
+    );
     const toggle = root.querySelector<HTMLButtonElement>('.settings-toggle')!;
     const setOpen = (open: boolean): void => {
       this.settingsPanel.hidden = !open;
@@ -134,6 +188,7 @@ export class Interface {
       'keydown',
       (event) => {
         if (event.key === 'Escape') setOpen(false);
+        else keepFocusIn(this.settingsPanel, event);
       },
       { signal },
     );
@@ -160,6 +215,7 @@ export class Interface {
       'keydown',
       (event) => {
         if (event.key === 'Escape') setSeenOpen(false);
+        else keepFocusIn(this.seenPanel, event);
       },
       { signal },
     );
@@ -176,6 +232,9 @@ export class Interface {
     const sensitivity = this.get<HTMLInputElement>('sensitivity'),
       speed = this.get<HTMLInputElement>('speed'),
       reduced = this.get<HTMLInputElement>('reduced-motion'),
+      fieldOfView = this.get<HTMLInputElement>('field-of-view'),
+      invertLook = this.get<HTMLInputElement>('invert-look'),
+      graphics = this.get<HTMLSelectElement>('graphics-detail'),
       frameTime = this.get<HTMLInputElement>('frame-time'),
       audio = this.get<HTMLInputElement>('audio-enabled'),
       volume = this.get<HTMLInputElement>('master-volume'),
@@ -185,6 +244,9 @@ export class Interface {
     sensitivity.value = String(settings.sensitivity);
     speed.value = String(settings.speed);
     reduced.checked = settings.reducedMotion;
+    fieldOfView.value = String(settings.fieldOfView);
+    invertLook.checked = settings.invertLook;
+    graphics.value = settings.graphics;
     frameTime.checked = settings.frameTime;
     audio.checked = settings.audioEnabled;
     volume.value = String(Math.round(settings.masterVolume * 100));
@@ -194,6 +256,9 @@ export class Interface {
       this.get('speed-value').textContent =
         `${Number(speed.value).toFixed(2)} m/s`;
       this.get('master-volume-value').textContent = `${volume.value}%`;
+      const fov = Number(fieldOfView.value);
+      this.get('field-of-view-value').textContent =
+        fov === 0 ? 'Standard' : `${fov > 0 ? '+' : '\u2212'}${Math.abs(fov)}°`;
       mute.textContent = audio.checked ? 'Mute audio' : 'Enable audio';
       mute.setAttribute('aria-pressed', String(!audio.checked));
       mute.title = audio.checked ? 'Mute audio (M)' : 'Enable audio (M)';
@@ -209,6 +274,9 @@ export class Interface {
           audioEnabled: audio.checked,
           masterVolume: Number(volume.value) / 100,
           frameTime: frameTime.checked,
+          fieldOfView: Number(fieldOfView.value),
+          invertLook: invertLook.checked,
+          graphics: graphics.value === 'lighter' ? 'lighter' : 'full',
         });
     };
     for (const input of [
@@ -216,6 +284,9 @@ export class Interface {
       speed,
       reduced,
       frameTime,
+      fieldOfView,
+      invertLook,
+      graphics,
       feel,
       audio,
       volume,
@@ -254,7 +325,7 @@ export class Interface {
     this.get('controls').innerHTML =
       mode === 'office'
         ? '<span><kbd>W A S D</kbd> walk</span><span><kbd>MOUSE</kbd> look</span><span><kbd>ESC</kbd> pause</span>'
-        : '<span><kbd>W A S D</kbd> swim</span><span><kbd>MOUSE</kbd> look</span><span>Look up/down + <kbd>W / S</kbd> change depth</span><span><kbd>ESC</kbd> pause</span>';
+        : '<span><kbd>W A S D</kbd> swim</span><span><kbd>MOUSE</kbd> look</span><span>Look up/down + <kbd>W / S</kbd> change depth</span><span><kbd>M</kbd> mute</span><span><kbd>ESC</kbd> pause</span>';
     this.get('entry-note').textContent =
       mode === 'office'
         ? 'Walk with W A S D and look around with the mouse.'
@@ -270,20 +341,26 @@ export class Interface {
       .setAttribute('aria-expanded', 'false');
     this.seenPanel.hidden = true;
     this.seenToggle.setAttribute('aria-expanded', 'false');
-    if (!locked && entered) {
+    // v0.8 Pass 060: after a failure, the screen stays as the failure left it (no pause wording).
+    if (!locked && entered && !this.fatalMessage) {
       this.root.querySelector('h1')!.innerHTML =
         'Stay a little<br><em>longer.</em>';
       this.root.querySelector('.intro')!.innerHTML =
         'The world can wait.<br>Your quiet corner is right where you left it.';
       const inOffice = this.mode === 'office';
       this.office.innerHTML = `${inOffice ? 'Return to the Office' : 'Enter the Office'} ${arrow}`;
-      this.enter.innerHTML = `${inOffice ? 'Enter the Water' : 'Return to the Water'} ${arrow}`;
+      this.enter.innerHTML = `${inOffice ? 'Dive In' : 'Return to the Water'} ${arrow}`;
+      // The captions describe a first choice; on the pause screen the labels say it all.
+      this.get('office-note').hidden = true;
+      this.get('enter-note').hidden = true;
       // The way back to where you were is the primary action.
       this.office.classList.toggle('secondary', !inOffice);
       this.enter.classList.toggle('secondary', inOffice);
     }
     this.status.textContent = this.fatalMessage;
-    if (!locked && entered)
+    const reload = this.get<HTMLButtonElement>('reload');
+    if (!reload.hidden) reload.focus();
+    else if (!locked && entered)
       (this.mode === 'office' ? this.office : this.enter).focus();
   }
   /**
@@ -302,8 +379,38 @@ export class Interface {
           ? '<kbd>E</kbd> Return to the office'
           : prompt === 'hint'
             ? 'Walk up to the tank and look into it to dive in'
-            : '';
-    element.classList.toggle('is-hint', prompt === 'hint');
+            : prompt === 'swim'
+              ? 'Look up or down and swim to change depth \u00b7 <kbd>ESC</kbd> pause'
+              : '';
+    element.classList.toggle('is-hint', prompt === 'hint' || prompt === 'swim');
+  }
+  /**
+   * v0.6 Pass 054: the start screen's greeting, and which choice comes first (the primary button,
+   * focused so Enter starts it). Only before the first entry; the pause screen has its own words.
+   */
+  setWelcome(welcome: Welcome): void {
+    // The eyebrow's first child is its decorative line; the words follow it.
+    const eyebrow = this.get('eyebrow');
+    eyebrow.replaceChildren(
+      eyebrow.firstElementChild ?? '',
+      ` ${welcome.eyebrow}`,
+    );
+    this.root.querySelector('h1')!.innerHTML = welcome.title;
+    this.root.querySelector('.intro')!.innerHTML = welcome.intro;
+    // v0.6 Pass 057: the corner label no longer calls a return visit a "first dive".
+    this.root.querySelector('.scene-label small')!.textContent = welcome.label;
+    const water = welcome.primary === 'aquarium';
+    this.enter.classList.toggle('secondary', !water);
+    this.office.classList.toggle('secondary', water);
+    if (!this.enter.disabled) (water ? this.enter : this.office).focus();
+  }
+  /** v0.6 Pass 054: a quiet note while the first scene is still settling (entry works throughout). */
+  setLoading(loading: boolean): void {
+    this.get('load-note').hidden = !loading || !!this.fatalMessage;
+  }
+  /** v0.8 Pass 060: the source of the feedback details (browser, graphics, frame time). */
+  setDiagnostics(provider: () => string): void {
+    this.diagnostics = provider;
   }
   /** Pass 022: the optional frame-time readout; null hides it. Writes only on change. */
   setFrameTime(text: string | null): void {
@@ -399,13 +506,35 @@ export class Interface {
       ? 'Preferences saved on this device.'
       : 'Storage unavailable. Preferences apply for this visit.';
   }
-  showError(message: string, fatal = false): void {
+  /**
+   * A message on the start screen. `fatal` disables entry; `reload` (v0.6 Pass 056) also offers a
+   * Reload button, for failures a fresh page can fix, such as a lost graphics context.
+   */
+  showError(message: string, fatal = false, reload = false): void {
     this.status.textContent = message;
+    if (reload) {
+      const button = this.get<HTMLButtonElement>('reload');
+      button.hidden = false;
+      button.focus();
+      // A fresh page fixes this: say so plainly, and offer only that.
+      this.root.querySelector('h1')!.innerHTML =
+        'The water has<br><em>stopped.</em>';
+      this.root.querySelector('.intro')!.innerHTML =
+        'Nothing you made or found is lost.<br>Reload the page to dive back in.';
+      this.root.querySelector<HTMLElement>('.entry-actions')!.hidden = true;
+      this.get('entry-note').hidden = true;
+      this.get('eyebrow').lastChild!.textContent = ' ALL IS SAVED';
+      // Nothing else to start from here (the tank and seen lists open again after reloading).
+      this.root
+        .querySelectorAll<HTMLElement>('.welcome .seen-toggle')
+        .forEach((e) => (e.hidden = true));
+    }
     if (fatal) {
       this.fatalMessage = message;
       this.enter.disabled = true;
       this.office.disabled = true;
       this.enter.textContent = 'Water temporarily unavailable';
+      this.get('load-note').hidden = true;
     }
   }
   audioStatus(status: AudioStatus): void {

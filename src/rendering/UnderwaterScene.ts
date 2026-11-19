@@ -1,7 +1,11 @@
+import type { TankFish } from '../environment/TankFish';
+import type { TankBabies } from '../environment/TankBabies';
+import type { TankDecoration } from '../environment/TankDecoration';
 import { AuthoredAquarium } from '../environment/AuthoredAquarium';
 import { AuthoredReef } from '../environment/AuthoredReef';
 import { TankOutlook } from './TankOutlook';
 import { warmUpScene } from './warmUp';
+import { pixelRatioFor, type GraphicsDetail } from './graphicsDetail';
 import { findSeahorseGrip } from '../creatures/discoveries/SeahorseGrip';
 import { SEAHORSE_SCALE } from '../creatures/discoveries/Seahorse';
 import { AssetLoader } from '../assets/AssetLoader';
@@ -34,6 +38,8 @@ export interface Presentation {
 
 export class UnderwaterScene implements WaterWorld {
   readonly scene = new THREE.Scene();
+  /** v0.6 Pass 059: see `setDetail`. */
+  private detail: GraphicsDetail = 'full';
   readonly camera = new THREE.PerspectiveCamera(64, 1, 0.08, 80);
   /** v0.4 Pass 023: the tank as a swimmable world (nothing in it counts as a new sighting). */
   readonly id = 'aquarium' as const;
@@ -48,6 +54,10 @@ export class UnderwaterScene implements WaterWorld {
   readonly aquarium: Aquarium;
   readonly authored: AuthoredAquarium;
   readonly reef: AuthoredReef;
+  decoration?: TankDecoration;
+  babies?: TankBabies;
+  /** v0.6 Pass 051: fish the swimmer added to the tank (owned here once created). */
+  tankFish?: TankFish;
   /** v0.4 Pass 024: the reef library's loader (the outer reef leases from the same cache). */
   readonly reefLoader: AssetLoader;
   /** Resolves once authored libraries settle and their programs are compiled. */
@@ -84,7 +94,9 @@ export class UnderwaterScene implements WaterWorld {
       antialias: true,
       powerPreference: 'high-performance',
     });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+    this.renderer.setPixelRatio(
+      pixelRatioFor(window.devicePixelRatio, this.detail),
+    );
     this.renderer.setClearColor(0x17555b);
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -139,7 +151,12 @@ export class UnderwaterScene implements WaterWorld {
         try {
           // Compile every program (hidden LOD levels too) and upload every texture behind the
           // status, so nothing pops in when first seen while swimming (Pass 019).
-          await warmUpScene(this.renderer, this.scene, this.camera);
+          await warmUpScene(
+            this.renderer,
+            this.scene,
+            this.camera,
+            () => !this.disposed,
+          );
         } catch (error) {
           console.warn('Cozy Diver: shader warm-up skipped.', error);
         } finally {
@@ -221,9 +238,17 @@ export class UnderwaterScene implements WaterWorld {
       height = this.host.clientHeight;
     this.camera.aspect = width / Math.max(1, height);
     this.camera.updateProjectionMatrix();
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+    this.renderer.setPixelRatio(
+      pixelRatioFor(window.devicePixelRatio, this.detail),
+    );
     this.renderer.setSize(width, height);
   };
+  /** v0.6 Pass 059: the graphics detail preference (resolution cap); applied at once. */
+  setDetail(detail: GraphicsDetail): void {
+    if (detail === this.detail) return;
+    this.detail = detail;
+    this.resize();
+  }
   render(
     time: number,
     reducedMotion: boolean,
@@ -291,8 +316,18 @@ export class UnderwaterScene implements WaterWorld {
     player: PlayerPresence | undefined,
     camera: THREE.Camera,
   ): void {
+    if (this.babies) {
+      this.babies.update(dt, active, reducedMotion, player, camera);
+      if (this.babies.empty) {
+        this.babies.dispose();
+        this.babies = undefined;
+      }
+    }
     this.aquarium.update(time, reducedMotion, dt, active, player);
+    // After the home fish move, so the added fish school with where they are now.
+    this.tankFish?.update(dt, active, reducedMotion, player, camera);
     this.authored.update(camera);
+    this.decoration?.update(camera);
     this.presentation?.update();
   }
   /**
@@ -343,6 +378,10 @@ export class UnderwaterScene implements WaterWorld {
     this.outside?.geometry.dispose();
     this.outsideMaterial.dispose();
     this.outlook.dispose();
+    this.babies?.dispose();
+    this.babies = undefined;
+    this.tankFish?.dispose();
+    this.tankFish = undefined;
     this.reef.dispose();
     this.authored.dispose();
     this.aquarium.dispose();

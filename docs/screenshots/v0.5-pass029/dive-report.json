@@ -1,0 +1,44 @@
+{
+  "base": "http://127.0.0.1:5196",
+  "errors": [],
+  "dive": {
+    "prompt": "E Dive in",
+    "switchedAt": 2.3666666666663216,
+    "end": {
+      "mode": "aquarium",
+      "position": {
+        "x": 0,
+        "y": 4.60055332367248,
+        "z": 9
+      }
+    },
+    "swamAfter": 0.4
+  },
+  "surface": {
+    "prompt": "E Return to the office",
+    "switchedAt": 1.6499999999961625,
+    "newPrograms": 0,
+    "end": {
+      "mode": "office",
+      "position": {
+        "x": -0.0988888888888888,
+        "y": 1.28,
+        "z": 0.5166666666666667
+      }
+    }
+  },
+  "reduced": {
+    "duration": 0.9,
+    "mode": "aquarium"
+  },
+  "memory": {
+    "before": {
+      "geometries": 432,
+      "textures": 113
+    },
+    "after": {
+      "geometries": 432,
+      "textures": 113
+    }
+  }
+}

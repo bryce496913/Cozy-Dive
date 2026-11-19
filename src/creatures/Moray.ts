@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import type { Vec3 } from '../config/world';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { MorayBehavior, morayCenter, MORAY_GLSL } from './MorayBehavior';
 import { PlantClock } from '../environment/PlantAnimation';
@@ -78,6 +79,25 @@ varying float vMorayMask;`,
     );
 }
 /** GPU-deformed tapered body + a tiny head/jaw rig. Soft retreat replaces an oversized hiding-site collider. */
+/** A den at a given mouth (no supporting reef rock). */
+function givenDen(mouth: Vec3, axis: Vec3): MorayDen {
+  const m = new THREE.Vector3(mouth.x, mouth.y, mouth.z),
+    a = new THREE.Vector3(axis.x, 0, axis.z).normalize(),
+    support: ConvexCollider = {
+      min: { x: m.x - 0.5, y: m.y - 0.5, z: m.z - 0.5 },
+      max: { x: m.x + 0.5, y: m.y + 0.5, z: m.z + 0.5 },
+      planes: [],
+    };
+  return {
+    support,
+    supportIndex: -1,
+    mouth: m,
+    axis: a,
+    view: { x: m.x + a.x * 2, y: m.y, z: m.z + a.z * 2 },
+    focus: { x: m.x, y: m.y, z: m.z },
+    approach: [],
+  };
+}
 export class Moray {
   readonly root = new THREE.Group();
   readonly behavior = new MorayBehavior();
@@ -111,9 +131,20 @@ export class Moray {
   private accumulator = 0;
   /** Pass 019: the hole in a reef rock the moray lives in. */
   readonly den: MorayDen;
-  constructor(h: FishHabitat, supports: readonly ConvexCollider[]) {
+  constructor(
+    h: FishHabitat,
+    supports: readonly ConvexCollider[],
+    /**
+     * v0.6 Pass 045: a given hole instead of one found in a reef rock (the sea cave's crack in its
+     * wall): its mouth and the horizontal direction out of it. The rock behind it is the cave's
+     * wall, so the head's clearance check against the tank's rocks is skipped.
+     */
+    placement?: { readonly mouth: Vec3; readonly axis: Vec3 },
+  ) {
     this.root.name = 'Reef-den snowflake-inspired moray';
-    this.den = findMorayDen(h, supports);
+    this.den = placement
+      ? givenDen(placement.mouth, placement.axis)
+      : findMorayDen(h, supports);
     this.root.position.copy(this.den.mouth);
     this.root.quaternion.setFromUnitVectors(
       new THREE.Vector3(0, 0, 1),
@@ -127,7 +158,11 @@ export class Moray {
         bounds: h.bounds,
         rocks: h.rocks.filter((r) => r !== this.den.support),
       };
-    for (let extension = 0; extension <= 1.0001; extension += 0.1)
+    for (
+      let extension = 0;
+      extension <= (placement ? -1 : 1.0001);
+      extension += 0.1
+    )
       for (let phase = 0; phase < Math.PI * 2; phase += Math.PI / 4)
         for (let i = 0; i <= 24; i++) {
           const u = i / 24,

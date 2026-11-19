@@ -1,3 +1,4 @@
+import { browserScale, recordBrowserScale } from './browser-scale.mjs';
 /* Pass 011 physical route witnesses and explicit failure regression. No debug code ships. */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -20,7 +21,7 @@ const browser = await chromium.launch({
 // no assertion or measured budget changes. Override with COZY_ACTION_TIMEOUT.
 const openPage = browser.newPage.bind(browser);
 browser.newPage = async (options) => {
-  const page = await openPage(options);
+  const page = await openPage({ ...browserScale(), ...options });
   page.setDefaultTimeout(Number(process.env.COZY_ACTION_TIMEOUT || 240000));
   return page;
 };
@@ -47,12 +48,11 @@ try {
   });
   await instrument(page);
   await page.goto(url);
+  await recordBrowserScale(page);
   await page.waitForFunction(
     () => window.__cozy?.world?.renderer.info.render.calls > 0,
   );
-  await page
-    .getByRole('button', { name: 'Enter the Water', exact: true })
-    .click();
+  await page.getByRole('button', { name: 'Dive In', exact: true }).click();
   await page.waitForFunction(
     () =>
       !!document.pointerLockElement &&
@@ -182,7 +182,7 @@ try {
   await noLock.evaluate(() => {
     window.__cozy.world.renderer.domElement.requestPointerLock = undefined;
   });
-  await noLock.getByRole('button', { name: 'Enter the Water' }).click();
+  await noLock.getByRole('button', { name: 'Dive In' }).click();
   await noLock.waitForFunction(() =>
     document.body.textContent.includes('Mouse capture is unavailable'),
   );
@@ -200,7 +200,7 @@ try {
     window.__cozy.world.renderer.domElement.requestPointerLock = () =>
       Promise.reject(new Error('Controlled denial'));
   });
-  await rejectedLock.getByRole('button', { name: 'Enter the Water' }).click();
+  await rejectedLock.getByRole('button', { name: 'Dive In' }).click();
   await rejectedLock.waitForFunction(() =>
     document.body.textContent.includes('Mouse capture was not granted'),
   );
@@ -210,7 +210,7 @@ try {
   const lost = await makeFailurePage();
   await lost.goto(url);
   await lost.waitForFunction(() => window.__cozy?.world);
-  await lost.getByRole('button', { name: 'Enter the Water' }).click();
+  await lost.getByRole('button', { name: 'Dive In' }).click();
   await lost.waitForFunction(
     () =>
       !!document.pointerLockElement &&

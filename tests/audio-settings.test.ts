@@ -22,6 +22,9 @@ describe('audio preferences in existing v1 storage', () => {
       audioEnabled: true,
       masterVolume: 0.3,
       frameTime: false,
+      fieldOfView: 0,
+      invertLook: false,
+      graphics: 'full',
     });
   });
   it('persists mute independently of the chosen volume', () => {

@@ -1,7 +1,7 @@
 import { FishRenderBatch } from './FishRenderBatch';
 import type { PlayerPresence } from './FishDiverReaction';
 import * as THREE from 'three';
-import { angleDifference } from './FishEntity';
+import { angleDifference, type FishEntity } from './FishEntity';
 import { FishGeometry, type FishVisual } from './FishGeometry';
 import type { FishHabitat } from './FishHabitat';
 import { FishSimulation } from './FishMovement';
@@ -23,11 +23,18 @@ export class FishSystem {
     habitat: FishHabitat,
     species: readonly FishSpecies[] = FISH_SPECIES,
     seed: number = FISH_TIMING.seed,
+    /**
+     * v0.6 Pass 051: an added population that schools with `companions` (the tank's home fish)
+     * without moving them; its ids start after theirs.
+     */
+    companions: readonly FishEntity[] = [],
   ) {
     this.root.name = 'Tropical marine fish';
+    const firstId = companions.reduce((m, f) => Math.max(m, f.id + 1), 0);
     this.simulation = new FishSimulation(
-      spawnFish(habitat, species, seed),
+      spawnFish(habitat, species, seed, undefined, firstId),
       habitat,
+      companions,
     );
     this.templates = species.map((s) => new FishGeometry(s));
     this.visuals = this.simulation.fish.map((fish) => {

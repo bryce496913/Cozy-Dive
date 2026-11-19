@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { CRUISE_SPECIES, type CruiseSpecies } from '../src/config/creatures';
+import {
+  CRUISE_SPECIES,
+  cruiseSize,
+  type CruiseSpecies,
+} from '../src/config/creatures';
 import { OUTER } from '../src/config/passage';
 import type { Vec3 } from '../src/config/world';
 import {
@@ -117,6 +121,12 @@ describe('Pass 025 cruising routes', () => {
           species.clearance - 0.05,
         );
         expect(Math.abs(p.x)).toBeLessThan(OUTER.reef.maxX - 6);
+        if (species.id === 'green-sea-turtle') {
+          // v0.6 Pass 052: the turtles live on the reef top, inside the tank's glass.
+          expect(p.z).toBeGreaterThan(OUTER.glass.z + 2);
+          expect(p.z).toBeLessThan(OUTER.cliffZ - 4);
+          continue;
+        }
         // Pass 026: out in the blue, past the reef's lip, within reach of the eye.
         expect(p.z).toBeLessThan(OUTER.dropOff.start);
         expect(p.z).toBeGreaterThan(OUTER.bounds.min.z + 6);
@@ -312,5 +322,44 @@ describe('Pass 025 sightings', () => {
       { label: 'Green sea turtle', first: '2026-11-11T10:00:00.000Z' },
     ]);
     expect(seenList([])).toEqual([]);
+  });
+});
+
+describe('richer outer reef populations', () => {
+  it('scales models and safety envelopes together without mutating the base species', () => {
+    const adult = cruiseSize(shark, 1.2);
+    expect(adult.scale).toBe(1.2);
+    for (const key of ['radius', 'clearance', 'comfort', 'giveWay'] as const)
+      expect(adult[key]).toBeCloseTo(shark[key] * 1.2, 10);
+    expect(shark.scale).toBe(1);
+    expect(cruiseSize(adult, 1).radius).toBeCloseTo(shark.radius, 10);
+    for (const scale of [0, -1, NaN, Infinity, 1.6])
+      expect(() => cruiseSize(shark, scale)).toThrow();
+  });
+  it('has nine cruisers, distinct shark depth bands, larger adults and two independent turtles', () => {
+    const creatures = outerCruisers(
+      reefObstacles(outerReefLayout().placements),
+    );
+    expect(creatures).toHaveLength(9);
+    expect(
+      creatures.filter((c) => c.species.id === 'blacktip-reef-shark'),
+    ).toHaveLength(3);
+    expect(
+      creatures.filter((c) => c.species.id === 'spotted-eagle-ray'),
+    ).toHaveLength(4);
+    const turtles = creatures.filter(
+      (c) => c.species.id === 'green-sea-turtle',
+    );
+    expect(turtles).toHaveLength(2);
+    expect(turtles[0].route).not.toBe(turtles[1].route);
+    expect(Math.max(...creatures.map((c) => c.species.scale))).toBe(1.2);
+    const sharks = creatures.filter(
+      (c) => c.species.id === 'blacktip-reef-shark',
+    );
+    const heights = sharks
+      .map((c) => c.route.at(0, { x: 0, y: 0, z: 0 }).y)
+      .sort((a, b) => a - b);
+    expect(heights[1] - heights[0]).toBeGreaterThan(5);
+    expect(heights[2] - heights[1]).toBeGreaterThan(5);
   });
 });

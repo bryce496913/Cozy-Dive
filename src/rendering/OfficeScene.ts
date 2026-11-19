@@ -170,11 +170,14 @@ export class OfficeScene {
     this.camera.position.set(OFFICE.spawn.x, OFFICE.spawn.y, OFFICE.spawn.z);
     this.camera.rotation.set(-0.12, OFFICE.spawnYaw, 0, 'YXZ');
     // Pass 027: once ready, the tank gets its blurred view of the office through the glass.
-    this.prepared = warmUpScene(world.renderer, this.scene, this.camera).then(
-      () => {
-        if (!this.disposed) world.outlook.setView(this.captureFromTank());
-      },
-    );
+    this.prepared = warmUpScene(
+      world.renderer,
+      this.scene,
+      this.camera,
+      () => !this.disposed,
+    ).then(() => {
+      if (!this.disposed) world.outlook.setView(this.captureFromTank());
+    });
   }
 
   /**

@@ -16,15 +16,26 @@ const clamp01 = (x: number): number => Math.max(0, Math.min(1, x));
  */
 export class FishSchooling {
   private readonly order: readonly FishEntity[];
+  /**
+   * v0.6 Pass 051: this population followed by `companions`: fish of another population that
+   * this one sees as neighbours (to keep apart from, and school with), but never moves. The tank's
+   * added fish see the home fish this way, so they join the home schools while the home fish's
+   * own simulation stays exactly as it was.
+   */
+  private readonly all: readonly FishEntity[];
   private readonly forces = new Map<FishEntity, SchoolForces>();
   private readonly neighbors: Int32Array;
   private readonly distances: Float64Array;
-  constructor(fish: readonly FishEntity[]) {
+  constructor(
+    fish: readonly FishEntity[],
+    companions: readonly FishEntity[] = [],
+  ) {
     this.order = [...fish].sort((a, b) => a.id - b.id);
-    if (new Set(fish.map((f) => f.id)).size !== fish.length)
+    this.all = [...this.order, ...companions];
+    if (new Set(this.all.map((f) => f.id)).size !== this.all.length)
       throw new Error('Schooling requires unique fish ids.');
-    this.neighbors = new Int32Array(fish.length);
-    this.distances = new Float64Array(fish.length);
+    this.neighbors = new Int32Array(this.all.length);
+    this.distances = new Float64Array(this.all.length);
     for (const f of fish)
       this.forces.set(f, {
         separation: { x: 0, y: 0, z: 0 },
@@ -53,8 +64,8 @@ export class FishSchooling {
       out.pressure = 0;
       out.neighbors = 0;
       let count = 0;
-      for (let j = 0; j < this.order.length; j++) {
-        const other = this.order[j];
+      for (let j = 0; j < this.all.length; j++) {
+        const other = this.all[j];
         if (other === fish) continue;
         let dx = other.position.x - p.x,
           dy = other.position.y - p.y,
@@ -149,7 +160,7 @@ export class FishSchooling {
         cohesionWeight = 0,
         meanRadius = 0;
       for (let k = 0; k < count; k++) {
-        const other = this.order[this.neighbors[k]],
+        const other = this.all[this.neighbors[k]],
           d2 = this.distances[k];
         const alignment = clamp01(1 - d2 / config.alignmentRadius ** 2);
         if (alignment > 0) {
@@ -189,7 +200,7 @@ export class FishSchooling {
         meanRadius /= cohesionWeight;
       } else {
         // A straggler can reconnect to a nearby same-species neighbor, with a smooth finite range.
-        const other = this.order[this.neighbors[0]],
+        const other = this.all[this.neighbors[0]],
           distance = Math.sqrt(this.distances[0]);
         const reconnect = clamp01(
           (config.reconnectRadius - distance) /

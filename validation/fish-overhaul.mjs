@@ -66,9 +66,7 @@ try {
       window.__cozy.world.reef?.ready,
     ]),
   );
-  await page
-    .getByRole('button', { name: 'Enter the Water', exact: true })
-    .click();
+  await page.getByRole('button', { name: 'Dive In', exact: true }).click();
   await page.waitForFunction(() => !!document.pointerLockElement);
   await page.evaluate(() => cancelAnimationFrame(window.__cozy.frame));
   for (const [view, species, distance] of VIEWS) {

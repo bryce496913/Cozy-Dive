@@ -72,9 +72,7 @@ try {
         !document.querySelector('#overlay').hidden,
     );
   const enterWater = async () => {
-    await page
-      .getByRole('button', { name: 'Enter the Water', exact: true })
-      .click();
+    await page.getByRole('button', { name: 'Dive In', exact: true }).click();
     await locked();
   };
   await enterWater();
@@ -179,8 +177,8 @@ try {
     };
   });
   report.loaded = loaded;
-  assert.equal(loaded.cruisers, 6);
-  assert.equal(loaded.models, 6, 'every creature has its model');
+  assert.equal(loaded.cruisers, 9);
+  assert.equal(loaded.models, 9, 'every creature has its model');
   // Look away from everything (so nothing is seen yet) while they cruise.
   await place(0, 7, -36, Math.PI, 0.6);
   const before = await creatures();
@@ -258,30 +256,50 @@ try {
 
   // 3. Views of each kind (also counts each as seen), and the "New sighting" note.
   const notes = [];
-  const watch = async (index, name) => {
+  const watch = async (id, name, label, above = true) => {
+    const mine = `New sighting · ${label}`;
+    // Since Pass 037 each group passes either close by the glass or far out, switching only
+    // while out of sight; the camera stays near it here, so put every group in its close lane
+    // (the pass that is meant to be seen).
+    await page.evaluate(() => {
+      const a = window.__cozy.outer;
+      for (let g = 0; g < new Set(a.creatures.groupOf).size; g++)
+        a.lanes.passClose(g);
+    });
     // Beside the creature, a little above, looking at it; stepped until it counts as seen.
-    for (let i = 0; i < 90; i++) {
-      const target = (await creatures())[index];
-      const yaw = target.yaw + Math.PI / 2,
-        ex = target.x - Math.cos(yaw) * 6.5,
+    // Since #59 the swimmer stays within 3.65 m of the lip, and the sharks patrol far out: follow
+    // whichever of the kind is nearest the wall, for up to a minute, until it counts as seen.
+    for (let i = 0; i < 30 * 60 && !notes.includes(mine); i++) {
+      const target = (await creatures())
+        .filter((c) => c.id === id)
+        .reduce((a, b) => (b.z > a.z ? b : a));
+      // From the shoreward side: since #59 the swimmer cannot go more than 3.65 m past the lip.
+      const side = Math.sin(target.yaw + Math.PI / 2) >= 0 ? 1 : -1,
+        yaw = target.yaw + (side * Math.PI) / 2;
+      let ex = target.x - Math.cos(yaw) * 6.5,
         ez = target.z + Math.sin(yaw) * 6.5,
         ey = target.y + 1.2;
+      if (above) {
+        // The wall's face lies on the shoreward side, so watch from the open water above the
+        // creature instead, within the swimmer's reach past the lip.
+        ex = target.x;
+        ez = Math.max(target.z + 2.5, -59.3);
+        ey = target.y + 4.5;
+      }
       await place(
         ex,
         ey,
         ez,
         Math.atan2(-(target.x - ex), -(target.z - ez)),
-        Math.atan2(target.y - ey, 6.5),
+        Math.atan2(target.y - ey, Math.hypot(target.x - ex, target.z - ez)),
       );
       await step(1);
       const note = await page.evaluate(() => {
         const n = document.querySelector('#sighting-note');
         return n.hidden ? null : n.textContent;
       });
-      if (note && !notes.includes(note)) {
-        notes.push(note);
-        break;
-      }
+      // Another creature passing may be noted first: keep it, and keep watching this one.
+      if (note && !notes.includes(note)) notes.push(note);
     }
     await step(4);
     report.views[name] = await page.evaluate(() => {
@@ -294,19 +312,9 @@ try {
     });
     await page.screenshot({ path: path.join(output, `${name}.png`) });
   };
-  const all = await creatures();
-  await watch(
-    all.findIndex((c) => c.id === 'blacktip-reef-shark'),
-    'shark',
-  );
-  await watch(
-    all.findIndex((c) => c.id === 'spotted-eagle-ray'),
-    'eagle-rays',
-  );
-  await watch(
-    all.findIndex((c) => c.id === 'green-sea-turtle'),
-    'turtle',
-  );
+  await watch('blacktip-reef-shark', 'shark', 'Blacktip reef shark');
+  await watch('spotted-eagle-ray', 'eagle-rays', 'Spotted eagle ray');
+  await watch('green-sea-turtle', 'turtle', 'Green sea turtle', true);
   report.notes = notes;
   for (const name of [
     'Blacktip reef shark',
@@ -337,7 +345,9 @@ try {
   );
 
   // 4. Waiting on a shark's route: it gives way and keeps its distance.
-  const sharkIndex = all.findIndex((c) => c.id === 'blacktip-reef-shark');
+  const sharkIndex = (await creatures()).findIndex(
+    (c) => c.id === 'blacktip-reef-shark',
+  );
   const ahead = await page.evaluate((index) => {
     const c = window.__cozy.outer.creatures.cruisers[index],
       p = c.position,

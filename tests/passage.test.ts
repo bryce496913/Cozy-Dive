@@ -10,6 +10,7 @@ import {
 import { AQUARIUM, type Vec3 } from '../src/config/world';
 import { Aquarium } from '../src/environment/Aquarium';
 import {
+  CREVICE_BOULDERS,
   TUBE,
   linerShade,
   tubeRadius,
@@ -327,5 +328,35 @@ describe('Pass 023 outer waters', () => {
     outer.dispose();
     for (const n of disposed.values()) expect(n).toBe(1);
     expect(outer.root.children).toHaveLength(0);
+  });
+});
+
+describe('Pass 028 playtest: a grounded overhang', () => {
+  it('rests the overhang on both buttresses, deep and wide enough to read as carried', () => {
+    const bySeed = (seed: number) => {
+        const b = CREVICE_BOULDERS.find((r) => r.seed === seed);
+        if (!b) throw new Error(`no boulder ${seed}`);
+        return b;
+      },
+      overhang = bySeed(7108);
+    for (const seed of [7109, 7110]) {
+      const buttress = bySeed(seed),
+        // How far the buttress rises into the slab, and how much of the slab's length it carries.
+        sunk = buttress.max[1] - overhang.min[1],
+        alongZ =
+          Math.min(buttress.max[2], overhang.max[2]) -
+          Math.max(buttress.min[2], overhang.min[2]),
+        alongX =
+          Math.min(buttress.max[0], overhang.max[0]) -
+          Math.max(buttress.min[0], overhang.min[0]);
+      // Rounded rock leaves a gap unless the boxes overlap well: about half a metre each way.
+      expect(sunk, `${seed}`).toBeGreaterThanOrEqual(0.5);
+      expect(alongZ, `${seed}`).toBeGreaterThanOrEqual(0.6);
+      expect(alongX, `${seed}`).toBeGreaterThanOrEqual(1.0);
+    }
+    // Still clear of the swim path through the mouth (y up to 2.6).
+    expect(overhang.min[1]).toBeGreaterThan(
+      CREVICE.centre.y + CREVICE.halfHeight,
+    );
   });
 });

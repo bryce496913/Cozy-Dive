@@ -5,7 +5,7 @@
 
 Builds only the `Frogfish` library root (FrogBody, FrogJaw, FrogLure, FrogFoot) as an uncompressed
 GLB; the splice script replaces that subtree inside the shipped, compressed anchored-life.glb, so the
-seahorse, moray and anemone stay byte-identical in geometry.
+seahorse, moray and anemone retain their geometry (Draco may reorder vertices).
 
 Anatomy (game space: X right, Y up, Z toward the snout; the seated sole is y ~= 0.02):
   * a lumpy, laterally compressed globular body with a steep face, dorsal hump, second/third dorsal

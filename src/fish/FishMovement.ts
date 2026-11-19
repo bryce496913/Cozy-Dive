@@ -6,6 +6,7 @@ import { angleDifference, randomFish, type FishEntity } from './FishEntity';
 import { FISH_STEERING, FISH_TIMING, SCHOOLING_SAFETY } from './FishSpecies';
 import {
   clearFishRoute,
+  clearResidentStep,
   safeFishPosition,
   type FishHabitat,
 } from './FishHabitat';
@@ -199,11 +200,18 @@ export function stepFish(
     fish.speed * FISH_STEERING.lookAheadSeconds;
   const nearXMin = clamp(1 - (p.x - b.min.x - fish.radius) / range, 0, 1);
   const nearXMax = clamp(1 - (b.max.x - p.x - fish.radius) / range, 0, 1);
-  const nearYMin = clamp(1 - (p.y - b.min.y - fish.radius) / range, 0, 1);
+  const floor = Math.max(b.min.y, habitat.floorHeight?.(p.x, p.z) ?? b.min.y),
+    aheadFloor =
+      habitat.floorHeight?.(p.x + hx * range, p.z + hz * range) ?? floor,
+    terrainDanger = habitat.floorHeight
+      ? clamp(1 - (p.y - aheadFloor - fish.radius) / range, 0, 1)
+      : 0;
+  const nearYMin = clamp(1 - (p.y - floor - fish.radius) / range, 0, 1);
   const nearYMax = clamp(1 - (b.max.y - p.y - fish.radius) / range, 0, 1);
   const nearZMin = clamp(1 - (p.z - b.min.z - fish.radius) / range, 0, 1);
   const nearZMax = clamp(1 - (b.max.z - p.z - fish.radius) / range, 0, 1);
   let danger = Math.max(
+    terrainDanger,
     nearXMin,
     nearXMax,
     nearYMin,
@@ -214,6 +222,12 @@ export function stepFish(
   const wallWeight = FISH_STEERING.avoidanceWeight;
   tx += (nearXMin ** 2 - nearXMax ** 2) * wallWeight;
   ty += (nearYMin ** 2 - nearYMax ** 2) * wallWeight;
+  // A wall shoal may swim below the reef top. Turn away before the rising seabed,
+  // rather than chasing an absolute depth band into the slope. The final guard still
+  // holds an unsafe step; it never snaps a fish up through the terrain.
+  tx -= hx * terrainDanger ** 2 * wallWeight;
+  tz -= hz * terrainDanger ** 2 * wallWeight;
+  ty += terrainDanger ** 2 * wallWeight;
   tz += (nearZMin ** 2 - nearZMax ** 2) * wallWeight;
   for (const rock of habitat.rocks) {
     if (
@@ -259,6 +273,21 @@ export function stepFish(
     tx += -nz * weight * 0.32 * side;
     tz += nx * weight * 0.32 * side;
   }
+  if (habitat.residents)
+    for (const resident of habitat.residents) {
+      const dx = p.x - resident.position.x,
+        dy = p.y - resident.position.y,
+        dz = p.z - resident.position.z;
+      const distance = Math.max(0.05, Math.hypot(dx, dy, dz)),
+        comfort = fish.radius + resident.radius + 1;
+      if (distance >= comfort) continue;
+      const influence = 1 - distance / comfort,
+        weight = influence * influence * wallWeight * 2;
+      tx += (dx / distance) * weight;
+      ty += (dy / distance) * weight;
+      tz += (dz / distance) * weight;
+      danger = Math.max(danger, influence);
+    }
   const obstacleX = tx - wanderX,
     obstacleY = ty - wanderY,
     obstacleZ = tz - wanderZ;
@@ -452,7 +481,10 @@ export function stepFish(
   fish.velocity.x = p.x + vx * dt;
   fish.velocity.y = p.y + vy * dt;
   fish.velocity.z = p.z + vz * dt;
-  if (safeFishPosition(fish.velocity, fish.radius, habitat)) {
+  if (
+    safeFishPosition(fish.velocity, fish.radius, habitat) &&
+    clearResidentStep(p, fish.velocity, fish.radius, habitat)
+  ) {
     p.x = fish.velocity.x;
     p.y = fish.velocity.y;
     p.z = fish.velocity.z;
@@ -492,9 +524,11 @@ export class FishSimulation {
   constructor(
     fish: FishEntity[],
     readonly habitat: FishHabitat,
+    /** v0.6 Pass 051: fish of another population that these school with (never moved here). */
+    companions: readonly FishEntity[] = [],
   ) {
     this.fish = fish;
-    this.schooling = new FishSchooling(fish);
+    this.schooling = new FishSchooling(fish, companions);
   }
   get alpha(): number {
     return this.accumulator / FISH_TIMING.step;

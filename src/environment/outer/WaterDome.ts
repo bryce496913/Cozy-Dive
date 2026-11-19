@@ -9,20 +9,20 @@ import * as THREE from 'three';
  */
 export const WATER_LIGHT = {
   /** Horizon (and fog) colour at the reef top, and at the bottom of the reach down the wall. */
-  shallow: 0x174f69,
+  shallow: 0x12445f,
   deep: 0x041624,
   /** Depths (m) over which the horizon darkens from shallow to deep. */
   from: 4,
   to: -14,
   /** Towards the surface, and straight down. */
-  surface: 0x5aa9c2,
+  surface: 0x4b92b0,
   abyss: 0x01070d,
   /** At the deepest, light is this much dimmer and fog this much denser (fractions). */
   dimming: 0.7,
   thickening: 0.8,
   /** The blue's brightness while the reef beyond the tunnel is still loading. */
   unlit: 0.12,
-  /** Dome radius (inside the camera's far plane). */
+  /** Background shell; the vertex shader pins it to the camera's far plane. */
   radius: 140,
 } as const;
 

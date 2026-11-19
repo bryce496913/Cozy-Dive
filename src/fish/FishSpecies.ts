@@ -7,7 +7,40 @@ export type SpeciesId =
   | 'royal-gramma'
   | 'yellow-assessor'
   | 'firefish-goby'
-  | 'ocellaris-clownfish';
+  | 'ocellaris-clownfish'
+  /** v0.6 Pass 032: the kelp forest's bright orange damselfish (never in the tank's population). */
+  | 'garibaldi'
+  /** v0.6 Pass 034: the sea cave's coppery schooling fish (never in the tank's population). */
+  | 'glassy-sweeper'
+  /** v0.6 Pass 035: the kelp forest's olive-brown mid-water fish (never in the tank). */
+  | 'kelp-bass'
+  /** v0.6 Pass 041: more kelp forest fish (never in the tank's population). */
+  | 'blacksmith'
+  | 'senorita'
+  /** v0.6 Pass 041: the sea cave's red, big-eyed fish of the shade (never in the tank). */
+  | 'soldierfish'
+  /** v0.6 Pass 043: outer-reef fish (never in the tank's population). */
+  | 'blue-tang'
+  | 'threadfin-butterflyfish'
+  | 'moorish-idol'
+  | 'longfin-bannerfish'
+  | 'parrotfish'
+  | 'bigeye-trevally'
+  | 'humphead-wrasse'
+  /** v0.6 Pass 045: the sea cave's small dark fish with glowing light organs. */
+  | 'flashlight-fish'
+  /** v0.6 Pass 052: the big shimmering school under the ice (never in the tank). */
+  | 'antarctic-silverfish'
+  /** Playtest: the barracuda as a tank guest (it swims as a school creature in the outer reef). */
+  | 'great-barracuda'
+  | 'blackfin-icefish'
+  | 'bald-notothen'
+  | 'antarctic-toothfish'
+  | 'giant-sea-bass'
+  /** The shipwreck's resident giant grouper (as on the SS Yongala). */
+  | 'queensland-grouper'
+  | 'california-sheephead'
+  | 'cleaner-wrasse';
 export interface SchoolingTuning {
   readonly enabled: boolean;
   readonly spacing: number;

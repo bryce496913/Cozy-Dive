@@ -4,6 +4,7 @@ import { OUTER } from '../config/passage';
 import type { Bounds, Vec3 } from '../config/world';
 import type { SightCandidate } from '../discovery/journal';
 import { boxCollider } from '../environment/passage/Crevice';
+import { OuterCleft } from '../environment/outer/OuterCleft';
 import {
   OuterCreatures,
   reefObstacles,
@@ -21,6 +22,13 @@ import {
   seabedHeight,
 } from '../environment/outer/OuterTerrain';
 import { reefSightings } from '../environment/outer/outerSightings';
+import { BarracudaSchool } from '../environment/outer/BarracudaSchool';
+import { ReefLife } from '../environment/outer/ReefLife';
+import { OUTER_SIGHTS } from '../discovery/sights';
+import { PassingLanes } from '../environment/outer/PassingLanes';
+import { WallVisitors } from '../environment/outer/WallVisitors';
+import { TankGlass } from '../environment/shared/TankGlass';
+import { createOuterHorizon } from '../environment/outer/OuterHorizon';
 import { WATER_LIGHT, WaterDome } from '../environment/outer/WaterDome';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
 import type { FishHabitat } from '../fish/FishHabitat';
@@ -30,6 +38,7 @@ import {
   TerrainCollisionWorld,
 } from '../player/terrainCollision';
 import type { WaterWorld } from './WaterWorld';
+import { WorldPreparation } from './WorldPreparation';
 import { warmUpScene } from './warmUp';
 
 /**
@@ -59,14 +68,57 @@ export interface SharedLibraries {
 export class OuterWatersScene implements WaterWorld {
   readonly id = 'outer' as const;
   readonly scene = new THREE.Scene();
-  readonly camera = new THREE.PerspectiveCamera(64, 1, 0.08, 150);
+  readonly camera = new THREE.PerspectiveCamera(
+    64,
+    1,
+    0.08,
+    OUTER.viewDistance,
+  );
   readonly environment = new OuterEnvironment();
   readonly reef: OuterReef;
+  /** v0.6 Pass 032: the cleft at the cliff's foot, the way on to the kelp forest. */
+  readonly cleft = new OuterCleft();
+  /**
+   * v0.6 Pass 036: the display tank's glass. v0.6 Pass 052B (open-ocean freedom): only the back
+   * window remains, out over the drop-off, frameless and fading in only as you come close, so
+   * from the reef the blue reads as open ocean; the reef runs on at the sides (no side glass).
+   */
+  readonly glass = new TankGlass(
+    (() => {
+      const g = OUTER.glass;
+      return [
+        {
+          x: 0,
+          y: (g.top + g.bottom) / 2,
+          z: g.z,
+          width: g.halfWidth * 2,
+          height: g.top - g.bottom,
+          yaw: 0,
+        },
+      ];
+    })(),
+    'Outer reef glass',
+    { frame: false, fade: true },
+  );
+  /** v0.6 Pass 052B: far silhouettes and distant passers, implying the wider ocean. */
+  readonly horizon = createOuterHorizon();
   schools?: OuterSchools;
   /** v0.4 Pass 025: sharks, eagle rays and a turtle (absent if their models cannot load). */
   creatures?: OuterCreatures;
+  /** v0.6 Pass 037: whether each of the reef's own big animals passes close or far out. */
+  private lanes?: PassingLanes;
+  /** v0.6 Pass 033: big animals passing along the wall, more the longer you stay at the edge. */
+  visitors?: WallVisitors;
+  /** v0.6 Pass 042 */
+  barracuda?: BarracudaSchool;
+  /** v0.6 Pass 043 */
+  life?: ReefLife;
+  /** This visit's number (see `arrive`), kept until the visitors exist. */
+  private visit = 0;
   /** What can be seen here: the reef's corals and seagrass, and its big creatures. */
   readonly sightings: SightCandidate[] = [];
+  /** v0.6 Pass 046 review: how far it has got, and which parts loaded. */
+  readonly preparation = new WorldPreparation();
   /** Where the soundscape's small sounds come from here (at the coral heads). */
   readonly soundSpots: Vec3[] = [];
   /**
@@ -105,7 +157,13 @@ export class OuterWatersScene implements WaterWorld {
     this.fog = new THREE.FogExp2(WATER, OUTER.fog);
     this.scene.background = this.background;
     this.scene.fog = this.fog;
-    this.scene.add(this.dome.mesh, this.environment.root);
+    this.scene.add(
+      this.dome.mesh,
+      this.environment.root,
+      this.cleft.root,
+      this.glass.root,
+      this.horizon.root,
+    );
     // The same kinds and number of lights as the tank, so most shader programs are shared with
     // it and need no new compilation (programs are keyed by light counts).
     // Pass 026: a softer sky light, so the reef's lit tops sink into the blue instead of glowing.
@@ -119,7 +177,10 @@ export class OuterWatersScene implements WaterWorld {
     this.scene.add(sky, sun, fill);
     this.reef = new OuterReef(libraries.reef, libraries.plants);
     this.scene.add(this.reef.root);
-    this.world = this.collisionFor(this.environment.colliders);
+    this.world = this.collisionFor([
+      ...this.environment.colliders,
+      ...this.cleft.colliders,
+    ]);
     for (let i = 0; i < libraries.soundSpots; i++) {
       const h = this.reef.heads[i % this.reef.heads.length];
       this.soundSpots.push({ x: h.x, y: h.y + 1.4, z: h.z });
@@ -132,6 +193,7 @@ export class OuterWatersScene implements WaterWorld {
     );
     const failed = (error: unknown): boolean => {
       console.error('Cozy Diver: outer waters could not be prepared.', error);
+      this.preparation.fail();
       if (!this.disposed) this.ready = this.reefReady = true;
       return !this.disposed;
     };
@@ -164,13 +226,31 @@ export class OuterWatersScene implements WaterWorld {
   ): TerrainCollisionWorld {
     return new TerrainCollisionWorld(
       new ColliderGrid(colliders),
-      OUTER.bounds,
+      {
+        ...OUTER.bounds,
+        // v0.6 Pass 036: the swimmer stops at the tank's glass (back and sides); the fish and
+        // cruising animals keep the full ocean bounds.
+        min: {
+          ...OUTER.bounds.min,
+          x: -OUTER.glass.halfWidth + OUTER.glass.gap - OUTER.bounds.clearance,
+          z: OUTER.glass.z + OUTER.glass.gap - OUTER.bounds.clearance,
+        },
+        max: {
+          ...OUTER.bounds.max,
+          x: OUTER.glass.halfWidth - OUTER.glass.gap + OUTER.bounds.clearance,
+        },
+      },
       seabedHeight,
     );
   }
   /** Stage one: the tunnel and cliff, so the swimmer can cross into the outer waters. */
   private async prepareTunnel(): Promise<boolean> {
-    await warmUpScene(this.renderer, this.scene, this.camera);
+    await warmUpScene(
+      this.renderer,
+      this.scene,
+      this.camera,
+      () => !this.disposed,
+    );
     if (this.disposed) return false;
     this.ready = true;
     return true;
@@ -180,18 +260,31 @@ export class OuterWatersScene implements WaterWorld {
     await this.reef.ready;
     if (this.disposed) return false;
     this.environment.dress(this.reef.sand, this.reef.rock);
+    // The cleft wears the reef's rock too (triplanar, so its boulders need no UVs).
+    if (this.reef.rock)
+      for (const mesh of this.cleft.rocks) mesh.material = this.reef.rock;
     this.world = this.collisionFor([
       ...this.environment.colliders,
+      ...this.cleft.colliders,
       ...this.reef.colliders,
     ]);
     // Pass 026: one map of the reef's tops places the schools and lifts the creatures' routes.
     const drawn = this.reef.drawnPlacements,
       obstacles = reefObstacles(drawn);
+    // v0.6 Pass 038: the reef's fish live in the tank: inside its back and side glass, below the
+    // glass's top (the big animals swim outside it, in their own space).
+    const g = OUTER.glass,
+      tank: Bounds = {
+        min: { x: -g.halfWidth, y: g.bottom, z: g.z },
+        max: { x: g.halfWidth, y: g.top, z: OUTER.bounds.max.z },
+        clearance: OUTER.bounds.clearance,
+      };
     const habitat: FishHabitat = {
-      bounds: OUTER.bounds,
+      bounds: tank,
       // Coarse boxes keep the fish cheap; one more keeps them off the cliff.
       rocks: [
         ...this.reef.fishObstacles,
+        ...this.cleft.colliders,
         boxCollider(
           [OUTER.bounds.min.x - 1, OUTER.bounds.min.y - 1, OUTER.cliffZ - 1],
           [
@@ -206,25 +299,104 @@ export class OuterWatersScene implements WaterWorld {
         heads: this.reef.heads,
       }),
       substrateHeight: seabedHeight,
+      floorHeight: seabedHeight,
     };
     this.schools = new OuterSchools(
       habitat,
       outerSpecies(obstacles),
       fishLoader,
     );
-    const creatures = new OuterCreatures(obstacles, fishLoader);
+    const creatures = new OuterCreatures(
+      obstacles,
+      fishLoader,
+      undefined,
+      undefined,
+      OUTER.glass.bottom,
+    );
     this.creatures = creatures;
-    const [, loaded] = await Promise.all([this.schools.ready, creatures.ready]);
+    const visitors = new WallVisitors(obstacles, fishLoader, this.sightings);
+    this.visitors = visitors;
+    const barracuda = new BarracudaSchool(fishLoader);
+    this.barracuda = barracuda;
+    const life = new ReefLife(fishLoader, drawn, obstacles);
+    this.life = life;
+    const prep = this.preparation;
+    const [, loaded, visiting, schooling, living] = await Promise.all([
+      prep.track('schools', this.schools.ready),
+      prep.track('cruisers', creatures.ready),
+      prep.track('wall visitors', visitors.ready),
+      prep.track('barracuda', barracuda.ready),
+      prep.track('reef life', life.ready),
+    ]);
     if (this.disposed) return false;
     this.scene.add(this.schools.root);
-    if (loaded) this.scene.add(creatures.root);
-    this.sightings.push(...reefSightings(drawn), ...creatures.sightings);
-    this.reef.update(this.camera.position, 0, false);
-    await warmUpScene(this.renderer, this.scene, this.camera);
+    if (loaded) {
+      this.scene.add(creatures.root);
+      this.lanes = new PassingLanes(
+        creatures.cruisers,
+        creatures.groupOf,
+        undefined,
+        creatures.residents,
+      );
+    }
+    if (visiting) {
+      // Nobody has come yet; they are hidden from the first frame after the warm-up below.
+      visitors.arrive(this.visit);
+      this.scene.add(visitors.root);
+    }
+    if (schooling) {
+      // Away to begin with; drawn in the warm-up below so its shaders are ready when it comes.
+      this.scene.add(barracuda.root);
+      this.sightings.push(...barracuda.sightings);
+    }
+    // v0.6 Pass 043: the reef's newer life, and its new schooling fish seen by following one.
+    this.scene.add(life.root);
+    if (living) this.sightings.push(...life.sightings);
+    else this.sightings.push(...life.octopus.sightings);
+    const fish = this.schools.fish.simulation.fish;
+    for (const [id, sight, every] of [
+      ['blue-tang', OUTER_SIGHTS.tang, 9],
+      ['threadfin-butterflyfish', OUTER_SIGHTS.butterflyfish, 2],
+      ['moorish-idol', OUTER_SIGHTS.idol, 2],
+    ] as const) {
+      const of = fish.filter((f) => f.species.id === id);
+      for (let i = 0; i < of.length; i += every)
+        this.sightings.push({
+          ...sight,
+          position: of[i].position,
+          radius: 0.9,
+        });
+    }
+    this.sightings.push(
+      ...reefSightings(drawn),
+      ...creatures.sightings,
+      ...this.reef.sightings,
+    );
+    // v0.6 Pass 041: while the swimmer is in the tunnel, upload every coral and rock at every
+    // detail level (one copy of each drawn in the warm-up), so none pops in on first sight.
+    this.reef.primeAll();
+    await warmUpScene(
+      this.renderer,
+      this.scene,
+      this.camera,
+      () => !this.disposed,
+    );
     if (this.disposed) return false;
+    this.reef.resort(this.camera.position);
+    prep.settle();
     this.reefReady = true;
     this.reefPrepareMs = performance.now() - this.begunAt;
     return true;
+  }
+  /**
+   * v0.6 Pass 033: the swimmer has entered the outer reef again (visit number `visit`): the wall's
+   * visitors start over, in this visit's order. Call on crossing in, far from the wall.
+   */
+  arrive(visit: number): void {
+    this.visit = visit;
+    this.visitors?.arrive(visit);
+    this.barracuda?.arrive();
+    this.life?.arrive();
   }
   get bounds(): Bounds {
     return OUTER.bounds;
@@ -269,18 +441,41 @@ export class OuterWatersScene implements WaterWorld {
     for (let i = 0; i < this.lights.length; i++)
       this.lights[i].intensity = this.brightness[i] * dim;
     this.background.copy(this.dome.horizon);
+    this.glass.update(this.camera.position);
+    this.horizon.update(dt, active);
     this.reef.update(this.camera.position, dt, reducedMotion);
     this.schools?.update(dt, active, reducedMotion, player, this.camera);
+    this.lanes?.update(dt, active, this.camera.position);
     this.creatures?.update(dt, active, reducedMotion, player, this.camera);
+    // Only once warmed up, so everything is drawn (and compiled) in the warm-up first.
+    if (this.reefReady) {
+      this.barracuda?.update(dt, active, reducedMotion);
+      this.life?.update(dt, active, reducedMotion, player, this.camera);
+    }
+    this.visitors?.update(
+      dt,
+      active && this.reefReady,
+      reducedMotion,
+      player,
+      this.camera,
+      player.position,
+    );
     this.renderer.render(this.scene, this.camera);
   }
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    this.preparation.dispose();
     this.ready = false;
     this.environment.undress();
+    this.cleft.dispose();
+    this.glass.dispose();
+    this.horizon.dispose();
     this.schools?.dispose();
     this.creatures?.dispose();
+    this.visitors?.dispose();
+    this.barracuda?.dispose();
+    this.life?.dispose();
     this.sightings.length = 0;
     this.reef.dispose();
     this.environment.dispose();

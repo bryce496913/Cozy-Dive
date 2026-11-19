@@ -36,11 +36,18 @@ export interface HabitatInterest {
 
 /** Shared read-only environment data; never invokes the player's collision solver. */
 export interface FishHabitat {
+  /** Stable environment-owned positions; absent in an unpersonalized tank. */
+  residents?: readonly {
+    readonly position: Readonly<Vec3>;
+    readonly radius: number;
+  }[];
   readonly creatureAnchors?: readonly CreatureAnchor[];
   readonly bounds: Bounds;
   readonly rocks: readonly ConvexCollider[];
   readonly interests?: readonly HabitatInterest[];
   readonly substrateHeight?: (x: number, z: number) => number;
+  /** Optional collision floor for sloping worlds; habitat reference sand need not be a floor. */
+  readonly floorHeight?: (x: number, z: number) => number;
 }
 export function insideRock(
   p: Vec3,
@@ -78,7 +85,8 @@ export function safeFishPosition(
   if (
     p.x < b.min.x + radius ||
     p.x > b.max.x - radius ||
-    p.y < b.min.y + radius ||
+    p.y <
+      Math.max(b.min.y, habitat.floorHeight?.(p.x, p.z) ?? b.min.y) + radius ||
     p.y > b.max.y - radius ||
     p.z < b.min.z + radius ||
     p.z > b.max.z - radius
@@ -134,6 +142,36 @@ export function clearFishRoute(
       }
     }
     if (!miss && enter <= exit) return false;
+  }
+  return true;
+}
+
+/** A swept personal-space guard; an existing overlap may only improve, never trap a fish. */
+export function clearResidentStep(
+  from: Readonly<Vec3>,
+  to: Readonly<Vec3>,
+  radius: number,
+  habitat: FishHabitat,
+): boolean {
+  if (!habitat.residents) return true;
+  const dx = to.x - from.x,
+    dy = to.y - from.y,
+    dz = to.z - from.z,
+    length = dx * dx + dy * dy + dz * dz;
+  for (const r of habitat.residents) {
+    const x = from.x - r.position.x,
+      y = from.y - r.position.y,
+      z = from.z - r.position.z,
+      limit = radius + r.radius + 0.2;
+    const dot = x * dx + y * dy + z * dz,
+      start = x * x + y * y + z * z;
+    if (start < limit * limit && dot >= 0) continue;
+    const t = length > 1e-12 ? Math.max(0, Math.min(1, -dot / length)) : 0;
+    if (
+      (x + dx * t) ** 2 + (y + dy * t) ** 2 + (z + dz * t) ** 2 <
+      limit * limit
+    )
+      return false;
   }
   return true;
 }

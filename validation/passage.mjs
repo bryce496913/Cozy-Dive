@@ -1,8 +1,9 @@
+import { browserScale, recordBrowserScale } from './browser-scale.mjs';
 /* v0.4 Pass 023: the hidden passage, with real input.
  *
  *   COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/cozy023-passage node validation/passage.mjs
  *
- * Enter the Water (real pointer lock), place the swimmer outside the hidden crevice facing in, wait
+ * Dive In (real pointer lock), place the swimmer outside the hidden crevice facing in, wait
  * for the outer waters to load, then hold W: the swimmer swims through the crack and, past the
  * threshold, continues in the outer waters' tunnel without any break (the frames either side of
  * the swap are captured). Steering along the tunnel reaches open water; swimming back returns to
@@ -29,6 +30,7 @@ const base = process.env.COZY_URL || 'http://127.0.0.1:5173';
 const report = { base, errors: [] };
 try {
   const page = await browser.newPage({
+    ...browserScale(),
     viewport: { width: 1000, height: 640 },
   });
   page.setDefaultTimeout(Number(process.env.COZY_ACTION_TIMEOUT || 240000));
@@ -36,7 +38,9 @@ try {
     const r = await route.fetch();
     await route.fulfill({
       response: r,
-      body: (await r.text()) + '\nwindow.__cozy=app;',
+      body:
+        (await r.text()) +
+        '\nwindow.__cozy=app;cancelAnimationFrame(app.frame);',
     });
   });
   page.on('pageerror', (e) => report.errors.push(e.message));
@@ -44,8 +48,67 @@ try {
     if (m.type() === 'error') report.errors.push(m.text());
   });
   await page.goto(base);
+  await recordBrowserScale(page);
   await page.waitForFunction(() => window.__cozy?.office);
   await page.evaluate(() => window.__cozy.world.prepared);
+  await page.evaluate(() => window.__cozy.tankEditor.ready);
+  // Pass 030 regression: persist five real, validated additions close to the alley.
+  report.seededAdditions = await page.evaluate(async () => {
+    const { validPlacement, saveTank, TANK_ITEMS } =
+      await import('/src/catalog/catalog.ts');
+    const context = window.__cozy.tankEditor.model.context,
+      candidates = [],
+      items = [];
+    for (let x = 3.5; x < 16.5; x += 0.7)
+      for (let z = -12.5; z < -3; z += 0.7)
+        candidates.push({ x, y: context.surface(x, z), z });
+    candidates.sort(
+      (a, b) =>
+        Math.hypot(a.x - 6.4, a.z + 12.1) - Math.hypot(b.x - 6.4, b.z + 12.1),
+    );
+    for (const position of candidates) {
+      const item = {
+        id: `tank-passage-${items.length}`,
+        kind: 'seagrass',
+        position,
+        rotation: 0,
+      };
+      if (validPlacement(item, items, context)) items.push(item);
+      if (items.length === 5) break;
+    }
+    if (items.length !== 5)
+      throw Error('Five valid additions near the crevice could not be found');
+    localStorage.setItem(
+      'cozy-diver.journal.v1',
+      JSON.stringify({
+        version: 1,
+        seen: TANK_ITEMS.map((i) => ({
+          id: i.sighting,
+          first: new Date().toISOString(),
+        })),
+      }),
+    );
+    if (!saveTank(localStorage, items))
+      throw Error('Could not seed passage additions');
+    return items;
+  });
+  await page.reload();
+  await page.waitForFunction(() => window.__cozy?.tankEditor);
+  await page.evaluate(() =>
+    Promise.all([
+      window.__cozy.world.prepared,
+      window.__cozy.office.prepared,
+      window.__cozy.tankEditor.ready,
+    ]),
+  );
+  assert.equal(
+    await page.evaluate(() => window.__cozy.tankEditor.model.items.length),
+    5,
+  );
+  // The first office view owns one persistent miniature render-target texture (+1).
+  // Warm it before the baseline so later office trips are compared like for like.
+  await page.evaluate(() => window.__cozy.tickOffice(0));
+
   const locked = () =>
     page.waitForFunction(
       () =>
@@ -58,9 +121,7 @@ try {
         !document.pointerLockElement &&
         !document.querySelector('#overlay').hidden,
     );
-  await page
-    .getByRole('button', { name: 'Enter the Water', exact: true })
-    .click();
+  await page.getByRole('button', { name: 'Dive In', exact: true }).click();
   await locked();
   const step = (count = 1) =>
     page.evaluate(async (count) => {
@@ -228,7 +289,7 @@ try {
   for (let i = 0; i < 60; i++) await step(1);
   await page.keyboard.press('Escape');
   await paused();
-  await page.getByRole('button', { name: /the Water/ }).click();
+  await page.getByRole('button', { name: /Dive In|the Water/ }).click();
   await locked();
   let back = await step(1);
   for (

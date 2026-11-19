@@ -167,7 +167,10 @@ describe('Pass 017/018 asset compression', () => {
       (sum, f) => sum + statSync(`public/assets/models/${f}`).size,
       0,
     );
-    expect(bytes).toBeLessThan(20 * 1024 * 1024);
+    // v0.6 Pass 043: 26 MB (was 20) for seven more reef fish and two big animals; Pass 044: 30 MB
+    // for the kelp forest's six. Each area's models load only on entering it.
+    // v0.6 Pass 048: 34 MB for the Antarctic animals (all loaded only under the ice).
+    expect(bytes).toBeLessThan(34 * 1024 * 1024);
     // Source maps are authoring inputs only and no longer ship in public/.
     expect(existsSync('public/assets/textures')).toBe(false);
   });

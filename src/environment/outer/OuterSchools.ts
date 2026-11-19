@@ -11,10 +11,11 @@ import {
 } from '../../fish/FishSpecies';
 import { FishSystem } from '../../fish/FishSystem';
 import type { ReefLayout } from './OuterReefLayout';
+import { OUTER_EXTRA_SPECIES } from './OuterExtraSpecies';
 
 /**
  * v0.4 Pass 024/026: reef fish in the outer waters. Big schools of the tank's own species over
- * the reef top (Pass 026: about 170 fish, the chromis in two clouds of 55-70), swim with the same simulation and authored rigs
+ * the reef top and wall (235 fish, including smaller entrance and wall shoals), swim with the same simulation and authored rigs
  * as in the tank (leased from the tank's fish libraries, so each decodes once). If the rigs
  * cannot load, the simulation's simple fish are shown instead.
  */
@@ -24,6 +25,29 @@ const LIBRARY: Readonly<Partial<Record<SpeciesId, AssetId>>> = {
   'firefish-goby': 'firefish',
   'yellow-assessor': 'assessor',
   'royal-gramma': 'gramma',
+  garibaldi: 'chromis',
+  'glassy-sweeper': 'chromis',
+  'kelp-bass': 'chromis',
+  blacksmith: 'chromis',
+  senorita: 'chromis',
+  soldierfish: 'chromis',
+  'blue-tang': 'blueTang',
+  'threadfin-butterflyfish': 'butterflyfish',
+  'moorish-idol': 'moorishIdol',
+  'flashlight-fish': 'chromis',
+  'antarctic-silverfish': 'chromis',
+};
+/** v0.6 Pass 032: species drawn on another's rig in a colour of their own. */
+const RECOLOR: Readonly<Partial<Record<SpeciesId, number>>> = {
+  garibaldi: 0xff6a12,
+  'glassy-sweeper': 0xc98a4e,
+  'kelp-bass': 0x7a6a45,
+  blacksmith: 0x3f4d5e,
+  senorita: 0xe0b23a,
+  soldierfish: 0xc23a22,
+  'flashlight-fish': 0x1d2126,
+  // v0.6 Pass 052: bright silver-blue.
+  'antarctic-silverfish': 0xc3d3dc,
 };
 /** Outer schools switch to their light rigs at this many body lengths. */
 export const OUTER_FISH_DETAIL = 8;
@@ -37,6 +61,8 @@ export const OUTER_SCHOOLS: readonly {
   readonly at: { readonly x: number; readonly z: number };
   readonly count: number;
   readonly above: number;
+  /** Optional water-column centre for wall shoals, lifted if reef clearance requires it. */
+  readonly waterLevel?: number;
   readonly spread: {
     readonly x: number;
     readonly y: number;
@@ -93,6 +119,69 @@ export const OUTER_SCHOOLS: readonly {
     spread: { x: 3.5, y: 0.7, z: 3 },
     depth: [0.6, 3.5],
   },
+  {
+    // A small welcoming cloud beside the gully, clear of the tunnel opening.
+    species: 'blue-green-chromis',
+    at: { x: -7, z: -37 },
+    count: 18,
+    above: 3.5,
+    spread: { x: 3, y: 1, z: 2 },
+    depth: [2, 6],
+  },
+  {
+    // Mid-water life hanging by the window over the lip, rather than more fish crowded onto the
+    // reef top (v0.6 Pass 038: inside the glass, as every reef fish now is).
+    species: 'blue-green-chromis',
+    at: { x: -16, z: -55.5 },
+    count: 24,
+    above: 2.5,
+    waterLevel: -3,
+    spread: { x: 4, y: 1.2, z: 2 },
+    depth: [1, 6],
+  },
+  {
+    species: 'blue-green-chromis',
+    at: { x: 16, z: -55.5 },
+    count: 24,
+    above: 2.5,
+    waterLevel: -1,
+    spread: { x: 4, y: 1.2, z: 2 },
+    depth: [1, 6],
+  },
+  // v0.6 Pass 043: two big clouds of blue tang moving over the reef top.
+  {
+    species: 'blue-tang',
+    at: { x: 4, z: -46 },
+    count: 36,
+    above: 2.6,
+    spread: { x: 6, y: 1.2, z: 4.5 },
+    depth: [1, 5],
+  },
+  {
+    species: 'blue-tang',
+    at: { x: -20, z: -47 },
+    count: 26,
+    above: 2.4,
+    spread: { x: 5, y: 1.1, z: 4 },
+    depth: [1, 5],
+  },
+  // Butterflyfish and Moorish idols, always in twos, low over the coral.
+  ...(
+    [
+      ['threadfin-butterflyfish', -12, -42],
+      ['threadfin-butterflyfish', 10, -52],
+      ['threadfin-butterflyfish', 24, -46],
+      ['moorish-idol', -3, -51],
+      ['moorish-idol', 18, -39],
+    ] as const
+  ).map(([species, x, z]) => ({
+    species,
+    at: { x, z },
+    count: 2,
+    above: 1.2,
+    spread: { x: 1.5, y: 0.5, z: 1.5 },
+    depth: [0.6, 2.4] as const,
+  })),
 ];
 
 /**
@@ -104,14 +193,18 @@ export function outerSpecies(
   top: (x: number, z: number, radius: number) => number,
 ): FishSpecies[] {
   return OUTER_SCHOOLS.map((s) => {
-    const base = FISH_SPECIES.find((f) => f.id === s.species)!,
-      ground = top(s.at.x, s.at.z, Math.max(s.spread.x, s.spread.z));
+    const base =
+        FISH_SPECIES.find((f) => f.id === s.species) ??
+        OUTER_EXTRA_SPECIES.find((f) => f.id === s.species)!,
+      ground = top(s.at.x, s.at.z, Math.max(s.spread.x, s.spread.z)),
+      centre = Math.max(ground + s.above, s.waterLevel ?? -Infinity),
+      floor = centre - s.above;
     return {
       ...base,
       count: s.count,
-      region: { x: s.at.x, y: ground + s.above, z: s.at.z },
+      region: { x: s.at.x, y: centre, z: s.at.z },
       spread: s.spread,
-      depth: [ground + s.depth[0], ground + s.depth[1]],
+      depth: [floor + s.depth[0], floor + s.depth[1]],
       individualScale: undefined,
     };
   });
@@ -214,6 +307,7 @@ export class OuterSchools {
         OUTER_FISH_DETAIL,
         // At distance the eyes are sub-pixel: about 0.35k triangles saved per far fish.
         /^Eyes_Gills_Mouth/,
+        RECOLOR[id],
       );
       next += counts[i];
       this.schools.push(school);

@@ -1,6 +1,10 @@
 # Cozy Diver
 
-A quiet little world beneath the surface. **v0.4 / Pass 028 — First Passage release candidate (`0.4.0-rc.1`)** is a first-person, browser-based aquarium prototype. Start in a small glass-walled office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15` and v0.3 (Office & Dive Transition) at `0.3.0-rc.1`. No scores, timers, combat, accounts, or external asset services.
+A quiet little world beneath the surface. **v0.8 / Complete tank collection (`0.6.0-rc.25`, beta candidate; not released)** is a first-person, browser-based aquarium prototype. Start in a small glass-walled office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15` and v0.3 (Office & Dive Transition) at `0.3.0-rc.1`. No scores, timers, combat, accounts, or external asset services.
+
+Every discovered species can join the home tank, including miniature whales, penguins, cave animals and polar life. See the [complete collection validation](docs/VALIDATION_TANK_COLLECTION.md).
+
+The reef, cave and ice follow-up brings the glass closer to the reef, continues the room tile floor beyond it, and improves cave geology, creature detail and ice encounter entrances/exits. See the [review and validation record](docs/VALIDATION_REEF_CAVE_ICE_POLISH.md).
 
 ## Stack and requirements
 
@@ -13,7 +17,7 @@ npm install
 npm run dev
 ```
 
-Open the address printed by Vite. Click **Enter the Water** to give the canvas mouse capture. Escape pauses swimming and shows the resume overlay. Settings are accessible before entering or while paused.
+Open the address printed by Vite. Click **Dive In** (or **Enter the Office**) to give the canvas mouse capture. Escape pauses swimming and shows the resume overlay. Settings are accessible before entering or while paused.
 
 For an existing lockfile in CI or a clean checkout, use `npm ci`.
 
@@ -45,7 +49,7 @@ In the office, W A S D walk and the mouse looks around.
 
 Click **Return to the Water** to resume. Look up or down and use W/S to change depth; A/D always strafe horizontally. Space and Shift have no swimming action. Pausing or losing browser focus clears held input and propulsion momentum while retaining a resting breath’s phase and small vertical velocity. Diagonal input is normalized. Subtle stroke-related pitch feedback stays below 0.07 degrees, with no roll or visual position offsets. Looking straight up/down is limited.
 
-This is the v0.4 release candidate, awaiting macOS acceptance. See [Pass 028 release-candidate validation](docs/VALIDATION_V04_PASS_028.md), [Pass 027 validation](docs/VALIDATION_V04_PASS_027.md), [Pass 026 playtest round](docs/VALIDATION_V04_PASS_026_PLAYTEST.md), [Pass 026 validation](docs/VALIDATION_V04_PASS_026.md), [Pass 025 validation](docs/VALIDATION_V04_PASS_025.md), [Pass 024 validation](docs/VALIDATION_V04_PASS_024.md), [Pass 023 validation](docs/VALIDATION_V04_PASS_023.md), [Pass 022 validation](docs/VALIDATION_V03_PASS_022.md), [Pass 021 validation](docs/VALIDATION_V03_PASS_021.md), [Pass 020 validation](docs/VALIDATION_V03_PASS_020.md), [Pass 019 validation](docs/VALIDATION_V02_PASS_019.md), [Pass 018 validation](docs/VALIDATION_V02_PASS_018.md), [Pass 017 validation](docs/VALIDATION_V02_PASS_017.md), [Pass 016 validation](docs/VALIDATION_V02_PASS_016.md), [Pass 015 validation](docs/VALIDATION_V02_PASS_015.md), [Pass 014 validation](docs/VALIDATION_V02_PASS_014.md), [Pass 013 validation](docs/VALIDATION_V02_PASS_013.md) and [repeatable benchmarks](validation/README.md).
+v0.6 Expanding Oceans has begun, while the v0.4 and v0.5 candidates await macOS acceptance. See [Pass 040 validation](docs/VALIDATION_V06_PASS_040.md), [Pass 036 notes](docs/VALIDATION_V06_PASS_036.md), [Pass 035 notes](docs/VALIDATION_V06_PASS_035.md), [Pass 034 validation](docs/VALIDATION_V06_PASS_034.md), [Pass 033 validation](docs/VALIDATION_V06_PASS_033.md), [the kelp forest](docs/KELP_FOREST.md), [Pass 032 validation](docs/VALIDATION_V06_PASS_032.md), [Pass 031 release-candidate validation](docs/VALIDATION_V05_PASS_031.md), [tank catalog design](docs/TANK_CATALOG.md) and [Pass 030 validation](docs/VALIDATION_V05_PASS_030.md), including the completed Pass 029 regressions. See [outer reef life validation](docs/VALIDATION_OUTER_REEF_LIFE.md), [Pass 028 playtest round](docs/VALIDATION_V04_PASS_028_PLAYTEST.md), [Pass 028 release-candidate validation](docs/VALIDATION_V04_PASS_028.md), [Pass 027 validation](docs/VALIDATION_V04_PASS_027.md), [Pass 026 playtest round](docs/VALIDATION_V04_PASS_026_PLAYTEST.md), [Pass 026 validation](docs/VALIDATION_V04_PASS_026.md), [Pass 025 validation](docs/VALIDATION_V04_PASS_025.md), [Pass 024 validation](docs/VALIDATION_V04_PASS_024.md), [Pass 023 validation](docs/VALIDATION_V04_PASS_023.md), [Pass 022 validation](docs/VALIDATION_V03_PASS_022.md), [Pass 021 validation](docs/VALIDATION_V03_PASS_021.md), [Pass 020 validation](docs/VALIDATION_V03_PASS_020.md), [Pass 019 validation](docs/VALIDATION_V02_PASS_019.md), [Pass 018 validation](docs/VALIDATION_V02_PASS_018.md), [Pass 017 validation](docs/VALIDATION_V02_PASS_017.md), [Pass 016 validation](docs/VALIDATION_V02_PASS_016.md), [Pass 015 validation](docs/VALIDATION_V02_PASS_015.md), [Pass 014 validation](docs/VALIDATION_V02_PASS_014.md), [Pass 013 validation](docs/VALIDATION_V02_PASS_013.md) and [repeatable benchmarks](validation/README.md).
 
 ## Current features
 
@@ -170,7 +174,7 @@ To test manually:
 - The build reports a bundle-size advisory for Three.js (see the current validation record for measured size). No runtime asset downloads are needed.
 - Browser coverage and performance claims are limited to the actual results in the validation record. Software-rendered Chromium does not establish ordinary-laptop GPU performance.
 
-The [roadmap](docs/ROADMAP.md) is provisional; future passes should preserve the quiet, low-pressure experience.
+The [roadmap](docs/ROADMAP.md) is the canonical plan and milestone status. v0.2 and v0.3 are accepted; v0.4, v0.5 and v0.6 are implemented but await the user's macOS play-through. Nothing has been released. See also [the development audit](docs/DEVELOPMENT_AUDIT.md). Future passes should preserve the quiet, low-pressure experience.
 
 Pass 011 integrates the complete tropical roster and six ornaments without changing production behavior. Deterministic physical route fixtures, full-scene long-session audits, graphics/input failure checks and retained browser evidence support this candidate. MacBook Air performance, Safari behavior, audio comfort and final v0.2 acceptance remain manual. No release, tag, automatic merge or v0.3 work is included.
 
@@ -218,6 +222,15 @@ Behaviour, homes, collision and animation contracts are unchanged; clownfish and
 ### v0.2 Pass 016 candidate
 
 All 40 fish now swim as authored morph rigs: the accepted chromis, plus new pajama cardinalfish, firefish, yellow assessors and royal grammas built on the same rig and morph contract, alongside the Pass 013 clownfish. Simulation, behaviour, pause and reduced motion are unchanged, and the procedural fish remain as the fallback. See [validation and matched captures](docs/VALIDATION_V02_PASS_016.md). This pass awaits user review and MacBook Air acceptance.
+
+### v0.4 Pass 028 playtest round (`0.4.0-rc.2`)
+
+Fixes from playing `0.4.0-rc.1`:
+
+- **Chairs:** one complete task chair, at your desk and at every open-plan desk. Its armrests stand on posts, and the backrest is joined to the seat. The open-plan chairs no longer sit through the partition, and each faces its own desk.
+- **The crevice:** the overhang above the mouth now rests on the rocks either side, instead of floating over them.
+
+See [the playtest round](docs/VALIDATION_V04_PASS_028_PLAYTEST.md).
 
 ### v0.4 Pass 028 release candidate — polish and acceptance
 
@@ -338,7 +351,7 @@ Fixes from two MacBook playtests:
 - **Swimming:** 40% slower than v0.2 rc.12 (default 1.68 m/s, maximum 3 m/s), with saved speeds moved onto the new scale. Idle bobbing is calmer: about 8 cm instead of 13 cm.
 - **Texture pop-in:** gone. Every texture and per-object GPU resource is uploaded behind "Preparing aquarium details" before you enter, where 93 used to upload during the first swim.
 
-The roadmap now follows the agreed sequence: v0.3 Office & Dive Transition, v0.4 Personalization, v0.5 Beyond the Glass, v0.6 Expanding Oceans. See [validation](docs/VALIDATION_V02_PASS_019.md).
+The roadmap now follows the agreed sequence: v0.3 Office & Dive Transition, v0.4 Personalization, v0.5 Beyond the Glass, v0.6 Expanding Oceans. See [validation](docs/VALIDATION_V02_PASS_019.md). (Historical. After v0.3 was accepted, v0.4 and v0.5 were swapped: v0.4 is First Passage and v0.5 Personalization. See the [roadmap](docs/ROADMAP.md).)
 
 ### v0.2 Pass 018 candidate
 
@@ -347,3 +360,221 @@ Every embedded texture is now KTX2/Basis with a full mip chain, re-encoded from 
 ### v0.2 Pass 017 candidate
 
 Fish beyond 14 body lengths switch to a morphing distance level (about 1.8k instead of 12.7k triangles), cutting the spawn view by 28%. Every shipped model is Draco-compressed with WebP textures, so the production startup download falls from about 53 MB to about 17 MB, with no visible change. The Draco decoder is served locally. See [validation](docs/VALIDATION_V02_PASS_017.md).
+
+### v0.8 Pass 060 — Public beta readiness
+
+- **Updates never serve stale models:** the version is stamped into the build and onto model requests.
+- **Calm recovery** if something goes wrong mid-swim: the page says so, keeps every save, and offers Reload.
+- **Settings → Beta feedback:** an optional, private feedback route. Nothing is sent automatically.
+- **The version and third-party notices** are shown in Settings.
+- **Saves tested across versions**, including a real update in the browser. No third-party requests at runtime.
+- **Documents:**
+  - [deployment and rollback](docs/DEPLOYMENT.md);
+  - [beta readiness and blocker checklist](docs/BETA_READINESS.md);
+  - [draft release notes and testing plan](docs/RELEASE_NOTES_BETA.md).
+- **Not deployed or tagged:** the open decisions are listed in the readiness report.
+
+### v0.6 Pass 059 — Performance, loading and resources
+
+- **Smoother passages:** the longest frame crossing into a world fell from about 500–720 ms to 40–130 ms (software rendering). The warm-up no longer compiles a second, unused set of shaders, and spreads its uploads over frames.
+- **Less memory kept** after leaving the outer worlds: fish that only live there are released, about half of what stayed before. Nothing accumulates.
+- **Settings → Graphics detail:** Full detail is the default; Lighter draws fewer pixels for modest laptops.
+- **Profiling harness:** `validation/perf-profile.mjs`, with priorities for next steps in the report. Real-GPU numbers are still to be taken.
+
+See [performance](docs/PERFORMANCE_V06.md).
+
+### v0.6 Pass 058 — Mobile and touch: feasibility (Phase A)
+
+- **A feasibility report** measured in device emulation: layout, downloads, memory and render budgets. It lists the blockers (no pointer lock on phones; render and memory budgets), proposes targets and a simple touch design, and recommends Phase B after Pass 059's quality tier.
+- **Touch-only devices** now get a plain message explaining that a mouse or trackpad is needed for now.
+- **On phones:** the start screen no longer hides under the header; tap targets are larger and safe areas are respected.
+- **Desktop:** unchanged.
+
+See [mobile feasibility](docs/MOBILE_FEASIBILITY.md).
+
+### v0.6 Pass 057 — Accessibility, motion comfort and relaxation
+
+- **New settings:** a **field of view** setting (a wider view can ease motion sickness) and **invert up and down look**.
+- **Keyboard:** Tab stays inside open panels (Settings, Seen, For your tank), and Escape closes them.
+- **Readability:** larger instruction text, and **M mute** listed in the controls.
+- **Checks:** a keyboard-only walkthrough (`validation/keyboard.mjs`), with contrast measured.
+
+See [accessibility](docs/ACCESSIBILITY.md).
+
+### v0.6 Pass 056 — Cross-browser compatibility
+
+- **Feature checks, not browser names:** WebGL 2, pointer lock, audio and storage are tried before anything is built, and each has a clear message if it is missing.
+- **A Reload button** after a lost graphics context.
+- **Safari CSS fixes:** the `-webkit-backdrop-filter` prefix and viewport-height fallbacks.
+- **Tested here:** Chromium and Chrome (the same engine, software rendering). Safari, Firefox and Edge have manual steps but were not run.
+
+See [browser support](docs/BROWSER_SUPPORT.md).
+
+### v0.6 Pass 055 — Full-world acceptance
+
+- **The whole journey, automated:** `validation/acceptance.mjs` passes all 65 checks.
+  - Office → dive → every world → back through every passage, twice (the second time with reduced motion).
+  - Rapid turn-backs, a paused passage, and the release of every world.
+  - The tank, preferences, journal and onboarding survive a relaunch.
+- **No growing GPU resources:** a borrowed-fish cache stays at a fixed size.
+- **v0.6 is acceptance-ready, not yet accepted:** it waits on the real-device checklist (Mac, Chrome and Safari).
+
+See [the acceptance report](docs/ACCEPTANCE_V06.md).
+
+### v0.6 Pass 054 — Instant relaxation and frictionless onboarding
+
+- **Two described choices:** **Enter the Office** (walk around, then dive into the tank) or **Dive In** (straight into the water; it was "Enter the Water"). The first is focused, so Enter starts.
+- **Welcome back:** returning visitors are greeted as such, with the place they last went offered first.
+- **A one-time swim hint** in the water: look up or down to change depth, Esc to pause. It goes as soon as you are swimming.
+- **A quiet "Settling the water…"** while the scene loads, and gentler error wording.
+- **Storage:** all of it is stored locally and tolerates blocked storage.
+
+See [onboarding](docs/ONBOARDING.md).
+
+### v0.6 Pass 053 — Visual consistency
+
+- **An art audit of every world** against the creature standard, ranked by how visible each gap is.
+- **Rebuilt in code:**
+  - the kelp forest's sea stars (also used under the ice), purple urchins and Spanish shawl nudibranchs;
+  - the sea cave's spiny lobsters;
+  - the krill, sea butterflies and comb jellies under the ice.
+- **Same draw calls:** the new shapes are trimmed to their instance counts. Triangles rise by 13–22% in the kelp forest, cave and ice.
+- **Lighting:** reviewed; the per-world moods are kept.
+
+See [the audit](docs/VISUAL_AUDIT_V06.md).
+
+### v0.6 Pass 052B — Open-ocean freedom
+
+- **Outer reef:**
+  - **The window:** a frameless window you only notice up close, 4 m further out over the drop.
+  - **Further and deeper:** you can drift 3 m deeper down the wall.
+  - **The sides:** no side glass; the reef runs on into the haze.
+  - **Far shapes:** faint far pinnacles, ridges and passing animals suggest the open ocean beyond.
+- **Kelp forest and under the ice:** you can swim up to the rock and the icebergs instead of stopping metres short.
+- **Fixes:**
+  - the turtles now stay on the reef;
+  - the polar bear now loads.
+
+See [the design](docs/OPEN_OCEAN.md) and [validation](docs/VALIDATION_V06_PASS_052B.md).
+
+### v0.6 Pass 052 — Play-test fixes across the outer waters
+
+- **Outer reef:**
+  - The turtles live on the reef top inside the tank.
+  - Twice as many bannerfish, at half the size: they wait scattered along the glass, and pull together before the sunfish comes into view.
+  - The bumphead parrotfish is twice the size.
+  - The whale and whale shark pass far less often.
+  - The bigeye trevally ball comes close to the glass.
+  - The octopus keeps to the seabed and eases home, and its den is now a solid rock mound with a dark pocket.
+- **Kelp forest:** a bigger harbour seal and a newly modelled sea otter.
+- **Sea cave:**
+  - The square of sand poking into the entrance tunnel is gone.
+  - Crabs and lionfish are rebuilt in much more detail.
+  - The moray lives in a solid rock outcrop.
+  - The nurse shark startles and bolts like the whitetips, and every startled shark now flinches, turns and dashes off properly.
+  - The tunnel to the ice is frosted, with icicles and boulders round its mouth.
+- **Under the ice:**
+  - The entrance is fixed (its rock wall faced the wrong way).
+  - There is far more life where you swim: more penguins and fish, a lower Weddell seal, rare visitors sooner, a big school of Antarctic silverfish, jellyfish and salp chains.
+  - The seabed is richer: brinicles, platelet ice, scallop beds, urchins, brittle stars, sea cucumbers, sea pens and giant isopods.
+  - The icebergs are more detailed.
+
+See [the record](docs/VALIDATION_V06_PASS_052.md).
+
+### v0.6 Pass 051 — Full aquarium personalization
+
+Make the tank your own. Pause in the tank and choose **For your tank**:
+
+- **Fish:** add fish, not just visitors. Chromis and cardinalfish join the tank's schools. Firefish, assessors and grammas each settle into a home of their own. Blue tang, butterflyfish and Moorish idols join once you have seen them on the outer reef.
+- **Living, not decorations:** they swim with the same behaviour as the tank's own fish, and appear in the office miniature too.
+- **Limits:** a gentle note says when the tank has enough. Fish that don't suit a home tank (too big, or from cold, dark or polar water) are listed with the reason.
+- **Decorations:** more corals, algae, a reef rock and a smooth stone. **Shift+R** turns back, and **Z** or **Undo** steps back a change.
+- **Saving:** everything saves on this device, and older saves carry over. **Restore the original tank** returns it all to the sea, while your sightings stay.
+
+See [the tank catalog](docs/TANK_CATALOG.md#pass-051-full-aquarium-personalization) and [validation](docs/VALIDATION_V06_PASS_051.md).
+
+### v0.6 Pass 050 — v0.4 and v0.5 acceptance
+
+v0.4 (First Passage) and v0.5 (Personalization) are prepared for the macOS play-through. They are acceptance-ready, not accepted. One fix: your tank's save is never quietly emptied. Additions or little visitors that cannot be shown on this visit (not yet unlocked, or no longer fitting) are kept and come back later, and a save from a newer version is left alone. New tests cover all eight passage crossings. See [the acceptance report and checklist](docs/ACCEPTANCE_V04_V05.md).
+
+### v0.6 Pass 040 — Release candidate
+
+The unit tests are up to date (565 passing) and a full browser regression of 21 harnesses passes, including a new one for the sea lion and the sea cave. The regression found one bug, fixed here: giant kelp could no longer be seen near the kelp forest's tunnel exit. See [validation](docs/VALIDATION_V06_PASS_040.md).
+
+### v0.6 Pass 039 — A playful sea lion
+
+A California sea lion now lives in the kelp forest. It roams the forest. When it notices you, it swims over and circles you playfully, swooping up and down, now and then turning about or rolling right over, never touching you. After a while it darts off, and comes back to play again later. It is a new sighting.
+
+### v0.6 Pass 038 — Fish inside the glass
+
+The outer reef's own fish now live inside its tank, bounded by the back and side glass. The two mid-water chromis shoals that hung out past the lip now hover just inside the window. The big animals swim outside the glass, in their own space.
+
+### v0.6 Pass 037 — Passing close, passing far
+
+The outer reef's big animals now choose each pass while out of sight. Sometimes they glide close by the glass, near enough to count as a sighting; at other times they drift past far out in the blue, at the edge of what you can see. A wall visitor's first pass is always close.
+
+### v0.6 Pass 036 — Every area is a tank
+
+- **Outer reef:** its edge is a great aquarium window just past the reef's lip, with glass sides. Swim up to the glass and watch the big animals pass in the blue beyond.
+- **Kelp forest:** walled in by rock and dense kelp.
+- **Sea cave:** a tank-sized cave with a solid rock roof, keeping its sunlit hole.
+
+See [notes](docs/VALIDATION_V06_PASS_036.md).
+
+### v0.6 Pass 035 — Detail for the kelp forest and sea cave
+
+- **Kelp forest:** the kelp has root holdfasts, gas bulbs and ruffled blades. Urchins, sea stars, swaying anemones and cobbles cover the rocks and floor, sunbeams slant through the canopy, and kelp bass hang among the kelp.
+- **Sea cave:** stalactite-like formations hang from the roof, and sun corals with opening polyps grow on the walls. Rubble covers the sand, caustics ripple in the pool of light, and motes glitter in the sunbeam.
+- **Cave creatures:** detailed spiny lobsters duck into their cracks when you come close, and the resting whitetips now and then stir and resettle.
+- **Both:** drifting particles in the water.
+
+See [notes](docs/VALIDATION_V06_PASS_035.md).
+
+### v0.6 Pass 034 — The sea cave
+
+Beyond the kelp forest there is now a sea cave.
+
+- **The way in:** a hidden grotto against the kelp forest's rock wall, east of its tunnel, leads through a dark tunnel into the cave.
+- **The cave:** a limestone dome lit by a shaft of sunlight through a hole in its roof, with a pool of light on the sand and faintly glowing sponges in the shadows.
+- **Life:** whitetip reef sharks resting on the sand (and one circling), schools of glassy sweepers, and spiny lobsters peering from the cracks.
+- **Discovery:** new sightings. Seeing the cave unlocks a limestone arch for your tank.
+
+See [validation](docs/VALIDATION_V06_PASS_034.md).
+
+### v0.6 Pass 033 — Wall visitors
+
+Big animals of the open blue now pass along the outer reef's wall.
+
+- **Who:** a reef manta, a whale shark, a school of twelve scalloped hammerheads, a great hammerhead and a humpback whale.
+- **How:** each swims a long loop out past the lip, along the wall one way and back further out, one above another.
+- **When:** nobody is there when you arrive. Wait at the edge and the first comes after a few seconds; another kind joins about every 45 seconds you stay there.
+- **Surprise:** every visit to the outer reef opens with a different animal. They appear far off in the haze and swim into view.
+- **Discovery:** each is a new sighting. Nothing is counted or scored.
+
+See [validation](docs/VALIDATION_V06_PASS_033.md).
+
+### v0.6 Pass 032 — The kelp forest
+
+Beyond the outer reef there is now a kelp forest.
+
+- **Finding it:** at the foot of the reef's cliff, a second crack hides behind a coral bommie. Swim through it and, past the dark, you continue into a tunnel that opens into the forest.
+- **The forest:** giant kelp sways slowly up to a bright surface, over dark boulders and a sandy lane, in cooler green water.
+- **Life:** bright orange garibaldi keep near the rocks, and bat rays glide along the sand.
+- **Discovery:** new sightings for the giant kelp, the garibaldi and the bat rays. Seeing the kelp unlocks a kelp stand for your tank.
+- **Getting back:** swim back the way you came, or choose Return to the tank.
+
+See [the kelp forest](docs/KELP_FOREST.md) and [validation](docs/VALIDATION_V06_PASS_032.md).
+
+### v0.5 Pass 031 release candidate — polish and acceptance
+
+`0.5.0-rc.1` gathers v0.5 for acceptance: corals, sea fans and seagrass you have seen, placed anywhere they fit in the tank, and a blacktip pup, baby eagle ray and turtle hatchling that live there, all saved.
+
+- **Smoother babies:** a review found that each time a baby planned a new route, one frame took 8–12 ms, a small stutter every few seconds. Route planning is now spread over frames (worst warm step 1.3 ms), and the babies give way to you evenly.
+- **Full regression:** every browser harness, including the catalog and the babies.
+- **Acceptance:** a macOS checklist for v0.5, which can share a play-through with v0.4.
+
+See [release-candidate validation](docs/VALIDATION_V05_PASS_031.md).
+
+### v0.5 Passes 029–030 — The tank catalog and little visitors
+
+Discover corals and seagrass beyond the tank, then pause inside the aquarium and choose **For your tank**. Aim a preview at sand or rock, **R** turns (**Shift+R** back), **F** places, and **Escape** or **Z** cancels; **Z** also undoes the last change. Look at an addition to **G** move or **X** remove it. Additions save on this device and appear in the office miniature. Seeing the outer reef’s shark, eagle ray or turtle also unlocks one small visitor of that kind: choose **Add to the tank**, or **Return it to the sea**. They swim calmly around the scenery, with room for the swimmer and fish. Settings can restore the original tank, including returning visitors, after confirmation.
