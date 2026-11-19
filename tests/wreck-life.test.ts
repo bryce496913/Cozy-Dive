@@ -1,11 +1,17 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
+  WreckLife,
   HoldPatrol,
   WRECK_LIFE,
   wreckHabitat,
   wreckSpecies,
 } from '../src/environment/wreck/WreckLife';
-import { toShip, wreckShade } from '../src/environment/wreck/WreckLayout';
+import * as THREE from 'three';
+import {
+  toShip,
+  wreckFloor,
+  wreckShade,
+} from '../src/environment/wreck/WreckLayout';
 import { spawnFish } from '../src/fish/FishSpawner';
 import { insideRock } from '../src/fish/FishHabitat';
 
@@ -40,4 +46,33 @@ describe('life on the wreck', () => {
       for (const rock of habitat.rocks)
         expect(insideRock(f.position, 0.05, rock)).toBe(false);
   });
+  it('the cruisers and the open-water schools keep clear of the ship and the sand', () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const loader = {
+      acquire: () => Promise.reject(Error('no assets in tests')),
+      evictUnused: () => undefined,
+    } as unknown as ConstructorParameters<typeof WreckLife>[0];
+    const life = new WreckLife(loader),
+      rocks = wreckHabitat().rocks,
+      clear = (p: { x: number; y: number; z: number }, r: number) => {
+        for (const rock of rocks) expect(insideRock(p, r, rock)).toBe(false);
+        expect(p.y).toBeGreaterThan(wreckFloor(p.x, p.z) + 0.4);
+      };
+    const player = {
+      active: false,
+      position: { x: 0, y: 0, z: 0 },
+      velocity: { x: 0, y: 0, z: 0 },
+    };
+    const camera = new THREE.PerspectiveCamera();
+    for (let i = 0; i < 30 * 60; i++) {
+      life.update(1 / 30, true, false, player, camera);
+      if (i % 15) continue;
+      for (const loop of [life.wrasse, life.shark, life.turtle])
+        clear(loop.pose.position, 0.6);
+      for (const p of [...life.trevally, ...life.barracuda])
+        clear(p.position, 0.3);
+    }
+    clear(life.sternGrouper.position, 0.5);
+    life.dispose();
+  }, 30000);
 });

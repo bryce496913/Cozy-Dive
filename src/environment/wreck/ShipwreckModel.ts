@@ -894,13 +894,165 @@ function seaFan(): THREE.BufferGeometry {
   return merge(parts);
 }
 
-const GROWTH: readonly RGB[] = [
+/** A black coral tree: a thick dark trunk dividing into bushy, drooping branchlets. */
+function blackCoral(): THREE.BufferGeometry {
+  const parts: THREE.BufferGeometry[] = [];
+  const grow = (
+    from: THREE.Vector3,
+    dir: THREE.Vector3,
+    length: number,
+    radius: number,
+    depth: number,
+    k: number,
+  ) => {
+    const to = from.clone().addScaledVector(dir, length);
+    parts.push(rod(from, to, radius, [1, 1, 1], 5));
+    if (depth === 0) {
+      // The fine, feathery tips, paler with polyps.
+      for (let i = 0; i < 3; i++) {
+        const twig = dir
+          .clone()
+          .add(
+            new THREE.Vector3(
+              Math.sin(k + i * 2.1) * 0.8,
+              0.2,
+              Math.cos(k + i * 2.1) * 0.8,
+            ),
+          )
+          .normalize();
+        parts.push(
+          rod(
+            to,
+            to.clone().addScaledVector(twig, length * 0.6),
+            radius * 0.6,
+            [1.3, 1.3, 1.25],
+            3,
+          ),
+        );
+      }
+      return;
+    }
+    for (let i = 0; i < 3; i++) {
+      const a = k + i * 2.1,
+        next = dir
+          .clone()
+          .add(new THREE.Vector3(Math.sin(a) * 0.65, 0.15, Math.cos(a) * 0.65))
+          .normalize();
+      grow(
+        to,
+        next,
+        length * 0.68,
+        radius * 0.6,
+        depth - 1,
+        k + i * 1.3 + depth,
+      );
+    }
+  };
+  grow(new THREE.Vector3(), new THREE.Vector3(0, 1, 0), 0.45, 0.07, 3, 0.4);
+  return merge(parts);
+}
+/** A sea whip: one long, slender, gently curving rod. */
+function seaWhip(): THREE.BufferGeometry {
+  const parts: THREE.BufferGeometry[] = [];
+  let at = new THREE.Vector3();
+  for (let i = 0; i < 8; i++) {
+    const next = at
+      .clone()
+      .add(new THREE.Vector3(0.03 * i, 0.25, 0.015 * i * i * 0.2));
+    parts.push(rod(at, next, 0.025 - i * 0.002, [1, 1, 1], 5));
+    at = next;
+  }
+  return merge(parts);
+}
+/** A hydroid clump: fine feathery plumes, pale and delicate. */
+function hydroid(): THREE.BufferGeometry {
+  const parts: THREE.BufferGeometry[] = [];
+  for (let i = 0; i < 7; i++) {
+    const a = i * 2.4,
+      tip = new THREE.Vector3(
+        Math.cos(a) * 0.12,
+        0.3 + 0.08 * Math.sin(i * 1.9),
+        Math.sin(a) * 0.12,
+      );
+    parts.push(rod(new THREE.Vector3(), tip, 0.006, [1, 1, 1], 3));
+    for (let j = 1; j < 5; j++) {
+      const p = tip.clone().multiplyScalar(j / 5);
+      parts.push(
+        rod(
+          p,
+          p
+            .clone()
+            .add(
+              new THREE.Vector3(
+                Math.cos(a + 1.5) * 0.05,
+                0.03,
+                Math.sin(a + 1.5) * 0.05,
+              ),
+            ),
+          0.004,
+          [1, 1, 1],
+          3,
+        ),
+      );
+      parts.push(
+        rod(
+          p,
+          p
+            .clone()
+            .add(
+              new THREE.Vector3(
+                Math.cos(a - 1.5) * 0.05,
+                0.03,
+                Math.sin(a - 1.5) * 0.05,
+              ),
+            ),
+          0.004,
+          [1, 1, 1],
+          3,
+        ),
+      );
+    }
+  }
+  return merge(parts);
+}
+
+/** The colours each kind of growth comes in (as on the Yongala). */
+const SPONGES: readonly RGB[] = [
   [0.9, 0.5, 0.2],
   [0.92, 0.8, 0.35],
   [0.82, 0.78, 0.7],
-  [0.66, 0.36, 0.56],
-  [0.45, 0.58, 0.42],
+  [0.55, 0.32, 0.55],
   [0.85, 0.3, 0.25],
+];
+/** Dendronephthya: the bright, see-through-looking soft corals in pinks, reds, purples, orange. */
+const SOFT: readonly RGB[] = [
+  [1.0, 0.45, 0.65],
+  [0.95, 0.3, 0.35],
+  [0.75, 0.4, 0.9],
+  [1.0, 0.6, 0.3],
+  [1.0, 0.85, 0.85],
+  [0.95, 0.75, 0.3],
+];
+const FANS: readonly RGB[] = [
+  [0.85, 0.25, 0.2],
+  [0.95, 0.55, 0.2],
+  [0.95, 0.85, 0.35],
+  [0.7, 0.3, 0.55],
+];
+/** Black coral is named for its skeleton; alive it is olive, brown or green. */
+const BLACK_CORAL: readonly RGB[] = [
+  [0.35, 0.38, 0.22],
+  [0.42, 0.33, 0.2],
+  [0.3, 0.4, 0.3],
+];
+const WHIPS: readonly RGB[] = [
+  [0.9, 0.3, 0.2],
+  [0.95, 0.75, 0.25],
+  [0.85, 0.5, 0.2],
+];
+const HYDROIDS: readonly RGB[] = [
+  [0.9, 0.88, 0.8],
+  [0.75, 0.7, 0.55],
 ];
 
 export class ShipwreckModel {
@@ -976,6 +1128,7 @@ export class ShipwreckModel {
       name: string,
       onDeck: number,
       size: () => number,
+      palette: readonly RGB[],
       fan = false,
     ) => {
       this.geometries.push(geometry);
@@ -1014,7 +1167,7 @@ export class ShipwreckModel {
         const k = size();
         s.set(k * (0.8 + rand() * 0.5), k, k * (0.8 + rand() * 0.5));
         mesh.setMatrixAt(placed, m.compose(at, q, s));
-        const [r, g, bl] = GROWTH[Math.floor(rand() * GROWTH.length)];
+        const [r, g, bl] = palette[Math.floor(rand() * palette.length)];
         mesh.setColorAt(placed, colour.setRGB(r, g, bl));
         placed++;
       }
@@ -1023,27 +1176,56 @@ export class ShipwreckModel {
       if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
       this.root.add(mesh);
     };
+    // As on the Yongala: hardly a bare plate left. Sponges and soft corals everywhere, sea fans
+    // and black coral trees standing off the sides, sea whips, and hydroids in every gap.
     scatter(
       sponge(),
-      150,
+      320,
       'Wreck sponges',
-      0.55,
-      () => 0.07 + rand() * rand() * 0.28,
+      0.5,
+      () => 0.07 + rand() * rand() * 0.32,
+      SPONGES,
     );
     scatter(
       softCoral(),
-      70,
+      240,
       'Wreck soft corals',
-      0.6,
-      () => 0.25 + rand() * 0.35,
+      0.5,
+      () => 0.25 + rand() * 0.45,
+      SOFT,
     );
     scatter(
       seaFan(),
-      40,
+      90,
       'Wreck sea fans',
-      0.15,
-      () => 0.8 + rand() * 0.9,
+      0.12,
+      () => 0.9 + rand() * 1.3,
+      FANS,
       true,
+    );
+    scatter(
+      blackCoral(),
+      45,
+      'Wreck black coral',
+      0.25,
+      () => 0.9 + rand() * 0.9,
+      BLACK_CORAL,
+    );
+    scatter(
+      seaWhip(),
+      70,
+      'Wreck sea whips',
+      0.2,
+      () => 0.6 + rand() * 0.8,
+      WHIPS,
+    );
+    scatter(
+      hydroid(),
+      160,
+      'Wreck hydroids',
+      0.45,
+      () => 0.6 + rand() * 0.8,
+      HYDROIDS,
     );
   }
   dispose(): void {

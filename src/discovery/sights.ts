@@ -158,6 +158,7 @@ export const WRECK_SIGHTS = {
   place: { id: 'place:shipwreck', label: 'Shipwreck' },
   hold: { id: 'place:shipwreck-hold', label: "The wreck's cargo hold" },
   bridge: { id: 'place:shipwreck-bridge', label: "The wreck's bridge" },
+  grouper: { id: 'species:queensland-grouper', label: 'Queensland grouper' },
 } as const satisfies Record<string, Sight>;
 
 /** Every sight, in the order the "Seen" page lists them when first seen together. */

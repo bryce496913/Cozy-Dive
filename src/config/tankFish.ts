@@ -295,6 +295,17 @@ export const TANK_FISH: readonly TankFishDefinition[] = [
     modelLength: 2.2,
   },
   {
+    species: 'queensland-grouper',
+    label: 'Queensland grouper',
+    group: 'schooling',
+    sighting: 'species:queensland-grouper',
+    max: 2,
+    asset: 'giantSeaBass',
+    note: 'A little reminder of your discovery.',
+    length: 0.6,
+    modelLength: 2.2,
+  },
+  {
     species: 'california-sheephead',
     label: 'California sheephead',
     group: 'schooling',
