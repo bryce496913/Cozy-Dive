@@ -1,5 +1,5 @@
 import { TANK_BABIES, BABY_CAP } from '../config/babies';
-import type { BigCreatureId } from '../config/creatures';
+import type { TankCreatureId } from '../config/babies';
 import type { Sighting, JournalStore } from '../discovery/journal';
 import { AQUARIUM, type Vec3 } from '../config/world';
 import type { ConvexCollider } from '../player/collision';
@@ -366,7 +366,7 @@ export function unlockedBabies(seen: readonly Sighting[]) {
 }
 export interface TankSave {
   readonly items: TankItem[];
-  readonly babies: BigCreatureId[];
+  readonly babies: TankCreatureId[];
 }
 /** Version 1 decorations migrate independently; malformed animal data cannot erase them. */
 export function loadTankState(
@@ -375,7 +375,7 @@ export function loadTankState(
   c: PlacementContext,
 ): TankSave {
   const items = loadItems(store, seen, c),
-    babies: BigCreatureId[] = [];
+    babies: TankCreatureId[] = [];
   try {
     const data: unknown = JSON.parse(store.getItem(TANK_KEY) ?? 'null');
     if (
@@ -494,7 +494,7 @@ export function loadTankFish(
 export function saveTank(
   store: JournalStore,
   items: readonly TankItem[],
-  babies: readonly BigCreatureId[] = [],
+  babies: readonly TankCreatureId[] = [],
   kept: Readonly<KeptEntries> = NO_KEPT,
   fish: TankFishCounts = NO_FISH,
 ): boolean {
@@ -532,7 +532,7 @@ export function saveTank(
 /** v0.6 Pass 051: one undoable state of the tank (what you added, not the preview). */
 interface TankSnapshot {
   readonly items: readonly TankItem[];
-  readonly babies: readonly BigCreatureId[];
+  readonly babies: readonly TankCreatureId[];
   readonly fish: TankFishCounts;
 }
 /** How many changes Undo can step back through. */
@@ -541,14 +541,14 @@ export const UNDO_DEPTH = 20;
 export const TURN_STEP = Math.PI / 6;
 export class TankCatalog {
   private list: readonly TankItem[];
-  private animals: readonly BigCreatureId[];
+  private animals: readonly TankCreatureId[];
   private school: TankFishCounts;
   private readonly history: TankSnapshot[] = [];
   preview: TankItem | null = null;
   constructor(
     items: readonly TankItem[],
     readonly context: PlacementContext,
-    babies: readonly BigCreatureId[] = [],
+    babies: readonly TankCreatureId[] = [],
     fish: TankFishCounts = NO_FISH,
   ) {
     this.list = items;
@@ -588,7 +588,7 @@ export class TankCatalog {
     this.preview = null;
     return true;
   }
-  addBaby(id: BigCreatureId, seen: readonly Sighting[]): boolean {
+  addBaby(id: TankCreatureId, seen: readonly Sighting[]): boolean {
     if (
       this.animals.includes(id) ||
       this.animals.length >= BABY_CAP ||
@@ -599,7 +599,7 @@ export class TankCatalog {
     this.animals = [...this.animals, id];
     return true;
   }
-  removeBaby(id: BigCreatureId) {
+  removeBaby(id: TankCreatureId) {
     if (!this.animals.includes(id)) return;
     this.remember();
     this.animals = this.animals.filter((b) => b !== id);

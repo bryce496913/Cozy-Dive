@@ -1,9 +1,7 @@
 import {
   TANK_FISH,
   TANK_FISH_CAP,
-  UNSUITED_FISH,
   type TankFishDefinition,
-  type UnsuitedFish,
 } from '../config/tankFish';
 import type { Sighting } from '../discovery/journal';
 import { OUTER_EXTRA_SPECIES } from '../environment/outer/OuterExtraSpecies';
@@ -34,12 +32,6 @@ export function unlockedFish(
 ): readonly TankFishDefinition[] {
   return TANK_FISH.filter((f) => isSeen(seen, f.sighting));
 }
-/** Fish seen (or living in the tank) that do not suit it, each with a gentle reason. */
-export function unsuitedSeen(
-  seen: readonly Sighting[],
-): readonly UnsuitedFish[] {
-  return UNSUITED_FISH.filter((f) => isSeen(seen, f.sighting));
-}
 export function fishTotal(counts: TankFishCounts): number {
   let total = 0;
   for (const f of TANK_FISH) total += counts[f.species] ?? 0;
@@ -54,19 +46,17 @@ export function fishRoom(
   seen: readonly Sighting[],
 ): FishRoom {
   const d = fishDefinition(species);
-  if (!d) return { ok: false, reason: 'This fish does not suit the tank.' };
+  if (!d)
+    return { ok: false, reason: 'This creature is not in the catalog yet.' };
   if (!isSeen(seen, d.sighting))
     return { ok: false, reason: 'Seen beyond the tank, it can join you here.' };
   if ((counts[species] ?? 0) >= d.max)
     return {
       ok: false,
-      reason: `The tank has all the ${d.label.toLowerCase()} it suits.`,
-    };
-  if (fishTotal(counts) >= TANK_FISH_CAP)
-    return {
-      ok: false,
       reason:
-        'The tank has as many added fish as it can comfortably hold. Return some to the sea to make room.',
+        d.max === 1
+          ? 'Already in your collection.'
+          : `${d.max} ${d.label.toLowerCase()} already added.`,
     };
   return { ok: true };
 }

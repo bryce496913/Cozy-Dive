@@ -23,16 +23,11 @@ import {
   guestSpecies,
   readFish,
   unlockedFish,
-  unsuitedSeen,
   type TankFishCounts,
 } from '../src/catalog/fishCatalog';
 import { TANK_BABIES } from '../src/config/babies';
 import { AQUARIUM } from '../src/config/world';
-import {
-  TANK_FISH,
-  TANK_FISH_CAP,
-  UNSUITED_FISH,
-} from '../src/config/tankFish';
+import { TANK_FISH, TANK_FISH_CAP } from '../src/config/tankFish';
 import { TankFish } from '../src/environment/TankFish';
 import { FishSimulation } from '../src/fish/FishMovement';
 import type { FishHabitat } from '../src/fish/FishHabitat';
@@ -50,10 +45,6 @@ const everything = [
   })),
   ...TANK_BABIES.map((b) => ({ id: b.sighting, first: '' })),
   ...TANK_FISH.filter((f) => f.sighting).map((f) => ({
-    id: f.sighting!,
-    first: '',
-  })),
-  ...UNSUITED_FISH.filter((f) => f.sighting).map((f) => ({
     id: f.sighting!,
     first: '',
   })),
@@ -82,7 +73,7 @@ describe('Pass 051: the catalog is data-driven and grouped', () => {
     expect(
       TANK_FISH.filter((f) => f.group === 'individual').length,
     ).toBeGreaterThanOrEqual(3);
-    expect(TANK_BABIES.length).toBe(3);
+    expect(TANK_BABIES.length).toBeGreaterThan(3);
     expect(
       TANK_ITEMS.filter((i) => i.category === 'coral-plant').length,
     ).toBeGreaterThan(8);
@@ -95,10 +86,9 @@ describe('Pass 051: the catalog is data-driven and grouped', () => {
       expect(guestSpecies({ [f.species]: 1 }), f.species).toHaveLength(1);
       expect(ASSET_REGISTRY[f.asset], f.asset).toBeDefined();
       expect(f.max).toBeGreaterThan(0);
-      expect(UNSUITED_FISH.some((u) => u.label === f.label)).toBe(false);
     }
     // Playtest: the clownfish, the big reef fish and the kelp and cave fish can all come home, at
-    // tank size; only the flashlight fish and the polar fish stay out.
+    // tank size, alongside flashlight and polar fish.
     for (const species of [
       'ocellaris-clownfish',
       'parrotfish',
@@ -119,8 +109,6 @@ describe('Pass 051: the catalog is data-driven and grouped', () => {
       const [s] = guestSpecies({ [species]: 1 });
       expect(s.length, species).toBeLessThanOrEqual(1);
     }
-    for (const label of ['Flashlight fish', 'Icefish', 'Bald notothen'])
-      expect(UNSUITED_FISH.some((u) => u.label === label)).toBe(true);
   });
   it('offers the tank’s own species from the start and the outer reef’s once seen', () => {
     const start = unlockedFish(nothing).map((f) => f.species);
@@ -129,8 +117,6 @@ describe('Pass 051: the catalog is data-driven and grouped', () => {
     expect(unlockedFish(everything)).toHaveLength(TANK_FISH.length);
     // Playtest: the clownfish is offered from the start; nothing unsuited shows before it is seen.
     expect(start).toContain('ocellaris-clownfish');
-    expect(unsuitedSeen(nothing)).toEqual([]);
-    expect(unsuitedSeen(everything)).toHaveLength(UNSUITED_FISH.length);
   });
 });
 
@@ -141,7 +127,8 @@ describe('Pass 051: room for fish (capacity and compatibility)', () => {
       expect(m.addFish('blue-green-chromis', nothing).ok).toBe(true);
     const full = m.addFish('blue-green-chromis', nothing);
     expect(full.ok).toBe(false);
-    if (!full.ok) expect(full.reason).toMatch(/all the blue-green chromis/);
+    if (!full.ok)
+      expect(full.reason).toMatch(/12 blue-green chromis already added/);
     expect(m.addFish('blue-tang', nothing).ok).toBe(false);
     expect(m.addFish('blue-tang', everything).ok).toBe(true);
     expect(m.addFish('ocellaris-clownfish', everything).ok).toBe(true);

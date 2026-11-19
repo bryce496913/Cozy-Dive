@@ -53,10 +53,15 @@ export class TankBaby {
     this.spawn.x = eye.x + 1.7;
     this.spawn.y = eye.y + 0.3;
     this.spawn.z = eye.z - 0.7;
+    if (definition.motion === 'crawl' || definition.motion === 'still')
+      this.spawn.y =
+        habitat.floor(this.spawn.x, this.spawn.z, definition.radius) +
+        definition.halfHeight +
+        0.2;
     if (!this.navigation.nearest(this.spawn, this.position, eye, occupied))
       throw Error('No open water for a little visitor');
     this.setGoal();
-    this.plan();
+    if (definition.motion !== 'still') this.plan();
   }
   get halfHeight(): number {
     return this.settling || this.lifting ? 0.045 : this.definition.halfHeight;
@@ -67,7 +72,17 @@ export class TankBaby {
   private setGoal() {
     const a = (this.goalIndex * Math.PI) / 4,
       id = this.definition.id;
-    if (id === 'blacktip-reef-shark') {
+    if (
+      this.definition.motion === 'crawl' ||
+      this.definition.motion === 'still'
+    ) {
+      this.goal.x = this.spawn.x + Math.cos(a) * 1.8;
+      this.goal.z = this.spawn.z + Math.sin(a) * 1.8;
+      this.goal.y =
+        this.navigation.habitat.floor(this.goal.x, this.goal.z, this.radius) +
+        this.definition.halfHeight +
+        0.2;
+    } else if (id === 'blacktip-reef-shark') {
       this.goal.x = Math.cos(a) * 2.2;
       this.goal.z = -1 + Math.sin(a) * 7;
       this.goal.y = 4.85 + 0.35 * Math.sin(a * 2);
@@ -134,6 +149,10 @@ export class TankBaby {
     if (this.returning && !this.opacity) return;
     const d = this.definition,
       p = this.position;
+    if (d.motion === 'still') {
+      this.effort = reduced ? 0 : 0.1 * Math.sin(this.time * 0.8);
+      return;
+    }
     const playerDistance = player?.active
       ? Math.hypot(
           p.x - player.position.x,
