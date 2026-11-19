@@ -97,16 +97,29 @@ describe('Pass 051: the catalog is data-driven and grouped', () => {
       expect(f.max).toBeGreaterThan(0);
       expect(UNSUITED_FISH.some((u) => u.label === f.label)).toBe(false);
     }
-    // The anemone's clownfish family, big fish, and cold- or dark-water fish stay out.
-    expect(TANK_FISH.some((f) => f.species === 'ocellaris-clownfish')).toBe(
-      false,
-    );
-    for (const label of [
-      'Bumphead parrotfish',
-      'Humphead wrasse',
-      'Garibaldi',
-      'Icefish',
-    ])
+    // Playtest: the clownfish, the big reef fish and the kelp and cave fish can all come home, at
+    // tank size; only the flashlight fish and the polar fish stay out.
+    for (const species of [
+      'ocellaris-clownfish',
+      'parrotfish',
+      'humphead-wrasse',
+      'bigeye-trevally',
+      'great-barracuda',
+      'garibaldi',
+      'kelp-bass',
+      'blacksmith',
+      'senorita',
+      'glassy-sweeper',
+      'soldierfish',
+    ] as const) {
+      expect(
+        TANK_FISH.some((f) => f.species === species),
+        species,
+      ).toBe(true);
+      const [s] = guestSpecies({ [species]: 1 });
+      expect(s.length, species).toBeLessThanOrEqual(1);
+    }
+    for (const label of ['Flashlight fish', 'Icefish', 'Bald notothen'])
       expect(UNSUITED_FISH.some((u) => u.label === label)).toBe(true);
   });
   it('offers the tank’s own species from the start and the outer reef’s once seen', () => {
@@ -114,9 +127,9 @@ describe('Pass 051: the catalog is data-driven and grouped', () => {
     expect(start).toContain('blue-green-chromis');
     expect(start).not.toContain('blue-tang');
     expect(unlockedFish(everything)).toHaveLength(TANK_FISH.length);
-    expect(unsuitedSeen(nothing).map((u) => u.label)).toEqual([
-      'Ocellaris clownfish',
-    ]);
+    // Playtest: the clownfish is offered from the start; nothing unsuited shows before it is seen.
+    expect(start).toContain('ocellaris-clownfish');
+    expect(unsuitedSeen(nothing)).toEqual([]);
     expect(unsuitedSeen(everything)).toHaveLength(UNSUITED_FISH.length);
   });
 });
@@ -131,7 +144,7 @@ describe('Pass 051: room for fish (capacity and compatibility)', () => {
     if (!full.ok) expect(full.reason).toMatch(/all the blue-green chromis/);
     expect(m.addFish('blue-tang', nothing).ok).toBe(false);
     expect(m.addFish('blue-tang', everything).ok).toBe(true);
-    expect(m.addFish('ocellaris-clownfish', everything).ok).toBe(false);
+    expect(m.addFish('ocellaris-clownfish', everything).ok).toBe(true);
     // Fill to the total cap.
     let counts: TankFishCounts = { ...m.fish };
     for (const f of TANK_FISH)

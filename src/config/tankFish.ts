@@ -25,6 +25,15 @@ export interface TankFishDefinition {
   readonly asset: AssetId;
   /** A short, calm line shown in the catalog. */
   readonly note: string;
+  /**
+   * Playtest: its body length in the tank (m), so the big and the cool-water fish are added at a
+   * size that suits the tank; omitted keeps the species' own length.
+   */
+  readonly length?: number;
+  /** Body length its model was built at (m), when the species has no swimming entry of its own. */
+  readonly modelLength?: number;
+  /** One colour on a shared rig (the kelp and cave fish swim as recoloured chromis). */
+  readonly tint?: number;
 }
 export const TANK_FISH: readonly TankFishDefinition[] = [
   {
@@ -99,6 +108,126 @@ export const TANK_FISH: readonly TankFishDefinition[] = [
     asset: 'moorishIdol',
     note: 'Lives in a pair.',
   },
+  // Playtest: everything seen out there can come home, at a size that suits the tank.
+  {
+    species: 'ocellaris-clownfish',
+    label: 'Ocellaris clownfish',
+    group: 'individual',
+    sighting: null,
+    max: 2,
+    asset: 'clownfish',
+    note: 'A pair that roams the tank, beyond the anemone family.',
+  },
+  {
+    species: 'parrotfish',
+    label: 'Bumphead parrotfish',
+    group: 'individual',
+    sighting: 'species:parrotfish',
+    max: 1,
+    asset: 'parrotfish',
+    note: 'A small one, grazing slowly over the rocks.',
+    length: 0.9,
+    modelLength: 1.1,
+  },
+  {
+    species: 'humphead-wrasse',
+    label: 'Humphead wrasse',
+    group: 'individual',
+    sighting: 'species:humphead-wrasse',
+    max: 1,
+    asset: 'humpheadWrasse',
+    note: 'A young one, curious and unhurried.',
+    length: 1,
+    modelLength: 2.4,
+  },
+  {
+    species: 'bigeye-trevally',
+    label: 'Bigeye trevally',
+    group: 'schooling',
+    sighting: 'species:bigeye-trevally',
+    max: 4,
+    asset: 'trevally',
+    note: 'A small silver group circling the open water.',
+    length: 0.7,
+    modelLength: 0.9,
+  },
+  {
+    species: 'great-barracuda',
+    label: 'Great barracuda',
+    group: 'individual',
+    sighting: 'species:great-barracuda',
+    max: 1,
+    asset: 'barracuda',
+    note: 'A young one, hanging still in the open water.',
+    length: 1,
+    modelLength: 1.5,
+  },
+  {
+    species: 'garibaldi',
+    label: 'Garibaldi',
+    group: 'individual',
+    sighting: 'species:garibaldi',
+    max: 2,
+    asset: 'chromis',
+    note: 'Keeps a patch of its own, bright orange.',
+    length: 0.5,
+    tint: 0xff6a12,
+  },
+  {
+    species: 'kelp-bass',
+    label: 'Kelp bass',
+    group: 'individual',
+    sighting: 'species:kelp-bass',
+    max: 2,
+    asset: 'chromis',
+    note: 'Hangs in mid-water, olive-brown.',
+    length: 0.6,
+    tint: 0x7a6a45,
+  },
+  {
+    species: 'blacksmith',
+    label: 'Blacksmith',
+    group: 'schooling',
+    sighting: 'species:blacksmith',
+    max: 6,
+    asset: 'chromis',
+    note: 'A loose dark-blue school.',
+    length: 0.45,
+    tint: 0x3f4d5e,
+  },
+  {
+    species: 'senorita',
+    label: 'Señorita',
+    group: 'schooling',
+    sighting: 'species:senorita',
+    max: 4,
+    asset: 'chromis',
+    note: 'Slim and golden, busy near the sand.',
+    length: 0.45,
+    tint: 0xe0b23a,
+  },
+  {
+    species: 'glassy-sweeper',
+    label: 'Glassy sweeper',
+    group: 'schooling',
+    sighting: 'species:glassy-sweeper',
+    max: 8,
+    asset: 'chromis',
+    note: 'A coppery school that keeps to the shade.',
+    length: 0.35,
+    tint: 0xc98a4e,
+  },
+  {
+    species: 'soldierfish',
+    label: 'Soldierfish',
+    group: 'schooling',
+    sighting: 'species:soldierfish',
+    max: 4,
+    asset: 'chromis',
+    note: 'Red and big-eyed, lingering by the rocks.',
+    length: 0.45,
+    tint: 0xc23a22,
+  },
 ];
 /** Room for added fish in all (simulation and rendering budget). */
 export const TANK_FISH_CAP = 24;
@@ -113,42 +242,9 @@ export interface UnsuitedFish {
   readonly label: string;
   readonly reason: string;
 }
-const tooBig = 'Grows too big for the tank.',
-  cool = 'Lives in cool kelp-forest water.',
-  dark = 'Needs the dark of a sea cave.',
+const dark = 'Needs the dark of a sea cave.',
   polar = 'Lives in freezing polar water.';
 export const UNSUITED_FISH: readonly UnsuitedFish[] = [
-  {
-    sighting: null,
-    label: 'Ocellaris clownfish',
-    reason: 'The anemone already hosts its clownfish family.',
-  },
-  {
-    sighting: 'species:parrotfish',
-    label: 'Bumphead parrotfish',
-    reason: tooBig,
-  },
-  {
-    sighting: 'species:humphead-wrasse',
-    label: 'Humphead wrasse',
-    reason: tooBig,
-  },
-  {
-    sighting: 'species:bigeye-trevally',
-    label: 'Bigeye trevally',
-    reason: tooBig,
-  },
-  {
-    sighting: 'species:great-barracuda',
-    label: 'Great barracuda',
-    reason: tooBig,
-  },
-  { sighting: 'species:garibaldi', label: 'Garibaldi', reason: cool },
-  { sighting: 'species:kelp-bass', label: 'Kelp bass', reason: cool },
-  { sighting: 'species:blacksmith', label: 'Blacksmith', reason: cool },
-  { sighting: 'species:senorita', label: 'Señorita', reason: cool },
-  { sighting: 'species:glassy-sweeper', label: 'Glassy sweeper', reason: dark },
-  { sighting: 'species:soldierfish', label: 'Soldierfish', reason: dark },
   {
     sighting: 'species:flashlight-fish',
     label: 'Flashlight fish',
