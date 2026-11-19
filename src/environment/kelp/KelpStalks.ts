@@ -369,13 +369,30 @@ const SWAY_VERTEX = /* glsl */ `
   float reach = pow(clamp(position.y / kelpHeight, 0.0, 1.0), 1.4) * kelpSway;
   transformed.x += sin(kelpTime * kelpRate.x + phase + position.y * 0.07) * reach;
   transformed.z += cos(kelpTime * kelpRate.y + phase * 1.3) * reach * 0.6;
+  // Playtest: stalks lean aside as the swimmer passes through, most at the swimmer's height and
+  // not at the holdfast, easing off over a couple of metres. (World offset into the instance's
+  // frame: its rotation is yaw only and its scale uniform, so the inverse is the transpose / s².)
+  vec3 world = (instanceMatrix * vec4(transformed, 1.0)).xyz;
+  vec3 away = world - kelpSwimmer.xyz;
+  float across = length(away.xz);
+  float near = 1.0 - smoothstep(0.0, kelpPushRadius, across);
+  float level = 1.0 - smoothstep(0.0, 3.5, abs(away.y));
+  float bend = clamp(position.y / 1.5, 0.0, 1.0);
+  vec2 dir = across > 1e-3 ? away.xz / across : vec2(1.0, 0.0);
+  vec3 push = vec3(dir.x, 0.0, dir.y) * near * level * bend * kelpSwimmer.w;
+  mat3 m = mat3(instanceMatrix);
+  transformed += (transpose(m) * push) / max(dot(m[0], m[0]), 1e-4);
 }`;
+/** Playtest: how far, and how strongly (m), stalks lean away from the swimmer. */
+export const KELP_PUSH = { radius: 1.8, strength: 0.9, follow: 4 } as const;
 
 export class KelpStalks {
   readonly root = new THREE.Group();
   readonly placements: readonly StalkPlacement[];
   readonly material: THREE.MeshStandardMaterial;
   private readonly time = { value: 0 };
+  /** The swimmer's position (xyz) and push strength (w), eased so the kelp springs back. */
+  private readonly swimmer = { value: new THREE.Vector4(0, -1000, 0, 0) };
   private readonly geometries: THREE.BufferGeometry[] = [];
   private disposed = false;
   constructor() {
@@ -398,6 +415,8 @@ export class KelpStalks {
       shader.uniforms.kelpTime = time;
       shader.uniforms.kelpHeight = { value: tallest };
       shader.uniforms.kelpSway = { value: STALKS.sway };
+      shader.uniforms.kelpSwimmer = this.swimmer;
+      shader.uniforms.kelpPushRadius = { value: KELP_PUSH.radius };
       shader.uniforms.kelpRate = {
         value: new THREE.Vector2(
           (Math.PI * 2) / STALKS.periods[0],
@@ -405,7 +424,7 @@ export class KelpStalks {
         ),
       };
       shader.vertexShader =
-        'uniform float kelpTime;\nuniform float kelpHeight;\nuniform float kelpSway;\nuniform vec2 kelpRate;\n' +
+        'uniform float kelpTime;\nuniform float kelpHeight;\nuniform float kelpSway;\nuniform vec2 kelpRate;\nuniform vec4 kelpSwimmer;\nuniform float kelpPushRadius;\n' +
         shader.vertexShader.replace('#include <begin_vertex>', SWAY_VERTEX);
     };
     // A stable key, so the program is compiled once and shared.
@@ -441,8 +460,25 @@ export class KelpStalks {
     });
   }
   /** Advance the sway (seconds of simulation). Frozen with reduced motion or while paused. */
-  update(dt: number, active: boolean, reducedMotion: boolean): void {
-    if (this.disposed || !active || reducedMotion || !(dt > 0)) return;
+  update(
+    dt: number,
+    active: boolean,
+    reducedMotion: boolean,
+    swimmer?: { x: number; y: number; z: number },
+  ): void {
+    if (this.disposed || !active || !(dt > 0)) return;
+    // The lean follows the swimmer smoothly (it still happens with reduced motion: it is the
+    // world answering the player, not camera motion).
+    const s = this.swimmer.value,
+      k = 1 - Math.exp(-KELP_PUSH.follow * Math.min(dt, 0.1));
+    if (swimmer) {
+      if (s.y < -999) s.set(swimmer.x, swimmer.y, swimmer.z, 0);
+      s.x += (swimmer.x - s.x) * k;
+      s.y += (swimmer.y - s.y) * k;
+      s.z += (swimmer.z - s.z) * k;
+    }
+    s.w += ((swimmer ? KELP_PUSH.strength : 0) - s.w) * k;
+    if (reducedMotion) return;
     this.time.value += Math.min(dt, 0.1);
   }
   get swayTime(): number {

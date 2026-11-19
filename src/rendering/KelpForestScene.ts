@@ -342,7 +342,7 @@ export class KelpForestScene implements WaterWorld {
       this.camera.aspect = aspect;
       this.camera.updateProjectionMatrix();
     }
-    this.stalks.update(dt, active, reducedMotion);
+    this.stalks.update(dt, active, reducedMotion, this.camera.position);
     this.dressing.update(dt, active, reducedMotion);
     this.light.update(dt, active, reducedMotion, this.camera.position);
     this.snow.update(dt, active, reducedMotion, this.camera.position);
