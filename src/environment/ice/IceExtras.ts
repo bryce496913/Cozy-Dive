@@ -6,6 +6,7 @@ import type { SightCandidate } from '../../discovery/journal';
 import { ICE_SIGHTS } from '../../discovery/sights';
 import type { PlayerPresence } from '../../fish/FishDiverReaction';
 import { iceFloor } from './IceTerrain';
+import { IceUnderside } from './IceUnderside';
 
 /**
  * v0.6 Pass 052 (playtest: "there needs to be a lot more life, creatures and environment in here";
@@ -492,6 +493,8 @@ export class IceExtras {
   private readonly p = new THREE.Vector3();
   private readonly s = new THREE.Vector3();
   private time = 0;
+  /** The algae film under the ice, and the sea angels. */
+  private readonly underside = new IceUnderside();
   private disposed = false;
 
   constructor(
@@ -841,6 +844,7 @@ export class IceExtras {
       });
     for (const c of this.chains)
       this.sightings.push({ ...ICE_SIGHTS.salp, position: c.at, radius: 2 });
+    this.root.add(this.underside.root);
     this.update(0, true, false);
   }
   private own<T extends THREE.Material>(m: T): T {
@@ -868,6 +872,7 @@ export class IceExtras {
     player?: PlayerPresence,
   ): void {
     if (this.disposed || !active) return;
+    this.underside.update(dt, active, reducedMotion);
     const step = Math.min(Math.max(dt, 0), 0.1);
     this.time += reducedMotion ? step * 0.4 : step;
     const t = this.time;
@@ -979,6 +984,7 @@ export class IceExtras {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    this.underside.dispose();
     this.root.removeFromParent();
     this.root.clear();
     this.geometries.forEach((g) => g.dispose());
