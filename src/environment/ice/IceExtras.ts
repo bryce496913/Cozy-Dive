@@ -173,31 +173,50 @@ function anchorIceGeometry(): THREE.BufferGeometry {
   return merge(parts);
 }
 /** A scallop: a ribbed fan shell (about 8 cm), hinge at the origin, opening towards +z. */
+/** An Antarctic scallop (about 10 cm across), hinge at -z, lying on y 0, slightly agape: two
+ * ribbed, fan-shaped valves with ears at the hinge, and a row of tiny blue mantle eyes. */
 function scallopGeometry(): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [];
-  for (const [side, tone] of [
-    [1, [0.82, 0.62, 0.55]],
-    [-1, [0.72, 0.6, 0.58]],
-  ] as const) {
-    const g = new THREE.SphereGeometry(
-        1,
-        16,
-        6,
-        -Math.PI * 0.4,
-        Math.PI * 0.8,
-        0,
-        Math.PI / 2,
-      ),
-      p = g.getAttribute('position');
-    for (let i = 0; i < p.count; i++) {
-      const x = p.getX(i),
-        y = p.getY(i),
-        z = p.getZ(i),
-        rib = 1 + 0.06 * Math.abs(Math.sin(Math.atan2(x, z) * 14));
-      p.setXYZ(i, x * 0.045 * rib, side * y * 0.012, z * 0.05 * rib);
-    }
-    g.translate(0, 0.012, 0);
-    parts.push(coloured(g, tone, 0.2));
+  const parts: THREE.BufferGeometry[] = [],
+    ribs = 18,
+    fan = (side: 1 | -1, tone: RGB, gape: number) => {
+      const g = new THREE.CircleGeometry(
+          1,
+          36,
+          -Math.PI * 0.42,
+          Math.PI * 0.84,
+        ),
+        q = g.getAttribute('position');
+      for (let i = 0; i < q.count; i++) {
+        const x = q.getX(i),
+          z = q.getY(i),
+          r = Math.hypot(x, z),
+          a = Math.atan2(x, z),
+          rib = 0.06 * Math.pow(Math.abs(Math.cos(a * ribs)), 3) * r,
+          dome = Math.sqrt(Math.max(0, 1 - r * r * 0.85)) * 0.3;
+        q.setXYZ(
+          i,
+          x * 0.05,
+          side * (dome + rib) * 0.05 + 0.012 + (side > 0 ? gape * r : 0),
+          z * 0.05 - 0.022,
+        );
+      }
+      g.computeVertexNormals();
+      return coloured(g, tone, 0.2);
+    };
+  parts.push(fan(1, [0.82, 0.6, 0.52], 0.008));
+  parts.push(fan(-1, [0.72, 0.6, 0.58], 0));
+  // The ears either side of the hinge.
+  for (const side of [-1, 1]) {
+    const ear = new THREE.BoxGeometry(0.016, 0.004, 0.01);
+    ear.translate(side * 0.012, 0.012, -0.024);
+    parts.push(coloured(ear, [0.78, 0.6, 0.54], 0.15));
+  }
+  // Mantle eyes along the gape.
+  for (let k = 0; k < 16; k++) {
+    const a = -Math.PI * 0.38 + (k / 15) * Math.PI * 0.76,
+      eye = new THREE.SphereGeometry(0.0013, 5, 4);
+    eye.translate(Math.sin(a) * 0.047, 0.0135, Math.cos(a) * 0.047 - 0.022);
+    parts.push(coloured(eye, [0.15, 0.35, 0.85], 0.05));
   }
   return merge(parts);
 }
@@ -264,35 +283,113 @@ function brittleStarGeometry(): THREE.BufferGeometry {
   return merge(parts);
 }
 /** A sea cucumber: a plump, warty sausage (about 25 cm long) along x. */
+/** A lathe body along x: `radius(u)` from tail (u 0) to head (u 1), flattened beneath (`sole`). */
+function latheBody(
+  length: number,
+  radius: (u: number) => number,
+  sole: number,
+  rings = 18,
+  sides = 14,
+): THREE.BufferGeometry {
+  const pos: number[] = [],
+    idx: number[] = [];
+  for (let i = 0; i <= rings; i++) {
+    const u = i / rings,
+      x = (u - 0.5) * length,
+      r = radius(u);
+    for (let j = 0; j <= sides; j++) {
+      const a = (j / sides) * Math.PI * 2,
+        y = Math.sin(a) * r,
+        z = Math.cos(a) * r;
+      pos.push(x, y < 0 ? y * sole : y, z);
+    }
+  }
+  for (let i = 0; i < rings; i++)
+    for (let j = 0; j < sides; j++) {
+      const a = i * (sides + 1) + j,
+        b = a + sides + 1;
+      idx.push(a, b, a + 1, a + 1, b, b + 1);
+    }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+/** A sea cucumber (about 25 cm long) along x, its mouth at +x: a soft, tapering, warty body,
+ * a flat sole of tube feet, rows of pointed papillae along the back, and a crown of branched
+ * feeding tentacles. */
 function cucumberGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [],
-    body = new THREE.CapsuleGeometry(0.04, 0.17, 6, 12),
+    radius = (u: number) =>
+      0.042 *
+      Math.pow(Math.sin(Math.PI * (0.06 + 0.88 * u)), 0.55) *
+      (1 + 0.06 * Math.sin(u * 23)),
+    body = latheBody(0.24, radius, 0.45),
     p = body.getAttribute('position');
+  // A slightly bent, lumpy body.
   for (let i = 0; i < p.count; i++) {
     const x = p.getX(i),
       y = p.getY(i),
       z = p.getZ(i),
       wart =
-        1 + 0.1 * Math.max(0, Math.sin(x * 120) * Math.sin(y * 90 + z * 80));
-    p.setXYZ(i, x * wart, y * wart, z * wart);
+        1 + 0.07 * Math.max(0, Math.sin(x * 140) * Math.sin(z * 110 + y * 60));
+    p.setXYZ(i, x, y * wart + 0.02 * Math.cos(x * 9), z * wart);
   }
-  body.rotateZ(Math.PI / 2);
-  body.scale(1, 0.75, 1);
-  body.translate(0, 0.032, 0);
-  parts.push(coloured(body, [0.85, 0.55, 0.42], 0.2));
-  // Its feeding tentacles at one end.
-  for (let k = 0; k < 6; k++) {
-    const a = (k / 6) * Math.PI * 2;
-    parts.push(
-      limb(
-        v3(0.12, 0.035, 0),
-        v3(0.16, 0.05 + Math.sin(a) * 0.02, Math.cos(a) * 0.02),
-        0.006,
-        0.002,
-        [0.95, 0.85, 0.75],
-        4,
-      ),
-    );
+  body.translate(0, 0.03, 0);
+  parts.push(coloured(body, [0.78, 0.46, 0.34], 0.18));
+  // Papillae: two rows of soft points along the back, and a row each side.
+  for (let k = 0; k < 9; k++) {
+    const u = 0.12 + (k / 8) * 0.76,
+      x = (u - 0.5) * 0.24,
+      r = radius(u);
+    for (const a of [-0.45, 0.45, -1.35, 1.35]) {
+      const base = v3(
+          x,
+          0.03 + Math.cos(a) * r * 0.95 + 0.02 * Math.cos(x * 9),
+          Math.sin(a) * r,
+        ),
+        tip = base
+          .clone()
+          .add(v3(0, Math.cos(a), Math.sin(a)).multiplyScalar(0.016));
+      parts.push(limb(base, tip, 0.0055, 0.001, [0.92, 0.6, 0.45], 5));
+    }
+  }
+  // Tube feet: short pale nubs in three rows along the sole.
+  for (let k = 0; k < 12; k++)
+    for (const z of [-0.016, 0, 0.016]) {
+      const x = -0.1 + k * 0.018,
+        a = v3(x, 0.016, z);
+      parts.push(
+        limb(
+          a,
+          a.clone().add(v3(0, -0.013, 0)),
+          0.0028,
+          0.0018,
+          [0.95, 0.8, 0.7],
+          4,
+        ),
+      );
+    }
+  // Ten branched feeding tentacles round the mouth.
+  for (let k = 0; k < 10; k++) {
+    const a = (k / 10) * Math.PI * 2,
+      root = v3(0.118, 0.035 + Math.sin(a) * 0.012, Math.cos(a) * 0.012),
+      tip = v3(0.145, 0.045 + Math.sin(a) * 0.03, Math.cos(a) * 0.03);
+    parts.push(limb(root, tip, 0.0035, 0.0018, [0.98, 0.88, 0.76], 4));
+    for (const t of [-1, 1])
+      parts.push(
+        limb(
+          tip,
+          tip
+            .clone()
+            .add(v3(0.01, Math.sin(a + t) * 0.008, Math.cos(a + t) * 0.008)),
+          0.0018,
+          0.0006,
+          [1, 0.92, 0.82],
+          3,
+        ),
+      );
   }
   return merge(parts);
 }
@@ -312,60 +409,124 @@ function seaPenGeometry(): THREE.BufferGeometry {
   return merge(parts);
 }
 /** A giant isopod: a segmented, armoured oval (about 18 cm long) along x, legs beneath. */
+/** A giant isopod (about 18 cm long) along x, head at +x: a domed, armoured carapace of
+ * overlapping plates (pereonites) with flared edges, a broad tail fan (pleotelson and uropods),
+ * compound eyes, two pairs of antennae and seven pairs of jointed walking legs. */
 function isopodGeometry(): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [];
-  for (let k = 0; k < 8; k++) {
-    const seg = new THREE.SphereGeometry(
-        1,
-        12,
-        6,
-        0,
-        Math.PI * 2,
-        0,
-        Math.PI / 2,
-      ),
-      x = 0.075 - k * 0.021,
-      w = 0.045 * (1 - Math.abs(k - 3.5) / 7);
-    seg.scale(0.014, 0.03, w);
-    seg.translate(x, 0, 0);
-    parts.push(
-      coloured(seg, k % 2 ? [0.62, 0.55, 0.5] : [0.55, 0.48, 0.44], 0.12),
-    );
+  const parts: THREE.BufferGeometry[] = [],
+    half = (u: number) =>
+      0.042 * Math.pow(Math.sin(Math.PI * (0.04 + 0.92 * u)), 0.42),
+    shell = new THREE.SphereGeometry(1, 40, 14, 0, Math.PI * 2, 0, Math.PI / 2),
+    p = shell.getAttribute('position');
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i),
+      y = p.getY(i),
+      z = p.getZ(i),
+      u = (x + 1) / 2,
+      // Ridges where each plate overlaps the next, and edges that flare out and down.
+      plate = 1 + 0.08 * Math.pow(Math.abs(Math.sin(u * Math.PI * 8)), 6),
+      w = half(u) / 0.042;
+    p.setXYZ(i, x * 0.09, y * 0.026 * plate * w + 0.004, z * 0.045 * w * plate);
   }
-  for (let k = 0; k < 7; k++)
-    for (const side of [-1, 1])
-      parts.push(
-        limb(
-          v3(0.06 - k * 0.02, 0.006, side * 0.03),
-          v3(0.06 - k * 0.02 + 0.01, 0, side * 0.055),
-          0.003,
-          0.0015,
-          [0.5, 0.42, 0.38],
-          3,
-        ),
-      );
+  parts.push(coloured(shell, [0.66, 0.6, 0.55], 0.14));
+  // The tail fan: a rounded plate and two paddles either side.
+  const tail = new THREE.CylinderGeometry(
+    0.03,
+    0.03,
+    0.006,
+    16,
+    1,
+    false,
+    0,
+    Math.PI,
+  );
+  tail.rotateY(Math.PI / 2);
+  tail.translate(-0.09, 0.008, 0);
+  parts.push(coloured(tail, [0.62, 0.55, 0.5], 0.12));
   for (const side of [-1, 1])
     parts.push(
       limb(
-        v3(0.085, 0.012, side * 0.01),
-        v3(0.13, 0.03, side * 0.04),
-        0.0025,
-        0.001,
-        [0.5, 0.42, 0.38],
-        3,
+        v3(-0.085, 0.005, side * 0.02),
+        v3(-0.12, 0.004, side * 0.034),
+        0.006,
+        0.004,
+        [0.6, 0.52, 0.47],
+        5,
       ),
     );
+  // Compound eyes and antennae.
+  for (const side of [-1, 1]) {
+    const eye = new THREE.SphereGeometry(0.007, 8, 6);
+    eye.scale(1, 0.7, 1);
+    eye.translate(0.082, 0.014, side * 0.024);
+    parts.push(coloured(eye, [0.08, 0.08, 0.1], 0.05));
+    parts.push(
+      limb(
+        v3(0.09, 0.01, side * 0.012),
+        v3(0.14, 0.022, side * 0.05),
+        0.0026,
+        0.0009,
+        [0.55, 0.48, 0.44],
+        4,
+      ),
+    );
+    parts.push(
+      limb(
+        v3(0.092, 0.008, side * 0.006),
+        v3(0.115, 0.016, side * 0.018),
+        0.002,
+        0.0008,
+        [0.55, 0.48, 0.44],
+        4,
+      ),
+    );
+  }
+  // Seven pairs of legs, each in two segments: out, then down to the sand.
+  for (let k = 0; k < 7; k++)
+    for (const side of [-1, 1]) {
+      const x = 0.06 - k * 0.019,
+        hip = v3(x, 0.004, side * 0.028),
+        knee = v3(x + 0.004, 0.012, side * 0.05),
+        foot = v3(x + 0.008 - k * 0.002, -0.004, side * 0.06);
+      parts.push(limb(hip, knee, 0.003, 0.0024, [0.56, 0.48, 0.43], 4));
+      parts.push(limb(knee, foot, 0.0024, 0.0012, [0.6, 0.52, 0.46], 4));
+    }
   return merge(parts);
 }
 /** A salp: a clear barrel (about 12 cm long) along x, with muscle bands and a dark gut. */
+/** A salp (about 12 cm long) along x: a clear, open-ended barrel ringed by raised muscle bands,
+ * a dark gut nucleus and a pale gill bar inside. */
 function salpGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [],
-    body = new THREE.CapsuleGeometry(0.035, 0.07, 4, 10);
-  body.rotateZ(Math.PI / 2);
-  parts.push(coloured(body, [0.75, 0.88, 0.95], 0.05));
-  const gut = new THREE.SphereGeometry(0.012, 6, 4);
-  gut.translate(-0.04, 0.012, 0);
-  parts.push(coloured(gut, [0.6, 0.3, 0.15], 0.1));
+    bands = 7,
+    radius = (u: number) =>
+      0.034 *
+      Math.pow(Math.sin(Math.PI * (0.12 + 0.76 * u)), 0.35) *
+      (1 + 0.07 * Math.pow(Math.abs(Math.cos(u * Math.PI * bands)), 12)),
+    body = latheBody(0.12, radius, 1, 28, 16);
+  parts.push(coloured(body, [0.78, 0.9, 0.97], 0.04));
+  // Muscle bands: thin pale hoops.
+  for (let k = 1; k < bands; k++) {
+    const u = k / bands,
+      hoop = new THREE.TorusGeometry(radius(u) * 1.01, 0.0016, 4, 18);
+    hoop.rotateY(Math.PI / 2);
+    hoop.translate((u - 0.5) * 0.12, 0, 0);
+    parts.push(coloured(hoop, [0.9, 0.97, 1], 0.03));
+  }
+  const gut = new THREE.SphereGeometry(0.011, 8, 6);
+  gut.scale(1.4, 1, 1);
+  gut.translate(-0.035, 0.012, 0);
+  parts.push(coloured(gut, [0.62, 0.32, 0.14], 0.1));
+  parts.push(
+    limb(
+      v3(-0.03, 0.01, 0),
+      v3(0.035, -0.012, 0),
+      0.0022,
+      0.0018,
+      [0.95, 0.85, 0.7],
+      4,
+    ),
+  );
   return merge(parts);
 }
 /** A jellyfish bell (about 0.6 m across), rim at y 0, with frilled oral arms and long tentacles. */

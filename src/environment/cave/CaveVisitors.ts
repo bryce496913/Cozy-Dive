@@ -55,37 +55,105 @@ const NURSE = { slipOut: 2.2, homeClear: 9, homeAfter: 25 } as const;
 const MORAY_CRACK = { scale: 2.4, back: 0.4 } as const;
 const LION = { dorsal: 13, pectoral: 8, rays: 13 + 2 * 8, scale: 1.6 } as const;
 
-/** A cleaner shrimp facing +z, its legs at y 0 (about 6 cm before scaling): red and white. */
+/** A cleaner shrimp facing +z, its legs at y 0 (about 6 cm before scaling): a slender, arched
+ * body (carapace with a pointed rostrum, six tail segments curving down to a fanned tail), red
+ * flanks with the white stripe down its back, stalked black eyes, three pairs of long white
+ * antennae, and five pairs of jointed legs, the front two ending in little claws. */
 function shrimpGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [],
-    v = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
-  for (let i = 0; i < 6; i++) {
-    const seg = new THREE.SphereGeometry(1, 8, 6);
-    seg.scale(0.006 - i * 0.0005, 0.006 - i * 0.0004, 0.006);
-    seg.translate(0, 0.008, 0.02 - i * 0.009);
-    parts.push(tinted(seg, i % 2 ? [0.95, 0.92, 0.88] : [0.82, 0.12, 0.1]));
+    v = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z),
+    red: [number, number, number] = [0.85, 0.12, 0.1],
+    white: [number, number, number] = [0.97, 0.95, 0.92];
+  /** Height of the body's centreline along z: an arch over the tail. */
+  const spine = (z: number) => 0.01 + 0.004 * Math.cos((z - 0.008) * 70);
+  // Carapace: a laterally flattened ellipsoid, and the rostrum.
+  const shell = new THREE.SphereGeometry(1, 14, 10);
+  shell.scale(0.0055, 0.0065, 0.014);
+  shell.translate(0, spine(0.016), 0.016);
+  parts.push(tinted(shell, red));
+  const rostrum = new THREE.ConeGeometry(0.0016, 0.012, 5);
+  rostrum.rotateX(Math.PI / 2);
+  rostrum.translate(0, spine(0.016) + 0.003, 0.034);
+  parts.push(tinted(rostrum, red));
+  // Six tail segments, tapering and bending down.
+  for (let k = 0; k < 6; k++) {
+    const z = 0.0 - k * 0.0062,
+      r = 0.005 - k * 0.0005,
+      seg = new THREE.SphereGeometry(1, 10, 8);
+    seg.scale(r * 0.9, r * 1.1, 0.0042);
+    seg.rotateX(-0.25 - k * 0.12);
+    seg.translate(0, spine(z) - k * k * 0.0004, z);
+    parts.push(tinted(seg, red));
+  }
+  // The white stripe along the back, carapace to tail.
+  for (let k = 0; k < 9; k++) {
+    const z = 0.026 - k * 0.0055,
+      dot = new THREE.SphereGeometry(1, 6, 4);
+    dot.scale(0.0016, 0.0012, 0.0036);
+    dot.translate(
+      0,
+      spine(z) +
+        (k < 4 ? 0.0063 : 0.005 - (k - 4) * 0.0005) -
+        Math.max(0, k - 4) ** 2 * 0.0004,
+      z,
+    );
+    parts.push(tinted(dot, white));
+  }
+  // Tail fan: a telson and two uropods each side, white with red bases.
+  for (const a of [-0.5, -0.2, 0, 0.2, 0.5]) {
+    const blade = new THREE.ConeGeometry(0.0024, 0.009, 4);
+    blade.rotateX(-Math.PI / 2 - 0.6);
+    blade.scale(1, 0.35, 1);
+    blade.rotateY(a);
+    blade.translate(0, spine(-0.037) - 0.012, -0.04);
+    parts.push(tinted(blade, white));
   }
   for (const s of [-1, 1]) {
-    // Long white antennae, waving forward.
+    // Stalked eyes.
     parts.push(
       limb(
-        v(s * 0.002, 0.01, 0.025),
-        v(s * 0.02, 0.03, 0.08),
-        0.0007,
-        0.0003,
-        [0.98, 0.98, 0.96],
+        v(s * 0.002, spine(0.028), 0.028),
+        v(s * 0.005, spine(0.028) + 0.002, 0.031),
+        0.0009,
+        0.0008,
+        red,
       ),
     );
-    for (let k = 0; k < 3; k++)
+    const eye = new THREE.SphereGeometry(0.0017, 8, 6);
+    eye.translate(s * 0.0055, spine(0.028) + 0.0022, 0.0315);
+    parts.push(tinted(eye, [0.05, 0.04, 0.04]));
+    // Three pairs of long white antennae, sweeping forward and out.
+    for (const [spread, rise, reach] of [
+      [0.022, 0.024, 0.085],
+      [0.03, 0.012, 0.07],
+      [0.012, 0.03, 0.06],
+    ] as const)
       parts.push(
         limb(
-          v(s * 0.004, 0.006, 0.015 - k * 0.008),
-          v(s * 0.012, 0, 0.018 - k * 0.008),
-          0.0008,
-          0.0005,
-          [0.85, 0.3, 0.25],
+          v(s * 0.0015, spine(0.03), 0.032),
+          v(s * spread, spine(0.03) + rise, 0.032 + reach),
+          0.0006,
+          0.00025,
+          white,
         ),
       );
+    // Five pairs of legs, each in two segments; the front two with tiny claws.
+    for (let k = 0; k < 5; k++) {
+      const z = 0.024 - k * 0.005,
+        hip = v(s * 0.003, spine(z) - 0.004, z),
+        knee = v(s * 0.008, spine(z) - 0.001, z + 0.002),
+        foot = v(s * 0.011, 0, z + 0.001);
+      parts.push(
+        limb(hip, knee, 0.0007, 0.0006, k < 2 ? white : [0.9, 0.35, 0.28]),
+      );
+      parts.push(limb(knee, foot, 0.0006, 0.0003, white));
+      if (k < 2) {
+        const claw = new THREE.SphereGeometry(0.0011, 5, 4);
+        claw.scale(1, 0.6, 1.6);
+        claw.translate(foot.x, foot.y + 0.001, foot.z + 0.002);
+        parts.push(tinted(claw, white));
+      }
+    }
   }
   return merged(parts);
 }
