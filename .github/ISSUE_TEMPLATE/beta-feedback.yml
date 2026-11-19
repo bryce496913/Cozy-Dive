@@ -1,0 +1,37 @@
+name: Beta feedback
+description: Tell us how Cozy Diver felt — what was calm, and what got in the way.
+title: '[Beta] '
+labels: ['beta-feedback']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for diving in. Everything here is optional; a sentence is plenty.
+        Please don't include personal details. Nothing was sent from the game itself.
+  - type: textarea
+    id: feeling
+    attributes:
+      label: How did it feel?
+      description: Relaxing? Confusing? Too dark, too loud, too slow?
+  - type: textarea
+    id: trouble
+    attributes:
+      label: Anything that got in the way
+      description: What happened, where you were (office, tank, outer reef, kelp, cave, under the ice), and what you expected.
+  - type: textarea
+    id: details
+    attributes:
+      label: Browser and graphics (optional)
+      description: In Cozy Diver, open Settings → Beta feedback → Copy details, and paste here.
+      render: text
+  - type: dropdown
+    id: device
+    attributes:
+      label: Device
+      options:
+        - Mac
+        - Windows PC
+        - Linux
+        - Chromebook
+        - Tablet with mouse or trackpad
+        - Other

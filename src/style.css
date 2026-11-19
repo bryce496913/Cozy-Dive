@@ -870,3 +870,64 @@ kbd {
     display: none;
   }
 }
+/* v0.8 Pass 060: beta feedback and the build line, quiet at the foot of Settings. */
+.feedback {
+  margin-top: 18px;
+  border-top: 1px solid #9ebdab33;
+  padding-top: 12px;
+}
+.feedback summary {
+  cursor: pointer;
+  color: #cde1d3;
+  font-size: 12px;
+}
+.feedback textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font:
+    11px/1.4 ui-monospace,
+    Menlo,
+    monospace;
+  color: #cde1d3;
+  background: #0b2e2f;
+  border: 1px solid #9ebdab55;
+  border-radius: 4px;
+  padding: 6px;
+  resize: vertical;
+}
+.feedback-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-top: 8px;
+}
+.feedback-actions button {
+  background: transparent;
+  border: 1px solid #9ebdab55;
+  border-radius: 4px;
+  color: #cde1d3;
+  padding: 8px 12px;
+  font-size: 11px;
+}
+.feedback-actions a {
+  color: #d6e3bb;
+  font-size: 12px;
+}
+.build {
+  margin-top: 14px;
+  font-size: 11px;
+  color: #a6c2b8;
+}
+.build a {
+  color: inherit;
+}
+/* v0.8 Pass 060: short windows (a laptop with the browser not full screen, under 700 px of
+   height) have the same problem as phones: start below the header and scroll. */
+@media (max-height: 700px) {
+  .overlay {
+    align-items: flex-start;
+    overflow-y: auto;
+    padding-top: 96px;
+  }
+}

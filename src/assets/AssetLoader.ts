@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { versioned } from '../config/release';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
@@ -100,7 +101,8 @@ export class AssetLoader {
       this.ktx2 ??= leaseKtx2(this.renderer);
       gltf.setKTX2Loader(this.ktx2.loader);
     }
-    return gltf.loadAsync(url);
+    // v0.8 Pass 060: the version on the request, so an update is never served a stale model.
+    return gltf.loadAsync(versioned(url));
   }
   async acquire(id: AssetId): Promise<AssetLease> {
     if (this.disposed) throw Error('Asset cache is disposed');
