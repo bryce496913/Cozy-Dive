@@ -7,6 +7,7 @@ import { createRockGeometry } from '../RockGeometry';
 import { dotTexture } from '../shared/MarineSnow';
 import { CAVE_ROCKS } from './CaveEnvironment';
 import { caveFloor, wallPoint } from './CaveTerrain';
+import { CaveEncrusting } from './CaveEncrusting';
 
 /**
  * v0.6 Pass 035: the sea cave's detail, built in code. Knobbly limestone formations hang from the
@@ -238,9 +239,13 @@ export class CaveDressing {
   private readonly scratch = new THREE.Matrix4();
   private time = 0;
   private disposed = false;
+  /** Sponges and sea squirts on the walls, mysids in the beam. */
+  private readonly encrusting: CaveEncrusting;
 
   constructor(beamTop: number, boulders?: THREE.Object3D) {
     this.root.name = 'Sea cave detail';
+    this.encrusting = new CaveEncrusting(beamTop);
+    this.root.add(this.encrusting.root);
     boulders?.updateWorldMatrix(true, true);
     const surfaceRay = new THREE.Raycaster();
     const rand = random(CAVE_DRESSING.seed),
@@ -533,6 +538,7 @@ export class CaveDressing {
   }
   /** Polyps open and close slowly; motes drift in the beam; on simulation time only. */
   update(dt: number, active: boolean, reducedMotion: boolean): void {
+    if (!this.disposed) this.encrusting.update(dt, active, reducedMotion);
     if (this.disposed || !active || reducedMotion || !(dt > 0)) return;
     this.time += Math.min(dt, 0.1);
     const t = this.time;
@@ -556,6 +562,7 @@ export class CaveDressing {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    this.encrusting.dispose();
     this.root.removeFromParent();
     for (const child of this.root.children)
       if (child instanceof THREE.InstancedMesh) child.dispose();

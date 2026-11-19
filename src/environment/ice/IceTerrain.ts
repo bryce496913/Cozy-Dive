@@ -25,6 +25,20 @@ export function iceFloor(x: number, z: number): number {
   );
 }
 
+/** The underside of the sea ice (m) at (x, z): rumpled, thinning (rising) towards each hole. */
+export function iceUndersideAt(x: number, z: number): number {
+  const rumple =
+    0.35 * Math.abs(Math.sin(x * 0.45 + z * 0.2)) +
+    0.25 * Math.sin(x * 1.3) * Math.sin(z * 1.1);
+  let rim = 0;
+  for (const h of ICE.holes)
+    rim = Math.max(
+      rim,
+      1 - Math.min(1, (Math.hypot(x - h.x, z - h.z) - h.r) / 2.5),
+    );
+  return ICE.ceiling - rumple + 0.5 * rim;
+}
+
 /** Whether `p` is in the tunnel or just out of it (no soft limits there). */
 export function inIceTunnelReach(p: Readonly<Vec3>): boolean {
   const t = ICE.tunnel;
