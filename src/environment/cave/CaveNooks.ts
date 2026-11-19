@@ -58,6 +58,8 @@ export interface CaveNooks {
     readonly depth: number;
   };
   readonly nurse: { readonly at: Vec3; readonly yaw: number };
+  /** Playtest: a swell shark wedged in a crack at the foot of the back-left wall. */
+  readonly swell: { readonly at: Vec3; readonly yaw: number };
   readonly turtle: {
     readonly bed: Vec3;
     readonly yaw: number;
@@ -107,6 +109,21 @@ export function caveNooks(skylightTop: number): CaveNooks {
     oa = Math.atan2(c.x - or.x, c.z - or.z) + 1.4,
     ox = or.x + Math.sin(oa) * (or.size * 0.52),
     oz = or.z + Math.cos(oa) * (or.size * 0.52);
+  // The swell shark: wedged in the crack between two boulders by the back-left wall, lying along
+  // it.
+  const ra = rock(-12, -34),
+    rb = rock(-16, -31),
+    gx = rb.x - ra.x,
+    gz = rb.z - ra.z,
+    // How far along from `ra` the gap's middle is (between their two sides).
+    k =
+      (ra.size * 0.5 +
+        (Math.hypot(gx, gz) - ra.size * 0.5 - rb.size * 0.5) / 2) /
+      Math.hypot(gx, gz),
+    swell = offWall({ x: ra.x + gx * k, y: 0, z: ra.z + gz * k }, 0.8);
+  swell.y = caveFloor(swell.x, swell.z) + 0.12;
+  // Along the crack: across the line between the boulders (0 faces +x, positive towards -z).
+  const swellYaw = Math.atan2(-gx, -gz);
   const lion = [rock(6.5, -33.5), rock(-4.5, -27)].map((r, i) => ({
     at: { x: r.x, y: caveFloor(r.x, r.z) + r.height * 0.82, z: r.z },
     yaw: i * 2.2 + 0.8,
@@ -122,6 +139,7 @@ export function caveNooks(skylightTop: number): CaveNooks {
       depth: 1.8,
     },
     nurse: { at: { x: l.x, y: floor + 0.28, z: l.z }, yaw: along },
+    swell: { at: swell, yaw: swellYaw },
     turtle: {
       bed,
       yaw: 2.2,
@@ -166,6 +184,7 @@ export function nooksClear(n: CaveNooks): boolean {
   const spots = [
     n.turtle.bed,
     n.nurse.at,
+    n.swell.at,
     { x: n.octopus.x, y: 0, z: n.octopus.z },
   ];
   for (const s of spots) {

@@ -61,6 +61,7 @@ export const CAVE_SIGHTS = {
   moray: { id: 'species:moray-eel', label: 'Moray eel' },
   flashlight: { id: 'species:flashlight-fish', label: 'Flashlight fish' },
   nurseShark: { id: 'species:nurse-shark', label: 'Nurse shark' },
+  swellShark: { id: 'species:swell-shark', label: 'Swell shark' },
   shrimp: { id: 'species:cleaner-shrimp', label: 'Cleaner shrimp' },
   lionfish: { id: 'species:lionfish', label: 'Lionfish' },
 } as const satisfies Record<string, Sight>;
@@ -83,6 +84,7 @@ export const ICE_SIGHTS = {
   emperor: { id: 'species:emperor-penguin', label: 'Emperor penguin' },
   adelie: { id: 'species:adelie-penguin', label: 'Adélie penguin' },
   weddell: { id: 'species:weddell-seal', label: 'Weddell seal' },
+  weddellPup: { id: 'species:weddell-seal-pup', label: 'Weddell seal pup' },
   krill: { id: 'species:antarctic-krill', label: 'Antarctic krill' },
   icefish: { id: 'species:blackfin-icefish', label: 'Icefish' },
   notothen: { id: 'species:bald-notothen', label: 'Bald notothen' },
@@ -135,6 +137,7 @@ export const OUTER_SIGHTS = {
   bannerfish: { id: 'species:longfin-bannerfish', label: 'Longfin bannerfish' },
   sunfish: { id: 'species:ocean-sunfish', label: 'Ocean sunfish' },
   greatWhite: { id: 'species:great-white-shark', label: 'Great white shark' },
+  cleanerWrasse: { id: 'species:cleaner-wrasse', label: 'Cleaner wrasse' },
 } as const satisfies Record<string, Sight>;
 
 /** Every sight, in the order the "Seen" page lists them when first seen together. */
