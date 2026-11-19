@@ -37,7 +37,8 @@ export type SpeciesId =
   | 'bald-notothen'
   | 'antarctic-toothfish'
   | 'giant-sea-bass'
-  | 'california-sheephead';
+  | 'california-sheephead'
+  | 'cleaner-wrasse';
 export interface SchoolingTuning {
   readonly enabled: boolean;
   readonly spacing: number;

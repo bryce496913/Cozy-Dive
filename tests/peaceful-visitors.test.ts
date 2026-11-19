@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { PlayerPresence } from '../src/fish/FishDiverReaction';
 import { createPose } from '../src/environment/outer/PosedFish';
 import { ReefCleaningStation } from '../src/creatures/reefCleaners';
 import { SealPup, WeddellSeal, iceLimits } from '../src/creatures/iceLife';
@@ -9,7 +10,11 @@ import { ICE } from '../src/config/passage';
 const run = (n: number, step: (dt: number) => void) => {
   for (let i = 0; i < n; i++) step(1 / 30);
 };
-const away = { active: true, position: { x: 100, y: 0, z: 100 } };
+const away: PlayerPresence = {
+  active: true,
+  position: { x: 100, y: 0, z: 100 },
+  velocity: { x: 0, y: 0, z: 0 },
+};
 
 describe('reef cleaning station', () => {
   it('a client comes, is cleaned with the wrasse at its side, and leaves', () => {
@@ -39,7 +44,11 @@ describe('reef cleaning station', () => {
     });
     s.call();
     run(30 * 60, () => s.update(1 / 30, away));
-    const near = { active: true, position: { x: 0, y: -9.4, z: -40 } };
+    const near: PlayerPresence = {
+      active: true,
+      position: { x: 0, y: -9.4, z: -40 },
+      velocity: { x: 0, y: 0, z: 0 },
+    };
     s.update(1 / 30, near);
     expect(['leaving', 'waiting']).toContain(s.mood);
   });

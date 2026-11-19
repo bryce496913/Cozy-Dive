@@ -43,7 +43,9 @@ export type TankCreatureId =
   | 'sea-cucumber'
   | 'antarctic-scallop'
   | 'sea-pen'
-  | 'giant-isopod';
+  | 'giant-isopod'
+  | 'swell-shark'
+  | 'weddell-seal-pup';
 export interface BabyDefinition {
   readonly id: TankCreatureId;
   readonly sighting: string;
@@ -155,9 +157,19 @@ export const TANK_BABIES: readonly BabyDefinition[] = [
   littleAsset('western-gull', 'Little western gull', 'westernGull'),
   littleAsset('california-sea-lion', 'Sea lion pup', 'seaLion'),
   littleAsset('nurse-shark', 'Nurse shark pup', 'nurseShark'),
+  littleAsset('swell-shark', 'Little swell shark', 'nurseShark', 0xb08a5c),
   littleAsset('emperor-penguin', 'Little emperor penguin', 'emperorPenguin'),
   littleAsset('adelie-penguin', 'Little Adélie penguin', 'adeliePenguin'),
-  littleAsset('weddell-seal', 'Weddell seal pup', 'harbourSeal', 0x79828a),
+  littleAsset('weddell-seal', 'Little Weddell seal', 'harbourSeal', 0x79828a),
+  {
+    ...littleAsset(
+      'weddell-seal-pup',
+      'Weddell seal pup',
+      'harbourSeal',
+      0xabb6bd,
+    ),
+    size: 0.35,
+  },
   littleAsset('leopard-seal', 'Leopard seal pup', 'leopardSeal'),
   littleAsset('minke-whale', 'Minke whale calf', 'minkeWhale'),
   littleAsset('killer-whale', 'Orca calf', 'killerWhale'),

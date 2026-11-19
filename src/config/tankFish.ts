@@ -316,6 +316,17 @@ export const TANK_FISH: readonly TankFishDefinition[] = [
     length: 0.5,
     modelLength: 0.7,
   },
+  {
+    species: 'cleaner-wrasse',
+    label: 'Cleaner wrasse',
+    group: 'individual',
+    sighting: 'species:cleaner-wrasse',
+    max: 3,
+    asset: 'chromis',
+    note: 'A tiny blue cleaner from the reef.',
+    length: 0.22,
+    tint: 0x65aad9,
+  },
 ];
 /** Room for added fish in all (simulation and rendering budget). */
 export const TANK_FISH_CAP = TANK_FISH.reduce((sum, fish) => sum + fish.max, 0);
