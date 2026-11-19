@@ -34,16 +34,26 @@ import {
  * soft corals and fans 7-13k. Beyond the last distance a piece is not drawn (fog hides it).
  */
 export const OUTER_DETAIL = {
-  // Visibility hotfix: retain close detail and retire distant pieces inside the denser haze.
-  rock: [4.5, 12, 24],
+  /**
+   * Playtest fix (pop-in entering the outer reef). The murk is unchanged (`OUTER.fog`: about 96%
+   * by 14 m); before, corals, plates and plants stopped being drawn at 14 m and shells at 10 m,
+   * inside the murk you can still see into, so they appeared as the swimmer came out of the
+   * tunnel. Now nothing appears, vanishes or changes shape nearer than `hidden`, where the haze
+   * lets through about 0.1% of a colour (invisible), and cheap stand-ins (rocks' lightest level,
+   * coral mounds) carry on to `drawn`, so the reef is already there long before it can be seen.
+   * The near detail switches (a few metres away) are as before.
+   */
+  hidden: 20,
+  drawn: 30,
+  rock: [4.5, 12, 30],
   /** Large backdrop silhouettes get extra room for their footprint before disappearing. */
-  backdrop: 32,
-  /** Massive colonies: full, far level, then a 1.3k-triangle mound in their own colour. */
-  massive: [3, 14, 24],
-  branching: [4, 14],
-  plate: 14,
-  plant: 14,
-  debris: 10,
+  backdrop: 36,
+  /** Coral colonies: full, far level, then a 1.3k-triangle mound in their own colour. */
+  massive: [3, 20, 30],
+  branching: [4, 20],
+  plate: 20,
+  plant: 20,
+  debris: 20,
   /** Re-sort when the eye has moved this far, or this often (s). */
   resortDistance: 1.5,
   resortInterval: 0.4,
@@ -368,17 +378,18 @@ export class OuterReef {
         }
         // Pass 026: far massive colonies become simple mounds in their colony's own colour (the
         // coral material on the rock-derived mound read as pale stones in the denser reef).
-        if (family === 'massive')
-          this.add(
-            `Outer coral ${name} mound`,
-            [
-              { geometry: null, until: D.massive[1] },
-              { geometry: this.mound(), until: D.massive[2] },
-              { geometry: null, until: Infinity },
-            ],
-            this.moundMaterial(t),
-            matrices,
-          );
+        // Playtest fix: every coral does, from where the haze hides the swap (`hidden`) on to
+        // `drawn`, so the far reef keeps its shape without the full colonies' cost.
+        this.add(
+          `Outer coral ${name} mound`,
+          [
+            { geometry: null, until: D.hidden },
+            { geometry: this.mound(), until: D.drawn },
+            { geometry: null, until: Infinity },
+          ],
+          this.moundMaterial(t),
+          matrices,
+        );
         this.collide(this.hulls(`${name}_Root`), matrices);
       }
     // Soft corals, sea fans and seagrass, swaying in the reef's current.
