@@ -10,6 +10,7 @@ import {
   iceLimits,
   Notothens,
   WeddellSeal,
+  SealPup,
 } from '../../creatures/iceLife';
 import type { SightCandidate } from '../../discovery/journal';
 import { ICE_SIGHTS } from '../../discovery/sights';
@@ -32,6 +33,8 @@ import { IceCritters } from './IceCritters';
 const LENGTH = { icefish: 0.75, notothen: 0.42 } as const;
 /** The Weddell seal: the harbour seal's model, larger and darker. */
 const WEDDELL_LOOK = { scale: 1.75, tint: 0x6a7480 } as const;
+/** Her pup: under half her length, its coat paler and greyer. */
+const PUP_LOOK = { scale: 0.78, tint: 0x9aa2ac } as const;
 
 export class IceLife {
   readonly root = new THREE.Group();
@@ -40,6 +43,7 @@ export class IceLife {
   readonly emperors: EmperorDives;
   readonly adelies: AdelieGroup;
   readonly seal: WeddellSeal;
+  readonly pup: SealPup;
   readonly icefish: IcefishRest;
   readonly notothens: Notothens;
   readonly critters: IceCritters;
@@ -61,6 +65,7 @@ export class IceLife {
     this.emperors = new EmperorDives(createPose, limits);
     this.adelies = new AdelieGroup(createPose, limits);
     this.seal = new WeddellSeal(createPose(), limits, 0);
+    this.pup = new SealPup(createPose(), this.seal.pose, limits);
     // Icefish rest near the stones on the open seabed.
     const homes: Vec3[] = stones
       .filter(
@@ -169,6 +174,20 @@ export class IceLife {
         });
       }, 'Weddell seal'),
       this.part(async () => {
+        await this.solo(
+          'harbourSeal',
+          this.pup.pose,
+          'Weddell seal pup',
+          PUP_LOOK.scale,
+          PUP_LOOK.tint,
+        );
+        this.sightings.push({
+          ...ICE_SIGHTS.weddellPup,
+          position: this.pup.pose.position,
+          radius: 2,
+        });
+      }, 'Weddell seal pup'),
+      this.part(async () => {
         const poses = this.icefish.fish.map((f) => f.swim.pose);
         this.icefishFish = new PosedFish(
           await this.lease('icefish', poses.length),
@@ -246,6 +265,7 @@ export class IceLife {
         }
       this.adelies.update(dt, player);
       this.seal.update(dt, player);
+      this.pup.update(dt);
       this.icefish.update(dt, player);
       this.notothens.update(dt, player);
     } else this.seal.called = false;
