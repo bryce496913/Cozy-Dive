@@ -45,7 +45,14 @@ export type TankCreatureId =
   | 'sea-pen'
   | 'giant-isopod'
   | 'swell-shark'
-  | 'weddell-seal-pup';
+  | 'weddell-seal-pup'
+  | 'encrusting-sponge'
+  | 'tube-sponge'
+  | 'sea-squirt'
+  | 'mysid'
+  | 'ice-algae'
+  | 'sea-angel'
+  | 'christmas-tree-worm';
 export interface BabyDefinition {
   readonly id: TankCreatureId;
   readonly sighting: string;
@@ -206,6 +213,17 @@ export const TANK_BABIES: readonly BabyDefinition[] = [
   littleShape('antarctic-scallop', 'Antarctic scallop', 'still'),
   littleShape('sea-pen', 'Sea pen', 'still'),
   littleShape('giant-isopod', 'Little giant isopod', 'crawl'),
+  littleShape('encrusting-sponge', 'Encrusting sponge', 'still'),
+  littleShape('tube-sponge', 'Tube sponges', 'still'),
+  littleShape('sea-squirt', 'Sea squirts', 'still'),
+  littleShape('mysid', 'Mysids', 'drift'),
+  {
+    ...littleShape('ice-algae', 'Ice algae', 'still'),
+    sighting: 'plant:ice-algae',
+    halfHeight: 0.005,
+  },
+  littleShape('sea-angel', 'Sea angel', 'drift'),
+  littleShape('christmas-tree-worm', 'Christmas tree worm', 'still'),
 ];
 export const BABY_CAP = TANK_BABIES.length;
 export const babyDefinition = (id: TankCreatureId): BabyDefinition =>

@@ -24,7 +24,7 @@ describe('the home tank collects every discovery', () => {
       ...TANK_BABIES.map((b) => b.sighting),
       ...TANK_ITEMS.map((i) => i.sighting),
     ]);
-    for (const sight of SIGHTS.filter((s) => s.id.startsWith('species:')))
+    for (const sight of SIGHTS.filter((s) => !s.id.startsWith('place:')))
       expect(offered.has(sight.id), sight.label).toBe(true);
     expect(new Set(TANK_BABIES.map((b) => b.id)).size).toBe(TANK_BABIES.length);
     const collection = new TankCatalog([], context);

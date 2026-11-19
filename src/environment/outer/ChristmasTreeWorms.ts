@@ -1,3 +1,5 @@
+import { OUTER_SIGHTS } from '../../discovery/sights';
+import type { SightCandidate } from '../../discovery/journal';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
@@ -111,6 +113,7 @@ export class ChristmasTreeWorms {
   private readonly mesh: THREE.InstancedMesh;
   private readonly base: THREE.Matrix4[] = [];
   private readonly at: THREE.Vector3[] = [];
+  readonly sightings: SightCandidate[] = [];
   private readonly open: Float32Array;
   private readonly phase: Float32Array;
   private readonly m = new THREE.Matrix4();
@@ -173,6 +176,11 @@ export class ChristmasTreeWorms {
             ),
           );
           this.at.push(hit.point.clone());
+          this.sightings.push({
+            ...OUTER_SIGHTS.christmasTreeWorm,
+            position: this.at[this.at.length - 1],
+            radius: 0.3,
+          });
           colours.push(COLOURS[Math.floor(rand() * COLOURS.length)]);
         }
       }
@@ -226,6 +234,7 @@ export class ChristmasTreeWorms {
     if (this.disposed) return;
     this.disposed = true;
     this.root.removeFromParent();
+    this.sightings.length = 0;
     this.mesh.dispose();
     this.geometry.dispose();
     this.material.dispose();

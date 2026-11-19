@@ -1,3 +1,5 @@
+import { CAVE_SIGHTS, type Sight } from '../../discovery/sights';
+import type { SightCandidate } from '../../discovery/journal';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { CAVE } from '../../config/passage';
@@ -67,7 +69,7 @@ function merge(parts: THREE.BufferGeometry[]): THREE.BufferGeometry {
 }
 
 /** A low, lobed sponge cushion on y 0 (about 30 cm across), pocked with dark oscula. */
-function cushionGeometry(): THREE.BufferGeometry {
+export function cushionGeometry(): THREE.BufferGeometry {
   const g = new THREE.SphereGeometry(1, 28, 10, 0, Math.PI * 2, 0, Math.PI / 2),
     p = g.getAttribute('position');
   for (let i = 0; i < p.count; i++) {
@@ -86,7 +88,7 @@ function cushionGeometry(): THREE.BufferGeometry {
   });
 }
 /** A cluster of open-mouthed tube sponges on y 0 (up to about 25 cm tall). */
-function tubeClusterGeometry(): THREE.BufferGeometry {
+export function tubeClusterGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [],
     tubes = [
       [0, 0, 0.24, 0.035, 0],
@@ -119,7 +121,7 @@ function tubeClusterGeometry(): THREE.BufferGeometry {
   return merge(parts);
 }
 /** A cluster of sea squirts on y 0: glassy barrels (about 5 cm) each with two siphons. */
-function squirtClusterGeometry(): THREE.BufferGeometry {
+export function squirtClusterGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
   for (let k = 0; k < 6; k++) {
     const a = k * 2.4,
@@ -152,6 +154,8 @@ function squirtClusterGeometry(): THREE.BufferGeometry {
 
 export class CaveEncrusting {
   readonly root = new THREE.Group();
+  readonly sightings: SightCandidate[] = [];
+  private readonly mysidAt: THREE.Vector3[] = [];
   private readonly geometries: THREE.BufferGeometry[] = [];
   private readonly materials: THREE.Material[] = [];
   private readonly mysids: THREE.InstancedMesh;
@@ -201,6 +205,7 @@ export class CaveEncrusting {
       tint: () => RGB,
       material: THREE.Material,
       name: string,
+      sight: Sight,
     ) => {
       this.geometries.push(geometry);
       this.materials.push(material);
@@ -208,6 +213,7 @@ export class CaveEncrusting {
       mesh.name = name;
       for (let i = 0; i < count; i++) {
         const at = onWall(low, high);
+        this.sightings.push({ ...sight, position: at, radius: 0.6 });
         this.q.setFromUnitVectors(up, n);
         this.q.multiply(
           new THREE.Quaternion().setFromAxisAngle(up, rand() * Math.PI * 2),
@@ -241,6 +247,7 @@ export class CaveEncrusting {
       sponge,
       fleshy(),
       'Encrusting sponges',
+      CAVE_SIGHTS.encrustingSponge,
     );
     place(
       tubeClusterGeometry(),
@@ -251,6 +258,7 @@ export class CaveEncrusting {
       sponge,
       fleshy(),
       'Tube sponges',
+      CAVE_SIGHTS.tubeSponge,
     );
     place(
       squirtClusterGeometry(),
@@ -268,6 +276,7 @@ export class CaveEncrusting {
         depthWrite: false,
       }),
       'Sea squirts',
+      CAVE_SIGHTS.seaSquirt,
     );
 
     // Mysids: a loose swarm hovering in the sunbeam's column.
@@ -299,6 +308,9 @@ export class CaveEncrusting {
       this.home[i * 3 + 1] = floor + sw.low + rand() * (high - floor - sw.low);
       this.home[i * 3 + 2] = sky.z + Math.sin(a) * r;
       this.phase[i] = rand() * 100;
+      const at = new THREE.Vector3();
+      this.mysidAt.push(at);
+      this.sightings.push({ ...CAVE_SIGHTS.mysid, position: at, radius: 0.25 });
     }
     this.root.add(this.mysids);
     this.update(0, true, true);
@@ -317,6 +329,7 @@ export class CaveEncrusting {
         this.home[i * 3 + 1] + 0.12 * Math.sin(t * 0.47 + ph * 1.7),
         this.home[i * 3 + 2] + 0.25 * Math.cos(t * 0.27 + ph * 0.6),
       );
+      this.mysidAt[i].copy(this.p);
       this.e.set(0.1 * Math.sin(t * 0.9 + ph), heading + 0.3 * Math.sin(ph), 0);
       this.q.setFromEuler(this.e);
       this.mysids.setMatrixAt(
@@ -334,6 +347,8 @@ export class CaveEncrusting {
       if (o instanceof THREE.InstancedMesh) o.dispose();
     });
     this.root.clear();
+    this.sightings.length = 0;
+    this.mysidAt.length = 0;
     this.geometries.forEach((g) => g.dispose());
     this.materials.forEach((m) => m.dispose());
   }

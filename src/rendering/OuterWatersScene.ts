@@ -367,7 +367,11 @@ export class OuterWatersScene implements WaterWorld {
           radius: 0.9,
         });
     }
-    this.sightings.push(...reefSightings(drawn), ...creatures.sightings);
+    this.sightings.push(
+      ...reefSightings(drawn),
+      ...creatures.sightings,
+      ...this.reef.sightings,
+    );
     // v0.6 Pass 041: while the swimmer is in the tunnel, upload every coral and rock at every
     // detail level (one copy of each drawn in the warm-up), so none pops in on first sight.
     this.reef.primeAll();

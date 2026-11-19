@@ -1006,6 +1006,7 @@ export class IceExtras {
     for (const c of this.chains)
       this.sightings.push({ ...ICE_SIGHTS.salp, position: c.at, radius: 2 });
     this.root.add(this.underside.root);
+    this.sightings.push(...this.underside.sightings);
     this.update(0, true, false);
   }
   private own<T extends THREE.Material>(m: T): T {

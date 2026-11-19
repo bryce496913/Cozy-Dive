@@ -58,7 +58,15 @@ export class TankBaby {
         habitat.floor(this.spawn.x, this.spawn.z, definition.radius) +
         definition.halfHeight +
         0.2;
-    if (!this.navigation.nearest(this.spawn, this.position, eye, occupied))
+    if (
+      !this.navigation.nearest(
+        this.spawn,
+        this.position,
+        eye,
+        occupied,
+        definition.motion === 'still',
+      )
+    )
       throw Error('No open water for a little visitor');
     this.setGoal();
     if (definition.motion !== 'still') this.plan();

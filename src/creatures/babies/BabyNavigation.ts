@@ -183,11 +183,19 @@ export class BabyNavigation {
     out: Vec3,
     avoid?: Readonly<Vec3>,
     occupied?: readonly BabyNeighbour[],
+    onFloor = false,
   ): boolean {
     let best = -1,
       distance = Infinity;
     for (let id = 0; id < COUNT; id++) {
+      // Stationary life is seated on the bed, with the same obstacle/neighbour checks.
+      if (onFloor && Math.floor(id / NX) % NY !== 0) continue;
       this.at(id, this.b);
+      if (onFloor)
+        this.b.y =
+          this.habitat.floor(this.b.x, this.b.z, this.body.radius) +
+          this.body.halfHeight +
+          0.025;
       const d =
         (this.b.x - target.x) ** 2 +
         (this.b.y - target.y) ** 2 +
@@ -201,7 +209,7 @@ export class BabyNavigation {
             this.b.z - avoid.z,
           ) <
             1.3 + this.body.radius) ||
-        !this.isFree(id)
+        !(onFloor ? this.safe(this.b.x, this.b.y, this.b.z) : this.isFree(id))
       )
         continue;
       let busy = false;
@@ -224,6 +232,11 @@ export class BabyNavigation {
     }
     if (best < 0) return false;
     this.at(best, out);
+    if (onFloor)
+      out.y =
+        this.habitat.floor(out.x, out.z, this.body.radius) +
+        this.body.halfHeight +
+        0.025;
     return true;
   }
   /**

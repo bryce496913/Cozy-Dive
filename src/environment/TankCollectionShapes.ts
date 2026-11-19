@@ -1,3 +1,10 @@
+import {
+  cushionGeometry,
+  tubeClusterGeometry,
+  squirtClusterGeometry,
+} from './cave/CaveEncrusting';
+import { patchGeometry, angelBody, angelWing } from './ice/IceUnderside';
+import { wormPlumes } from './outer/ChristmasTreeWorms';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { TankCreatureId } from '../config/babies';
@@ -117,6 +124,29 @@ function octopus() {
 }
 export function collectionShape(id: TankCreatureId): THREE.BufferGeometry {
   switch (id) {
+    case 'encrusting-sponge':
+      return cushionGeometry();
+    case 'tube-sponge':
+      return tubeClusterGeometry();
+    case 'sea-squirt':
+      return squirtClusterGeometry();
+    case 'mysid':
+      return krillShape();
+    case 'ice-algae': {
+      const g = patchGeometry();
+      g.rotateX(Math.PI);
+      return g;
+    }
+    case 'sea-angel': {
+      const left = angelWing(),
+        right = angelWing();
+      left.translate(0, 0.02, 0);
+      right.rotateY(Math.PI);
+      right.translate(0, 0.02, 0);
+      return join([angelBody(), left, right]);
+    }
+    case 'christmas-tree-worm':
+      return wormPlumes();
     case 'spanish-shawl':
       return spanishShawlGeometry();
     case 'kelp-crab':
