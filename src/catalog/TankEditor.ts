@@ -1,7 +1,7 @@
 import { TankBabies } from '../environment/TankBabies';
 import { keepFocusIn } from '../ui/focus';
 import { TankBabyHabitat } from '../environment/TankBabyHabitat';
-import type { BigCreatureId } from '../config/creatures';
+import type { TankCreatureId } from '../config/babies';
 import * as THREE from 'three';
 import type { UnderwaterScene } from '../rendering/UnderwaterScene';
 import type { Sighting } from '../discovery/journal';
@@ -304,7 +304,7 @@ export class TankEditor {
     this.close();
     this.resume();
   }
-  private chooseBaby(id: BigCreatureId) {
+  private chooseBaby(id: TankCreatureId) {
     if (!this.current?.eligible || this.current.active || !this.model) return;
     if (this.model.babies.includes(id)) this.model.removeBaby(id);
     else if (!this.model.addBaby(id, this.seen())) return;

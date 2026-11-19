@@ -59,7 +59,7 @@ const LION = { dorsal: 13, pectoral: 8, rays: 13 + 2 * 8, scale: 1.6 } as const;
  * body (carapace with a pointed rostrum, six tail segments curving down to a fanned tail), red
  * flanks with the white stripe down its back, stalked black eyes, three pairs of long white
  * antennae, and five pairs of jointed legs, the front two ending in little claws. */
-function shrimpGeometry(): THREE.BufferGeometry {
+export function shrimpGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [],
     v = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z),
     red: [number, number, number] = [0.85, 0.12, 0.1],
@@ -194,7 +194,7 @@ function finFan(
   return g;
 }
 /** A lionfish body facing +z, its belly at y 0 (about 30 cm before scaling), with head tentacles. */
-function lionBody(): THREE.BufferGeometry {
+export function lionBody(): THREE.BufferGeometry {
   // A deep, compressed body: big head, deepest behind it, tapering to a slim tail stalk.
   const body = new THREE.SphereGeometry(1, 28, 18),
     bp = body.getAttribute('position');
@@ -278,7 +278,7 @@ function lionBody(): THREE.BufferGeometry {
   return merged(parts);
 }
 /** One fin ray (spine), its base at the origin, pointing up +y (1 unit long): finely banded. */
-function rayGeometry(): THREE.BufferGeometry {
+export function rayGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [],
     bands = 8;
   for (let k = 0; k < bands; k++) {

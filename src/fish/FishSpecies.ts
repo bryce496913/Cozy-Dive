@@ -32,7 +32,13 @@ export type SpeciesId =
   /** v0.6 Pass 052: the big shimmering school under the ice (never in the tank). */
   | 'antarctic-silverfish'
   /** Playtest: the barracuda as a tank guest (it swims as a school creature in the outer reef). */
-  | 'great-barracuda';
+  | 'great-barracuda'
+  | 'blackfin-icefish'
+  | 'bald-notothen'
+  | 'antarctic-toothfish'
+  | 'giant-sea-bass'
+  | 'california-sheephead'
+  | 'cleaner-wrasse';
 export interface SchoolingTuning {
   readonly enabled: boolean;
   readonly spacing: number;

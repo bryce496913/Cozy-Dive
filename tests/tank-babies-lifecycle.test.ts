@@ -24,7 +24,7 @@ function fixture() {
 const habitat = { solids: [], floor: () => 0 };
 const eye = { x: 0, y: 4.6, z: 9 };
 it('owns opacity materials only; fades, uses far levels in the miniature, and disposes once', async () => {
-  const fixtures = TANK_BABIES.map(fixture),
+  const fixtures = TANK_BABIES.slice(0, 3).map(fixture),
     loader = {
       acquire: vi.fn(
         async () => fixtures[loader.acquire.mock.calls.length - 1].lease,
@@ -36,7 +36,7 @@ it('owns opacity materials only; fades, uses far levels in the miniature, and di
     camera = new THREE.PerspectiveCamera();
   camera.position.set(0, 5, 9);
   b.set(
-    TANK_BABIES.map((d) => d.id),
+    TANK_BABIES.slice(0, 3).map((d) => d.id),
     eye,
   );
   await b.ready;

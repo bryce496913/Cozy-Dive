@@ -1,11 +1,61 @@
-import type { BigCreatureId } from './creatures';
+import { CRUISE_SPECIES, type BigCreatureId } from './creatures';
 import type { AssetId } from '../assets/AssetRegistry';
 
+export type TankCreatureId =
+  | BigCreatureId
+  | 'great-white-shark'
+  | 'ocean-sunfish'
+  | 'sea-otter'
+  | 'harbour-seal'
+  | 'western-gull'
+  | 'california-sea-lion'
+  | 'nurse-shark'
+  | 'emperor-penguin'
+  | 'adelie-penguin'
+  | 'weddell-seal'
+  | 'leopard-seal'
+  | 'minke-whale'
+  | 'killer-whale'
+  | 'polar-bear'
+  | 'spanish-shawl'
+  | 'kelp-crab'
+  | 'spiny-lobster'
+  | 'rock-crab'
+  | 'moray-eel'
+  | 'cleaner-shrimp'
+  | 'lionfish'
+  | 'octopus'
+  | 'glass-sponge'
+  | 'antarctic-soft-coral'
+  | 'antarctic-anemone'
+  | 'antarctic-sea-star'
+  | 'feather-star'
+  | 'antarctic-krill'
+  | 'giant-sea-spider'
+  | 'ribbon-worm'
+  | 'sea-butterfly'
+  | 'comb-jelly'
+  | 'colossal-squid'
+  | 'antarctic-jellyfish'
+  | 'salp'
+  | 'antarctic-sea-urchin'
+  | 'brittle-star'
+  | 'sea-cucumber'
+  | 'antarctic-scallop'
+  | 'sea-pen'
+  | 'giant-isopod'
+  | 'swell-shark'
+  | 'weddell-seal-pup';
 export interface BabyDefinition {
-  readonly id: BigCreatureId;
+  readonly id: TankCreatureId;
   readonly sighting: string;
   readonly label: string;
-  readonly asset: AssetId;
+  readonly asset?: AssetId;
+  readonly shape?: TankCreatureId;
+  readonly size?: number;
+  readonly nodes?: readonly string[];
+  readonly tint?: number;
+  readonly motion?: 'swim' | 'crawl' | 'still' | 'drift';
   readonly scale: number;
   /** Yaw-independent enclosure of both detail levels and every stroke. */
   readonly radius: number;
@@ -13,6 +63,41 @@ export interface BabyDefinition {
   readonly speed: number;
   readonly strokeHz: number;
 }
+const littleAsset = (
+  id: TankCreatureId,
+  label: string,
+  asset: AssetId,
+  tint?: number,
+): BabyDefinition => ({
+  id,
+  sighting: `species:${id}`,
+  label,
+  asset,
+  tint,
+  scale: 1,
+  size: 0.55,
+  radius: 0.5,
+  halfHeight: 0.3,
+  speed: 0.2,
+  strokeHz: 0.3,
+});
+const littleShape = (
+  id: TankCreatureId,
+  label: string,
+  motion: NonNullable<BabyDefinition['motion']>,
+): BabyDefinition => ({
+  id,
+  sighting: `species:${id}`,
+  label,
+  shape: id,
+  motion,
+  scale: 1,
+  size: 0.4,
+  radius: 0.38,
+  halfHeight: 0.24,
+  speed: motion === 'crawl' || motion === 'still' ? 0.025 : 0.12,
+  strokeHz: 0.25,
+});
 export const TANK_BABIES: readonly BabyDefinition[] = [
   {
     id: 'blacktip-reef-shark',
@@ -48,7 +133,80 @@ export const TANK_BABIES: readonly BabyDefinition[] = [
     speed: 0.16,
     strokeHz: 0.32,
   },
+  ...Object.values(CRUISE_SPECIES)
+    .filter(
+      (s) =>
+        ![
+          'blacktip-reef-shark',
+          'spotted-eagle-ray',
+          'green-sea-turtle',
+        ].includes(s.id),
+    )
+    .map((s) =>
+      littleAsset(
+        s.id,
+        `Little ${s.name.toLowerCase()}`,
+        s.asset,
+        s.id === 'bat-ray' ? 0x484b51 : undefined,
+      ),
+    ),
+  littleAsset('great-white-shark', 'Great white pup', 'greatWhite'),
+  littleAsset('ocean-sunfish', 'Little ocean sunfish', 'sunfish'),
+  littleAsset('sea-otter', 'Sea otter pup', 'seaOtter'),
+  littleAsset('harbour-seal', 'Harbour seal pup', 'harbourSeal'),
+  littleAsset('western-gull', 'Little western gull', 'westernGull'),
+  littleAsset('california-sea-lion', 'Sea lion pup', 'seaLion'),
+  littleAsset('nurse-shark', 'Nurse shark pup', 'nurseShark'),
+  littleAsset('swell-shark', 'Little swell shark', 'nurseShark', 0xb08a5c),
+  littleAsset('emperor-penguin', 'Little emperor penguin', 'emperorPenguin'),
+  littleAsset('adelie-penguin', 'Little Adélie penguin', 'adeliePenguin'),
+  littleAsset('weddell-seal', 'Little Weddell seal', 'harbourSeal', 0x79828a),
+  {
+    ...littleAsset(
+      'weddell-seal-pup',
+      'Weddell seal pup',
+      'harbourSeal',
+      0xabb6bd,
+    ),
+    size: 0.35,
+  },
+  littleAsset('leopard-seal', 'Leopard seal pup', 'leopardSeal'),
+  littleAsset('minke-whale', 'Minke whale calf', 'minkeWhale'),
+  littleAsset('killer-whale', 'Orca calf', 'killerWhale'),
+  littleAsset('polar-bear', 'Polar bear cub', 'polarBear'),
+  littleShape('spanish-shawl', 'Spanish shawl nudibranch', 'crawl'),
+  littleShape('kelp-crab', 'Kelp crab', 'crawl'),
+  littleShape('spiny-lobster', 'Spiny lobster', 'crawl'),
+  littleShape('rock-crab', 'Rock crab', 'crawl'),
+  {
+    ...littleAsset('moray-eel', 'Little moray eel', 'anchored'),
+    size: 0.4,
+    motion: 'swim',
+    nodes: ['MorayBody', 'MorayDorsal', 'MorayHead', 'MorayJaw'],
+  },
+  littleShape('cleaner-shrimp', 'Cleaner shrimp', 'crawl'),
+  littleShape('lionfish', 'Little lionfish', 'swim'),
+  littleShape('octopus', 'Little day octopus', 'crawl'),
+  littleShape('glass-sponge', 'Glass sponge', 'still'),
+  littleShape('antarctic-soft-coral', 'Antarctic soft coral', 'still'),
+  littleShape('antarctic-anemone', 'Antarctic anemone', 'still'),
+  littleShape('antarctic-sea-star', 'Antarctic sea star', 'crawl'),
+  littleShape('feather-star', 'Feather star', 'still'),
+  littleShape('antarctic-krill', 'Antarctic krill', 'swim'),
+  littleShape('giant-sea-spider', 'Little sea spider', 'crawl'),
+  littleShape('ribbon-worm', 'Ribbon worm', 'crawl'),
+  littleShape('sea-butterfly', 'Sea butterfly', 'drift'),
+  littleShape('comb-jelly', 'Comb jelly', 'drift'),
+  littleShape('colossal-squid', 'Little colossal squid', 'swim'),
+  littleShape('antarctic-jellyfish', 'Antarctic jellyfish', 'drift'),
+  littleShape('salp', 'Salp chain', 'drift'),
+  littleShape('antarctic-sea-urchin', 'Antarctic sea urchin', 'crawl'),
+  littleShape('brittle-star', 'Brittle star', 'crawl'),
+  littleShape('sea-cucumber', 'Sea cucumber', 'crawl'),
+  littleShape('antarctic-scallop', 'Antarctic scallop', 'still'),
+  littleShape('sea-pen', 'Sea pen', 'still'),
+  littleShape('giant-isopod', 'Little giant isopod', 'crawl'),
 ];
-export const BABY_CAP = 3;
-export const babyDefinition = (id: BigCreatureId): BabyDefinition =>
+export const BABY_CAP = TANK_BABIES.length;
+export const babyDefinition = (id: TankCreatureId): BabyDefinition =>
   TANK_BABIES.find((b) => b.id === id)!;

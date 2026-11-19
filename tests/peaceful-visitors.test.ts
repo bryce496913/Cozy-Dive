@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { PlayerPresence } from '../src/fish/FishDiverReaction';
 import { createPose } from '../src/environment/outer/PosedFish';
 import { ReefCleaningStation } from '../src/creatures/reefCleaners';
 import { SealPup, WeddellSeal, iceLimits } from '../src/creatures/iceLife';
@@ -9,7 +10,7 @@ import { ICE } from '../src/config/passage';
 const run = (n: number, step: (dt: number) => void) => {
   for (let i = 0; i < n; i++) step(1 / 30);
 };
-const away = {
+const away: PlayerPresence = {
   active: true,
   position: { x: 100, y: 0, z: 100 },
   velocity: { x: 0, y: 0, z: 0 },
@@ -43,7 +44,7 @@ describe('reef cleaning station', () => {
     });
     s.call();
     run(30 * 60, () => s.update(1 / 30, away));
-    const near = {
+    const near: PlayerPresence = {
       active: true,
       position: { x: 0, y: -9.4, z: -40 },
       velocity: { x: 0, y: 0, z: 0 },
