@@ -241,6 +241,9 @@ export class CaveDressing {
   private disposed = false;
   /** Sponges and sea squirts on the walls, mysids in the beam. */
   private readonly encrusting: CaveEncrusting;
+  get sightings() {
+    return this.encrusting.sightings;
+  }
 
   constructor(beamTop: number, boulders?: THREE.Object3D) {
     this.root.name = 'Sea cave detail';

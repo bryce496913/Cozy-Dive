@@ -1,3 +1,4 @@
+import type { SightCandidate } from '../../discovery/journal';
 import * as THREE from 'three';
 import { ConvexGeometry } from 'three/addons/geometries/ConvexGeometry.js';
 import type { AssetLease, AssetLoader } from '../../assets/AssetLoader';
@@ -152,6 +153,7 @@ export class OuterReef {
   private readonly plantTime = { value: 0 };
   /** Small, shy worms set into the massive colonies. */
   private worms?: ChristmasTreeWorms;
+  readonly sightings: SightCandidate[] = [];
   private lease?: AssetLease;
   /** Placements with colonies seated on the rocks (once the rocks' hulls exist). */
   private seated: readonly ReefPlacement[];
@@ -403,6 +405,7 @@ export class OuterReef {
       }
     this.worms = new ChristmasTreeWorms(colonies);
     this.root.add(this.worms.root);
+    this.sightings.push(...this.worms.sightings);
     // Soft corals, sea fans and seagrass, swaying in the reef's current.
     const tissue = this.plantMaterial('Sea_Fan_0'),
       algae = this.plantMaterial('Caulerpa_0');
@@ -555,6 +558,7 @@ export class OuterReef {
   private clear(): void {
     this.worms?.dispose();
     this.worms = undefined;
+    this.sightings.length = 0;
     this.sets.forEach((s) => s.dispose());
     this.sets.length = 0;
     this.colliders.length = 0;

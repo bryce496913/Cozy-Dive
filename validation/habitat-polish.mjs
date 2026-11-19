@@ -89,9 +89,25 @@ try {
       return {
         state: r.world.preparation.state,
         parts: r.world.preparation.summary,
+        sights: [...new Set(r.world.sightings.map((s) => s.id))],
       };
     }, id);
     assert.equal(report.worlds[id].state, 'ready');
+    const expected = {
+      cave: [
+        'species:encrusting-sponge',
+        'species:tube-sponge',
+        'species:sea-squirt',
+        'species:mysid',
+      ],
+      ice: ['plant:ice-algae', 'species:sea-angel'],
+      outer: ['species:christmas-tree-worm'],
+    }[id];
+    for (const sight of expected)
+      assert.ok(
+        report.worlds[id].sights.includes(sight),
+        `${id} exposes ${sight}`,
+      );
     const views =
       id === 'cave'
         ? [

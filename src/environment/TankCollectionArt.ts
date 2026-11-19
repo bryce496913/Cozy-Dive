@@ -20,6 +20,7 @@ export async function acquireCollectionArt(
   const geometry: THREE.BufferGeometry[] = [];
   const sourceMaterials: THREE.Material[] = [];
   const materials: THREE.Material[] = [];
+  const alpha: number[] = [];
   let disposed = false;
   const dispose = () => {
     if (disposed) return;
@@ -96,6 +97,12 @@ export async function acquireCollectionArt(
       if (d.motion === 'swim' || d.motion === 'crawl')
         shape.rotateY(Math.PI / 2);
       const colors: Partial<Record<BabyDefinition['id'], number>> = {
+        'encrusting-sponge': 0xef8c35,
+        'tube-sponge': 0xdca84d,
+        'sea-squirt': 0xcbdce1,
+        mysid: 0xf3efe6,
+        'ice-algae': 0x746038,
+        'christmas-tree-worm': 0x5299dd,
         'kelp-crab': 0x879d4c,
         octopus: 0xb87954,
         'giant-sea-spider': 0xccad86,
@@ -109,6 +116,14 @@ export async function acquireCollectionArt(
         vertexColors: shape.hasAttribute('color'),
         color: colors[d.id] ?? 0xffffff,
         roughness: 0.6,
+        opacity:
+          d.id === 'sea-squirt'
+            ? 0.72
+            : d.id === 'sea-angel'
+              ? 0.8
+              : d.id === 'ice-algae'
+                ? 0.6
+                : 1,
         side: THREE.DoubleSide,
       });
       sourceMaterials.push(material);
@@ -144,6 +159,7 @@ export async function acquireCollectionArt(
         if (d.tint !== undefined && own instanceof THREE.MeshStandardMaterial)
           own.color.multiply(new THREE.Color(d.tint));
         materials.push(own);
+        alpha.push(m.opacity);
         return own;
       };
       o.material = Array.isArray(o.material)
@@ -170,7 +186,8 @@ export async function acquireCollectionArt(
       far,
       dispose,
       update(opacity, effort, time) {
-        for (const m of materials) m.opacity = opacity;
+        for (let i = 0; i < materials.length; i++)
+          materials[i].opacity = opacity * alpha[i];
         if (jaw) jaw.rotation.x = jawRest + 0.08 * (1 + Math.sin(time * 1.2));
         for (const s of strokes)
           if (s.left !== undefined && s.right !== undefined)

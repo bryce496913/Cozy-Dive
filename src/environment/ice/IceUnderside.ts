@@ -1,3 +1,5 @@
+import { ICE_SIGHTS } from '../../discovery/sights';
+import type { SightCandidate } from '../../discovery/journal';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { ICE } from '../../config/passage';
@@ -42,7 +44,7 @@ function coloured(
 }
 
 /** An irregular, soft-edged algal patch facing down (about 1.6 m across), centre darker. */
-function patchGeometry(): THREE.BufferGeometry {
+export function patchGeometry(): THREE.BufferGeometry {
   const g = new THREE.CircleGeometry(0.8, 24, 0, Math.PI * 2),
     p = g.getAttribute('position'),
     c = new Float32Array(p.count * 3);
@@ -61,7 +63,7 @@ function patchGeometry(): THREE.BufferGeometry {
   return g;
 }
 /** A sea angel's body, head up (about 3 cm): translucent, with its orange gut and head-cap. */
-function angelBody(): THREE.BufferGeometry {
+export function angelBody(): THREE.BufferGeometry {
   const pts: THREE.Vector2[] = [];
   for (let i = 0; i <= 12; i++) {
     const u = i / 12,
@@ -86,7 +88,7 @@ function angelBody(): THREE.BufferGeometry {
   return m;
 }
 /** One wing-lobe, from its root on the neck out along +x: a thin rounded paddle. */
-function angelWing(): THREE.BufferGeometry {
+export function angelWing(): THREE.BufferGeometry {
   const g = new THREE.CircleGeometry(0.006, 14);
   g.scale(1, 0.55, 1);
   g.translate(0.006, 0, 0);
@@ -95,6 +97,8 @@ function angelWing(): THREE.BufferGeometry {
 
 export class IceUnderside {
   readonly root = new THREE.Group();
+  readonly sightings: SightCandidate[] = [];
+  private readonly angelAt: THREE.Vector3[] = [];
   private readonly geometries: THREE.BufferGeometry[] = [];
   private readonly materials: THREE.Material[] = [];
   private readonly bodies: THREE.InstancedMesh;
@@ -154,6 +158,11 @@ export class IceUnderside {
       this.p.set(x, iceUndersideAt(x, z) - 0.06, z);
       this.s.set(0.8 + rand() * 1.4, 1, 0.8 + rand() * 1.4);
       patches.setMatrixAt(i, this.m.compose(this.p, this.q, this.s));
+      this.sightings.push({
+        ...ICE_SIGHTS.iceAlgae,
+        position: this.p.clone(),
+        radius: 1,
+      });
       const k = rand();
       patches.setColorAt(
         i,
@@ -209,6 +218,13 @@ export class IceUnderside {
         iceUndersideAt(x, z) - b.low - rand() * (b.high - b.low);
       this.home[i * 3 + 2] = z;
       this.phase[i] = rand() * 100;
+      const at = new THREE.Vector3();
+      this.angelAt.push(at);
+      this.sightings.push({
+        ...ICE_SIGHTS.seaAngel,
+        position: at,
+        radius: 0.3,
+      });
     }
     this.root.add(this.bodies, this.wings);
     this.update(0, true, false);
@@ -230,6 +246,7 @@ export class IceUnderside {
         this.home[i * 3 + 1] + 0.25 * Math.sin(t * 0.11 + ph) + 0.004 * beat,
         this.home[i * 3 + 2] + lz,
       );
+      this.angelAt[i].copy(this.p);
       // Mostly head-up, leaning into its drift, turning slowly.
       this.e.set(
         0.25 * Math.cos(t * 0.07 + ph * 1.3),
@@ -257,6 +274,8 @@ export class IceUnderside {
     for (const child of this.root.children)
       if (child instanceof THREE.InstancedMesh) child.dispose();
     this.root.clear();
+    this.sightings.length = 0;
+    this.angelAt.length = 0;
     this.geometries.forEach((g) => g.dispose());
     this.materials.forEach((m) => m.dispose());
   }

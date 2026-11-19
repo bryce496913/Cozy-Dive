@@ -206,7 +206,11 @@ export class SeaCaveScene implements WaterWorld {
         position: { x: c.x + x, y: c.y, z },
         radius: 4,
       });
-    this.sightings.push(...this.lobsters.sightings, ...this.crabs.sightings);
+    this.sightings.push(
+      ...this.lobsters.sightings,
+      ...this.crabs.sightings,
+      ...this.dressing.sightings,
+    );
     this.camera.rotation.order = 'YXZ';
     this.camera.position.set(
       CAVE_FRAME.origin.x,

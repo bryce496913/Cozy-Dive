@@ -62,6 +62,13 @@ export const CAVE_SIGHTS = {
   flashlight: { id: 'species:flashlight-fish', label: 'Flashlight fish' },
   nurseShark: { id: 'species:nurse-shark', label: 'Nurse shark' },
   swellShark: { id: 'species:swell-shark', label: 'Swell shark' },
+  encrustingSponge: {
+    id: 'species:encrusting-sponge',
+    label: 'Encrusting sponges',
+  },
+  tubeSponge: { id: 'species:tube-sponge', label: 'Tube sponges' },
+  seaSquirt: { id: 'species:sea-squirt', label: 'Sea squirts' },
+  mysid: { id: 'species:mysid', label: 'Mysids' },
   shrimp: { id: 'species:cleaner-shrimp', label: 'Cleaner shrimp' },
   lionfish: { id: 'species:lionfish', label: 'Lionfish' },
 } as const satisfies Record<string, Sight>;
@@ -75,6 +82,8 @@ export function reefSight(family: string): Sight | undefined {
 /** v0.6 Pass 046: what the waters under the ice show. */
 export const ICE_SIGHTS = {
   place: { id: 'place:under-ice', label: 'Under the ice' },
+  iceAlgae: { id: 'plant:ice-algae', label: 'Ice algae' },
+  seaAngel: { id: 'species:sea-angel', label: 'Sea angels' },
   sponge: { id: 'species:glass-sponge', label: 'Glass sponge' },
   coral: { id: 'species:antarctic-soft-coral', label: 'Antarctic soft coral' },
   anemone: { id: 'species:antarctic-anemone', label: 'Antarctic anemone' },
@@ -138,6 +147,10 @@ export const OUTER_SIGHTS = {
   sunfish: { id: 'species:ocean-sunfish', label: 'Ocean sunfish' },
   greatWhite: { id: 'species:great-white-shark', label: 'Great white shark' },
   cleanerWrasse: { id: 'species:cleaner-wrasse', label: 'Cleaner wrasse' },
+  christmasTreeWorm: {
+    id: 'species:christmas-tree-worm',
+    label: 'Christmas tree worms',
+  },
 } as const satisfies Record<string, Sight>;
 
 /** Every sight, in the order the "Seen" page lists them when first seen together. */
