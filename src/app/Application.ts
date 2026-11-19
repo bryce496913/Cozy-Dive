@@ -15,7 +15,7 @@ import { UNDERWATER_HAZE, UnderwaterScene } from '../rendering/UnderwaterScene';
 import {
   DivePath,
   canDive,
-  canSurface,
+  canSurfaceAt,
   interruptedChoice,
   tankDistance,
   type DiveFrame,
@@ -548,14 +548,27 @@ export class Application {
       document.hidden
     )
       return;
-    const pose = this.pose();
+    let pose = this.pose();
     const kind =
       this.mode === 'office' && canDive(pose)
         ? 'dive'
-        : this.mode === 'aquarium' && canSurface(pose.y, this.waterWorld)
+        : this.mode === 'aquarium' && canSurfaceAt(pose, this.waterWorld)
           ? 'surface'
           : undefined;
     if (!kind) return;
+    // Playtest: from an exit beyond the tank (the outer reef's surface, the cave's skylight, a
+    // hole in the ice), cut to just under the tank's surface; the surfacing wash covers the cut.
+    if (kind === 'surface' && this.waterWorld !== 'aquarium') {
+      Object.assign(this.state.position, {
+        x: 0,
+        y: AQUARIUM.max.y - AQUARIUM.clearance - 0.05,
+        z: AQUARIUM.max.z * 0.4,
+      });
+      this.state.neutralDepth = this.state.position.y;
+      resetSwimming(this.state);
+      this.setWaterWorld('aquarium');
+      pose = this.pose();
+    }
     this.tankEditor?.suspend();
     event.preventDefault();
     // The key press is a user gesture: unlock the destination's audio now.
@@ -1098,7 +1111,7 @@ export class Application {
             : !this.dived && this.officeVisit > HINT_DELAY
               ? 'hint'
               : null
-          : canSurface(pose.y, this.waterWorld)
+          : canSurfaceAt(pose, this.waterWorld)
             ? 'surface'
             : this.stepSwimHint(dt)
               ? 'swim'

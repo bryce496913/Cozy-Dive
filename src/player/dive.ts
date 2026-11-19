@@ -1,4 +1,5 @@
-import { AQUARIUM, SPAWN } from '../config/world';
+import { AQUARIUM, SPAWN, type Vec3 } from '../config/world';
+import { CAVE, ICE, OUTER } from '../config/passage';
 import { TANK, TANK_SCALE, OFFICE } from '../config/office';
 import type { WaterWorldId } from './passage';
 
@@ -508,6 +509,43 @@ export function canDive(p: Pose): boolean {
   return (lookX * dx + lookZ * dz) / d >= DIVE.promptFacing;
 }
 /** Whether to offer surfacing: near the water's surface. */
+/**
+ * Playtest: the ways back to the office from the worlds beyond the tank. Up at the outer reef's
+ * surface; up through the sea cave's skylight; up through any breathing hole in the sea ice. Each
+ * is open once the swimmer is near the top, under the opening.
+ */
+export const OFFICE_EXITS = {
+  /** Height in the outer reef above which the surface is close. */
+  outerY: OUTER.reach.up,
+  /** In the cave: how far beyond the skylight's rim still counts, and the height needed. */
+  caveMargin: 1.5,
+  caveY: 6.5,
+  /** Under the ice: how far beyond a hole's rim still counts. */
+  iceMargin: 1.5,
+} as const;
+/** Whether the office can be reached from here: the tank's surface, or a world's exit. */
+export function canSurfaceAt(
+  p: Vec3,
+  world: WaterWorldId = 'aquarium',
+): boolean {
+  if (world === 'aquarium') return canSurface(p.y, world);
+  if (world === 'outer') return p.y >= OFFICE_EXITS.outerY;
+  if (world === 'cave') {
+    const s = CAVE.skylight;
+    return (
+      Math.hypot(p.x - s.x, p.z - s.z) < s.radius + OFFICE_EXITS.caveMargin &&
+      p.y >= OFFICE_EXITS.caveY
+    );
+  }
+  if (world === 'ice')
+    return (
+      p.y >= ICE.ceiling - ICE.ease.up &&
+      ICE.holes.some(
+        (h) => Math.hypot(p.x - h.x, p.z - h.z) < h.r + OFFICE_EXITS.iceMargin,
+      )
+    );
+  return false;
+}
 export function canSurface(
   y: number,
   world: WaterWorldId = 'aquarium',

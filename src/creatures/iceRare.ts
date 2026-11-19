@@ -20,7 +20,7 @@ import {
  *     side-on with its head turned to them, then glides away;
  *   - a minke whale drops in through the big breathing hole, makes one long, slow pass across the far
  *     side of the tank, and rises out through it again;
- *   - three killer whales come in through a hole and sweep round the tank together, well away from
+ *   - a killer whale comes in through a hole (playtest: one, not three) and sweep round the tank together, well away from
  *     the swimmer, then leave the way they came;
  *   - an Antarctic toothfish rises slowly out of the dark far corner, hangs a while, and sinks back;
  *   - a colossal squid's huge eyes glow for a moment, low in the dark at the far end, then are gone;
@@ -605,7 +605,7 @@ export class RareDirector {
       'killer-whales': new ThroughHole(
         'killer-whales',
         makePose,
-        3,
+        1,
         limits,
         2.2,
         [
