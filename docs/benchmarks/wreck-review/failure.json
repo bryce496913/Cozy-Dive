@@ -1,0 +1,52 @@
+{
+  "result": {
+    "prepared": true,
+    "ready": true,
+    "state": "partial",
+    "summary": {
+      "wildlife": "failed"
+    },
+    "immediateDisposals": 16,
+    "solos": 3,
+    "posed": 3,
+    "schools": 210,
+    "leased": 238,
+    "draw": {
+      "frame": 30,
+      "calls": 56,
+      "triangles": 1029868,
+      "points": 420,
+      "lines": 0
+    },
+    "loadMs": 10643.10000000149,
+    "baseline": {
+      "geometries": 0,
+      "textures": 0
+    },
+    "releasedLeases": 0,
+    "cachedMemoryAfterSceneRelease": {
+      "geometries": 40,
+      "textures": 23
+    },
+    "releasedMemory": {
+      "geometries": 0,
+      "textures": 1
+    },
+    "releasedPrograms": 0,
+    "outstandingTextures": [
+      {
+        "name": "DFG_LUT",
+        "type": "DataTexture",
+        "image": {
+          "width": 16,
+          "height": 16
+        },
+        "disposed": false,
+        "listening": true
+      }
+    ]
+  },
+  "errors": [],
+  "expectedErrorCount": 19,
+  "failedRequests": 1
+}

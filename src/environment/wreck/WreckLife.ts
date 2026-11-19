@@ -361,6 +361,12 @@ export class WreckLife {
       return false;
     }
   }
+  /** A failed animal must not let its still-loading companions escape the warm-up. */
+  private async group(parts: Promise<void>[]): Promise<void> {
+    const results = await Promise.allSettled(parts);
+    const failed = results.find((r) => r.status === 'rejected');
+    if (failed?.status === 'rejected') throw failed.reason;
+  }
   private async fish(
     id: AssetId,
     poses: FishPose[],
@@ -381,7 +387,12 @@ export class WreckLife {
   ): Promise<void> {
     const body = new SoloCreature(this.loader, id, pose, scale, name, 16);
     this.solos.push(body);
-    if (!(await body.ready) || this.disposed) throw Error(name);
+    if (!(await body.ready) || this.disposed) {
+      body.dispose();
+      const index = this.solos.indexOf(body);
+      if (index !== -1) this.solos.splice(index, 1);
+      throw Error(name);
+    }
     this.root.add(body.root);
   }
   private sight(s: Sight, position: Vec3, radius: number): void {
@@ -418,7 +429,7 @@ export class WreckLife {
       }, 'trevally'),
       this.part(async () => {
         // A creature model (not the fish rig): one body each, at about 1.3 m.
-        await Promise.all(
+        await this.group(
           this.barracuda.map((p, n) =>
             this.solo('barracuda', p, 0.85, `Barracuda ${n + 1}`),
           ),
@@ -436,7 +447,7 @@ export class WreckLife {
         this.sight(OUTER_SIGHTS.wrasse, this.wrasse.pose.position, 2);
       }, 'wrasse'),
       this.part(async () => {
-        await Promise.all([
+        await this.group([
           this.solo('seaTurtle', this.turtle.pose, 1, 'Green turtle'),
           this.solo('seaTurtle', this.sleeper, 0.95, 'Green turtle asleep'),
         ]);
@@ -471,7 +482,7 @@ export class WreckLife {
       const f = lead(id);
       if (f) this.sight(s, f.position, r);
     }
-    return results.some(Boolean);
+    return results.every(Boolean);
   }
   /** The schools' and resting animals' poses for this moment. */
   private place(dt: number, reducedMotion: boolean): void {

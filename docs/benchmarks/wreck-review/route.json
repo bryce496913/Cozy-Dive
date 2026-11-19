@@ -1,0 +1,755 @@
+{
+  "base": "bca42b912af7a35e4adcac79705eca79dee5a872",
+  "method": {
+    "simulationStepMs": 100,
+    "renderStride": 100,
+    "timingSamplesPerSpace": 20,
+    "renderer": "Chromium SwiftShader; software rendering, not hardware FPS"
+  },
+  "initialLoadMs": 33587,
+  "success": true,
+  "errors": [],
+  "expectedErrors": 2,
+  "baseline": {
+    "mode": "aquarium",
+    "world": "aquarium",
+    "p": {
+      "x": 0,
+      "y": 4.581137442934353,
+      "z": 9
+    },
+    "v": {
+      "x": 0,
+      "y": -0.04244395419868475,
+      "z": 0
+    },
+    "dark": 0,
+    "memory": {
+      "geometries": 362,
+      "textures": 113
+    },
+    "buffer": [160, 150],
+    "programs": 108,
+    "reefLeases": 2,
+    "leases": 44,
+    "draw": {
+      "frame": 73,
+      "calls": 158,
+      "triangles": 945333,
+      "points": 210,
+      "lines": 12
+    },
+    "journal": [],
+    "buildTimes": {}
+  },
+  "released": [
+    {
+      "mode": "aquarium",
+      "world": "aquarium",
+      "p": {
+        "x": 0.0006095190315739337,
+        "y": 7.03362327183748,
+        "z": 10.946759216122153
+      },
+      "v": {
+        "x": 0,
+        "y": 0.02653404182759477,
+        "z": 0
+      },
+      "dark": 0,
+      "memory": {
+        "geometries": 448,
+        "textures": 149
+      },
+      "buffer": [160, 150],
+      "programs": 108,
+      "reefLeases": 2,
+      "leases": 44,
+      "draw": {
+        "frame": 209,
+        "calls": 48,
+        "triangles": 478282,
+        "points": 210,
+        "lines": 12
+      },
+      "journal": [
+        "species:senorita",
+        "species:harbour-seal",
+        "species:kelp-crab",
+        "species:bigeye-trevally",
+        "place:shipwreck",
+        "species:glassy-sweeper",
+        "place:shipwreck-hold",
+        "species:queensland-grouper",
+        "place:shipwreck-bridge",
+        "species:green-sea-turtle",
+        "species:blacksmith"
+      ],
+      "buildTimes": {
+        "outer": {
+          "longest": 251.09999999403954,
+          "total": 251.09999999403954,
+          "elapsed": 251.09999999403954,
+          "pieces": {
+            "scene": 251.09999999403954
+          }
+        },
+        "kelp": {
+          "longest": 258.1000000014901,
+          "total": 413.40000000596046,
+          "elapsed": 512.5999999940395,
+          "pieces": {
+            "environment": 258.1000000014901,
+            "kelp": 105.19999999552965,
+            "dressing": 17.100000001490116,
+            "light": 1.6000000014901161,
+            "grotto": 29,
+            "scene": 2.4000000059604645
+          }
+        },
+        "wreck": {
+          "longest": 248.70000000298023,
+          "total": 250.80000000447035,
+          "elapsed": 275,
+          "pieces": {
+            "cavern and wreck": 248.70000000298023,
+            "scene": 2.100000001490116
+          }
+        }
+      }
+    },
+    {
+      "mode": "aquarium",
+      "world": "aquarium",
+      "p": {
+        "x": 0.0006095209136416578,
+        "y": 6.960646964506387,
+        "z": 10.946759191206933
+      },
+      "v": {
+        "x": 0,
+        "y": -0.009040948631372829,
+        "z": 0
+      },
+      "dark": 0,
+      "memory": {
+        "geometries": 448,
+        "textures": 149
+      },
+      "buffer": [160, 150],
+      "programs": 108,
+      "reefLeases": 2,
+      "leases": 44,
+      "draw": {
+        "frame": 287,
+        "calls": 47,
+        "triangles": 447272,
+        "points": 210,
+        "lines": 4332
+      },
+      "journal": [
+        "species:senorita",
+        "species:harbour-seal",
+        "species:kelp-crab",
+        "species:bigeye-trevally",
+        "place:shipwreck",
+        "species:glassy-sweeper",
+        "place:shipwreck-hold",
+        "species:queensland-grouper",
+        "place:shipwreck-bridge",
+        "species:green-sea-turtle",
+        "species:blacksmith"
+      ],
+      "buildTimes": {
+        "outer": {
+          "longest": 269.6000000014901,
+          "total": 269.6000000014901,
+          "elapsed": 269.6000000014901,
+          "pieces": {
+            "scene": 269.6000000014901
+          }
+        },
+        "kelp": {
+          "longest": 322.19999999552965,
+          "total": 678.1999999806285,
+          "elapsed": 931.8999999985099,
+          "pieces": {
+            "environment": 322.19999999552965,
+            "kelp": 214.60000000149012,
+            "dressing": 43.19999999552965,
+            "light": 2.7999999970197678,
+            "grotto": 90.59999999403954,
+            "scene": 4.799999997019768
+          }
+        },
+        "wreck": {
+          "longest": 640.7000000029802,
+          "total": 655.6000000089407,
+          "elapsed": 696.3999999985099,
+          "pieces": {
+            "cavern and wreck": 640.7000000029802,
+            "scene": 14.900000005960464
+          }
+        }
+      }
+    },
+    {
+      "mode": "aquarium",
+      "world": "aquarium",
+      "p": {
+        "x": 0.0006095193390636308,
+        "y": 7.037641487870324,
+        "z": 10.946759212051711
+      },
+      "v": {
+        "x": 0,
+        "y": -0.015800903911701712,
+        "z": 0
+      },
+      "dark": 0,
+      "memory": {
+        "geometries": 448,
+        "textures": 149
+      },
+      "buffer": [160, 150],
+      "programs": 108,
+      "reefLeases": 2,
+      "leases": 44,
+      "draw": {
+        "frame": 360,
+        "calls": 48,
+        "triangles": 454554,
+        "points": 210,
+        "lines": 12
+      },
+      "journal": [
+        "species:senorita",
+        "species:harbour-seal",
+        "species:kelp-crab",
+        "species:bigeye-trevally",
+        "place:shipwreck",
+        "species:glassy-sweeper",
+        "place:shipwreck-hold",
+        "species:queensland-grouper",
+        "place:shipwreck-bridge",
+        "species:green-sea-turtle",
+        "species:blacksmith"
+      ],
+      "buildTimes": {
+        "outer": {
+          "longest": 669,
+          "total": 669,
+          "elapsed": 669,
+          "pieces": {
+            "scene": 669
+          }
+        },
+        "kelp": {
+          "longest": 198.89999999850988,
+          "total": 432.29999999701977,
+          "elapsed": 912.7999999970198,
+          "pieces": {
+            "environment": 198.89999999850988,
+            "kelp": 190.20000000298023,
+            "dressing": 16.299999997019768,
+            "light": 1.7000000029802322,
+            "grotto": 22.5,
+            "scene": 2.6999999955296516
+          }
+        },
+        "wreck": {
+          "longest": 224.79999999701977,
+          "total": 226.39999999850988,
+          "elapsed": 254.10000000149012,
+          "pieces": {
+            "cavern and wreck": 224.79999999701977,
+            "scene": 1.6000000014901161
+          }
+        }
+      }
+    }
+  ],
+  "loadingWaits": [
+    {
+      "name": "outer-load",
+      "wallMs": 22
+    },
+    {
+      "name": "reef-load",
+      "wallMs": 5019
+    },
+    {
+      "name": "kelp-load",
+      "wallMs": 35
+    },
+    {
+      "name": "wreck-load",
+      "wallMs": 26
+    },
+    {
+      "name": "outer-load",
+      "wallMs": 28
+    },
+    {
+      "name": "reef-load",
+      "wallMs": 10213
+    },
+    {
+      "name": "kelp-load",
+      "wallMs": 83
+    },
+    {
+      "name": "wreck-load",
+      "wallMs": 48
+    },
+    {
+      "name": "outer-load",
+      "wallMs": 10
+    },
+    {
+      "name": "reef-load",
+      "wallMs": 9909
+    },
+    {
+      "name": "kelp-load",
+      "wallMs": 35
+    },
+    {
+      "name": "wreck-load",
+      "wallMs": 18
+    }
+  ],
+  "profile": [
+    {
+      "space": "deck",
+      "consecutiveWallFrameMs": {
+        "count": 19,
+        "min": 14.399999998509884,
+        "p50": 1740.1000000014901,
+        "p95": 2415.39999999851,
+        "max": 3704.8000000044703
+      },
+      "tickSubmitMs": {
+        "count": 20,
+        "min": 13.199999995529652,
+        "p50": 23,
+        "p95": 51.600000001490116,
+        "max": 57
+      },
+      "drawCalls": {
+        "count": 20,
+        "min": 74,
+        "p50": 74,
+        "p95": 74,
+        "max": 74
+      },
+      "triangles": {
+        "count": 20,
+        "min": 1055628,
+        "p50": 1055628,
+        "p95": 1066552,
+        "max": 1066552
+      },
+      "largestIntervals": [3704.8000000044703, 2415.39999999851, 2068.5]
+    },
+    {
+      "space": "hold",
+      "consecutiveWallFrameMs": {
+        "count": 19,
+        "min": 42.80000000447035,
+        "p50": 1234.5,
+        "p95": 1572.3999999985099,
+        "max": 1932.8999999985099
+      },
+      "tickSubmitMs": {
+        "count": 20,
+        "min": 12.399999998509884,
+        "p50": 25.399999998509884,
+        "p95": 56.30000000447035,
+        "max": 57
+      },
+      "drawCalls": {
+        "count": 20,
+        "min": 63,
+        "p50": 63,
+        "p95": 63,
+        "max": 63
+      },
+      "triangles": {
+        "count": 20,
+        "min": 1171776,
+        "p50": 1183082,
+        "p95": 1183082,
+        "max": 1183082
+      },
+      "largestIntervals": [
+        1932.8999999985099, 1572.3999999985099, 1469.6000000014901
+      ]
+    },
+    {
+      "space": "bridge",
+      "consecutiveWallFrameMs": {
+        "count": 19,
+        "min": 20.399999998509884,
+        "p50": 589.2000000029802,
+        "p95": 710.5,
+        "max": 1187.7000000029802
+      },
+      "tickSubmitMs": {
+        "count": 20,
+        "min": 13.100000001490116,
+        "p50": 20.5,
+        "p95": 44.29999999701977,
+        "max": 53.5
+      },
+      "drawCalls": {
+        "count": 20,
+        "min": 43,
+        "p50": 43,
+        "p95": 43,
+        "max": 43
+      },
+      "triangles": {
+        "count": 20,
+        "min": 871974,
+        "p50": 871974,
+        "p95": 871974,
+        "max": 871974
+      },
+      "largestIntervals": [1187.7000000029802, 710.5, 701.1000000014901]
+    }
+  ],
+  "presentedByWorld": {
+    "aquarium": {
+      "samples": 25,
+      "drawCalls": {
+        "count": 25,
+        "min": 22,
+        "p50": 80,
+        "p95": 148,
+        "max": 158
+      },
+      "triangles": {
+        "count": 25,
+        "min": 57978,
+        "p50": 608017,
+        "p95": 897137,
+        "max": 951828
+      },
+      "tickSubmitMs": {
+        "count": 25,
+        "min": 6.200000002980232,
+        "p50": 12.700000002980232,
+        "p95": 69,
+        "max": 152.5
+      }
+    },
+    "outer": {
+      "samples": 24,
+      "drawCalls": {
+        "count": 24,
+        "min": 49,
+        "p50": 109,
+        "p95": 138,
+        "max": 141
+      },
+      "triangles": {
+        "count": 24,
+        "min": 288586,
+        "p50": 1185728,
+        "p95": 1909231,
+        "max": 1926077
+      },
+      "tickSubmitMs": {
+        "count": 24,
+        "min": 29.299999997019768,
+        "p50": 41.29999999701977,
+        "p95": 94.60000000149012,
+        "max": 114.80000000447035
+      }
+    },
+    "kelp": {
+      "samples": 30,
+      "drawCalls": {
+        "count": 30,
+        "min": 25,
+        "p50": 44,
+        "p95": 65,
+        "max": 72
+      },
+      "triangles": {
+        "count": 30,
+        "min": 1346262,
+        "p50": 2228605,
+        "p95": 2364320,
+        "max": 2387510
+      },
+      "tickSubmitMs": {
+        "count": 30,
+        "min": 6.600000001490116,
+        "p50": 13.5,
+        "p95": 48.69999999552965,
+        "max": 71.10000000149012
+      }
+    },
+    "wreck": {
+      "samples": 90,
+      "drawCalls": {
+        "count": 90,
+        "min": 42,
+        "p50": 63,
+        "p95": 74,
+        "max": 82
+      },
+      "triangles": {
+        "count": 90,
+        "min": 852016,
+        "p50": 1055628,
+        "p95": 1183082,
+        "max": 1300936
+      },
+      "tickSubmitMs": {
+        "count": 90,
+        "min": 11.5,
+        "p50": 22,
+        "p95": 53.5,
+        "max": 57
+      }
+    }
+  },
+  "maxObservedSchedulerGapMs": 12192.39999999851,
+  "crossings": [
+    {
+      "from": "aquarium",
+      "to": "outer",
+      "beforeDark": 0.94,
+      "afterDark": 0.93
+    },
+    {
+      "from": "outer",
+      "to": "kelp",
+      "beforeDark": 0.94,
+      "afterDark": 0.94
+    },
+    {
+      "from": "kelp",
+      "to": "wreck",
+      "beforeDark": 0.94,
+      "afterDark": 0.94
+    },
+    {
+      "from": "wreck",
+      "to": "kelp",
+      "beforeDark": 0.94,
+      "afterDark": 0.94
+    },
+    {
+      "from": "kelp",
+      "to": "outer",
+      "beforeDark": 0.94,
+      "afterDark": 0.93
+    },
+    {
+      "from": "outer",
+      "to": "aquarium",
+      "beforeDark": 0.94,
+      "afterDark": 0.93
+    },
+    {
+      "from": "aquarium",
+      "to": "outer",
+      "beforeDark": 0.94,
+      "afterDark": 0.93
+    },
+    {
+      "from": "outer",
+      "to": "kelp",
+      "beforeDark": 0.94,
+      "afterDark": 0.94
+    },
+    {
+      "from": "kelp",
+      "to": "wreck",
+      "beforeDark": 0.94,
+      "afterDark": 0.94
+    },
+    {
+      "from": "wreck",
+      "to": "kelp",
+      "beforeDark": 0.94,
+      "afterDark": 0.94
+    },
+    {
+      "from": "kelp",
+      "to": "outer",
+      "beforeDark": 0.94,
+      "afterDark": 0.94
+    },
+    {
+      "from": "outer",
+      "to": "aquarium",
+      "beforeDark": 0.94,
+      "afterDark": 0.93
+    },
+    {
+      "from": "aquarium",
+      "to": "outer",
+      "beforeDark": 0.94,
+      "afterDark": 0.93
+    },
+    {
+      "from": "outer",
+      "to": "kelp",
+      "beforeDark": 0.94,
+      "afterDark": 0.94
+    },
+    {
+      "from": "kelp",
+      "to": "wreck",
+      "beforeDark": 0.94,
+      "afterDark": 0.94
+    },
+    {
+      "from": "wreck",
+      "to": "kelp",
+      "beforeDark": 0.94,
+      "afterDark": 0.94
+    },
+    {
+      "from": "kelp",
+      "to": "outer",
+      "beforeDark": 0.94,
+      "afterDark": 0.93
+    },
+    {
+      "from": "outer",
+      "to": "aquarium",
+      "beforeDark": 0.94,
+      "afterDark": 0.93
+    }
+  ],
+  "deckCollision": {
+    "x": 0.0029583265402426256,
+    "y": 7.030003846132835,
+    "z": -36.97324050120967
+  },
+  "marineLife": {
+    "before": {
+      "schools": 210,
+      "posed": 3,
+      "solos": 19,
+      "wrasse": {
+        "x": -5.872468938208304,
+        "y": 3.016152752059262,
+        "z": -17.76001284869567
+      },
+      "turtle": {
+        "x": 6.5691322694201855,
+        "y": 10.376155652305503,
+        "z": -18.35130505465091
+      },
+      "stroke": [0.0954697097219986, 0]
+    },
+    "after": {
+      "schools": 210,
+      "posed": 3,
+      "solos": 19,
+      "wrasse": {
+        "x": -6.1314969773067025,
+        "y": 3.039021678098709,
+        "z": -18.829191785118972
+      },
+      "turtle": {
+        "x": 6.3542133503692915,
+        "y": 10.3853335362,
+        "z": -17.68497825038899
+      },
+      "stroke": [0.03964164539773516, 0]
+    }
+  },
+  "partialFailure": {
+    "ready": false,
+    "failed": true,
+    "disposals": 1,
+    "retained": 18,
+    "children": 22,
+    "leased": 297,
+    "baseline": 44,
+    "afterRelease": 44
+  },
+  "returnedOffice": {
+    "name": "returned-office",
+    "mode": "office",
+    "world": "aquarium",
+    "p": {
+      "x": -0.0988888888888888,
+      "y": 1.28,
+      "z": 0.600006037591033
+    },
+    "v": {
+      "x": 0,
+      "z": 0
+    },
+    "dark": 0,
+    "memory": {
+      "geometries": 448,
+      "textures": 149
+    },
+    "buffer": [160, 150],
+    "programs": 108,
+    "reefLeases": 2,
+    "leases": 44,
+    "draw": {
+      "frame": 363,
+      "calls": 22,
+      "triangles": 59548,
+      "points": 0,
+      "lines": 0
+    },
+    "journal": [
+      "species:senorita",
+      "species:harbour-seal",
+      "species:kelp-crab",
+      "species:bigeye-trevally",
+      "place:shipwreck",
+      "species:glassy-sweeper",
+      "place:shipwreck-hold",
+      "species:queensland-grouper",
+      "place:shipwreck-bridge",
+      "species:green-sea-turtle",
+      "species:blacksmith"
+    ],
+    "buildTimes": {
+      "outer": {
+        "longest": 669,
+        "total": 669,
+        "elapsed": 669,
+        "pieces": {
+          "scene": 669
+        }
+      },
+      "kelp": {
+        "longest": 198.89999999850988,
+        "total": 432.29999999701977,
+        "elapsed": 912.7999999970198,
+        "pieces": {
+          "environment": 198.89999999850988,
+          "kelp": 190.20000000298023,
+          "dressing": 16.299999997019768,
+          "light": 1.7000000029802322,
+          "grotto": 22.5,
+          "scene": 2.6999999955296516
+        }
+      },
+      "wreck": {
+        "longest": 224.79999999701977,
+        "total": 226.39999999850988,
+        "elapsed": 254.10000000149012,
+        "pieces": {
+          "cavern and wreck": 224.79999999701977,
+          "scene": 1.6000000014901161
+        }
+      }
+    }
+  }
+}

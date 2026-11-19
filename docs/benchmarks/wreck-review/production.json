@@ -1,0 +1,36 @@
+{
+  "result": "PASS",
+  "assets": [
+    "http://127.0.0.1:4173/assets/index-BcMvQLKr.js",
+    "http://127.0.0.1:4173/assets/index-UVEB5Tfp.css",
+    "http://127.0.0.1:4173/assets/models/ornaments/reef-props.glb?v=0.6.0-rc.25",
+    "http://127.0.0.1:4173/assets/models/creatures/anchored-life.glb?v=0.6.0-rc.25",
+    "http://127.0.0.1:4173/assets/models/creatures/nudibranchs.glb?v=0.6.0-rc.25",
+    "http://127.0.0.1:4173/assets/models/fish/chromis.glb?v=0.6.0-rc.25",
+    "http://127.0.0.1:4173/assets/models/fish/cardinalfish.glb?v=0.6.0-rc.25",
+    "http://127.0.0.1:4173/assets/models/fish/firefish.glb?v=0.6.0-rc.25",
+    "http://127.0.0.1:4173/assets/models/fish/assessor.glb?v=0.6.0-rc.25",
+    "http://127.0.0.1:4173/assets/models/fish/gramma.glb?v=0.6.0-rc.25",
+    "http://127.0.0.1:4173/assets/models/fish/clownfish.glb?v=0.6.0-rc.25",
+    "http://127.0.0.1:4173/assets/models/reef/reef-environment.glb?v=0.6.0-rc.25",
+    "http://127.0.0.1:4173/assets/draco/draco_wasm_wrapper.js",
+    "http://127.0.0.1:4173/assets/draco/draco_decoder.wasm",
+    "http://127.0.0.1:4173/assets/basis/basis_transcoder.js",
+    "http://127.0.0.1:4173/assets/basis/basis_transcoder.wasm"
+  ],
+  "depth": "↓ 9.4 m BELOW THE SURFACE",
+  "swimmingDepth": "↓ 9.2 m BELOW THE SURFACE",
+  "errors": [],
+  "warnings": [],
+  "checks": [
+    "built assets load",
+    "preview does not capture mouse",
+    "Enter and pointer lock",
+    "camera-directed W ascent changes public depth readout",
+    "Escape pauses",
+    "volume persists after reload"
+  ],
+  "limitations": [
+    "Software-rendered Chromium; functional smoke check, not hardware performance or subjective audio acceptance."
+  ]
+}
