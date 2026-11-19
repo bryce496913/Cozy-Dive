@@ -20,8 +20,8 @@ import {
  *     side-on with its head turned to them, then glides away;
  *   - a minke whale drops in through the big breathing hole, makes one long, slow pass across the far
  *     side of the tank, and rises out through it again;
- *   - a killer whale comes in through a hole (playtest: one, not three) and sweep round the tank together, well away from
- *     the swimmer, then leave the way they came;
+ *   - one killer whale enters through the large breathing hole, makes a solitary sweep,
+ *     then lines up under the same opening before leaving;
  *   - an Antarctic toothfish rises slowly out of the dark far corner, hangs a while, and sinks back;
  *   - a colossal squid's huge eyes glow for a moment, low in the dark at the far end, then are gone;
  *   - a polar bear paddles at a breathing hole (seen from below), dives down for a look round, and
@@ -152,7 +152,7 @@ class LeopardSeal implements Encounter {
       a.y = e.y;
       keepInIce(this.l, a, 1.2, 1.5);
       if (
-        swimTo(this.swim, a.x, a.y, a.z, LEOPARD.speed, dt, 0.9, 1.4) < 1 ||
+        swimTo(this.swim, a.x, a.y, a.z, LEOPARD.speed, dt, 0.35, 1.4) < 1 ||
         this.clock > 40
       ) {
         this.mood = 'look';
@@ -166,7 +166,7 @@ class LeopardSeal implements Encounter {
       a.z = e.z + Math.sin(this.angle) * LEOPARD.look;
       a.y = e.y + 0.3 * Math.sin(this.clock * 0.4);
       keepInIce(this.l, a, 1.2, 1.5);
-      swimTo(this.swim, a.x, a.y, a.z, 0.6, dt, 0.6, 1.2);
+      swimTo(this.swim, a.x, a.y, a.z, 0.6, dt, 0.3, 1.2);
       turnTo(this.swim, Math.atan2(-(e.z - p.z), e.x - p.x), dt, 1.2);
       if (this.clock > this.stay || !player.active) {
         this.mood = 'go';
@@ -200,6 +200,13 @@ class LeopardSeal implements Encounter {
   }
 }
 
+export const ICE_WHALE = {
+  orcaCount: 1,
+  minHoleRadius: 2.7,
+  halfLength: 4,
+  strokeHz: 0.16,
+} as const;
+
 // ------------------------------------------------------------------ whales through a hole
 
 /** Animals that come down through a breathing hole, make a pass, and leave up through it. */
@@ -207,7 +214,7 @@ class ThroughHole implements Encounter {
   active = false;
   readonly swims: Swim[];
   readonly poses: FishPose[];
-  private mood: 'down' | 'pass' | 'up' = 'down';
+  private mood: 'down' | 'pass' | 'align' | 'turn' | 'up' = 'down';
   private clock = 0;
   private hole = 0;
   private readonly path: Vec3[] = [];
@@ -230,14 +237,17 @@ class ThroughHole implements Encounter {
   }
   begin(e: Readonly<Vec3>): boolean {
     // The hole furthest from the swimmer, and a pass on the far side of the tank from them.
-    let best = 0;
+    let best = -1;
     ICE.holes.forEach((h, i) => {
+      if (h.r < ICE_WHALE.minHoleRadius) return;
       if (
+        best < 0 ||
         Math.hypot(h.x - e.x, h.z - e.z) >
-        Math.hypot(hole(best).x - e.x, hole(best).z - e.z)
+          Math.hypot(hole(best).x - e.x, hole(best).z - e.z)
       )
         best = i;
     });
+    if (best < 0) return false;
     const h = hole(best);
     if (Math.hypot(h.x - e.x, h.z - e.z) < 14) return false;
     this.hole = best;
@@ -253,9 +263,13 @@ class ThroughHole implements Encounter {
     });
     this.swims.forEach((s, i) => {
       s.pose.position.x = h.x;
-      s.pose.position.y = ICE.ceiling + 3 + i * this.gap;
+      s.pose.position.y =
+        ICE.ceiling + ICE_WHALE.halfLength + 0.7 + i * this.gap;
       s.pose.position.z = h.z;
-      s.v.x = s.v.y = s.v.z = 0;
+      s.v.x = s.v.z = 0;
+      s.v.y = -this.speed * 0.6;
+      s.pose.pitch = -Math.PI / 2;
+      s.pose.roll = 0;
     });
     this.mood = 'down';
     this.leg = 0;
@@ -268,34 +282,84 @@ class ThroughHole implements Encounter {
     this.clock += dt;
     const h = hole(this.hole),
       lead = this.swims[0];
+    const submerged =
+      this.l.ceiling - Math.max(this.depth, ICE_WHALE.halfLength + 1);
+    // strokeHz is compensated for face()'s speed multiplier: long animals glide, not flutter.
+    const stroke = ICE_WHALE.strokeHz / (0.4 + this.speed);
     if (this.mood === 'down') {
+      swimTo(lead, h.x, submerged, h.z, this.speed * 0.6, dt, stroke, 0.8);
+      lead.pose.pitch = -Math.PI / 2;
+      lead.pose.roll = 0;
+      if (lead.pose.position.y <= submerged + 0.4) {
+        this.mood = 'pass';
+        lead.v.y = 0;
+      }
+    } else if (this.mood === 'pass') {
+      // A swimmer camping on a waypoint must not keep the encounter here indefinitely.
+      if (this.clock > 180) this.mood = 'align';
+      const w = this.path[this.leg];
+      if (
+        swimTo(
+          lead,
+          w.x,
+          Math.min(w.y, submerged),
+          w.z,
+          this.speed,
+          dt,
+          stroke,
+          0.65,
+        ) < 2 &&
+        ++this.leg >= this.path.length
+      )
+        this.mood = 'align';
+    } else if (this.mood === 'align') {
       if (
         swimTo(
           lead,
           h.x,
-          this.l.ceiling - this.depth,
+          submerged - 0.5,
           h.z,
-          this.speed * 0.6,
+          this.speed * 0.65,
           dt,
-          0.4,
-          1.2,
-        ) < 1
-      )
-        this.mood = 'pass';
-    } else if (this.mood === 'pass') {
-      const w = this.path[this.leg];
-      if (
-        swimTo(lead, w.x, w.y, w.z, this.speed, dt, 0.45, 0.8) < 2.5 &&
-        ++this.leg >= this.path.length
-      )
-        this.mood = 'up';
+          stroke,
+          0.9,
+        ) < 0.6
+      ) {
+        this.mood = 'turn';
+        this.clock = 0;
+        lead.v.x = lead.v.y = lead.v.z = 0;
+      }
+    } else if (this.mood === 'turn') {
+      // Turn below the ice, where the whole body has space, before beginning the ascent.
+      lead.pose.pitch +=
+        (Math.PI / 2 - lead.pose.pitch) * (1 - Math.exp(-3 * dt));
+      lead.pose.roll *= Math.exp(-3 * dt);
+      lead.pose.effort = 0.18 * Math.sin(this.clock);
+      if (this.clock > 1.8) this.mood = 'up';
     } else {
-      swimTo(lead, h.x, ICE.ceiling + 4, h.z, this.speed * 0.6, dt, 0.4, 1);
+      swimTo(
+        lead,
+        h.x,
+        ICE.ceiling + ICE_WHALE.halfLength + 1,
+        h.z,
+        this.speed * 0.6,
+        dt,
+        stroke,
+        0.8,
+      );
+      lead.pose.pitch = Math.PI / 2;
+      lead.pose.roll = 0;
       if (
-        this.swims.every((s) => s.pose.position.y > ICE.ceiling + 2) ||
-        this.clock > 240
+        this.swims.every(
+          (s) => s.pose.position.y > ICE.ceiling + ICE_WHALE.halfLength + 0.5,
+        )
       )
         this.end();
+    }
+    if (this.mood === 'down' || this.mood === 'up') {
+      lead.pose.position.x = h.x;
+      lead.pose.position.z = h.z;
+      lead.v.x = lead.v.z = 0;
     }
     // The others follow in line, a body length or two behind; near the ice (on the way in or out),
     // straight up or down through the hole, never sideways through the ice.
@@ -313,7 +377,7 @@ class ThroughHole implements Encounter {
       }
       swimTo(me, tx, ty, tz, this.speed * 1.1, dt, 0.45, 1);
       // Inside the ice, held to the hole's column.
-      if (q.y > this.l.ceiling - 0.5) {
+      if (q.y > this.l.ceiling - ICE_WHALE.halfLength) {
         const dx = q.x - h.x,
           dz = q.z - h.z,
           r = Math.hypot(dx, dz),
@@ -327,7 +391,7 @@ class ThroughHole implements Encounter {
     // The leader too.
     {
       const q = lead.pose.position;
-      if (q.y > this.l.ceiling - 0.5) {
+      if (q.y > this.l.ceiling - ICE_WHALE.halfLength) {
         const dx = q.x - h.x,
           dz = q.z - h.z,
           r = Math.hypot(dx, dz),
@@ -341,8 +405,14 @@ class ThroughHole implements Encounter {
     // In the water, clear of the seabed and walls, and well away from the swimmer.
     for (const s of this.swims) {
       const q = s.pose.position;
-      if (q.y < this.l.ceiling - 1) keepInIce(this.l, q, 2.5, 1.5);
       if (
+        this.mood !== 'down' &&
+        this.mood !== 'up' &&
+        q.y < this.l.ceiling - 1
+      )
+        keepInIce(this.l, q, 2.5, 1.5);
+      if (
+        this.mood === 'pass' &&
         player.active &&
         dist(q, player.position) < 8 &&
         q.y < this.l.ceiling - 1
@@ -605,7 +675,7 @@ export class RareDirector {
       'killer-whales': new ThroughHole(
         'killer-whales',
         makePose,
-        1,
+        ICE_WHALE.orcaCount,
         limits,
         2.2,
         [

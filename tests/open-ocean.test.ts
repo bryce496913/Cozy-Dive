@@ -73,8 +73,9 @@ const outerBox = {
 describe('Pass 052B: the outer reef opens out', () => {
   it('lets the swimmer out over the drop-off and down the wall further, and still stops before the glass', () => {
     const out = swim(easeAtEdges, v(0, 2, -50), v(0, 0, -1), 60, outerBox);
-    // Past the reef's lip, hanging out over the blue (was about -59).
-    expect(out.z).toBeLessThan(-61.5);
+    // Hover just off the reef lip, close to the shoreward glass.
+    expect(out.z).toBeLessThan(OUTER.dropOff.start);
+    expect(out.z).toBeLessThan(OUTER.glass.z + OUTER.glass.gap + 0.1);
     expect(out.z).toBeGreaterThanOrEqual(OUTER.glass.z + OUTER.glass.gap);
     const down = swim(easeAtEdges, v(0, 0, -60), v(0, -1, 0), 60, outerBox);
     expect(down.y).toBeLessThan(-9);

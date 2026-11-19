@@ -1,3 +1,4 @@
+import { HabitatSurface } from '../shared/HabitatSurface';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { ICE, ICE_FRAME } from '../../config/passage';
@@ -96,6 +97,9 @@ function iceColours(g: THREE.BufferGeometry, deep = 0.5): void {
 }
 
 export class IceEnvironment {
+  private readonly iceSurface = new HabitatSurface('ice');
+  private readonly rockSurface = new HabitatSurface('limestone');
+  private readonly sandSurface = new HabitatSurface('sediment');
   readonly root = new THREE.Group();
   readonly colliders: ConvexCollider[] = [];
   /** Dropstones on the seabed (x, z, size), for the garden to settle round. */
@@ -113,7 +117,7 @@ export class IceEnvironment {
       t = ICE.tunnel,
       top = ICE.ceiling;
     const ice = this.own(
-      new THREE.MeshStandardMaterial({
+      this.iceSurface.material({
         name: 'Ice',
         vertexColors: true,
         roughness: 0.22,
@@ -124,14 +128,14 @@ export class IceEnvironment {
       }),
     );
     const rock = this.own(
-      new THREE.MeshStandardMaterial({
+      this.rockSurface.material({
         name: 'Ice rock',
         vertexColors: true,
         roughness: 0.9,
       }),
     );
     const seabed = this.own(
-      new THREE.MeshStandardMaterial({
+      this.sandSurface.material({
         name: 'Ice seabed',
         vertexColors: true,
         roughness: 0.95,
@@ -503,5 +507,8 @@ export class IceEnvironment {
     this.root.clear();
     this.geometries.forEach((g) => g.dispose());
     this.materials.forEach((m) => m.dispose());
+    this.iceSurface.dispose();
+    this.rockSurface.dispose();
+    this.sandSurface.dispose();
   }
 }

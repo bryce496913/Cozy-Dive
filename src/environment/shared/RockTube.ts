@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { ConvexCollider } from '../../player/collision';
 import { boxCollider } from '../passage/Crevice';
-import { rockShape } from '../RockGeometry';
+import { limestoneGeometry } from './LimestoneGeometry';
 
 /**
  * v0.6 Pass 046: a rough rock tunnel along -z, shared by the sea cave's back tunnel and the tunnel
@@ -26,8 +26,8 @@ export interface Tube {
 }
 
 export function rockTubeGeometry(t: Tube, reach = 3.2): THREE.BufferGeometry {
-  const steps = Math.max(8, Math.ceil(Math.abs(t.to - t.from) * 2.5)),
-    around = 28,
+  const steps = Math.max(8, Math.ceil(Math.abs(t.to - t.from) * 4)),
+    around = 40,
     positions: number[] = [],
     colors: number[] = [],
     indices: number[] = [];
@@ -38,7 +38,7 @@ export function rockTubeGeometry(t: Tube, reach = 3.2): THREE.BufferGeometry {
     for (let j = 0; j <= around; j++) {
       const a = (j / around) * Math.PI * 2,
         bump = 0.12 * Math.sin(a * 3 + z * 1.7) * Math.sin(a * 5 - z * 0.9),
-        r = t.radius + bump;
+        r = t.radius + bump + 0.025 * Math.sin(a * 13 - z * 7);
       positions.push(t.x + Math.cos(a) * r, t.y + Math.sin(a) * r, z);
       const tone =
         (0.07 + 0.3 * light * light) * (0.85 + 0.15 * Math.sin(a * 7 + z));
@@ -131,8 +131,8 @@ export function mouthRocks(
     centre = new THREE.Vector3();
   for (let i = 0; i < count; i++) {
     // Round the mouth, heavier at the sides and over the top than underneath.
-    const a = (i / count) * Math.PI * 2 + 0.2,
-      g = rockShape(seed + (i % 8) * 11, i % 4, 2),
+    const a = ((i + 0.16 * Math.sin(i * 2.7)) / count) * Math.PI * 2 + 0.2,
+      g = limestoneGeometry(seed + (i % 8) * 11, i % 3),
       d =
         (1.5 + 0.5 * Math.abs(Math.sin(i * 2.3))) *
         (Math.sin(a) < -0.4 ? 0.7 : 1),
@@ -147,7 +147,7 @@ export function mouthRocks(
       new THREE.Vector3(
         t.x + Math.cos(a) * ring,
         t.y + Math.sin(a) * ring,
-        z + out * (0.15 + 0.25 * Math.abs(Math.cos(i * 1.7))),
+        z + out * (0.02 + 0.09 * Math.sin(i * 1.7)),
       ),
       q,
       new THREE.Vector3(d / size.x, d / size.y, (d * 0.8) / size.z),

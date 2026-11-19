@@ -1,3 +1,4 @@
+import { HabitatSurface } from '../shared/HabitatSurface';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { CAVE } from '../../config/passage';
@@ -222,6 +223,7 @@ export function coralClusterGeometry(seed: number): {
 }
 
 export class CaveDressing {
+  private readonly surface = new HabitatSurface('limestone');
   readonly root = new THREE.Group();
   private readonly geometries: THREE.BufferGeometry[] = [];
   private readonly materials: THREE.Material[] = [];
@@ -237,8 +239,10 @@ export class CaveDressing {
   private time = 0;
   private disposed = false;
 
-  constructor(beamTop: number) {
+  constructor(beamTop: number, boulders?: THREE.Object3D) {
     this.root.name = 'Sea cave detail';
+    boulders?.updateWorldMatrix(true, true);
+    const surfaceRay = new THREE.Raycaster();
     const rand = random(CAVE_DRESSING.seed),
       c = CAVE.chamber,
       sky = CAVE.skylight,
@@ -253,7 +257,7 @@ export class CaveDressing {
 
     // Hanging formations from the roof, away from the skylight and the tunnel.
     const rock = this.own(
-      new THREE.MeshStandardMaterial({
+      this.surface.material({
         name: 'Cave formations',
         color: 0xc8bea9,
         vertexColors: true,
@@ -385,6 +389,22 @@ export class CaveDressing {
           y,
           r.z + Math.cos(a) * r.size * 0.3,
         );
+        if (boulders) {
+          surfaceRay.set(
+            new THREE.Vector3(
+              r.x + Math.sin(a) * r.size * 1.2,
+              y,
+              r.z + Math.cos(a) * r.size * 1.2,
+            ),
+            new THREE.Vector3(-Math.sin(a), 0, -Math.cos(a)),
+          );
+          surfaceRay.far = r.size * 1.5;
+          const hit = surfaceRay.intersectObject(boulders, false)[0];
+          if (hit?.face) {
+            n.copy(hit.face.normal).transformDirection(boulders.matrixWorld);
+            pos.copy(hit.point).addScaledVector(n, -0.015);
+          }
+        }
       } else {
         // The bare rock of the lower walls, above the sand banked against them, away from the
         // tunnel's side (so the walls deeper in the cave are the richest).
@@ -482,9 +502,9 @@ export class CaveDressing {
         name: 'Cave motes',
         color: 0xeafff4,
         map: this.dot,
-        size: 0.07,
+        size: 0.035,
         transparent: true,
-        opacity: 0.8,
+        opacity: 0.42,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
         fog: false,
@@ -492,6 +512,7 @@ export class CaveDressing {
     );
     this.motes = new THREE.Points(g, moteMaterial);
     this.motes.name = 'Cave motes';
+    this.motes.frustumCulled = false;
     this.root.add(this.motes);
   }
   private own<T extends THREE.Material>(m: T): T {
@@ -542,5 +563,6 @@ export class CaveDressing {
     this.geometries.forEach((g) => g.dispose());
     this.materials.forEach((m) => m.dispose());
     this.dot.dispose();
+    this.surface.dispose();
   }
 }

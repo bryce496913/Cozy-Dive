@@ -62,6 +62,13 @@ const NORMAL = `
   vec3 triSign = sign(triN);
   tnX.z *= triSign.x; tnY.z *= triSign.y; tnZ.z *= triSign.z;
   vec3 triWorldNormal = normalize(tnX.zyx * triW.x + tnY.xzy * triW.y + tnZ.xyz * triW.z);
+  // Match MeshStandardMaterial's sidedness when a surface is viewed from inside a habitat.
+  #ifdef FLIP_SIDED
+    triWorldNormal = -triWorldNormal;
+  #endif
+  #ifdef DOUBLE_SIDED
+    triWorldNormal *= gl_FrontFacing ? 1.0 : -1.0;
+  #endif
   normal = normalize((viewMatrix * vec4(triWorldNormal, 0.0)).xyz);
 #endif
 `;
@@ -98,7 +105,7 @@ export function triplanarMaterial(
       .replace('#include <normal_fragment_maps>', NORMAL);
   };
   // Scale and occlusion are uniforms: every triplanar material shares one compiled program.
-  material.customProgramCacheKey = () => 'cozy-triplanar-v1';
+  material.customProgramCacheKey = () => 'cozy-triplanar-v2';
   return material;
 }
 

@@ -1,3 +1,4 @@
+import { squidGeometry } from './SquidGeometry';
 import * as THREE from 'three';
 import type { AssetId } from '../../assets/AssetRegistry';
 import type { AssetLoader } from '../../assets/AssetLoader';
@@ -52,6 +53,8 @@ export class IceRare {
   private readonly pending = new Set<SoloCreature>();
   private toothfish?: PosedFish;
   private readonly squid = new THREE.Group();
+  private readonly squidBody: THREE.Mesh;
+  private squidTime = 0;
   private readonly eyeMaterial: THREE.MeshBasicMaterial;
   private readonly mantleMaterial: THREE.MeshBasicMaterial;
   private readonly geometries: THREE.BufferGeometry[] = [];
@@ -81,8 +84,7 @@ export class IceRare {
       opacity: 0,
     });
     const eye = new THREE.SphereGeometry(0.13, 14, 10),
-      mantle = new THREE.SphereGeometry(1, 16, 12);
-    mantle.scale(0.6, 0.5, 1.8);
+      mantle = squidGeometry();
     this.geometries.push(eye, mantle);
     for (const s of [-1, 1]) {
       const m = new THREE.Mesh(eye, this.eyeMaterial);
@@ -90,7 +92,7 @@ export class IceRare {
       this.squid.add(m);
     }
     const body = new THREE.Mesh(mantle, this.mantleMaterial);
-    body.position.set(0, 0.2, -1.4);
+    this.squidBody = body;
     this.squid.add(body);
     this.squid.name = 'Colossal squid';
     this.squid.visible = false;
@@ -223,7 +225,13 @@ export class IceRare {
     this.squid.position.set(p.position.x, p.position.y, p.position.z);
     this.squid.rotation.y = p.yaw + Math.PI / 2;
     this.eyeMaterial.opacity = glow;
-    this.mantleMaterial.opacity = 0.35 * glow;
+    this.mantleMaterial.opacity = 0.55 * glow;
+    if (active && !reducedMotion) this.squidTime += Math.min(dt, 0.1);
+    const stroke = Math.sin(this.squidTime * 0.8);
+    if (this.squidBody.morphTargetInfluences) {
+      this.squidBody.morphTargetInfluences[0] = Math.max(0, -stroke);
+      this.squidBody.morphTargetInfluences[1] = Math.max(0, stroke);
+    }
   }
   dispose(): void {
     if (this.disposed) return;

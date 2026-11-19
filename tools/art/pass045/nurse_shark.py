@@ -68,9 +68,13 @@ def nurse():
 def nurse_maps():
     def back(s, u, v):
         return lerp([0.5, 0.38, 0.24], [0.42, 0.32, 0.2], smooth(0.2, 1.0, -np.cos(2 * np.pi * v)))
+    def relief(s,e,u,v):
+        # Five gill slits behind the head, dermal denticles and the underside mouth fold.
+        gills = sum(np.exp(-((s-(0.14+i*0.014))/0.0025)**2) for i in range(5))
+        return 0.04*fbm(u*8,v*6,100,91) - 0.22*gills*(1-smooth(0.55,0.85,abs(e)))
     return vz.fish_body_maps('nurseshark', back, [0.7, 0.58, 0.42],
                              lambda s, u, v: -0.5 + 0.06 * (fbm(u, v, 8, 13) - 0.5),
-                             fins=([0.44, 0.33, 0.21], [0.55, 0.44, 0.3]), rough_body=0.55)
+                             fins=([0.44, 0.33, 0.21], [0.55, 0.44, 0.3]), rough_body=0.55, relief=relief)
 
 
 if __name__ == '__main__':

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { creatureClearance } from './CreatureClearance';
 import type { AssetId } from '../../assets/AssetRegistry';
 import type { AssetLease, AssetLoader } from '../../assets/AssetLoader';
 import { creatureStroke } from '../creatureStroke';
@@ -19,6 +20,11 @@ export class SoloCreature {
   private isNear = true;
   private readonly eye = new THREE.Vector3();
   private disposed = false;
+  private floorY?: number;
+  private clearance = 0;
+  setFloor(y: number): void {
+    this.floorY = y;
+  }
 
   constructor(
     private readonly loader: AssetLoader,
@@ -60,6 +66,7 @@ export class SoloCreature {
             this.tinted.push(own);
             mesh.material = own;
           }
+      this.clearance = creatureClearance(lease.model, this.root.scale.x);
       this.root.add(lease.model);
       this.update();
       return true;
@@ -76,6 +83,8 @@ export class SoloCreature {
   update(camera?: THREE.Camera): void {
     if (this.disposed || !this.near || !this.far) return;
     const p = this.pose;
+    if (this.floorY !== undefined)
+      p.position.y = Math.max(p.position.y, this.floorY + this.clearance);
     this.root.position.set(p.position.x, p.position.y, p.position.z);
     this.root.rotation.set(p.roll, p.yaw, p.pitch);
     if (camera) {

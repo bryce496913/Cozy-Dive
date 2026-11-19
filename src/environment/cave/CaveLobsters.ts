@@ -1,3 +1,4 @@
+import { benthicGait } from './BenthicGait';
 import * as THREE from 'three';
 import { spinyLobsterBody } from './SpinyLobster';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -268,6 +269,8 @@ interface Lobster {
 export class CaveLobsters {
   readonly root = new THREE.Group();
   readonly sightings: SightCandidate[] = [];
+  private readonly gait: THREE.InstancedBufferAttribute;
+  private readonly bodyMaterial: THREE.MeshStandardMaterial;
   private readonly bodies: THREE.InstancedMesh;
   private readonly antennae: THREE.InstancedMesh;
   private readonly dens: THREE.InstancedMesh;
@@ -290,13 +293,20 @@ export class CaveLobsters {
 
   constructor(spots: readonly LobsterSpot[]) {
     this.root.name = 'Spiny lobsters';
+    this.bodyMaterial = this.material.clone();
+    benthicGait(this.bodyMaterial, 0.07);
+    this.gait = new THREE.InstancedBufferAttribute(
+      new Float32Array(spots.length * 2),
+      2,
+    );
     this.bodies = new THREE.InstancedMesh(
       // v0.6 Pass 053: the rebuilt spiny lobster.
       spinyLobsterBody(),
-      this.material,
+      this.bodyMaterial,
       spots.length,
     );
     this.bodies.name = 'Lobster bodies';
+    this.bodies.geometry.setAttribute('legGait', this.gait);
     this.antennae = new THREE.InstancedMesh(
       lobsterAntennae(),
       this.material,
@@ -345,6 +355,11 @@ export class CaveLobsters {
         s.z - Math.cos(s.yaw) * back,
       );
       this.m.compose(this.at, this.q, this.size);
+      this.gait.setXY(
+        i,
+        t * (l.wary ? 15 : 6) + l.phase,
+        l.out > 0.01 && l.out < 0.99 ? 1 : 0,
+      );
       this.bodies.setMatrixAt(i, this.m);
       const rate = l.wary ? LOBSTER.alarmedRate : LOBSTER.rate,
         a = LOBSTER.sweep * Math.sin(t * rate + l.phase),
@@ -355,6 +370,7 @@ export class CaveLobsters {
       this.antennae.setMatrixAt(i, this.scratch);
     });
     this.bodies.instanceMatrix.needsUpdate = true;
+    this.gait.needsUpdate = true;
     this.antennae.instanceMatrix.needsUpdate = true;
   }
   /** Back into the crack when the swimmer comes close, out again slowly; on simulation time. */
@@ -390,6 +406,7 @@ export class CaveLobsters {
     this.antennae.dispose();
     this.dens.dispose();
     this.material.dispose();
+    this.bodyMaterial.dispose();
     this.sightings.length = 0;
   }
 }

@@ -1,0 +1,102 @@
+import * as THREE from 'three';
+import { triplanarMaterial } from '../../rendering/Triplanar';
+
+export type SurfaceKind = 'limestone' | 'sediment' | 'ice';
+/** Seamless local PBR relief: pores/strata, current-combed grains, or trapped ice veins.
+ * World-space sampling keeps the detail continuous over merged rocks and tunnel mouths.
+ */
+export class HabitatSurface {
+  private readonly maps: THREE.DataTexture[] = [];
+  private disposed = false;
+  constructor(readonly kind: SurfaceKind) {
+    const n = 128,
+      heights = new Float32Array(n * n),
+      color = new Uint8Array(n * n * 4),
+      normal = new Uint8Array(n * n * 4),
+      orm = new Uint8Array(n * n * 4);
+    for (let y = 0; y < n; y++)
+      for (let x = 0; x < n; x++) {
+        const u = (x / n) * Math.PI * 2,
+          v = (y / n) * Math.PI * 2;
+        const grain =
+          Math.sin(u * 23 + Math.sin(v * 7)) *
+          Math.cos(v * 29 + Math.sin(u * 5));
+        const strata = Math.sin(
+          v * 3 + 0.6 * Math.sin(u * 2) + 0.18 * Math.sin(u * 9),
+        );
+        const vein = Math.exp(
+          -Math.abs(Math.sin(u * 2 + v + 0.8 * Math.sin(v * 3))) * 32,
+        );
+        const h =
+          kind === 'sediment'
+            ? 0.24 * Math.sin(v * 14 + 0.8 * Math.sin(u * 2)) + grain * 0.06
+            : kind === 'ice'
+              ? vein * 0.6 + grain * 0.025
+              : strata * 0.15 + grain * 0.14;
+        heights[y * n + x] = h;
+        const k = kind === 'ice' ? 0.94 - vein * 0.18 : 0.87 + h * 0.18,
+          i = (y * n + x) * 4;
+        color[i] = Math.round(k * 255);
+        color[i + 1] = Math.round(
+          Math.min(1, k + (kind === 'ice' ? 0.025 : 0)) * 255,
+        );
+        color[i + 2] = Math.round(
+          Math.min(1, k + (kind === 'ice' ? 0.05 : 0)) * 255,
+        );
+        color[i + 3] = 255;
+        orm[i] = Math.round((0.92 - Math.max(0, -h) * 0.15) * 255);
+        orm[i + 1] = Math.round(
+          (kind === 'ice' ? 0.55 + vein * 0.35 : 0.9 + grain * 0.04) * 255,
+        );
+        orm[i + 2] = 0;
+        orm[i + 3] = 255;
+      }
+    for (let y = 0; y < n; y++)
+      for (let x = 0; x < n; x++) {
+        const dx =
+            (heights[y * n + ((x + 1) % n)] -
+              heights[y * n + ((x + n - 1) % n)]) *
+            1.4,
+          dy =
+            (heights[((y + 1) % n) * n + x] -
+              heights[((y + n - 1) % n) * n + x]) *
+            1.4,
+          l = Math.hypot(dx, dy, 1),
+          i = (y * n + x) * 4;
+        normal[i] = Math.round((0.5 - (dx / l) * 0.5) * 255);
+        normal[i + 1] = Math.round((0.5 - (dy / l) * 0.5) * 255);
+        normal[i + 2] = Math.round((0.5 + 0.5 / l) * 255);
+        normal[i + 3] = 255;
+      }
+    for (const data of [color, normal, orm]) {
+      const t = new THREE.DataTexture(data, n, n);
+      t.wrapS = t.wrapT = THREE.RepeatWrapping;
+      t.generateMipmaps = true;
+      t.minFilter = THREE.LinearMipmapLinearFilter;
+      t.magFilter = THREE.LinearFilter;
+      t.needsUpdate = true;
+      this.maps.push(t);
+    }
+    this.maps[0].colorSpace = THREE.SRGBColorSpace;
+  }
+  material(
+    options: THREE.MeshStandardMaterialParameters,
+    scale = 0.7,
+  ): THREE.MeshStandardMaterial {
+    const source = new THREE.MeshStandardMaterial({
+      ...options,
+      map: this.maps[0],
+      normalMap: this.maps[1],
+      roughnessMap: this.maps[2],
+    });
+    source.normalScale.setScalar(this.kind === 'ice' ? 0.35 : 0.65);
+    const result = triplanarMaterial(source, { scale, ao: 0.35 });
+    source.dispose();
+    return result;
+  }
+  dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
+    for (const map of this.maps) map.dispose();
+  }
+}
