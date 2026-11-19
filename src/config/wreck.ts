@@ -42,8 +42,12 @@ export const WRECK = {
   shaft: { x: 0, z: -26.5, threshold: 25, top: 29 },
   /** Soft limits: easing begins `inset` m short of a wall (or `up` under the roof). */
   ease: { inset: 2.5, band: 1.2, up: 1.4 },
-  /** Dim, deep blue-green water: about 20 m of visibility. */
-  fog: 0.045,
+  /**
+   * Murky, deep blue-green water: things fade from about 8 m and are gone by 16–18 m, so the
+   * wreck (35 m long) is never seen whole; it looms out of the gloom a part at a time. (Only the
+   * haze: the camera still draws out to 120 m, so nothing pops in.)
+   */
+  fog: 0.085,
   water: 0x12323c,
   /** Inside the wreck: how dark it gets (0..1), and how fast it darkens and clears (per s). */
   darkness: 0.9,
