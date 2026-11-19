@@ -1,5 +1,6 @@
 import { GROTTO, KELP } from '../../config/passage';
-import type { Vec3 } from '../../config/world';
+import type { Bounds, Vec3 } from '../../config/world';
+import { SINKHOLE } from '../../config/wreck';
 
 /**
  * v0.6 Pass 032: the kelp forest's seabed, and its soft edges. Pure and allocation-free, shared by
@@ -66,3 +67,26 @@ export function inGrottoClear(x: number, z: number, reach = 0): boolean {
   const c = GROTTO.clear;
   return x > c.minX - reach && x < c.maxX + reach && z > c.z - reach;
 }
+
+/** Whether (x, z) is over the sinkhole's open shaft (the way down to the shipwreck). */
+export function overSinkhole(x: number, z: number, margin = 0): boolean {
+  return Math.hypot(x - SINKHOLE.x, z - SINKHOLE.z) < SINKHOLE.radius + margin;
+}
+/** The sand's funnel round the sinkhole: how far it dips (m) at (x, z), most at the shaft's lip. */
+export function sinkholeDip(x: number, z: number): number {
+  const d = Math.hypot(x - SINKHOLE.x, z - SINKHOLE.z) - SINKHOLE.radius;
+  return SINKHOLE.funnel.depth * (1 - smooth(d / SINKHOLE.funnel.width));
+}
+/** The seabed as drawn and swum over: the floor, slumping into the sinkhole's funnel. */
+export function kelpSeabed(x: number, z: number): number {
+  return kelpFloor(x, z) - sinkholeDip(x, z);
+}
+/** The ground the swimmer meets: the seabed, but nothing under the sinkhole's open shaft. */
+export function kelpSwimFloor(x: number, z: number): number {
+  return overSinkhole(x, z) ? SINKHOLE.bottom - 4 : kelpSeabed(x, z);
+}
+/** The swimmer's limits in the kelp forest: down into the sinkhole as well. */
+export const KELP_SWIM_BOUNDS: Bounds = {
+  ...KELP.bounds,
+  min: { ...KELP.bounds.min, y: SINKHOLE.bottom - 1 },
+};

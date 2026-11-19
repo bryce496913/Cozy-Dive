@@ -1,7 +1,12 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { KELP } from '../../config/passage';
-import { inGrottoClear, kelpFloor, laneWeight } from './KelpTerrain';
+import {
+  inGrottoClear,
+  kelpFloor,
+  laneWeight,
+  overSinkhole,
+} from './KelpTerrain';
 
 /**
  * v0.6 Pass 032: giant kelp. A few stalk templates (a thin, gently wandering stipe with blades all
@@ -66,6 +71,8 @@ export function stalkPlacements(
       z > f.maxZ ||
       laneWeight(x, z) > 0.05 ||
       inGrottoClear(x, z, 0.6) ||
+      // Kelp grows close round the sinkhole (hiding it), but not out of its mouth.
+      overSinkhole(x, z, 0.4) ||
       (Math.abs(x) < STALKS.exitClear.halfWidth &&
         z > KELP.tunnel.wallZ - STALKS.exitClear.depth) ||
       out.some((s) => Math.hypot(s.x - x, s.z - z) < 1.4)

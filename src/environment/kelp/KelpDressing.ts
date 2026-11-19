@@ -4,7 +4,12 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { KELP } from '../../config/passage';
 import { createRockGeometry } from '../RockGeometry';
 import type { Boulder } from './KelpEnvironment';
-import { inGrottoClear, kelpFloor, laneWeight } from './KelpTerrain';
+import {
+  inGrottoClear,
+  kelpFloor,
+  laneWeight,
+  overSinkhole,
+} from './KelpTerrain';
 
 /**
  * v0.6 Pass 035: the small life of the kelp forest's rocks and floor, built in code: purple sea
@@ -189,6 +194,8 @@ export class KelpDressing {
       z < f.maxZ &&
       z > f.minZ &&
       !inGrottoClear(x, z, 0.5) &&
+      // Nothing lying over the sinkhole's mouth.
+      !overSinkhole(x, z, 0.8) &&
       !(Math.abs(x) < 4 && z > KELP.tunnel.wallZ - 4);
 
     // Urchins: clusters at boulder feet, a few scattered on the open rock.

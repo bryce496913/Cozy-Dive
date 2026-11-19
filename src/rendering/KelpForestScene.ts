@@ -19,7 +19,11 @@ import {
   kelpSpecies,
 } from '../environment/kelp/KelpLife';
 import { KelpStalks, STALKS } from '../environment/kelp/KelpStalks';
-import { easeInKelp, kelpFloor } from '../environment/kelp/KelpTerrain';
+import {
+  KELP_SWIM_BOUNDS,
+  easeInKelp,
+  kelpSwimFloor,
+} from '../environment/kelp/KelpTerrain';
 import { OuterCreatures } from '../environment/outer/OuterCreatures';
 import { OuterSchools } from '../environment/outer/OuterSchools';
 import { TurnedCrevice } from '../environment/passage/TurnedCrevice';
@@ -176,8 +180,8 @@ export class KelpForestScene implements WaterWorld {
         ...this.environment.colliders,
         ...this.grotto.colliders,
       ]),
-      KELP.bounds,
-      kelpFloor,
+      KELP_SWIM_BOUNDS,
+      kelpSwimFloor,
     );
     const rocks = this.environment.boulders;
     for (let i = 0; i < libraries.soundSpots; i++) {
@@ -317,7 +321,7 @@ export class KelpForestScene implements WaterWorld {
     return !this.disposed;
   }
   get bounds(): Bounds {
-    return KELP.bounds;
+    return KELP_SWIM_BOUNDS;
   }
   get collision(): CollisionWorld {
     return this.world;

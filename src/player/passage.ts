@@ -19,6 +19,7 @@ import {
   type PassageFrame,
 } from '../config/passage';
 import type { Vec3 } from '../config/world';
+import { SINKHOLE, SINKHOLE_FRAME, WRECK, WRECK_FRAME } from '../config/wreck';
 
 /**
  * v0.4 Pass 023: the passage between the tank's hidden crevice and the outer waters' tunnel.
@@ -29,7 +30,8 @@ import type { Vec3 } from '../config/world';
  * stops and nothing jumps; the darkness, which peaks at the threshold on both sides, hides the
  * change of world. Pure (no allocation in the per-frame paths).
  */
-export type WaterWorldId = 'aquarium' | 'outer' | 'kelp' | 'cave' | 'ice';
+export type WaterWorldId =
+  'aquarium' | 'outer' | 'kelp' | 'cave' | 'ice' | 'wreck';
 
 /** Heading (camera yaw) that looks along a horizontal direction: forward = (-sin, -cos). */
 export const headingOf = (d: { x: number; z: number }): number =>
@@ -96,7 +98,9 @@ export const passageFrame = (world: WaterWorldId): PassageFrame =>
         ? CAVE_FRAME
         : world === 'ice'
           ? ICE_FRAME
-          : TUNNEL_FRAME;
+          : world === 'wreck'
+            ? WRECK_FRAME
+            : TUNNEL_FRAME;
 
 /** Whether `p` is inside the crevice channel's cross-section (for the darkness and the swap). */
 export function inChannel(p: Vec3): boolean {
@@ -142,7 +146,9 @@ export function passageDarkness(world: WaterWorldId, p: Vec3): number {
     return Math.max(
       inKelpTunnel(p) ? darkness(KELP_FRAME, p) : 0,
       inGrotto(p) ? darkness(GROTTO_FRAME, p) : 0,
+      sinkholeDarkness(p),
     );
+  if (world === 'wreck') return wreckShaftDarkness(p);
   if (world === 'cave')
     return Math.max(
       inCaveTunnel(p) ? darkness(CAVE_FRAME, p) : 0,
@@ -159,6 +165,39 @@ function darkness(frame: PassageFrame, p: Vec3): number {
   const d = Math.abs(depthPast(frame, p)),
     t = Math.max(0, 1 - d / PASSAGE.darkReach);
   return PASSAGE.darkPeak * t * t * (3 - 2 * t);
+}
+
+/**
+ * The sinkhole (kelp forest): darkening steadily from its mouth down to the threshold, where it is
+ * as dark as any passage, so the change of world is hidden there.
+ */
+export function sinkholeDarkness(p: Vec3): number {
+  if (!inSinkhole(p)) return 0;
+  const mouth = 0,
+    t = Math.max(0, Math.min(1, (mouth - p.y) / (mouth - SINKHOLE.threshold))),
+    below = Math.max(0, SINKHOLE.threshold - p.y);
+  return PASSAGE.darkPeak * Math.max(t * t * (3 - 2 * t), below > 0 ? 1 : 0);
+}
+/** The shaft in the wreck's roof: as dark as the threshold above, clearing towards the cavern. */
+export function wreckShaftDarkness(p: Vec3): number {
+  const s = WRECK.shaft;
+  if (Math.hypot(p.x - s.x, p.z - s.z) > SINKHOLE.radius + 0.6) return 0;
+  const t = Math.max(
+    0,
+    Math.min(1, (p.y - WRECK.ceiling) / (s.threshold - WRECK.ceiling)),
+  );
+  return PASSAGE.darkPeak * t * t * (3 - 2 * t);
+}
+/** Whether `p` (kelp forest) is down in the sinkhole's shaft, below its mouth. */
+export function inSinkhole(p: Vec3): boolean {
+  return (
+    p.y < 0.5 &&
+    Math.hypot(p.x - SINKHOLE.x, p.z - SINKHOLE.z) < SINKHOLE.radius + 0.4
+  );
+}
+/** Distance from the sinkhole's mouth (kelp forest; for loading and releasing the wreck). */
+export function sinkholeDistance(p: Vec3): number {
+  return Math.hypot(p.x - SINKHOLE.x, p.y, p.z - SINKHOLE.z);
 }
 
 const local: Vec3 = { x: 0, y: 0, z: 0 };
@@ -268,6 +307,17 @@ const TANK_TO_OUTER: Crossing = {
     target: 'cave',
     from: ICE_FRAME,
     to: ICE_GATE_FRAME,
+  },
+  /** The kelp forest's sinkhole and the shipwreck's cavern: down and back up the same shaft. */
+  KELP_TO_WRECK: Crossing = {
+    target: 'wreck',
+    from: SINKHOLE_FRAME,
+    to: WRECK_FRAME,
+  },
+  WRECK_TO_KELP: Crossing = {
+    target: 'kelp',
+    from: WRECK_FRAME,
+    to: SINKHOLE_FRAME,
   };
 /**
  * v0.6 Pass 032: whether to change world this frame, and how. The tank and the outer waters are
@@ -284,8 +334,16 @@ export function crossing(
     readonly cave?: boolean;
     /** v0.6 Pass 046: the waters under the ice, beyond the cave's back tunnel. */
     readonly ice?: boolean;
+    /** The shipwreck, down the kelp forest's sinkhole. */
+    readonly wreck?: boolean;
   },
 ): Crossing | null {
+  if (world === 'wreck')
+    return p.y > WRECK_FRAME.origin.y + PASSAGE.hysteresis &&
+      Math.hypot(p.x - WRECK_FRAME.origin.x, p.z - WRECK_FRAME.origin.z) <
+        SINKHOLE.radius + 0.4
+      ? WRECK_TO_KELP
+      : null;
   if (world === 'ice')
     return depthPast(ICE_FRAME, p) < -PASSAGE.hysteresis &&
       Math.abs(p.y - ICE_FRAME.origin.y) < 3
@@ -320,6 +378,12 @@ export function crossing(
     Math.abs(p.y - KELP_FRAME.origin.y) < 3
   )
     return KELP_TO_OUTER;
+  if (
+    ready.wreck &&
+    inSinkhole(p) &&
+    p.y < SINKHOLE_FRAME.origin.y - PASSAGE.hysteresis
+  )
+    return KELP_TO_WRECK;
   return ready.cave &&
     inGrotto(p) &&
     depthPast(GROTTO_FRAME, p) > PASSAGE.hysteresis
