@@ -322,6 +322,14 @@ export class CaveVisitors {
   private readonly nursePose = createPose();
   private nurse?: SoloCreature;
   /**
+   * Playtest: a swell shark (about 1 m: the nurse shark's model, small and sandy brown) asleep in
+   * the crack between two boulders. It only breathes, and shifts a little now and then; it stays
+   * put, however close the swimmer comes.
+   */
+  private readonly swellPose = createPose();
+  private swellYaw = 0;
+  private swell?: SoloCreature;
+  /**
    * v0.6 Pass 052 (playtest: "the zebra shark needs to be scared away like the other sharks"): the
    * nurse shark startles and bolts like the resting whitetips (see `SharkBolt`): it slips out
    * from under its ledge, dashes off and settles on open sand, and goes home under the ledge
@@ -466,6 +474,10 @@ export class CaveVisitors {
     this.nursePose.position.y = nooks.nurse.at.y;
     this.nursePose.position.z = nooks.nurse.at.z;
     this.nursePose.yaw = nooks.nurse.yaw;
+    this.swellPose.position.x = nooks.swell.at.x;
+    this.swellPose.position.y = nooks.swell.at.y;
+    this.swellPose.position.z = nooks.swell.at.z;
+    this.swellPose.yaw = this.swellYaw = nooks.swell.yaw;
     this.nurseHome = {
       x: nooks.nurse.at.x,
       z: nooks.nurse.at.z,
@@ -589,6 +601,25 @@ export class CaveVisitors {
           radius: 1.6,
         });
       }, 'nurse shark'),
+      this.part(async () => {
+        const body = new SoloCreature(
+          this.loader,
+          'nurseShark',
+          this.swellPose,
+          0.4,
+          'Swell shark',
+          10,
+          0xb08a5c,
+        );
+        this.swell = body;
+        if (!(await body.ready) || this.disposed) throw Error('swell shark');
+        this.root.add(body.root);
+        this.sightings.push({
+          ...CAVE_SIGHTS.swellShark,
+          position: this.swellPose.position,
+          radius: 1.2,
+        });
+      }, 'swell shark'),
       this.part(async () => {
         const body = new SoloCreature(
           this.loader,
@@ -749,6 +780,7 @@ export class CaveVisitors {
     this.lionRays.instanceMatrix.needsUpdate = true;
     this.turtleBody?.update();
     this.nurse?.update();
+    this.swell?.update();
     this.cleanerFish?.update();
     this.placeGlows();
   }
@@ -766,6 +798,15 @@ export class CaveVisitors {
       this.cleaning.update(step);
       for (const l of this.lionfish) l.update(step, player);
       this.nurseUpdate(step, reducedMotion, player);
+      // The swell shark: slow breaths, and a slight shift of its head now and then.
+      const sw = this.swellPose,
+        t = this.time;
+      sw.effort =
+        (reducedMotion ? 0.03 : 0.06) * Math.sin(t * 0.5 * Math.PI * 2);
+      if (!reducedMotion)
+        sw.yaw =
+          this.swellYaw +
+          0.06 * Math.sin(t * 0.031) * Math.max(0, Math.sin(t * 0.017));
     }
     this.moray?.update(dt, active, reducedMotion, player);
     this.octopus.update(dt, active, reducedMotion, player);
@@ -843,6 +884,7 @@ export class CaveVisitors {
     this.root.removeFromParent();
     this.moray?.dispose();
     this.nurse?.dispose();
+    this.swell?.dispose();
     this.turtleBody?.dispose();
     this.cleanerFish?.dispose();
     this.octopus.dispose();

@@ -25,6 +25,7 @@ import { seabedHeight } from './OuterTerrain';
 import { createPose, PosedFish, type FishPose } from './PosedFish';
 import { SandPuffs } from './SandPuffs';
 import { SoloCreature } from './SoloCreature';
+import { ReefCleaningStation } from '../../creatures/reefCleaners';
 
 /**
  * v0.6 Pass 043: the outer reef's newer life, beyond its simulated schools:
@@ -67,7 +68,12 @@ const LENGTH = {
   trevally: 0.9,
   // v0.6 Pass 052 (playtest): half the size (twice as many).
   bannerfish: 0.28,
+  // Playtest: the cleaning station's bluestreak cleaner wrasse and its parrotfish client.
+  cleaner: 0.13,
+  client: 0.6,
 } as const;
+/** The cleaner wrasse: the firefish's slender body, in its electric blue. */
+const CLEANER_BLUE = 0x2f74e0;
 /** The sunfish's scale on its authored 1.2 m body (about 2.2 m long, 3 m fin to fin). */
 const SUNFISH_SCALE = 1.8;
 
@@ -81,6 +87,9 @@ export class ReefLife {
   readonly cleaning: CleaningEncounter;
   readonly greatWhite: RarePass;
   readonly octopus: Octopus;
+  readonly station: ReefCleaningStation;
+  private cleanerFish?: PosedFish;
+  private clientFish?: PosedFish;
   private readonly puffs = new SandPuffs();
   private readonly trevallyPoses: FishPose[];
   private readonly scratch: BarracudaPose = {
@@ -170,6 +179,30 @@ export class ReefLife {
       OUTER_SIGHTS.octopus,
       1.5,
     );
+    // The cleaning station: on the massive coral head nearest the reef's middle, away from the den.
+    const midZ = (g.z + 2 + OUTER.cliffZ - 4) / 2,
+      heads = placements.filter(
+        (p) =>
+          p.family === 'massive' &&
+          inside(p.position.x, p.position.z) &&
+          Math.hypot(p.position.x - den.x, p.position.z - den.z) > 6,
+      ),
+      head = heads.reduce<ReefPlacement | undefined>(
+        (best, p) =>
+          !best ||
+          Math.hypot(p.position.x, p.position.z - midZ) <
+            Math.hypot(best.position.x, best.position.z - midZ)
+            ? p
+            : best,
+        undefined,
+      ),
+      sx = head?.position.x ?? 0,
+      sz = head?.position.z ?? midZ;
+    this.station = new ReefCleaningStation(createPose(), createPose(), {
+      x: sx,
+      y: top(sx, sz, 0.2),
+      z: sz,
+    });
     this.root.add(this.puffs.root, this.octopus.root);
     this.sightings.push(...this.octopus.sightings);
     this.ready = this.load();
@@ -255,6 +288,39 @@ export class ReefLife {
         });
       }, 'bigeye trevally'),
       this.part(async () => {
+        const cleaner = await this.lease('firefish', 1);
+        let client: AssetLease[];
+        try {
+          client = await this.lease('parrotfish', 1);
+        } catch (error) {
+          cleaner.forEach((l) => l.release());
+          throw error;
+        }
+        this.cleanerFish = new PosedFish(
+          cleaner,
+          [this.station.wrasse.pose],
+          'Cleaner wrasse',
+          LENGTH.cleaner,
+          40,
+          undefined,
+          CLEANER_BLUE,
+        );
+        this.clientFish = new PosedFish(
+          client,
+          [this.station.client.pose],
+          'Parrotfish at the cleaners',
+          LENGTH.client,
+          12,
+          this.textures,
+        );
+        this.root.add(this.cleanerFish.root, this.clientFish.root);
+        this.sightings.push({
+          ...OUTER_SIGHTS.cleanerWrasse,
+          position: this.station.wrasse.pose.position,
+          radius: 1,
+        });
+      }, 'reef cleaning station'),
+      this.part(async () => {
         const poses = this.cleaning.bannerfish.map((b) => b.pose);
         this.bannerFish = new PosedFish(
           await this.lease('bannerfish', poses.length),
@@ -331,6 +397,8 @@ export class ReefLife {
   private place(camera: THREE.Camera | undefined): void {
     this.parrotFish?.update(camera);
     this.wrasseFish?.update(camera);
+    this.cleanerFish?.update(camera);
+    this.clientFish?.update(camera);
     if (this.trevallyFish) {
       this.trevallyFish.visible = this.trevally.present;
       if (this.trevally.present) {
@@ -372,6 +440,7 @@ export class ReefLife {
         if (!reducedMotion) this.puffs.spawn(b.x, b.y, b.z);
       }
       this.wrasse.update(dt, player);
+      this.station.update(dt, player);
       this.trevally.update(dt);
       this.cleaning.update(dt);
       this.greatWhite.update(dt);
@@ -387,6 +456,8 @@ export class ReefLife {
     this.root.removeFromParent();
     this.parrotFish?.dispose();
     this.wrasseFish?.dispose();
+    this.cleanerFish?.dispose();
+    this.clientFish?.dispose();
     this.trevallyFish?.dispose();
     this.bannerFish?.dispose();
     this.sunfish?.dispose();

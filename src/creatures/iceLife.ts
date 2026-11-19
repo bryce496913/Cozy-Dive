@@ -431,6 +431,65 @@ export class WeddellSeal {
   }
 }
 
+/**
+ * Playtest: the Weddell seal's pup, staying close at its mother's side. It follows her a body
+ * length behind and beside her, paddling a little faster, wandering a touch to either side as
+ * pups do, and goes up into the hole with her when she breathes. Calm; it never leaves her.
+ */
+export const PUP = {
+  /** Behind her (m), beside her (m), and below her (m). */
+  behind: 1.3,
+  beside: 1.1,
+  below: 0.5,
+  /** Its playful wander to and fro (m), and how quickly it catches up. */
+  wander: 0.6,
+  speed: 1.1,
+} as const;
+
+export class SealPup {
+  readonly swim: Swim;
+  private time = 0;
+  constructor(
+    pose: FishPose,
+    private readonly mother: FishPose,
+    private readonly limits: IceLimits,
+  ) {
+    this.swim = createSwim(pose);
+    const m = mother.position;
+    pose.position.x = m.x - PUP.behind;
+    pose.position.y = m.y - PUP.below;
+    pose.position.z = m.z + PUP.beside;
+    pose.yaw = mother.yaw;
+  }
+  get pose(): FishPose {
+    return this.swim.pose;
+  }
+  update(dt: number): void {
+    if (!(dt > 0)) return;
+    dt = Math.min(dt, 0.1);
+    this.time += dt;
+    const m = this.mother,
+      fx = Math.cos(m.yaw),
+      fz = -Math.sin(m.yaw),
+      // Her side (to her left), swapping now and then as the pup wanders across.
+      side = PUP.beside + PUP.wander * Math.sin(this.time * 0.13),
+      t = this.time,
+      top = this.limits.ceiling;
+    const tx = m.position.x - fx * PUP.behind - fz * side,
+      tz = m.position.z - fz * PUP.behind + fx * side,
+      // Never above her: into the hole only when she is up in it.
+      ty = Math.min(
+        m.position.y - PUP.below + 0.2 * Math.sin(t * 0.4),
+        m.position.y > top ? top + 0.2 : top - 0.8,
+      );
+    swimTo(this.swim, tx, ty, tz, PUP.speed, dt, 1.4, 1.5);
+    const p = this.swim.pose;
+    // Up in the hole by her, its head up too.
+    if (m.pitch > 1) p.pitch += (1.2 - p.pitch) * Math.min(1, dt * 2);
+    if (m.position.y <= top) keepInIce(this.limits, p.position, 0.8, 1);
+  }
+}
+
 // ------------------------------------------------------------------ icefish
 
 export const ICEFISH = {

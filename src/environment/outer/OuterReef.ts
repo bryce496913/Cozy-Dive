@@ -11,6 +11,7 @@ import { createRockGeometry } from '../RockGeometry';
 import { rockCollider } from '../rockCollider';
 import { LevelInstances, type DetailLevel } from './LevelInstances';
 import { seabedHeight } from './OuterTerrain';
+import { ChristmasTreeWorms } from './ChristmasTreeWorms';
 import {
   outerReefLayout,
   type ReefFamily,
@@ -149,6 +150,8 @@ export class OuterReef {
   private readonly materials = new Set<THREE.Material>();
   private readonly textures: THREE.Texture[] = [];
   private readonly plantTime = { value: 0 };
+  /** Small, shy worms set into the massive colonies. */
+  private worms?: ChristmasTreeWorms;
   private lease?: AssetLease;
   /** Placements with colonies seated on the rocks (once the rocks' hulls exist). */
   private seated: readonly ReefPlacement[];
@@ -350,12 +353,18 @@ export class OuterReef {
       }),
     );
     massive.vertexColors = true;
+    const colonies: {
+      geometry: THREE.BufferGeometry;
+      matrices: THREE.Matrix4[];
+    }[] = [];
     for (const family of ['branching', 'massive', 'plate'] as const)
       for (const [t, matrices] of this.groups(family)) {
         const name = `${CORAL_NODES[family]}_${t}`;
         for (const suffix of ['', '_Tips']) {
           const near = this.node(name + suffix);
           if (!near) continue;
+          if (family === 'massive' && suffix === '')
+            colonies.push({ geometry: near.geometry, matrices });
           const far = this.node(`${name}${suffix}_LOD1`),
             reach: readonly number[] =
               family === 'massive' ? D.massive : D.branching,
@@ -392,6 +401,8 @@ export class OuterReef {
         );
         this.collide(this.hulls(`${name}_Root`), matrices);
       }
+    this.worms = new ChristmasTreeWorms(colonies);
+    this.root.add(this.worms.root);
     // Soft corals, sea fans and seagrass, swaying in the reef's current.
     const tissue = this.plantMaterial('Sea_Fan_0'),
       algae = this.plantMaterial('Caulerpa_0');
@@ -506,6 +517,7 @@ export class OuterReef {
   update(eye: THREE.Vector3, dt: number, reducedMotion: boolean): void {
     if (this.disposed) return;
     if (!reducedMotion) this.plantTime.value += Math.min(dt, 0.1);
+    this.worms?.update(eye, dt, reducedMotion);
     this.sinceSort += dt;
     if (
       this.eye.distanceTo(eye) < OUTER_DETAIL.resortDistance &&
@@ -541,6 +553,8 @@ export class OuterReef {
   }
 
   private clear(): void {
+    this.worms?.dispose();
+    this.worms = undefined;
     this.sets.forEach((s) => s.dispose());
     this.sets.length = 0;
     this.colliders.length = 0;

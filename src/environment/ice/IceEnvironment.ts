@@ -12,7 +12,7 @@ import {
   rockTubeGeometry,
   type Tube,
 } from '../shared/RockTube';
-import { iceFloor } from './IceTerrain';
+import { iceFloor, iceUndersideAt } from './IceTerrain';
 
 /**
  * v0.6 Pass 046: the waters under the ice, built in code. A tunnel through a dark rock wall opens
@@ -344,21 +344,7 @@ export class IceEnvironment {
       new THREE.Float32BufferAttribute(new Float32Array(sp.count * 3), 3),
     );
     for (let i = 0; i < sp.count; i++) {
-      const x = sp.getX(i),
-        z = sp.getZ(i),
-        rumple =
-          0.35 * Math.abs(Math.sin(x * 0.45 + z * 0.2)) +
-          0.25 * Math.sin(x * 1.3) * Math.sin(z * 1.1);
-      // The ice thins (rises) towards each hole's rim.
-      const rim = ICE.holes.reduce(
-        (m, h) =>
-          Math.max(
-            m,
-            1 - Math.min(1, (Math.hypot(x - h.x, z - h.z) - h.r) / 2.5),
-          ),
-        0,
-      );
-      sp.setY(i, top - rumple + 0.5 * rim);
+      sp.setY(i, iceUndersideAt(sp.getX(i), sp.getZ(i)));
     }
     iceColours(sheet, 0.25);
     const si = sheet.getIndex()!,
