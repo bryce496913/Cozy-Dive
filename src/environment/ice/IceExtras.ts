@@ -175,7 +175,7 @@ function anchorIceGeometry(): THREE.BufferGeometry {
 /** A scallop: a ribbed fan shell (about 8 cm), hinge at the origin, opening towards +z. */
 /** An Antarctic scallop (about 10 cm across), hinge at -z, lying on y 0, slightly agape: two
  * ribbed, fan-shaped valves with ears at the hinge, and a row of tiny blue mantle eyes. */
-function scallopGeometry(): THREE.BufferGeometry {
+export function scallopGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [],
     ribs = 18,
     fan = (side: 1 | -1, tone: RGB, gape: number) => {
@@ -221,7 +221,7 @@ function scallopGeometry(): THREE.BufferGeometry {
   return merge(parts);
 }
 /** A sea urchin: a dark red test bristling with spines (about 7 cm across). */
-function urchinGeometry(): THREE.BufferGeometry {
+export function urchinGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [],
     test = new THREE.SphereGeometry(0.035, 12, 8);
   test.scale(1, 0.7, 1);
@@ -251,7 +251,7 @@ function urchinGeometry(): THREE.BufferGeometry {
   return merge(parts);
 }
 /** A brittle star: a small disc and five long, wavy, banded arms (about 25 cm across). */
-function brittleStarGeometry(): THREE.BufferGeometry {
+export function brittleStarGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [],
     disc = new THREE.CylinderGeometry(0.025, 0.028, 0.012, 10);
   disc.translate(0, 0.008, 0);
@@ -319,7 +319,7 @@ function latheBody(
 /** A sea cucumber (about 25 cm long) along x, its mouth at +x: a soft, tapering, warty body,
  * a flat sole of tube feet, rows of pointed papillae along the back, and a crown of branched
  * feeding tentacles. */
-function cucumberGeometry(): THREE.BufferGeometry {
+export function cucumberGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [],
     radius = (u: number) =>
       0.042 *
@@ -394,7 +394,7 @@ function cucumberGeometry(): THREE.BufferGeometry {
   return merge(parts);
 }
 /** A sea pen: a stalk with a feathery plume of leaves (unit height), base at y 0. */
-function seaPenGeometry(): THREE.BufferGeometry {
+export function seaPenGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
   parts.push(limb(v3(0, 0, 0), v3(0, 1, 0), 0.03, 0.012, [0.9, 0.75, 0.55], 6));
   for (let k = 0; k < 14; k++) {
@@ -412,7 +412,7 @@ function seaPenGeometry(): THREE.BufferGeometry {
 /** A giant isopod (about 18 cm long) along x, head at +x: a domed, armoured carapace of
  * overlapping plates (pereonites) with flared edges, a broad tail fan (pleotelson and uropods),
  * compound eyes, two pairs of antennae and seven pairs of jointed walking legs. */
-function isopodGeometry(): THREE.BufferGeometry {
+export function isopodGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [],
     half = (u: number) =>
       0.042 * Math.pow(Math.sin(Math.PI * (0.04 + 0.92 * u)), 0.42),
@@ -496,7 +496,7 @@ function isopodGeometry(): THREE.BufferGeometry {
 /** A salp: a clear barrel (about 12 cm long) along x, with muscle bands and a dark gut. */
 /** A salp (about 12 cm long) along x: a clear, open-ended barrel ringed by raised muscle bands,
  * a dark gut nucleus and a pale gill bar inside. */
-function salpGeometry(): THREE.BufferGeometry {
+export function salpGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [],
     bands = 7,
     radius = (u: number) =>
@@ -530,7 +530,7 @@ function salpGeometry(): THREE.BufferGeometry {
   return merge(parts);
 }
 /** A jellyfish bell (about 0.6 m across), rim at y 0, with frilled oral arms and long tentacles. */
-function jellyBellGeometry(): THREE.BufferGeometry {
+export function jellyBellGeometry(): THREE.BufferGeometry {
   const g = new THREE.SphereGeometry(
       0.32,
       24,
@@ -558,7 +558,7 @@ function jellyBellGeometry(): THREE.BufferGeometry {
   }
   return out;
 }
-function jellyArmsGeometry(): THREE.BufferGeometry {
+export function jellyArmsGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [],
     rand = random(911);
   // Four frilled oral arms: wavy ribbons hanging from the middle.

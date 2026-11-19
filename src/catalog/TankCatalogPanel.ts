@@ -1,4 +1,4 @@
-import type { BigCreatureId } from '../config/creatures';
+import type { TankCreatureId } from '../config/babies';
 import type { TankFishDefinition } from '../config/tankFish';
 import type { Sighting } from '../discovery/journal';
 import type { SpeciesId } from '../fish/FishSpecies';
@@ -9,18 +9,17 @@ import {
   type TankCatalog,
   type TankKind,
 } from './catalog';
-import { fishRoom, unlockedFish, unsuitedSeen } from './fishCatalog';
+import { fishRoom, unlockedFish } from './fishCatalog';
 
 /**
  * v0.6 Pass 051: the "For your tank" panel, grouped as the catalog is: schooling fish,
- * aquarium fish, little visitors, plants and corals, rocks and decorations, and (once seen)
- * what does not suit the tank and why. Plain buttons in reading order, so it is fully usable
+ * aquarium fish, little visitors, plants and corals, rocks and decorations, discoveries from every habitat. Plain buttons in reading order, so it is fully usable
  * from the keyboard; each control carries a stable `data-key` so focus can be kept across a
  * refresh.
  */
 export interface CatalogActions {
   choose(kind: TankKind): void;
-  baby(id: BigCreatureId): void;
+  baby(id: TankCreatureId): void;
   fish(species: SpeciesId, add: boolean): void;
   undo(): void;
   close(): void;
@@ -110,7 +109,7 @@ export function renderCatalog(
 
   const animals = unlockedBabies(seen);
   if (animals.length) {
-    const s = section('Little visitors');
+    const s = section('Creature collection');
     for (const animal of animals) {
       const row = el('div');
       row.append(
@@ -154,14 +153,6 @@ export function renderCatalog(
       ),
     );
 
-  const unsuited = unsuitedSeen(seen);
-  if (unsuited.length) {
-    const s = section('Not for this tank');
-    const list = el('ul');
-    for (const f of unsuited) list.append(el('li', `${f.label}: ${f.reason}`));
-    s.append(list);
-    panel.append(s);
-  }
   return (
     (focusKey &&
       panel.querySelector<HTMLElement>(

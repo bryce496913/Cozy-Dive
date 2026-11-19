@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import type { AssetLoader, AssetLease } from '../assets/AssetLoader';
-import type { BigCreatureId } from '../config/creatures';
+import type { AssetLoader } from '../assets/AssetLoader';
+import type { TankCreatureId } from '../config/babies';
 import { babyDefinition } from '../config/babies';
 import type { Vec3 } from '../config/world';
 import { TankBaby } from '../creatures/babies/TankBaby';
@@ -10,16 +10,11 @@ import type {
 } from '../creatures/babies/BabyNavigation';
 import type { FishHabitat } from '../fish/FishHabitat';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
-import { creatureStroke } from './creatureStroke';
+import { acquireCollectionArt, type CollectionArt } from './TankCollectionArt';
 interface Rig {
   readonly baby: TankBaby;
-  readonly lease: AssetLease;
+  readonly art: CollectionArt;
   readonly root: THREE.Group;
-  readonly near: THREE.Mesh;
-  readonly far: THREE.Mesh;
-  readonly material: THREE.Material;
-  readonly left: number;
-  readonly right: number;
   isNear: boolean;
 }
 /** Lazy environment owner. Only hierarchy, opacity material and simulation belong to each baby. */
@@ -28,12 +23,12 @@ export class TankBabies {
   readonly animals: TankBaby[] = [];
   ready: Promise<void> = Promise.resolve();
   private readonly rigs: Rig[] = [];
-  private readonly desired = new Set<BigCreatureId>();
-  private readonly pending = new Set<BigCreatureId>();
+  private readonly desired = new Set<TankCreatureId>();
+  private readonly pending = new Set<TankCreatureId>();
   private readonly eye = new THREE.Vector3();
   private readonly spawn: Vec3 = { x: 0, y: 4.6, z: 9 };
   private disposed = false;
-  private readonly failed = new Set<BigCreatureId>();
+  private readonly failed = new Set<TankCreatureId>();
   constructor(
     private readonly loader: Pick<AssetLoader, 'acquire' | 'evictUnused'>,
     private readonly habitat: BabyHabitat & { refresh?: () => void },
@@ -47,7 +42,7 @@ export class TankBabies {
   get empty(): boolean {
     return !this.desired.size && !this.pending.size && !this.rigs.length;
   }
-  set(ids: readonly BigCreatureId[], eye: Readonly<Vec3>) {
+  set(ids: readonly TankCreatureId[], eye: Readonly<Vec3>) {
     if (this.disposed) return;
     this.spawn.x = eye.x;
     this.spawn.y = eye.y;
@@ -68,60 +63,31 @@ export class TankBabies {
       }
     this.ready = Promise.all([this.ready, ...tasks]).then(() => {});
   }
-  private async load(id: BigCreatureId) {
+  private async load(id: TankCreatureId) {
     const d = babyDefinition(id);
-    let lease: AssetLease | undefined, material: THREE.Material | undefined;
+    let art: CollectionArt | undefined;
     try {
-      lease = await this.loader.acquire(d.asset);
+      art = await acquireCollectionArt(d, this.loader);
       if (this.disposed || !this.desired.has(id)) {
-        lease.release();
-        this.loader.evictUnused(d.asset);
+        art.dispose();
         return;
       }
-      const near = lease.model.getObjectByName('Body'),
-        far = lease.model.getObjectByName('Body_LOD1');
-      if (
-        !(near instanceof THREE.Mesh) ||
-        !(far instanceof THREE.Mesh) ||
-        Array.isArray(near.material)
-      )
-        throw Error('Visitor body detail levels unavailable');
-      const own: THREE.Material = near.material.clone();
-      material = own;
-      own.transparent = true;
-      own.depthWrite = false;
-      own.opacity = 0;
-      near.material = own;
-      far.material = own;
       const baby = new TankBaby(d, this.habitat, this.spawn, [
           ...this.occupants,
           ...this.animals,
         ]),
-        root = new THREE.Group(),
-        keys = near.morphTargetDictionary ?? {};
+        root = new THREE.Group();
       root.name = d.label;
       root.scale.setScalar(d.scale);
       root.rotation.order = 'YZX';
-      root.add(lease.model);
+      root.add(art.model);
       this.root.add(root);
-      far.visible = false;
+      art.far.visible = false;
       this.animals.push(baby);
-      this.rigs.push({
-        baby,
-        lease,
-        root,
-        near,
-        far,
-        material: own,
-        left: keys.Stroke_Left ?? 0,
-        right: keys.Stroke_Right ?? 1,
-        isNear: true,
-      });
+      this.rigs.push({ baby, art, root, isNear: true });
       root.position.set(baby.position.x, baby.position.y, baby.position.z);
     } catch {
-      material?.dispose();
-      lease?.release();
-      this.loader.evictUnused(d.asset);
+      art?.dispose();
       if (!this.disposed && this.desired.has(id)) {
         this.failed.add(id);
         this.onError(
@@ -183,13 +149,11 @@ export class TankBabies {
           p.z - this.eye.z,
         );
       r.isNear = distance < (r.isNear ? 4.4 : 4);
-      r.near.visible = r.isNear;
-      r.far.visible = !r.isNear;
+      r.art.near.visible = r.isNear;
+      r.art.far.visible = !r.isNear;
       r.root.position.set(p.x, p.y, p.z);
       r.root.rotation.set(0, b.yaw, 0);
-      r.material.opacity = b.opacity;
-      creatureStroke(r.near, r, b.effort);
-      creatureStroke(r.far, r, b.effort);
+      r.art.update(b.opacity, b.effort, reduced ? 0 : b.time);
     }
   }
   get nearCount(): number {
@@ -201,9 +165,7 @@ export class TankBabies {
     const r = this.rigs[index];
     r.root.removeFromParent();
     r.root.clear();
-    r.material.dispose();
-    r.lease.release();
-    this.loader.evictUnused(r.baby.definition.asset);
+    r.art.dispose();
     this.animals.splice(this.animals.indexOf(r.baby), 1);
     this.rigs.splice(index, 1);
   }

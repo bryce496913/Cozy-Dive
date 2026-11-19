@@ -2,7 +2,7 @@ import type { AssetId } from '../assets/AssetRegistry';
 import type { SpeciesId } from '../fish/FishSpecies';
 
 /**
- * v0.6 Pass 051: fish that can be added to the home tank, and fish that cannot.
+ * v0.6 Pass 051: fish collected in the home tank at aquarium size.
  *
  * - **Schooling** fish join the tank's own school of their kind (or form a small new group when
  *   the tank has none), so several can be added.
@@ -126,7 +126,7 @@ export const TANK_FISH: readonly TankFishDefinition[] = [
     max: 1,
     asset: 'parrotfish',
     note: 'A small one, grazing slowly over the rocks.',
-    length: 0.9,
+    length: 0.5,
     modelLength: 1.1,
   },
   {
@@ -137,7 +137,7 @@ export const TANK_FISH: readonly TankFishDefinition[] = [
     max: 1,
     asset: 'humpheadWrasse',
     note: 'A young one, curious and unhurried.',
-    length: 1,
+    length: 0.55,
     modelLength: 2.4,
   },
   {
@@ -148,7 +148,7 @@ export const TANK_FISH: readonly TankFishDefinition[] = [
     max: 4,
     asset: 'trevally',
     note: 'A small silver group circling the open water.',
-    length: 0.7,
+    length: 0.45,
     modelLength: 0.9,
   },
   {
@@ -159,7 +159,7 @@ export const TANK_FISH: readonly TankFishDefinition[] = [
     max: 1,
     asset: 'barracuda',
     note: 'A young one, hanging still in the open water.',
-    length: 1,
+    length: 0.6,
     modelLength: 1.5,
   },
   {
@@ -228,28 +228,94 @@ export const TANK_FISH: readonly TankFishDefinition[] = [
     length: 0.45,
     tint: 0xc23a22,
   },
+  {
+    species: 'flashlight-fish',
+    label: 'Flashlight fish',
+    group: 'schooling',
+    sighting: 'species:flashlight-fish',
+    max: 4,
+    asset: 'chromis',
+    note: 'A little reminder of your discovery.',
+    length: 0.3,
+    tint: 3293266,
+  },
+  {
+    species: 'blackfin-icefish',
+    label: 'Icefish',
+    group: 'schooling',
+    sighting: 'species:blackfin-icefish',
+    max: 4,
+    asset: 'icefish',
+    note: 'A little reminder of your discovery.',
+    length: 0.45,
+    modelLength: 0.75,
+  },
+  {
+    species: 'bald-notothen',
+    label: 'Bald notothen',
+    group: 'schooling',
+    sighting: 'species:bald-notothen',
+    max: 4,
+    asset: 'notothen',
+    note: 'A little reminder of your discovery.',
+    length: 0.35,
+    modelLength: 0.42,
+  },
+  {
+    species: 'antarctic-silverfish',
+    label: 'Antarctic silverfish',
+    group: 'schooling',
+    sighting: 'species:antarctic-silverfish',
+    max: 4,
+    asset: 'chromis',
+    note: 'A little reminder of your discovery.',
+    length: 0.3,
+    tint: 12113119,
+  },
+  {
+    species: 'antarctic-toothfish',
+    label: 'Antarctic toothfish',
+    group: 'schooling',
+    sighting: 'species:antarctic-toothfish',
+    max: 4,
+    asset: 'toothfish',
+    note: 'A little reminder of your discovery.',
+    length: 0.6,
+    modelLength: 1.7,
+  },
+  {
+    species: 'giant-sea-bass',
+    label: 'Giant sea bass',
+    group: 'schooling',
+    sighting: 'species:giant-sea-bass',
+    max: 4,
+    asset: 'giantSeaBass',
+    note: 'A little reminder of your discovery.',
+    length: 0.6,
+    modelLength: 2.2,
+  },
+  {
+    species: 'california-sheephead',
+    label: 'California sheephead',
+    group: 'schooling',
+    sighting: 'species:california-sheephead',
+    max: 4,
+    asset: 'sheephead',
+    note: 'A little reminder of your discovery.',
+    length: 0.5,
+    modelLength: 0.95,
+  },
+  {
+    species: 'longfin-bannerfish',
+    label: 'Longfin bannerfish',
+    group: 'schooling',
+    sighting: 'species:longfin-bannerfish',
+    max: 4,
+    asset: 'bannerfish',
+    note: 'A little reminder of your discovery.',
+    length: 0.5,
+    modelLength: 0.7,
+  },
 ];
 /** Room for added fish in all (simulation and rendering budget). */
-export const TANK_FISH_CAP = 24;
-
-/**
- * Fish the swimmer may have seen that do not suit the home tank, with a gentle reason. Shown
- * (once seen) so that the catalog explains rather than silently omits.
- */
-export interface UnsuitedFish {
-  /** Journal id, or `null` for one of the tank's own species. */
-  readonly sighting: string | null;
-  readonly label: string;
-  readonly reason: string;
-}
-const dark = 'Needs the dark of a sea cave.',
-  polar = 'Lives in freezing polar water.';
-export const UNSUITED_FISH: readonly UnsuitedFish[] = [
-  {
-    sighting: 'species:flashlight-fish',
-    label: 'Flashlight fish',
-    reason: dark,
-  },
-  { sighting: 'species:blackfin-icefish', label: 'Icefish', reason: polar },
-  { sighting: 'species:bald-notothen', label: 'Bald notothen', reason: polar },
-];
+export const TANK_FISH_CAP = TANK_FISH.reduce((sum, fish) => sum + fish.max, 0);
