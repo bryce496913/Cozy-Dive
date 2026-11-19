@@ -9,16 +9,26 @@ import type { Vec3 } from '../src/config/world';
 import { crossing, mapPoint, passageDarkness } from '../src/player/passage';
 import { WreckEnvironment } from '../src/environment/wreck/WreckEnvironment';
 import {
+  DECK_TOP,
   SHIP,
+  fromShip,
   wreckFloor,
   wreckShade,
 } from '../src/environment/wreck/WreckLayout';
+/** A point given in the ship's own frame, where she lies in the cavern. */
+const at = (x: number, y: number, z: number): Vec3 =>
+  fromShip({ x, y, z }, { x: 0, y: 0, z: 0 });
 import {
   ColliderGrid,
   TerrainCollisionWorld,
 } from '../src/player/terrainCollision';
-import { boulderLayout } from '../src/environment/kelp/KelpEnvironment';
 import {
+  KelpEnvironment,
+  boulderLayout,
+} from '../src/environment/kelp/KelpEnvironment';
+import { stalkPlacements } from '../src/environment/kelp/KelpStalks';
+import {
+  KELP_SWIM_BOUNDS,
   kelpFloor,
   kelpSwimFloor,
   laneWeight,
@@ -32,7 +42,7 @@ const world = new TerrainCollisionWorld(
   wreckFloor,
 );
 /** Swim in small steps from `a` towards `b`; where the swimmer ends up. */
-function swim(a: Vec3, b: Vec3): Vec3 {
+function swim(a: Vec3, b: Vec3, through: TerrainCollisionWorld = world): Vec3 {
   const state = {
     position: { ...a },
     velocity: { x: 0, y: 0, z: 0 },
@@ -43,7 +53,7 @@ function swim(a: Vec3, b: Vec3): Vec3 {
     state.position.x = from.x + (b.x - a.x) / n;
     state.position.y = from.y + (b.y - a.y) / n;
     state.position.z = from.z + (b.z - a.z) / n;
-    world.move(state, from.x, from.y, from.z);
+    through.move(state, from.x, from.y, from.z);
   }
   return state.position;
 }
@@ -84,23 +94,66 @@ describe('the sinkhole passage', () => {
       passageDarkness('wreck', { x: s.x, y: WRECK.ceiling - 1, z: s.z }),
     ).toBe(0);
   });
-  it('lies in the sandy lane, clear of the boulders, and opens all the way down', () => {
-    expect(laneWeight(SINKHOLE.x, SINKHOLE.z)).toBeGreaterThan(0.8);
-    for (const b of boulderLayout())
-      expect(Math.hypot(b.x - SINKHOLE.x, b.z - SINKHOLE.z)).toBeGreaterThan(
-        SINKHOLE.radius + b.size * 0.6,
+  it('is hidden: off the open lane, tucked against a boulder, ringed by kelp', () => {
+    expect(laneWeight(SINKHOLE.x, SINKHOLE.z)).toBeLessThan(0.05);
+    const boulders = boulderLayout(),
+      nearest = Math.min(
+        ...boulders.map(
+          (b) => Math.hypot(b.x - SINKHOLE.x, b.z - SINKHOLE.z) - b.size * 0.5,
+        ),
       );
+    expect(nearest).toBeGreaterThan(SINKHOLE.radius - 0.2);
+    expect(nearest).toBeLessThan(SINKHOLE.radius + 1);
+    const stalks = stalkPlacements().map((p) =>
+      Math.hypot(p.x - SINKHOLE.x, p.z - SINKHOLE.z),
+    );
+    expect(Math.min(...stalks)).toBeGreaterThan(SINKHOLE.radius + 0.4);
+    expect(stalks.filter((d) => d < 6).length).toBeGreaterThan(3);
+    // Only a shallow dip round its mouth, and open all the way down.
     expect(kelpSwimFloor(SINKHOLE.x, SINKHOLE.z)).toBeLessThan(
       SINKHOLE.threshold - 2,
     );
-    // The sand slumps into a funnel round the mouth, and is untouched beyond it.
-    expect(kelpSwimFloor(SINKHOLE.x + 2.5, SINKHOLE.z)).toBeLessThan(
-      kelpFloor(SINKHOLE.x + 2.5, SINKHOLE.z) - 0.5,
+    const edge = SINKHOLE.radius + 0.4;
+    expect(kelpSwimFloor(SINKHOLE.x + edge, SINKHOLE.z)).toBeLessThan(
+      kelpFloor(SINKHOLE.x + edge, SINKHOLE.z) - 0.3,
     );
-    expect(kelpSwimFloor(SINKHOLE.x + 6, SINKHOLE.z)).toBeCloseTo(
-      kelpFloor(SINKHOLE.x + 6, SINKHOLE.z),
+    expect(kelpSwimFloor(SINKHOLE.x + 4, SINKHOLE.z)).toBeCloseTo(
+      kelpFloor(SINKHOLE.x + 4, SINKHOLE.z),
       6,
     );
+  });
+  it('can be swum into from its open side, under the ledge', () => {
+    const kelp = new KelpEnvironment(),
+      ground = new TerrainCollisionWorld(
+        new ColliderGrid(kelp.colliders),
+        KELP_SWIM_BOUNDS,
+        kelpSwimFloor,
+      ),
+      b = boulderLayout().reduce((best, o) =>
+        Math.hypot(o.x - SINKHOLE.x, o.z - SINKHOLE.z) <
+        Math.hypot(best.x - SINKHOLE.x, best.z - SINKHOLE.z)
+          ? o
+          : best,
+      ),
+      a = Math.atan2(SINKHOLE.z - b.z, SINKHOLE.x - b.x),
+      lip = kelpFloor(SINKHOLE.x, SINKHOLE.z),
+      path: Vec3[] = [
+        {
+          x: SINKHOLE.x + Math.cos(a) * 4,
+          y: lip + 1.2,
+          z: SINKHOLE.z + Math.sin(a) * 4,
+        },
+        {
+          x: SINKHOLE.x + Math.cos(a) * 0.3,
+          y: lip - 2,
+          z: SINKHOLE.z + Math.sin(a) * 0.3,
+        },
+        { x: SINKHOLE.x, y: SINKHOLE.threshold - 0.5, z: SINKHOLE.z },
+      ];
+    let p = path[0];
+    for (const next of path.slice(1)) p = swim(p, next, ground);
+    expect(p.y).toBeLessThan(SINKHOLE.threshold);
+    kelp.dispose();
   });
 });
 
@@ -110,41 +163,54 @@ describe('the shipwreck', () => {
       exit = swim(
         { x: s.x, y: s.threshold - 0.1, z: s.z },
         { x: s.x, y: 0, z: s.z },
-      );
+      ),
+      deck = at(s.x, DECK_TOP, s.z - 0.0).y;
     // Down the shaft and on to the deck, which stops the swimmer.
-    const deckTop = SHIP.deck + SHIP.plate;
-    expect(exit.y).toBeGreaterThan(deckTop);
-    expect(exit.y).toBeLessThan(deckTop + 1);
-    expect(WRECK.ceiling - deckTop).toBeGreaterThan(8);
+    expect(exit.y).toBeGreaterThan(deck);
+    expect(exit.y).toBeLessThan(deck + 1);
+    expect(WRECK.ceiling - deck).toBeGreaterThan(8);
   });
-  it('can be entered by the hatch, the breach and the bridge door', () => {
-    const h = SHIP.hatch;
-    const inHold = { x: 0, y: 3, z: (h.foreZ + h.aftZ) / 2 };
-    expect(near(swim({ ...inHold, y: 10 }, inHold), inHold)).toBe(true);
-    const b = SHIP.breach,
-      breachIn = { x: 1.5, y: (b.low + b.high) / 2, z: (b.foreZ + b.aftZ) / 2 };
-    expect(near(swim({ ...breachIn, x: 7 }, breachIn), breachIn)).toBe(true);
-    // Just inside the door (the wheel stands a little further in).
-    const bridgeIn = { x: 0, y: SHIP.deck + 1.2, z: -21.2 };
-    expect(near(swim({ ...bridgeIn, z: -25 }, bridgeIn), bridgeIn)).toBe(true);
-  });
-  it('is solid elsewhere: the deck, the sides and the bridge walls', () => {
-    const overDeck = { x: 0, y: 10, z: -37 },
-      down = swim(overDeck, { x: 0, y: 3, z: -37 });
-    expect(down.y).toBeGreaterThan(SHIP.deck);
-    const portSide = swim({ x: -7, y: 3, z: -30 }, { x: 0, y: 3, z: -30 });
-    expect(portSide.x).toBeLessThan(-SHIP.half);
-    const bridgeSide = swim(
-      { x: 6, y: SHIP.deck + 1.2, z: -19.5 },
-      { x: 0, y: SHIP.deck + 1.2, z: -19.5 },
+  it('can be entered by the hatch, the breach and the deckhouse door', () => {
+    const h = SHIP.hatch,
+      inHold = at(0, 3, (h.foreZ + h.aftZ) / 2);
+    expect(near(swim(at(0, 10, (h.foreZ + h.aftZ) / 2), inHold), inHold)).toBe(
+      true,
     );
-    expect(bridgeSide.x).toBeGreaterThan(SHIP.bridge.half);
+    const b = SHIP.breach,
+      y = (b.low + b.high) / 2,
+      z = (b.foreZ + b.aftZ) / 2,
+      breachIn = at(1.5, y, z);
+    expect(near(swim(at(7, y, z), breachIn), breachIn)).toBe(true);
+    // Just inside the door (the wheel stands a little further in).
+    const bridgeIn = at(0, DECK_TOP + 0.95, -21.2);
+    expect(near(swim(at(0, DECK_TOP + 0.95, -25), bridgeIn), bridgeIn)).toBe(
+      true,
+    );
   });
-  it('is dark inside the hold and bridge only, deepening from the openings', () => {
-    expect(wreckShade({ x: 0, y: 11, z: -30 })).toBe(0);
-    expect(wreckShade({ x: 0, y: 3.5, z: -32 })).toBe(1);
-    expect(wreckShade({ x: 0, y: SHIP.deck + 1.4, z: -19.5 })).toBe(1);
-    expect(wreckShade({ x: 0, y: 6.2, z: -31 })).toBeLessThan(0.6);
-    expect(wreckShade({ x: 7, y: 3, z: -36 })).toBe(0);
+  it('is solid elsewhere: the deck, the sides and the deckhouse walls', () => {
+    const down = swim(at(0, 10, -37), at(0, 3, -37));
+    expect(down.y).toBeGreaterThan(at(0, SHIP.deck, -37).y);
+    const port = swim(at(-7, 3, -30), at(0, 3, -30));
+    expect(port.x).toBeLessThan(at(-SHIP.half, 3, -30).x);
+    const side = swim(
+      at(6, DECK_TOP + 0.95, -19.5),
+      at(0, DECK_TOP + 0.95, -19.5),
+    );
+    expect(side.x).toBeGreaterThan(
+      at(SHIP.bridge.half, DECK_TOP + 0.95, -19.5).x,
+    );
+  });
+  it('is dark inside the hold and deckhouse only, deepening from the openings', () => {
+    expect(wreckShade(at(0, 11, -30))).toBe(0);
+    expect(wreckShade(at(0, 3.5, -32))).toBe(1);
+    expect(wreckShade(at(0, DECK_TOP + 1.4, -19.5))).toBe(1);
+    expect(wreckShade(at(0, 6.2, -31))).toBeLessThan(0.6);
+    expect(wreckShade(at(7, 3, -36))).toBe(0);
+  });
+  it('lies listing a little, settled into the sand', () => {
+    const port = at(-SHIP.half, DECK_TOP, -30),
+      starboard = at(SHIP.half, DECK_TOP, -30);
+    expect(Math.abs(port.y - starboard.y)).toBeGreaterThan(0.4);
+    expect(at(0, SHIP.keel, -30).y).toBeLessThan(wreckFloor(0, -30));
   });
 });

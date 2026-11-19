@@ -5,8 +5,9 @@ import type { SightCandidate } from '../discovery/journal';
 import { WRECK_SIGHTS } from '../discovery/sights';
 import { WreckEnvironment } from '../environment/wreck/WreckEnvironment';
 import {
-  SHIP,
+  DECK_TOP,
   easeInWreck,
+  fromShip,
   wreckFloor,
   wreckShade,
 } from '../environment/wreck/WreckLayout';
@@ -140,12 +141,15 @@ export class ShipwreckScene implements WaterWorld {
       { ...WRECK_SIGHTS.place, position: { x: 0, y: 11, z: -30 }, radius: 6 },
       {
         ...WRECK_SIGHTS.hold,
-        position: { x: 0, y: 3.5, z: -32 },
+        position: fromShip({ x: 0, y: 3.5, z: -32 }, { x: 0, y: 0, z: 0 }),
         radius: 3,
       },
       {
         ...WRECK_SIGHTS.bridge,
-        position: { x: 0, y: SHIP.deck + 1.6, z: -19.5 },
+        position: fromShip(
+          { x: 0, y: DECK_TOP + 1.4, z: -19.5 },
+          { x: 0, y: 0, z: 0 },
+        ),
         radius: 2,
       },
     );

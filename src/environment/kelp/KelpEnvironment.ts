@@ -169,7 +169,7 @@ export class KelpEnvironment {
         x: SINKHOLE.x,
         z: SINKHOLE.z,
         radius: SINKHOLE.radius,
-        top: rim - 0.1,
+        top: rim + 0.14,
         bottom: SINKHOLE.bottom,
       };
     this.add(
@@ -185,6 +185,8 @@ export class KelpEnvironment {
           vertexColors: true,
           roughness: 0.96,
           side: THREE.BackSide,
+          // Not hazed by the water's colour: it stays a dark hole, not a pale one.
+          fog: false,
         }),
       ),
       'Kelp sinkhole',
@@ -199,7 +201,17 @@ export class KelpEnvironment {
         3,
       ),
     );
-    this.add(floor, sand, 'Kelp sinkhole floor');
+    this.add(
+      floor,
+      this.own(
+        new THREE.MeshBasicMaterial({
+          name: 'Kelp sinkhole depths',
+          color: 0x020303,
+          fog: false,
+        }),
+      ),
+      'Kelp sinkhole floor',
+    );
     this.boulders = boulderLayout();
     const colliders: ConvexCollider[] = [
       ...this.tunnelColliders(),
@@ -257,6 +269,73 @@ export class KelpEnvironment {
       colliders.push(rockCollider(g, m));
       rocks.push(g.applyMatrix4(m));
     });
+    // The sinkhole's hiding place: a ledge of rock reaching out from the boulder beside it over
+    // half its mouth, and a few stones round its rim. It is entered from under the ledge's lip.
+    const beside = this.boulders.reduce((best, b) =>
+        Math.hypot(b.x - SINKHOLE.x, b.z - SINKHOLE.z) <
+        Math.hypot(best.x - SINKHOLE.x, best.z - SINKHOLE.z)
+          ? b
+          : best,
+      ),
+      away = Math.atan2(SINKHOLE.z - beside.z, SINKHOLE.x - beside.x),
+      dx = Math.cos(away),
+      dz = Math.sin(away),
+      lip = kelpFloor(SINKHOLE.x, SINKHOLE.z);
+    const stone = (
+      seed: number,
+      x: number,
+      y: number,
+      z: number,
+      size: THREE.Vector3,
+      yaw: number,
+      tilt: number,
+    ) => {
+      const g = rockShape(seed, seed % 4, 2);
+      g.computeBoundingBox();
+      const box = g.boundingBox!,
+        span = box.getSize(new THREE.Vector3()),
+        centre = box.getCenter(new THREE.Vector3());
+      e.set(0, yaw, tilt, 'YXZ');
+      q.setFromEuler(e);
+      m.compose(
+        new THREE.Vector3(x, y, z),
+        q,
+        new THREE.Vector3(size.x / span.x, size.y / span.y, size.z / span.z),
+      ).multiply(
+        new THREE.Matrix4().makeTranslation(-centre.x, -centre.y, -centre.z),
+      );
+      colliders.push(rockCollider(g, m));
+      rocks.push(g.applyMatrix4(m));
+    };
+    // The ledge: long across the boulder's face, tipped down a little towards the hole.
+    stone(
+      41011,
+      SINKHOLE.x - dx * 0.5,
+      lip + 1.35,
+      SINKHOLE.z - dz * 0.5,
+      new THREE.Vector3(2.9, 0.6, 3.2),
+      -away,
+      -0.12,
+    );
+    for (const [turn, size] of [
+      [1.4, 0.9],
+      [2.1, 0.6],
+      [-1.5, 0.8],
+      [-2.4, 0.55],
+    ] as const) {
+      const a = away + turn,
+        r = SINKHOLE.radius + 0.35 + size * 0.4;
+      stone(
+        41100 + Math.round(turn * 10),
+        SINKHOLE.x + Math.cos(a) * r,
+        kelpFloor(SINKHOLE.x + Math.cos(a) * r, SINKHOLE.z + Math.sin(a) * r) +
+          size * 0.15,
+        SINKHOLE.z + Math.sin(a) * r,
+        new THREE.Vector3(size * 1.3, size * 0.7, size),
+        a,
+        0,
+      );
+    }
     const merged = mergeGeometries(rocks, false);
     rocks.forEach((g) => g.dispose());
     if (merged) this.add(merged, this.rock, 'Kelp boulders');

@@ -7,17 +7,20 @@ import { boxCollider } from '../passage/Crevice';
 import { rockCollider } from '../rockCollider';
 
 /**
- * The shipwreck's shape and spaces (pure but for building hulls): an old steel freighter, upright
- * on the cavern's sand, bow towards -z. Shared by its meshes, its collision and the torch.
+ * The shipwreck's shape and spaces (pure but for building hulls): an old steel freighter settled
+ * on the cavern's sand with a slight list to port and her bow a little down. Shared by its meshes,
+ * its collision and the torch. Everything here is in the ship's own frame (bow towards -z, keel at
+ * y 0.1, centreline x 0); `SHIP_POSE` places that frame in the cavern.
  *
- *   - the **hold**, below the deck amidships, entered through the open cargo hatch in the deck or
- *     a rusted breach low in the starboard (+x) side;
- *   - the **bridge**, a deckhouse aft, entered through its door, facing forward.
- * Everywhere else the ship is solid.
+ *   - the **hold**, below the main deck amidships, entered through the open cargo hatch or a rusted
+ *     breach low in the starboard (+x) side;
+ *   - the **deckhouse** aft, entered through its door, facing forward; the wheelhouse above it,
+ *     its wings, the funnel and the boat davits are solid;
+ *   - a raised **forecastle** at the bow, with the windlass and the anchors.
  */
 export const SHIP = {
   bowZ: -49,
-  sternZ: -15,
+  sternZ: -14.2,
   /** Where the straight sides run (the hold lies within them). */
   foreZ: -41,
   aftZ: -20,
@@ -27,6 +30,13 @@ export const SHIP = {
   /** The deck plating's thickness, and the hull plating's. */
   plate: 0.25,
   shell: 0.22,
+  /** The solid steel bulwark standing up round the deck's edge (m above the deck). */
+  bulwark: 0.95,
+  /** The forecastle: a deck raised over the bow, from the stem back to `aftZ`. */
+  forecastle: { aftZ: -43.6, rise: 2.2 },
+  /** How far the stem rakes forward (m per m of height), and the stern's undercut below the counter. */
+  rake: 0.32,
+  undercut: 2.6,
   hold: { foreZ: -40, aftZ: -24, floor: 1 },
   hatch: { foreZ: -33, aftZ: -29, half: 1.6, coaming: 0.45 },
   breach: { foreZ: -38, aftZ: -35, low: 1.5, high: 4.2 },
@@ -38,41 +48,112 @@ export const SHIP = {
     wall: 0.2,
     door: { half: 0.75, top: 8.75 },
   },
-  funnel: { z: -18.6, radius: 0.85, top: 12.6 },
-  mast: { z: -44.5, top: 14.5, radius: 0.16 },
+  /** The wheelhouse on the deckhouse's roof, and its wings out to either side. */
+  wheelhouse: { foreZ: -21.5, aftZ: -18.6, half: 2.2, top: 11.9 },
+  wings: { half: 4.3, foreZ: -21.3, aftZ: -20.3 },
+  funnel: { z: -17.6, rx: 0.7, rz: 0.75, top: 13.6, rake: 0.14 },
+  mast: { z: -42.2, top: 15.5, radius: 0.17 },
 } as const;
+
+/** How the wreck lies: settled `sink` m into the sand, listing and a little down by the head. */
+export const SHIP_LIE = {
+  sink: 0.45,
+  list: 0.1,
+  trim: -0.018,
+  pivotZ: -32,
+} as const;
+/** The ship's frame in the cavern. */
+export const SHIP_POSE: THREE.Matrix4 = new THREE.Matrix4()
+  .makeTranslation(0, -SHIP_LIE.sink, SHIP_LIE.pivotZ)
+  .multiply(
+    new THREE.Matrix4().makeRotationFromEuler(
+      new THREE.Euler(SHIP_LIE.trim, 0, SHIP_LIE.list, 'ZXY'),
+    ),
+  )
+  .multiply(new THREE.Matrix4().makeTranslation(0, 0, -SHIP_LIE.pivotZ));
+const SHIP_INVERSE = SHIP_POSE.clone().invert();
+const scratch = new THREE.Vector3();
+/** A point in the ship's frame, placed in the cavern (into `out`). */
+export function fromShip(p: Readonly<Vec3>, out: Vec3): Vec3 {
+  scratch.set(p.x, p.y, p.z).applyMatrix4(SHIP_POSE);
+  out.x = scratch.x;
+  out.y = scratch.y;
+  out.z = scratch.z;
+  return out;
+}
+/** A point in the cavern, in the ship's frame (into `out`). */
+export function toShip(p: Readonly<Vec3>, out: Vec3): Vec3 {
+  scratch.set(p.x, p.y, p.z).applyMatrix4(SHIP_INVERSE);
+  out.x = scratch.x;
+  out.y = scratch.y;
+  out.z = scratch.z;
+  return out;
+}
 
 const smooth = (t: number): number => {
   const c = Math.max(0, Math.min(1, t));
   return c * c * (3 - 2 * c);
 };
 
-/** The hull's half-breadth at deck level (m) at z: fine at the bow, full amidships, a squared stern. */
+/** The hull's half-breadth at deck level (m) at z: fine at the bow, full amidships, a round stern. */
 export function hullHalfWidth(z: number): number {
   const s = SHIP;
   if (z <= s.bowZ || z >= s.sternZ) return 0;
   if (z < s.foreZ) {
     const t = (z - s.bowZ) / (s.foreZ - s.bowZ);
-    return Math.max(0.2, s.half * Math.pow(Math.sin((t * Math.PI) / 2), 0.75));
+    return s.half * Math.pow(Math.sin((t * Math.PI) / 2), 0.75);
   }
   if (z > s.aftZ) {
+    // A cruiser stern: drawing in, then rounding off.
     const t = (s.sternZ - z) / (s.sternZ - s.aftZ);
-    return s.half * (0.72 + 0.28 * Math.sin((t * Math.PI) / 2));
+    return s.half * Math.pow(Math.sin((t * Math.PI) / 2), 0.42);
   }
   return s.half;
 }
+/** The main deck's top. */
+export const DECK_TOP = SHIP.deck + SHIP.plate;
+/** The top of the deck at z: the forecastle's over the bow, the main deck elsewhere. */
+export function deckTopAt(z: number): number {
+  return z < SHIP.forecastle.aftZ ? DECK_TOP + SHIP.forecastle.rise : DECK_TOP;
+}
+/** The top of the hull's side (the bulwark's rail) at z, with a little sheer aft. */
+export function railAt(z: number): number {
+  return (
+    deckTopAt(z) +
+    SHIP.bulwark +
+    0.35 * smooth((z - SHIP.aftZ) / (SHIP.sternZ - SHIP.aftZ))
+  );
+}
+/**
+ * How far out the hull's side is (m) at (z, y): the deck-level breadth, rounded in at the bilge,
+ * the stem raked forward and flared above the deck at the bow, the stern cut away below its
+ * counter for the rudder and propeller.
+ */
+export function hullX(z: number, y: number): number {
+  const s = SHIP,
+    v = Math.max(0, Math.min(1, (y - s.keel) / (DECK_TOP - s.keel))),
+    fine = smooth((s.foreZ - z) / (s.foreZ - s.bowZ)),
+    aft = smooth((z - s.aftZ) / (s.sternZ - s.aftZ)),
+    // The stem leans forward as it rises; the stern's lower body ends short of the counter.
+    shifted =
+      z + fine * s.rake * (y - s.keel) + aft * s.undercut * (1 - v) * (1 - v),
+    breadth = hullHalfWidth(shifted),
+    p = 6 - 4.4 * fine,
+    section = Math.pow(1 - Math.pow(1 - v, p), 1 / p),
+    flare = 1 + 0.1 * fine * Math.max(0, y - DECK_TOP);
+  return breadth * section * flare;
+}
 
-/** The cavern's sandy floor (m): low ripples, a scour beside the hull, banking up to the walls. */
+/** The cavern's sandy floor (m): low ripples, sand heaped against the hull, banking up to the walls. */
 export function wreckFloor(x: number, z: number): number {
   const w = WRECK.walls,
     ripple =
       0.12 * Math.sin(x * 0.9 + z * 0.35) +
       0.25 * Math.sin(x * 0.17 - z * 0.11 + 1.2) +
       0.18 * Math.sin(z * 0.23 + 0.4),
-    // Sand heaped against the hull, as the current leaves it.
     heap =
       z > SHIP.bowZ - 2 && z < SHIP.sternZ + 2
-        ? 0.6 * (1 - smooth((Math.abs(x) - SHIP.half) / 3))
+        ? 0.7 * (1 - smooth((Math.abs(x) - SHIP.half) / 3))
         : 0,
     sides = 3 * smooth((Math.abs(x) - (w.x - 7)) / 7),
     far = 3 * smooth((w.farZ + 7 - z) / 7),
@@ -97,7 +178,7 @@ interface Room {
   readonly min: Vec3;
   readonly max: Vec3;
 }
-/** The two spaces inside the ship, as the swimmer's centre may occupy them. */
+/** The two spaces inside the ship (its frame), as the swimmer's centre may occupy them. */
 export const WRECK_ROOMS: readonly Room[] = [
   {
     min: { x: -SHIP.half + SHIP.shell, y: SHIP.hold.floor, z: SHIP.hold.foreZ },
@@ -106,7 +187,7 @@ export const WRECK_ROOMS: readonly Room[] = [
   {
     min: {
       x: -SHIP.bridge.half + SHIP.bridge.wall,
-      y: SHIP.deck + SHIP.plate,
+      y: DECK_TOP,
       z: SHIP.bridge.foreZ + SHIP.bridge.wall,
     },
     max: {
@@ -116,20 +197,22 @@ export const WRECK_ROOMS: readonly Room[] = [
     },
   },
 ];
+const local: Vec3 = { x: 0, y: 0, z: 0 };
 /**
- * How dark it is at `p` (0 outside … 1 well inside the ship): it deepens over the first metre in
- * from a room's walls and openings, so the torch comes on as the swimmer slips inside.
+ * How dark it is at `p` in the cavern (0 outside … 1 well inside the ship): it deepens over the
+ * first metre in from a room's walls and openings, so the torch comes on as the swimmer slips in.
  */
 export function wreckShade(p: Readonly<Vec3>): number {
+  const q = toShip(p, local);
   let best = 0;
   for (const r of WRECK_ROOMS) {
     const inside = Math.min(
-      p.x - r.min.x,
-      r.max.x - p.x,
-      p.y - r.min.y,
-      r.max.y - p.y,
-      p.z - r.min.z,
-      r.max.z - p.z,
+      q.x - r.min.x,
+      r.max.x - q.x,
+      q.y - r.min.y,
+      r.max.y - q.y,
+      q.z - r.min.z,
+      r.max.z - q.z,
     );
     if (inside > 0) best = Math.max(best, smooth(inside / 0.9));
   }
@@ -164,6 +247,45 @@ export const HOLD_CARGO: readonly {
   },
 ];
 
+/** Deck gear (ship's frame): kind, centre and half-sizes, and a yaw. Each is solid. */
+export const DECK_GEAR: readonly {
+  readonly kind: 'winch' | 'vent' | 'bollard' | 'windlass';
+  readonly at: Vec3;
+  readonly yaw: number;
+}[] = [
+  { kind: 'windlass', at: { x: 0, y: DECK_TOP + 2.2, z: -46.2 }, yaw: 0 },
+  { kind: 'winch', at: { x: -1.2, y: DECK_TOP, z: -34.6 }, yaw: 0 },
+  { kind: 'winch', at: { x: 1.2, y: DECK_TOP, z: -27.4 }, yaw: Math.PI },
+  { kind: 'vent', at: { x: -2.6, y: DECK_TOP, z: -36.5 }, yaw: 0.4 },
+  { kind: 'vent', at: { x: 2.6, y: DECK_TOP, z: -25.5 }, yaw: Math.PI - 0.5 },
+  {
+    kind: 'vent',
+    at: { x: 2.3, y: SHIP.bridge.top + 0.22, z: -17.6 },
+    yaw: 2.6,
+  },
+  { kind: 'bollard', at: { x: -3.2, y: DECK_TOP, z: -39 }, yaw: 0 },
+  { kind: 'bollard', at: { x: 3.2, y: DECK_TOP, z: -39 }, yaw: 0 },
+  { kind: 'bollard', at: { x: -3.2, y: DECK_TOP, z: -23 }, yaw: 0 },
+  { kind: 'bollard', at: { x: 3.2, y: DECK_TOP, z: -23 }, yaw: 0 },
+];
+/** Each gear piece's footprint (half-sizes, m) and height. */
+export const GEAR_SIZE = {
+  winch: { x: 0.7, z: 0.45, h: 0.9 },
+  vent: { x: 0.28, z: 0.28, h: 1.6 },
+  bollard: { x: 0.18, z: 0.45, h: 0.55 },
+  windlass: { x: 1.1, z: 0.5, h: 0.8 },
+} as const;
+/** The cargo derrick, broken from the mast and lying across the deck: its two ends. */
+export const BOOM: {
+  readonly from: Vec3;
+  readonly to: Vec3;
+  readonly radius: number;
+} = {
+  from: { x: -0.6, y: DECK_TOP + 0.25, z: -41.4 },
+  to: { x: 2.4, y: DECK_TOP + 0.7, z: -33.6 },
+  radius: 0.16,
+};
+
 const box = (
   x0: number,
   y0: number,
@@ -172,44 +294,109 @@ const box = (
   y1: number,
   z1: number,
 ): ConvexCollider => boxCollider([x0, y0, z0], [x1, y1, z1]);
-
-/** A solid block of the hull between z0 and z1 (bow or stern), from the keel to the deck. */
-function hullBlock(z0: number, z1: number): ConvexCollider {
-  const points: THREE.Vector3[] = [],
-    top = SHIP.deck + SHIP.plate;
-  for (let i = 0; i <= 8; i++) {
-    const z = z0 + ((z1 - z0) * i) / 8,
-      hw = Math.max(0.15, hullHalfWidth(z));
-    for (const side of [-1, 1]) {
-      points.push(new THREE.Vector3(side * hw, top, z));
-      points.push(new THREE.Vector3(side * hw * 0.55, SHIP.keel, z));
-    }
-  }
+/** A convex hull of points as a collider (the ship's frame). */
+function hull(points: THREE.Vector3[]): ConvexCollider {
   const g = new ConvexGeometry(points),
     c = rockCollider(g, new THREE.Matrix4());
   g.dispose();
   return c;
 }
+/** A solid block of the hull between z0 and z1 (bow or stern), from the keel to `top`. */
+function hullBlock(z0: number, z1: number, top: number): ConvexCollider {
+  const points: THREE.Vector3[] = [];
+  for (let i = 0; i <= 10; i++) {
+    const z = z0 + ((z1 - z0) * i) / 10;
+    for (const y of [SHIP.keel, 1.5, 3.5, DECK_TOP, top]) {
+      const x = hullX(z, Math.min(y, top));
+      // Only where there is hull (the stem rakes forward, so the bow's lower end stops sooner).
+      if (x > 0.05)
+        points.push(new THREE.Vector3(x, y, z), new THREE.Vector3(-x, y, z));
+    }
+  }
+  return hull(points);
+}
+/** A thin wall following the hull's side between z0 and z1, from `y0` up to the rail. */
+function bulwark(z0: number, z1: number, side: number): ConvexCollider {
+  const points: THREE.Vector3[] = [];
+  for (const z of [z0, z1]) {
+    const x = side * hullX(z, deckTopAt(z)),
+      inward = -side * SHIP.shell;
+    for (const y of [deckTopAt(z) - 0.1, railAt(z)])
+      points.push(
+        new THREE.Vector3(x, y, z),
+        new THREE.Vector3(x + inward, y, z),
+      );
+  }
+  return hull(points);
+}
+/** A rod between two points as a solid square beam (the derrick). */
+function beam(a: Readonly<Vec3>, b: Readonly<Vec3>, r: number): ConvexCollider {
+  const points: THREE.Vector3[] = [];
+  for (const p of [a, b])
+    for (const dx of [-r, r])
+      for (const dy of [-r, r])
+        for (const dz of [-r, r])
+          points.push(new THREE.Vector3(p.x + dx, p.y + dy, p.z + dz));
+  return hull(points);
+}
+/** A collider moved into the cavern by `m` (rigid): planes turned, bounds re-taken. */
+function placed(c: ConvexCollider, m: THREE.Matrix4): ConvexCollider {
+  const n = new THREE.Vector3(),
+    t = new THREE.Vector3().setFromMatrixPosition(m),
+    rot = new THREE.Matrix3().setFromMatrix4(m),
+    lo = new THREE.Vector3(Infinity, Infinity, Infinity),
+    hi = new THREE.Vector3(-Infinity, -Infinity, -Infinity),
+    corner = new THREE.Vector3();
+  const planes = c.planes.map((p) => {
+    n.set(p.x, p.y, p.z).applyMatrix3(rot);
+    return { x: n.x, y: n.y, z: n.z, offset: p.offset + n.dot(t) };
+  });
+  for (const x of [c.min.x, c.max.x])
+    for (const y of [c.min.y, c.max.y])
+      for (const z of [c.min.z, c.max.z]) {
+        corner.set(x, y, z).applyMatrix4(m);
+        lo.min(corner);
+        hi.max(corner);
+      }
+  return {
+    planes,
+    min: { x: lo.x, y: lo.y, z: lo.z },
+    max: { x: hi.x, y: hi.y, z: hi.z },
+  };
+}
 
-/** Everything solid about the ship. */
+/** Everything solid about the ship, placed where she lies in the cavern. */
 export function wreckColliders(): ConvexCollider[] {
   const s = SHIP,
     h = s.half,
     t = s.shell,
-    top = s.deck + s.plate,
+    top = DECK_TOP,
     hatch = s.hatch,
     br = s.breach,
     bd = s.bridge,
+    fc = s.forecastle,
     out: ConvexCollider[] = [];
-  // Bow and stern: solid. (The bow block is split, so each piece stays convex and close.)
-  out.push(hullBlock(s.bowZ, -45), hullBlock(-45.2, s.foreZ + 0.05));
-  out.push(hullBlock(s.aftZ - 0.05, s.sternZ));
+  // The bow, under its forecastle, and the main deck's forward end; the stern: solid.
+  out.push(
+    hullBlock(s.bowZ - 3, -46, top + fc.rise),
+    hullBlock(-46.2, fc.aftZ, top + fc.rise),
+    hullBlock(fc.aftZ - 0.05, s.foreZ + 0.05, top),
+    hullBlock(s.aftZ - 0.05, s.sternZ, top),
+  );
+  // Bulwarks along the bow and stern, a segment at a time; amidships they top the side plating.
+  for (const side of [-1, 1]) {
+    for (let z = s.bowZ + 0.4; z < s.foreZ; z += 1.2)
+      out.push(bulwark(z, Math.min(z + 1.3, s.foreZ + 0.1), side));
+    for (let z = s.aftZ - 0.1; z < s.sternZ - 0.6; z += 1.2)
+      out.push(bulwark(z, Math.min(z + 1.3, s.sternZ - 0.4), side));
+  }
   // Amidships: the sides (the starboard one open at the breach), bottom and deck.
-  out.push(box(-h - 0.05, s.keel, s.foreZ, -h + t, top, s.aftZ));
-  out.push(box(h - t, s.keel, s.foreZ, h + 0.05, top, br.foreZ));
-  out.push(box(h - t, s.keel, br.aftZ, h + 0.05, top, s.aftZ));
+  const rail = railAt(s.foreZ);
+  out.push(box(-h - 0.05, s.keel, s.foreZ, -h + t, rail, s.aftZ));
+  out.push(box(h - t, s.keel, s.foreZ, h + 0.05, rail, br.foreZ));
+  out.push(box(h - t, s.keel, br.aftZ, h + 0.05, rail, s.aftZ));
   out.push(box(h - t, s.keel, br.foreZ, h + 0.05, br.low, br.aftZ));
-  out.push(box(h - t, br.high, br.foreZ, h + 0.05, top, br.aftZ));
+  out.push(box(h - t, br.high, br.foreZ, h + 0.05, rail, br.aftZ));
   out.push(box(-h, s.keel, s.foreZ, h, s.hold.floor, s.aftZ));
   // The bulkheads closing the hold fore and aft (the spaces beyond are sealed).
   out.push(box(-h, s.keel, s.foreZ, h, top, s.hold.foreZ));
@@ -240,7 +427,7 @@ export function wreckColliders(): ConvexCollider[] {
     box(-hatch.half - 0.15, top, hatch.foreZ, -hatch.half, top + c, hatch.aftZ),
     box(hatch.half, top, hatch.foreZ, hatch.half + 0.15, top + c, hatch.aftZ),
   );
-  // The bridge: walls (the front open at its door), roof, and the funnel on top.
+  // The deckhouse: walls (the front open at its door) and roof.
   const w = bd.wall,
     d = bd.door;
   out.push(box(-bd.half, top, bd.aftZ - w, bd.half, bd.top, bd.aftZ));
@@ -259,18 +446,51 @@ export function wreckColliders(): ConvexCollider[] {
       bd.aftZ + 0.1,
     ),
   );
-  const f = s.funnel;
+  // The wheelhouse on top, its wings and visor, and the funnel behind it.
+  const wh = s.wheelhouse,
+    wg = s.wings,
+    roof = bd.top + 0.22;
+  out.push(box(-wh.half, roof, wh.foreZ, wh.half, wh.top + 0.18, wh.aftZ));
+  out.push(box(-wg.half, roof, wg.foreZ, wg.half, roof + 0.12, wg.aftZ));
+  const f = s.funnel,
+    lean = Math.tan(f.rake) * (f.top - roof);
   out.push(
-    box(-f.radius, bd.top, f.z - f.radius, f.radius, f.top, f.z + f.radius),
+    hull(
+      [-1, 1].flatMap((sx) =>
+        [-1, 1].flatMap((sz) => [
+          new THREE.Vector3(sx * f.rx, roof, f.z + sz * f.rz),
+          new THREE.Vector3(
+            sx * f.rx * 0.95,
+            f.top,
+            f.z + lean + sz * f.rz * 0.95,
+          ),
+        ]),
+      ),
+    ),
   );
-  // The wheel's binnacle and the chart table inside the bridge.
+  // The binnacle and the chart table inside the deckhouse.
   out.push(box(-0.3, top, -20.6, 0.3, top + 1.05, -20.2));
   out.push(box(1.6, top, -18.6, 2.75, top + 0.9, -17.25));
-  // The foremast.
+  // The foremast, the fallen derrick, and the deck gear.
   const m = s.mast;
   out.push(
     box(-m.radius, top, m.z - m.radius, m.radius, m.top, m.z + m.radius),
   );
+  out.push(beam(BOOM.from, BOOM.to, BOOM.radius));
+  for (const g of DECK_GEAR) {
+    const size = GEAR_SIZE[g.kind],
+      r = Math.max(size.x, size.z);
+    out.push(
+      box(
+        g.at.x - r,
+        g.at.y,
+        g.at.z - r,
+        g.at.x + r,
+        g.at.y + size.h,
+        g.at.z + r,
+      ),
+    );
+  }
   // The cargo in the hold.
   for (const k of HOLD_CARGO)
     out.push(
@@ -283,7 +503,7 @@ export function wreckColliders(): ConvexCollider[] {
         k.at.z + k.half.z,
       ),
     );
-  return out;
+  return out.map((c) => placed(c, SHIP_POSE));
 }
 
 /** Soft limits in the cavern: the walls and the roof (but not in the shaft). */

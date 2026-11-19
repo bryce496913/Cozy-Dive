@@ -2,7 +2,7 @@ import type { Bounds } from './world';
 import type { PassageFrame } from './passage';
 
 /**
- * The shipwreck: a new world, reached down a dark sinkhole in the kelp forest's sandy lane. The
+ * The shipwreck: a new world, reached down a dark sinkhole hidden in the kelp forest, under a rock ledge. The
  * shaft drops about 16 m, darkening; past its threshold the swimmer continues down the same shaft
  * through the roof of a great, dim flooded cavern, coming out about 10 m above the deck of an old
  * steel freighter lying upright on its sandy floor. The hold (through the deck hatch or a breach
@@ -10,16 +10,19 @@ import type { PassageFrame } from './passage';
  * and a torch comes on by itself. Metres, y up; the ship lies along z with its bow towards -z.
  */
 export const SINKHOLE = {
-  /** The hole in the kelp forest's lane, its shaft's radius, and how deep its threshold is. */
-  x: 6.5,
-  z: -44,
+  /**
+   * The hole: tucked against a tall boulder deep in the kelp, off the open lane, half under a rock
+   * ledge; its shaft's radius, and how deep its threshold is.
+   */
+  x: -10.4,
+  z: -47.1,
   radius: 1.6,
   threshold: -16,
   /** The shaft's dark bottom (it never needs to be reached), and its rock's thickness. */
   bottom: -21,
   wall: 1.2,
   /** The sand slumps into it: this deep at the shaft's lip (m), over this width (m). */
-  funnel: { depth: 1.8, width: 3.2 },
+  funnel: { depth: 0.7, width: 1.4 },
   /** Load the wreck when this near the hole's mouth (m), let it go beyond `release`. */
   preload: 15,
   release: 22,
