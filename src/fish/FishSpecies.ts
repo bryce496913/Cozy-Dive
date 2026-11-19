@@ -37,6 +37,8 @@ export type SpeciesId =
   | 'bald-notothen'
   | 'antarctic-toothfish'
   | 'giant-sea-bass'
+  /** The shipwreck's resident giant grouper (as on the SS Yongala). */
+  | 'queensland-grouper'
   | 'california-sheephead'
   | 'cleaner-wrasse';
 export interface SchoolingTuning {
