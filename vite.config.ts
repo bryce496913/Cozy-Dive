@@ -20,7 +20,11 @@ export default defineConfig(({ mode }) => ({
       ? {
           outDir: 'dist-benchmark',
           rollupOptions: {
-            input: { main: 'index.html', benchmark: 'benchmark.html' },
+            input: {
+              main: 'index.html',
+              benchmark: 'benchmark.html',
+              style: 'style-benchmark.html',
+            },
           },
         }
       : {},

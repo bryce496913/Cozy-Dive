@@ -11,6 +11,7 @@ import { SEAHORSE_SCALE } from '../creatures/discoveries/Seahorse';
 import { AssetLoader } from '../assets/AssetLoader';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
 import * as THREE from 'three';
+import { TANK_LIGHTING } from '../config/tankLighting';
 import { Aquarium } from '../environment/Aquarium';
 import { AQUARIUM, type Bounds } from '../config/world';
 import type { CollisionWorld } from '../player/collision';
@@ -30,7 +31,7 @@ void main(){
   #include <colorspace_fragment>
 }`;
 /** Underwater haze density seen from inside the water. */
-export const UNDERWATER_HAZE = 0.026;
+export const UNDERWATER_HAZE = TANK_LIGHTING.fogDensity;
 export interface Presentation {
   update(): void;
   dispose(): void;
@@ -97,24 +98,34 @@ export class UnderwaterScene implements WaterWorld {
     this.renderer.setPixelRatio(
       pixelRatioFor(window.devicePixelRatio, this.detail),
     );
-    this.renderer.setClearColor(0x17555b);
+    this.renderer.setClearColor(TANK_LIGHTING.clearColor);
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.35;
+    this.renderer.toneMappingExposure = TANK_LIGHTING.exposure;
     this.renderer.domElement.setAttribute(
       'aria-label',
       'A tropical marine aquarium with reef fish, corals, macroalgae and seagrass',
     );
     host.append(this.renderer.domElement);
-    this.scene.background = new THREE.Color(0x225d73);
+    const rig = TANK_LIGHTING;
+    this.scene.background = new THREE.Color(rig.background);
     this.outlook = new TankOutlook(this.scene.background);
-    this.scene.fog = new THREE.FogExp2(0x225d73, UNDERWATER_HAZE);
-    this.scene.add(new THREE.HemisphereLight(0xc7f2e0, 0x546b56, 2.6));
-    const sunlight = new THREE.DirectionalLight(0xfff1cf, 3.2);
-    sunlight.position.set(-7, 18, 7);
+    this.scene.fog = new THREE.FogExp2(rig.background, UNDERWATER_HAZE);
+    this.scene.add(
+      new THREE.HemisphereLight(
+        rig.hemisphere.sky,
+        rig.hemisphere.ground,
+        rig.hemisphere.intensity,
+      ),
+    );
+    const sunlight = new THREE.DirectionalLight(
+      rig.sun.color,
+      rig.sun.intensity,
+    );
+    sunlight.position.set(...rig.sun.position);
     this.scene.add(sunlight);
-    const fill = new THREE.DirectionalLight(0x75ced0, 0.7);
-    fill.position.set(10, 8, -12);
+    const fill = new THREE.DirectionalLight(rig.fill.color, rig.fill.intensity);
+    fill.position.set(...rig.fill.position);
     this.scene.add(fill);
     this.aquarium = new Aquarium();
     this.scene.add(this.aquarium.root);
