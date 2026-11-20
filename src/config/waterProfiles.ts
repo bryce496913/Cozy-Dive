@@ -38,7 +38,7 @@ export interface ShaftSpec {
   readonly tint: Vec3Tuple;
 }
 export interface CausticSpec {
-  /** Added light at full strength, as a fraction of the sun (0.1-0.3 reads as restrained). */
+  /** Light redistributed at full strength, as a fraction of the sun (0.3-0.6 reads as restrained). */
   readonly strength: number;
   /** Pattern cells per metre. */
   readonly scale: number;
@@ -77,8 +77,8 @@ export const WATER_PROFILES: Readonly<Record<WaterWorldId, WaterProfile>> = {
     fill: TANK_LIGHTING.fill,
     shafts: { intensity: 0.014, tint: [0.86, 1, 0.9] },
     caustics: {
-      strength: 0.22,
-      scale: 0.42,
+      strength: 0.55,
+      scale: 0.28,
       speed: 0.32,
       fullAbove: 0,
       noneBelow: -3,
@@ -95,8 +95,8 @@ export const WATER_PROFILES: Readonly<Record<WaterWorldId, WaterProfile>> = {
     fill: { color: 0x75ced0, intensity: 0.5, position: [30, 20, 40] },
     shafts: { intensity: 0.012, tint: [0.82, 1, 0.92] },
     caustics: {
-      strength: 0.18,
-      scale: 0.3,
+      strength: 0.45,
+      scale: 0.22,
       speed: 0.28,
       fullAbove: 1,
       noneBelow: -6,
@@ -113,8 +113,8 @@ export const WATER_PROFILES: Readonly<Record<WaterWorldId, WaterProfile>> = {
     fill: { color: 0x8fd0aa, intensity: 0.45, position: [25, 15, 30] },
     shafts: null, // KelpLight's own swaying beams (same shared beam builder)
     caustics: {
-      strength: 0.12,
-      scale: 0.26,
+      strength: 0.35,
+      scale: 0.2,
       speed: 0.22,
       fullAbove: 2,
       noneBelow: -4,

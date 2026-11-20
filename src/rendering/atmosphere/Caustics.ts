@@ -4,8 +4,9 @@ import type { CausticSpec } from '../../config/waterProfiles';
 /**
  * V0.7 Pass 064: restrained surface caustics on shallow, upward-facing surfaces (sand, reef tops).
  *
- * A bounded addition to an existing material's lighting, not a post-process: the pattern adds a
- * little sun-coloured diffuse light, only where the surface faces up, fading with depth below the
+ * A bounded addition to an existing material's lighting, not a post-process: the pattern
+ * redistributes a little sun-coloured diffuse light (bright ribbons, slightly darker gaps, about the
+ * same average), only where the surface faces up, fading with depth below the
  * profile's `fullAbove` (none below `noneBelow`) and with distance from the eye (no far shimmer).
  * The pattern is a three-iteration tileable water-caustic function evaluated in world XZ.
  *
@@ -59,7 +60,7 @@ float causticPattern( vec2 uv, float t ) {
 		c += 1.0 / length( vec2( p.x / ( sin( i.x + tt ) / 0.005 ), p.y / ( cos( i.y + tt ) / 0.005 ) ) );
 	}
 	c = 1.17 - pow( c / 3.0, 1.4 );
-	return clamp( pow( abs( c ), 8.0 ), 0.0, 1.0 );
+	return clamp( pow( abs( c ), 4.0 ) * 1.6, 0.0, 1.0 );
 }
 `;
 const FRAGMENT_MAIN = /* glsl */ `
@@ -72,7 +73,8 @@ const FRAGMENT_MAIN = /* glsl */ `
 	float causticAmount = causticFacing * causticDepth * causticNear;
 	if ( causticAmount > 0.0 ) {
 		float c = causticPattern( vCausticWorld.xz * causticScale, causticTime * causticSpeed );
-		reflectedLight.directDiffuse += diffuseColor.rgb * causticColor * ( c * causticStrength * causticAmount );
+		// Caustics redistribute light: bright ribbons, slightly darker gaps, about the same average.
+		reflectedLight.directDiffuse = max( reflectedLight.directDiffuse + diffuseColor.rgb * causticColor * ( ( c - 0.28 ) * causticStrength * causticAmount ), vec3( 0.0 ) );
 	}
 }
 `;

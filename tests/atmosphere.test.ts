@@ -81,7 +81,7 @@ describe('V0.7 Pass 064 water atmosphere', () => {
       expect(p.hemisphere.intensity).toBeGreaterThan(0);
       if (p.caustics) {
         expect(p.caustics.fullAbove).toBeGreaterThan(p.caustics.noneBelow);
-        expect(p.caustics.strength).toBeLessThanOrEqual(0.4);
+        expect(p.caustics.strength).toBeLessThanOrEqual(0.6);
       }
       if (p.shafts) expect(p.shafts.intensity).toBeLessThanOrEqual(0.05);
       const rig = createLightRig(p);
