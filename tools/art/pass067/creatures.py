@@ -36,7 +36,7 @@ sys.path.insert(0, str(ROOT / 'tools/art/pass017'))
 import cozy_art as ca  # noqa: E402
 import hero_fish as hf  # noqa: E402
 
-TEX = ROOT / 'tools/art/textures/pass067'
+TEX = ROOT / 'tools/art/textures/pass067'  # pass 068 animals share it (prefix p068)
 OUT = ROOT / 'public/assets/models/creatures'
 RAW = HERE / 'out'
 N = 512
@@ -365,6 +365,10 @@ def body_texture(an: hf.Anatomy):
     if 'tip' in sp:
         t = smooth(sp.get('tip_at', 0.7), 1.0, fv)
         fincol = fincol * (1 - t[..., None]) + np.array(sp['tip'], float) * t[..., None]
+    # Per-slot colours (bills, feet, legs) override the fin colour in their eighth of the band.
+    for slot, colour in sp.get('slots', {}).items():
+        m = (u >= slot / 8) & (u < (slot + 1) / 8)
+        fincol = np.where(m[..., None], np.array(colour, float) * (1 + 0.04 * noise(20, 8))[..., None], fincol)
     col = np.where(body[..., None], col, fincol)
     fine = noise(1.5, 11)
     broad = noise(30, 12)
@@ -376,8 +380,12 @@ def body_texture(an: hf.Anatomy):
 def write_textures(name, an):
     TEX.mkdir(parents=True, exist_ok=True)
     col, height, rough = body_texture(an)
+    # Painted with row = v; Blender's v runs bottom-up and glTF stores v' = 1 - v, so image row 0
+    # must hold v = 1. Flip before saving (and before deriving normals) so the body and fin bands
+    # land where the UVs read them.
+    col, height, rough = col[::-1], height[::-1], rough[::-1]
     save = lambda a, f: Image.fromarray(np.uint8(np.clip(a, 0, 1) * 255 + 0.5)).save(TEX / f, optimize=True)  # noqa: E731
-    stem = f'p067-{name}-skin'
+    stem = f"p{an.spec.get('pass', '067')}-{name}-skin"
     save(col, f'{stem}-base.png')
     save(hf.normal_from_height(height, 1.2) * 0.5 + 0.5, f'{stem}-normal.png')
     save(np.stack([np.ones_like(rough), rough, np.zeros_like(rough)], -1), f'{stem}-orm.png')
@@ -395,8 +403,8 @@ def build(name, spec):
     parts = FAMILIES[spec['family']](an)
     stem = write_textures(name, an)
     ca.reset_scene()
-    root = ca.create_root(f"{spec['root']}_Root", 'creature', species=name, standards_pass='067')
-    skin = ca.pbr_material(f"{spec['root']}_Skin", 'fish-skin', stem, roughness=spec.get('rough', 0.5),
+    root = ca.create_root(f"{spec['root']}_Root", 'creature', species=name, standards_pass=spec.get('pass', '067'))
+    skin = ca.pbr_material(f"{spec['root']}_Skin", spec.get('template', 'fish-skin'), stem, roughness=spec.get('rough', 0.5),
                            normal_strength=0.6, vertex_tint=False)
     off, P, F, UV = 0, [], [], []
     for part in parts:
@@ -436,7 +444,7 @@ def build(name, spec):
         kb.value = 0.0
     for w in ca.check_scene('creature'):
         print('  note:', w)
-    ca.save_blend(HERE / f'{name}.blend')
+    ca.save_blend(spec.get('src', HERE) / f'{name}.blend')
     raw = ca.export_glb(RAW / f'{name}.glb')
     out = OUT / f'{name}.glb'
     out.write_bytes(raw.read_bytes())
