@@ -67,12 +67,20 @@ describe('life on the wreck', () => {
     for (let i = 0; i < 30 * 60; i++) {
       life.update(1 / 30, true, false, player, camera);
       if (i % 15) continue;
-      for (const loop of [life.wrasse, life.shark, life.turtle])
+      for (const loop of [
+        life.wrasse,
+        life.shark,
+        life.turtle,
+        ...life.rays,
+        life.manta,
+        ...life.blacktips,
+      ])
         clear(loop.pose.position, 0.6);
       for (const p of [...life.trevally, ...life.barracuda])
         clear(p.position, 0.3);
     }
     clear(life.sternGrouper.position, 0.5);
+    for (const g of life.hullGroupers) clear(g.position, 0.5);
     life.dispose();
   }, 30000);
 });
