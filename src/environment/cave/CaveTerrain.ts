@@ -81,10 +81,15 @@ export function inTunnelReach(p: Readonly<Vec3>): boolean {
     Math.hypot(p.x - b.x, p.y - b.y) < b.radius + 0.4
   )
     return true;
+  if (p.z > t.openZ - 1.2)
+    return (
+      Math.abs(p.x) < t.radius + 0.4 && Math.abs(p.y - t.y) < t.radius + 0.4
+    );
+  // Playtest fix (the way home): the approach to the front tunnel too, from before the wall's
+  // easing would hold a swimmer to a hover short of the opening.
   return (
-    p.z > t.openZ - 1.2 &&
-    Math.abs(p.x) < t.radius + 0.4 &&
-    Math.abs(p.y - t.y) < t.radius + 0.4
+    p.z > t.openZ - CAVE.ease.inset - CAVE.ease.band - 1 &&
+    Math.hypot(p.x, p.y - t.y) < t.radius + 1.2
   );
 }
 

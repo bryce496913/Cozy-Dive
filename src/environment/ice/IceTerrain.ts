@@ -39,10 +39,21 @@ export function iceUndersideAt(x: number, z: number): number {
   return ICE.ceiling - rumple + 0.5 * rim;
 }
 
-/** Whether `p` is in the tunnel or just out of it (no soft limits there). */
+/**
+ * Whether `p` is in the tunnel or on the way into it (no soft limits there).
+ *
+ * Playtest fix (could not swim back up the tunnel): the rock wall's soft limit begins
+ * `ICE.ease.inset` m out from the wall and holds a swimmer to a hover before it, while this used
+ * to free only the last 1.5 m before the mouth, so a swimmer heading home slowed to a crawl short
+ * of the tunnel. The approach is now free from before the easing begins, across the mouth.
+ */
 export function inIceTunnelReach(p: Readonly<Vec3>): boolean {
-  const t = ICE.tunnel;
-  return p.z > t.wallZ - 1.5 && Math.hypot(p.x, p.y - t.y) < t.radius + 0.4;
+  const t = ICE.tunnel,
+    off = Math.hypot(p.x, p.y - t.y);
+  if (p.z > t.wallZ - 0.5) return off < t.radius + 0.4;
+  return (
+    p.z > t.wallZ - ICE.ease.inset - ICE.ease.band - 1 && off < t.radius + 1.2
+  );
 }
 
 /**

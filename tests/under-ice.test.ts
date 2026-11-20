@@ -170,3 +170,50 @@ describe('v0.6 Pass 046: swimming into the back tunnel', () => {
     cave.dispose();
   });
 });
+
+describe('the way home from under the ice (playtest fix)', () => {
+  it('swims from the open water up the tunnel and over its threshold', async () => {
+    const { IceEnvironment } =
+      await import('../src/environment/ice/IceEnvironment');
+    const { ColliderGrid, TerrainCollisionWorld } =
+      await import('../src/player/terrainCollision');
+    const { ICE } = await import('../src/config/passage');
+    const { easeInIce, iceFloor } =
+      await import('../src/environment/ice/IceTerrain');
+    const { crossing } = await import('../src/player/passage');
+    const env = new IceEnvironment(),
+      world = new TerrainCollisionWorld(
+        new ColliderGrid(env.colliders),
+        ICE.bounds,
+        iceFloor,
+      ),
+      state = {
+        position: { x: 0.6, y: ICE.tunnel.y - 0.4, z: -16 },
+        velocity: { x: 0, y: 0, z: 0 },
+      };
+    let target: string | undefined;
+    // Steering at the mouth, as a swimmer does, at an ordinary pace (0.08 m a step).
+    for (let i = 0; i < 600 && !target; i++) {
+      const p = state.position,
+        from = { ...p },
+        dir = { x: -p.x * 0.3, y: (ICE.tunnel.y - p.y) * 0.3, z: 1 },
+        l = Math.hypot(dir.x, dir.y, dir.z);
+      dir.x /= l;
+      dir.y /= l;
+      dir.z /= l;
+      easeInIce(p, dir);
+      p.x += dir.x * 0.08;
+      p.y += dir.y * 0.08;
+      p.z += dir.z * 0.08;
+      world.move(state, from.x, from.y, from.z);
+      target = crossing('ice', p, {
+        outer: true,
+        kelp: true,
+        cave: true,
+        ice: true,
+      })?.target;
+    }
+    expect(target).toBe('cave');
+    env.dispose();
+  });
+});

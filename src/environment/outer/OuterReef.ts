@@ -316,10 +316,9 @@ export class OuterReef {
     for (const [t, matrices] of this.groups('rock')) {
       this.add(
         `Outer rock ${t}`,
+        // One level at every distance (no detail popping as the swimmer comes close).
         [
-          { geometry: this.part(`Rock_${t}`).geometry, until: D.rock[0] },
-          { geometry: this.part(`Rock_${t}_LOD1`).geometry, until: D.rock[1] },
-          { geometry: this.part(`Rock_${t}_LOD2`).geometry, until: D.rock[2] },
+          { geometry: this.part(`Rock_${t}_LOD1`).geometry, until: D.drawn },
           // Pass 026: beyond this the fog has them entirely.
           { geometry: null, until: Infinity },
         ],
@@ -352,6 +351,8 @@ export class OuterReef {
       triplanarMaterial(this.standard('Coral_Massive_0'), {
         scale: REEF_LAYOUT.coralTexelScale,
         ao: 0.5,
+        // Playtest: the brain corals' ridges, on their light model, at every distance.
+        ridges: { frequency: 22, depth: 0.035 },
       }),
     );
     massive.vertexColors = true;
@@ -365,42 +366,25 @@ export class OuterReef {
         for (const suffix of ['', '_Tips']) {
           const near = this.node(name + suffix);
           if (!near) continue;
-          if (family === 'massive' && suffix === '')
-            colonies.push({ geometry: near.geometry, matrices });
           const far = this.node(`${name}${suffix}_LOD1`),
-            reach: readonly number[] =
-              family === 'massive' ? D.massive : D.branching,
+            // Playtest: one level at every distance, so nothing changes shape as the swimmer
+            // comes close. The light model where there is one (the brain corals' ridges are drawn
+            // in their shading); the authored model where there is not (plates, branch tips).
+            drawn = far ?? near,
             material = family === 'massive' && t < 2 ? massive : single(near);
+          // The worms sit on the surface that is drawn.
+          if (family === 'massive' && suffix === '')
+            colonies.push({ geometry: drawn.geometry, matrices });
           this.add(
             `Outer coral ${name}${suffix}`,
-            far
-              ? [
-                  { geometry: near.geometry, until: reach[0] },
-                  { geometry: far.geometry, until: reach[1] },
-                  { geometry: null, until: Infinity },
-                ]
-              : [
-                  { geometry: near.geometry, until: D.plate },
-                  { geometry: null, until: Infinity },
-                ],
+            [
+              { geometry: drawn.geometry, until: D.drawn },
+              { geometry: null, until: Infinity },
+            ],
             material,
             matrices,
           );
         }
-        // Pass 026: far massive colonies become simple mounds in their colony's own colour (the
-        // coral material on the rock-derived mound read as pale stones in the denser reef).
-        // Playtest fix: every coral does, from where the haze hides the swap (`hidden`) on to
-        // `drawn`, so the far reef keeps its shape without the full colonies' cost.
-        this.add(
-          `Outer coral ${name} mound`,
-          [
-            { geometry: null, until: D.hidden },
-            { geometry: this.mound(), until: D.drawn },
-            { geometry: null, until: Infinity },
-          ],
-          this.moundMaterial(t),
-          matrices,
-        );
         this.collide(this.hulls(`${name}_Root`), matrices);
       }
     this.worms = new ChristmasTreeWorms(colonies);
@@ -420,7 +404,7 @@ export class OuterReef {
         this.add(
           `Outer ${family} ${t}`,
           [
-            { geometry, until: D.plant },
+            { geometry, until: D.drawn },
             { geometry: null, until: Infinity },
           ],
           family === 'soft' || family === 'fan' ? tissue : algae,
@@ -436,7 +420,7 @@ export class OuterReef {
         this.add(
           `Outer ${family} ${t}`,
           [
-            { geometry: node.geometry, until: D.debris },
+            { geometry: node.geometry, until: D.drawn },
             { geometry: null, until: Infinity },
           ],
           single(node),
@@ -462,29 +446,6 @@ export class OuterReef {
     this.sand = m;
   }
 
-  /** Far mounds' colours, per massive template (dusky mauve, olive and brown, as up close). */
-  private moundMaterial(template: number): THREE.MeshStandardMaterial {
-    const colours = [0x5a4d56, 0x525b45, 0x5d5244];
-    return this.own(
-      new THREE.MeshStandardMaterial({
-        color: colours[template % colours.length],
-        roughness: 0.95,
-        metalness: 0,
-      }),
-    );
-  }
-  /** A far mound for massive colonies: the reef's lightest rock, set on y 0 like a colony. */
-  private moundGeometry?: THREE.BufferGeometry;
-  private mound(): THREE.BufferGeometry {
-    if (!this.moundGeometry) {
-      const g = this.own(this.part('Rock_2_LOD2').geometry.clone());
-      g.scale(0.85, 0.75, 0.85);
-      g.computeBoundingBox();
-      g.translate(0, -g.boundingBox!.min.y - 0.05, 0);
-      this.moundGeometry = g;
-    }
-    return this.moundGeometry;
-  }
   /** If the library cannot load: plain rocks at the same places, so the reef is still solid. */
   private buildFallback(): void {
     const material = this.own(
@@ -571,7 +532,6 @@ export class OuterReef {
     this.textures.forEach((t) => t.dispose());
     this.textures.length = 0;
     this.sand = undefined;
-    this.moundGeometry = undefined;
     this.rock = undefined;
   }
   dispose(): void {

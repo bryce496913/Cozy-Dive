@@ -23,6 +23,20 @@ vTriWorldNormal = normalize(inverse(transpose(mat3(triModel))) * objectNormal);
 const FRAGMENT_PARS = `
 uniform float triplanarScale;
 uniform float triplanarAo;
+#ifdef TRI_RIDGES
+uniform float triRidgeFrequency;
+uniform float triRidgeDepth;
+/**
+ * Brain-coral meanders (0 in a groove … 1 on a ridge) from world position: winding parallel
+ * ridges with narrow grooves between, as on Platygyra and the like.
+ */
+float triRidge(vec3 p) {
+  vec3 q = p + 0.6 * vec3(sin(p.y * 1.7 + p.z * 0.9), sin(p.z * 1.5 + p.x * 1.1), sin(p.x * 1.3 + p.y * 1.6));
+  float v = sin(q.x + q.y * 0.8) + sin(q.y * 0.9 - q.z * 1.1) + sin(q.z * 1.2 + q.x * 0.7);
+  // Soft, rounded ridges and grooves.
+  return 0.5 + 0.5 * sin(v * 1.6);
+}
+#endif
 varying vec3 vTriWorldPosition;
 varying vec3 vTriWorldNormal;
 vec3 triWeights(vec3 n) {
@@ -37,6 +51,11 @@ const MAP = `
 vec3 triP = vTriWorldPosition * triplanarScale;
 vec3 triN = normalize(vTriWorldNormal);
 vec3 triW = triWeights(triN);
+#ifdef TRI_RIDGES
+  float triH = triRidge(vTriWorldPosition * triRidgeFrequency);
+  // The grooves lie in shade.
+  diffuseColor.rgb *= mix(0.72, 1.06, triH);
+#endif
 #ifdef USE_MAP
   diffuseColor *= triSample(map, triP, triW);
 #endif
@@ -71,6 +90,17 @@ const NORMAL = `
   #endif
   normal = normalize((viewMatrix * vec4(triWorldNormal, 0.0)).xyz);
 #endif
+#ifdef TRI_RIDGES
+  // Bump the ridges into the lighting (screen-space derivatives, as three.js's bump map does), so
+  // a light, smooth model reads as finely ridged at every distance.
+  {
+    vec2 dH = vec2(dFdx(triH), dFdy(triH)) * triRidgeDepth;
+    vec3 sigX = dFdx(-vViewPosition), sigY = dFdy(-vViewPosition);
+    vec3 r1 = cross(sigY, normal), r2 = cross(normal, sigX);
+    float det = dot(sigX, r1);
+    normal = normalize(abs(det) * normal - sign(det) * (dH.x * r1 + dH.y * r2));
+  }
+#endif
 `;
 
 export interface TriplanarOptions {
@@ -78,6 +108,11 @@ export interface TriplanarOptions {
   readonly scale: number;
   /** How strongly the ORM red channel darkens diffuse colour. */
   readonly ao?: number;
+  /**
+   * Playtest (no detail popping): brain-coral ridges drawn in the shading, at this many cycles
+   * per metre and this relief (m), so the light model carries the full model's look everywhere.
+   */
+  readonly ridges?: { readonly frequency: number; readonly depth: number };
 }
 
 /** Returns a material clone whose authored maps are sampled triplanarly in world space. */
@@ -89,7 +124,11 @@ export function triplanarMaterial(
   const uniforms = {
     triplanarScale: { value: options.scale },
     triplanarAo: { value: options.ao ?? 0.6 },
+    triRidgeFrequency: { value: options.ridges?.frequency ?? 0 },
+    triRidgeDepth: { value: options.ridges?.depth ?? 0 },
   };
+  if (options.ridges)
+    material.defines = { ...material.defines, TRI_RIDGES: '' };
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader
@@ -105,7 +144,8 @@ export function triplanarMaterial(
       .replace('#include <normal_fragment_maps>', NORMAL);
   };
   // Scale and occlusion are uniforms: every triplanar material shares one compiled program.
-  material.customProgramCacheKey = () => 'cozy-triplanar-v2';
+  material.customProgramCacheKey = () =>
+    options.ridges ? 'cozy-triplanar-ridged-v1' : 'cozy-triplanar-v2';
   return material;
 }
 

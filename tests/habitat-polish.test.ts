@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { OUTER, ICE } from '../src/config/passage';
 import { iceLimits } from '../src/creatures/iceLife';
 import { ICE_WHALE, RareDirector } from '../src/creatures/iceRare';
@@ -98,22 +98,21 @@ describe('reef, cave and ice polish', () => {
     (mesh.material as THREE.Material).dispose();
   });
 
-  it('continues the room tile finish beyond the glass and owns its texture', () => {
+  it('leaves the blue beyond the glass bottomless (no floor out there)', () => {
     const env = new OuterEnvironment();
-    const floor = env.root.getObjectByName(
-      'Room tile floor beyond reef glass',
-    ) as THREE.Mesh;
-    expect(floor.position.y).toBe(OUTER.glass.bottom);
-    floor.updateMatrixWorld(true);
-    const box = new THREE.Box3().setFromObject(floor);
-    expect(box.max.z).toBeCloseTo(OUTER.glass.z);
-    const material = floor.material as THREE.MeshStandardMaterial;
-    expect(material.map).toBeInstanceOf(THREE.DataTexture);
-    const disposed = vi.fn();
-    material.map!.addEventListener('dispose', disposed);
+    env.root.updateMatrixWorld(true);
+    env.root.traverse((o) => {
+      if (!(o instanceof THREE.Mesh) || o === env.sand) return;
+      const box = new THREE.Box3().setFromObject(o);
+      // Nothing flat and wide lying out past the glass, low down.
+      const flatFloor =
+        box.min.z < OUTER.glass.z - 5 &&
+        box.max.y - box.min.y < 1 &&
+        box.max.x - box.min.x > 20 &&
+        box.max.y < 0;
+      expect(flatFloor, o.name).toBe(false);
+    });
     env.dispose();
-    env.dispose();
-    expect(disposed).toHaveBeenCalledTimes(1);
   });
 
   it('gives the squid animated arms with finite geometry', () => {
