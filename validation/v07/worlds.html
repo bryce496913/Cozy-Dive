@@ -22,7 +22,6 @@
       // The game installs its water fog shader before anything compiles (Application).
       installDeepFog();
       import { ASSET_REGISTRY } from '/src/assets/AssetRegistry.ts';
-      import { PROCEDURAL_ASSETS } from '/src/assets/ProceduralAssets.ts';
       import { KelpForestScene } from '/src/rendering/KelpForestScene.ts';
       import { SeaCaveScene } from '/src/rendering/SeaCaveScene.ts';
       import { UnderIceScene } from '/src/rendering/UnderIceScene.ts';
@@ -130,7 +129,6 @@
             });
             rows.push({
               id,
-              procedural: !!PROCEDURAL_ASSETS[id],
               meshes,
               triangles,
               lodTriangles,

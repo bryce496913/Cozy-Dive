@@ -44,6 +44,18 @@
         'sunfish',
         'humpbackWhale',
       ];
+      const MAMMALS = [
+        'killerWhale',
+        'minkeWhale',
+        'leopardSeal',
+        'harbourSeal',
+        'seaLion',
+        'polarBear',
+        'seaOtter',
+        'emperorPenguin',
+        'adeliePenguin',
+        'westernGull',
+      ];
       const FISHES = [
         'chromis',
         'clownfish',
@@ -64,9 +76,10 @@
         'sheephead',
         'trevally',
       ];
-      const FISH = query.get('set') === 'creatures' ? CREATURES : FISHES;
+      const SETS = { creatures: CREATURES, mammals: MAMMALS };
+      const FISH = SETS[query.get('set')] ?? FISHES;
       const stroke = Number(query.get('stroke') ?? 0);
-      const cols = FISH === CREATURES ? 5 : 6,
+      const cols = FISH === FISHES ? 6 : 5,
         rows = Math.ceil(FISH.length / cols),
         cell = 2.2;
       const width = innerWidth,
@@ -92,9 +105,10 @@
         0.1,
         100,
       );
-      camera.top = (rows * cell) / 2;
-      camera.bottom = -camera.top;
       const aspect = width / height;
+      // Fit both the rows and the columns.
+      camera.top = Math.max(rows * cell, (cols * cell) / aspect) / 2;
+      camera.bottom = -camera.top;
       camera.left = -camera.top * aspect;
       camera.right = camera.top * aspect;
       camera.updateProjectionMatrix();
