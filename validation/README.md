@@ -276,3 +276,7 @@ Run alone, after CPU checks. The harness restores twenty valid decorations from 
 ## Shipwreck route and partial loading
 
 `wreck-route.mjs` travels from the office through the normal crevice, outer tunnel, kelp sinkhole, ship deck, hold and bridge, then reverses the passages three times and surfaces. It uses input-driven movement, collision probes, discovery/animation checks, pause/resume, darkness traces and post-release resource counts. `wreck-failure.mjs` tests a real HTTP asset failure in an independently built shipwreck scene. See [the review and exact commands](../docs/WRECK_ROUTE_REVIEW.md) for rendering cadence, measurement limitations and results.
+
+## V0.7 visual baseline (Pass 061)
+
+`validation/v07/baseline.mjs` captures seven fixed tank benchmark views (plus three outer reef views with `COZY_OUTER=1`) from the real game with a fixed simulation clock. `validation/v07/worlds.mjs` captures the kelp, cave, ice and wreck worlds in isolation through the dev-only `validation/v07/worlds.html` and records an inventory of every registered model. Repeat runs are pixel-identical; compare the `hash` fields. See `docs/V07_VISUAL_BASELINE.md` for the views, the baseline numbers and the workflow.

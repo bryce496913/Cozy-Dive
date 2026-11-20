@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Cozy Diver — V0.7 world baseline (dev only)</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #000;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="c"></canvas>
+    <script type="module">
+      // V0.7 Pass 061: builds one world at a time on its own (no passages, no tour), renders fixed
+      // views on a fixed simulation clock, and reports renderer statistics. Dev server only.
+      import * as THREE from 'three';
+      import { AssetLoader } from '/src/assets/AssetLoader.ts';
+      import { ASSET_REGISTRY } from '/src/assets/AssetRegistry.ts';
+      import { PROCEDURAL_ASSETS } from '/src/assets/ProceduralAssets.ts';
+      import { KelpForestScene } from '/src/rendering/KelpForestScene.ts';
+      import { SeaCaveScene } from '/src/rendering/SeaCaveScene.ts';
+      import { UnderIceScene } from '/src/rendering/UnderIceScene.ts';
+      import { ShipwreckScene } from '/src/rendering/ShipwreckScene.ts';
+
+      const params = new URLSearchParams(location.search),
+        [width, height] = (params.get('size') || '960x600')
+          .split('x')
+          .map(Number),
+        canvas = document.getElementById('c'),
+        renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+      renderer.setPixelRatio(1);
+      renderer.setSize(width, height, false);
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      const fish = new AssetLoader(undefined, undefined, renderer),
+        player = {
+          active: false,
+          position: { x: 0, y: 0, z: 0 },
+          velocity: { x: 0, y: 0, z: 0 },
+        },
+        libraries = { fish, soundSpots: 0 };
+      const builders = {
+        kelp: () => KelpForestScene.build(renderer, libraries),
+        cave: () => SeaCaveScene.build(renderer, libraries),
+        ice: () => UnderIceScene.build(renderer, libraries),
+        wreck: () => ShipwreckScene.build(renderer, libraries),
+      };
+      let scene,
+        time = 0;
+      window.openWorld = async (id) => {
+        scene?.dispose();
+        time = 0;
+        scene = await builders[id]();
+        await scene.prepared;
+        return true;
+      };
+      /** Place the camera, run `steps` fixed 1/15 s frames, return renderer statistics. */
+      window.view = (eye, target, steps = 45) => {
+        const cam = scene.camera;
+        cam.position.set(...eye);
+        cam.lookAt(...target);
+        cam.rotation.reorder('YXZ');
+        for (let i = 0; i < steps; i++) {
+          time += 1 / 15;
+          player.position = { x: eye[0], y: eye[1], z: eye[2] };
+          scene.render(time, false, 1 / 15, true, player);
+        }
+        const i = renderer.info;
+        return {
+          calls: i.render.calls,
+          triangles: i.render.triangles,
+          geometries: i.memory.geometries,
+          textures: i.memory.textures,
+          programs: i.programs?.length ?? null,
+        };
+      };
+      /** Every registered model: geometry, materials and textures as decoded (or built). */
+      window.inventory = async () => {
+        const rows = [];
+        for (const id of Object.keys(ASSET_REGISTRY)) {
+          try {
+            const lease = await fish.acquire(id),
+              materials = new Set(),
+              textures = new Map();
+            let triangles = 0,
+              meshes = 0,
+              morphs = 0,
+              skinned = 0,
+              lodTriangles = 0;
+            lease.model.traverse((o) => {
+              if (
+                !o.isMesh ||
+                o.name.startsWith('COLLIDER_') ||
+                o.name.startsWith('DYNAMIC_')
+              )
+                return;
+              const g = o.geometry,
+                t =
+                  (g.index ? g.index.count : g.getAttribute('position').count) /
+                  3;
+              if (/_LOD\d/.test(o.name)) lodTriangles += t;
+              else triangles += t;
+              meshes++;
+              if (g.morphAttributes.position?.length)
+                morphs = Math.max(morphs, g.morphAttributes.position.length);
+              if (o.isSkinnedMesh) skinned++;
+              for (const m of [].concat(o.material)) {
+                materials.add(m);
+                for (const k of [
+                  'map',
+                  'normalMap',
+                  'roughnessMap',
+                  'metalnessMap',
+                  'aoMap',
+                  'emissiveMap',
+                  'alphaMap',
+                ])
+                  if (m[k]?.image)
+                    textures.set(
+                      m[k],
+                      Math.max(m[k].image.width || 0, m[k].image.height || 0),
+                    );
+              }
+            });
+            rows.push({
+              id,
+              procedural: !!PROCEDURAL_ASSETS[id],
+              meshes,
+              triangles,
+              lodTriangles,
+              materials: materials.size,
+              textures: textures.size,
+              maxTexture: Math.max(0, ...textures.values()),
+              morphs,
+              skinned,
+            });
+            lease.release();
+          } catch (e) {
+            rows.push({ id, error: String(e.message || e) });
+          }
+        }
+        return rows;
+      };
+      window.ready = true;
+    </script>
+  </body>
+</html>
