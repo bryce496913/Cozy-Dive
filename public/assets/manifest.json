@@ -577,153 +577,153 @@
   {
     "id": "cardinalfish",
     "file": "assets/models/fish/cardinalfish.glb",
-    "sha256": "a37e31117d8b05a99ceb4cb94be6df4f011507099e408c16e0ddb4d2bddcad21",
+    "sha256": "bfb7cb91bec920f005c9c0cd869bc99c56d9c9baaea66e31fcfd011c8f526283",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 613300,
-    "visualPrimitives": 14,
-    "visualTriangles": 14449,
+    "bytes": 696584,
+    "visualPrimitives": 12,
+    "visualTriangles": 13159,
     "collisionTriangles": 0,
-    "materials": 5,
+    "materials": 4,
     "images": [
       {
-        "name": "chromis-normal",
+        "name": "p065-cardinalfish-skin-normal",
         "width": 512,
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 146091
+        "encodedBytes": 196539
       },
       {
-        "name": "fish-scales-base",
+        "name": "p065-cardinalfish-skin-base",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 24177
+        "encodedBytes": 33005
       },
       {
-        "name": "chromis-orm",
+        "name": "p065-cardinalfish-skin-orm",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 30157
+        "encodedBytes": 30028
       },
       {
-        "name": "fin-rays",
+        "name": "p065-cardinalfish-fin-fins",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 45279
+        "encodedBytes": 37039
       }
     ],
-    "geometryAccessorBytes": 171360,
-    "animations": [],
+    "geometryAccessorBytes": 261084,
+    "animations": ["SwimPreview"],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium reef fish (Pass 016)"
   },
   {
     "id": "firefish",
     "file": "assets/models/fish/firefish.glb",
-    "sha256": "8658154ef7f6acd068bc3a2153c6ba4f799d6f9199c8bfdb716549d2d92a4db4",
+    "sha256": "d9b5ca3d3fb5c92197e6ba4294b44e72effd86bde710d1b4333e1b0cde091074",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 609116,
-    "visualPrimitives": 14,
-    "visualTriangles": 14448,
+    "bytes": 699652,
+    "visualPrimitives": 12,
+    "visualTriangles": 13160,
     "collisionTriangles": 0,
-    "materials": 5,
+    "materials": 4,
     "images": [
       {
-        "name": "chromis-normal",
+        "name": "p065-firefish-skin-normal",
         "width": 512,
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 146091
+        "encodedBytes": 198233
       },
       {
-        "name": "fish-scales-base",
+        "name": "p065-firefish-skin-base",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 24177
+        "encodedBytes": 37225
       },
       {
-        "name": "chromis-orm",
+        "name": "p065-firefish-skin-orm",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 30157
+        "encodedBytes": 34104
       },
       {
-        "name": "fin-rays",
+        "name": "p065-firefish-fin-fins",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 45279
+        "encodedBytes": 34270
       }
     ],
-    "geometryAccessorBytes": 171288,
-    "animations": [],
+    "geometryAccessorBytes": 260556,
+    "animations": ["SwimPreview"],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium reef fish (Pass 016)"
   },
   {
     "id": "assessor",
     "file": "assets/models/fish/assessor.glb",
-    "sha256": "99aedee8301cd7507774b9325345e5d481ef75eda28b422f8355fafe4acdab5e",
+    "sha256": "3d6d9236878ebff75d82735e17fe4725fab4f0b859472c9c753540710458db7c",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 609652,
-    "visualPrimitives": 14,
-    "visualTriangles": 14448,
+    "bytes": 692540,
+    "visualPrimitives": 12,
+    "visualTriangles": 13159,
     "collisionTriangles": 0,
-    "materials": 5,
+    "materials": 4,
     "images": [
       {
-        "name": "chromis-normal",
+        "name": "p065-assessor-skin-normal",
         "width": 512,
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 146091
+        "encodedBytes": 198235
       },
       {
-        "name": "fish-scales-base",
+        "name": "p065-assessor-skin-base",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 24177
+        "encodedBytes": 28234
       },
       {
-        "name": "chromis-orm",
+        "name": "p065-assessor-skin-orm",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 30157
+        "encodedBytes": 31230
       },
       {
-        "name": "fin-rays",
+        "name": "p065-assessor-fin-fins",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 45279
+        "encodedBytes": 36227
       }
     ],
-    "geometryAccessorBytes": 171312,
-    "animations": [],
+    "geometryAccessorBytes": 261084,
+    "animations": ["SwimPreview"],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium reef fish (Pass 016)"
   },
@@ -1211,357 +1211,357 @@
   {
     "id": "bluetang",
     "file": "assets/models/fish/bluetang.glb",
-    "sha256": "b5683b17d2a8dfa5c93eeead1135893178f3676469024adcae1a5b7f02de3740",
+    "sha256": "c63fb7f1b03f5cf117615e401f8281c1ca408a63a2e9a25dc2241e4ef2f76312",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 613176,
-    "visualPrimitives": 14,
-    "visualTriangles": 14449,
+    "bytes": 682616,
+    "visualPrimitives": 12,
+    "visualTriangles": 13159,
     "collisionTriangles": 0,
-    "materials": 5,
+    "materials": 4,
     "images": [
       {
-        "name": "chromis-normal",
+        "name": "p065-bluetang-skin-normal",
         "width": 512,
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 146091
+        "encodedBytes": 200056
       },
       {
-        "name": "fish-scales-base",
+        "name": "p065-bluetang-skin-base",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 24177
+        "encodedBytes": 20121
       },
       {
-        "name": "chromis-orm",
+        "name": "p065-bluetang-skin-orm",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 30157
+        "encodedBytes": 30571
       },
       {
-        "name": "fin-rays",
+        "name": "p065-bluetang-fin-fins",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 45279
+        "encodedBytes": 32714
       }
     ],
-    "geometryAccessorBytes": 171384,
-    "animations": [],
+    "geometryAccessorBytes": 261180,
+    "animations": ["SwimPreview"],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
   },
   {
     "id": "butterflyfish",
     "file": "assets/models/fish/butterflyfish.glb",
-    "sha256": "d167bbb8c693cf71ecc3b1c1f6eec305c126412e22ca6df2a121262996e4a2b8",
+    "sha256": "01ccefe157d1ce57f163ae0325e4843e59b55171278ba7ac319c12924de71bd1",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 621404,
-    "visualPrimitives": 14,
-    "visualTriangles": 14450,
+    "bytes": 695216,
+    "visualPrimitives": 12,
+    "visualTriangles": 13160,
     "collisionTriangles": 0,
-    "materials": 5,
+    "materials": 4,
     "images": [
       {
-        "name": "chromis-normal",
+        "name": "p065-butterflyfish-skin-normal",
         "width": 512,
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 146091
+        "encodedBytes": 197226
       },
       {
-        "name": "fish-scales-base",
+        "name": "p065-butterflyfish-skin-base",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 24177
+        "encodedBytes": 32878
       },
       {
-        "name": "chromis-orm",
+        "name": "p065-butterflyfish-skin-orm",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 30157
+        "encodedBytes": 29609
       },
       {
-        "name": "fin-rays",
+        "name": "p065-butterflyfish-fin-fins",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 45279
+        "encodedBytes": 34957
       }
     ],
-    "geometryAccessorBytes": 171576,
-    "animations": [],
+    "geometryAccessorBytes": 261276,
+    "animations": ["SwimPreview"],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
   },
   {
     "id": "idol",
     "file": "assets/models/fish/idol.glb",
-    "sha256": "2c0ba88dae885fcc7b05b3cb4707deb10b0baba0591ba8ccdb3416577f47b6f9",
+    "sha256": "56f9ade1c4a1c60a663f7c06eff76e501247e59fc73bb0014fb6472624a9b8a1",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 616860,
-    "visualPrimitives": 14,
-    "visualTriangles": 14448,
+    "bytes": 688044,
+    "visualPrimitives": 12,
+    "visualTriangles": 13160,
     "collisionTriangles": 0,
-    "materials": 5,
+    "materials": 4,
     "images": [
       {
-        "name": "chromis-normal",
+        "name": "p065-idol-skin-normal",
         "width": 512,
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 146091
+        "encodedBytes": 198298
       },
       {
-        "name": "fish-scales-base",
+        "name": "p065-idol-skin-base",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 24177
+        "encodedBytes": 26001
       },
       {
-        "name": "chromis-orm",
+        "name": "p065-idol-skin-orm",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 30157
+        "encodedBytes": 29546
       },
       {
-        "name": "fin-rays",
+        "name": "p065-idol-fin-fins",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 45279
+        "encodedBytes": 33813
       }
     ],
-    "geometryAccessorBytes": 171648,
-    "animations": [],
+    "geometryAccessorBytes": 261420,
+    "animations": ["SwimPreview"],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
   },
   {
     "id": "bannerfish",
     "file": "assets/models/fish/bannerfish.glb",
-    "sha256": "41912a54e7e5c8dabe362a1b6f1789aa570be1b9a5f7f9e9895c0dfc57244a10",
+    "sha256": "65100e03e8996eeaf5314a72d422fbfda0b881f2232ee83dafbcff157e78b488",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 612692,
-    "visualPrimitives": 14,
-    "visualTriangles": 14448,
+    "bytes": 691948,
+    "visualPrimitives": 12,
+    "visualTriangles": 13160,
     "collisionTriangles": 0,
-    "materials": 5,
+    "materials": 4,
     "images": [
       {
-        "name": "chromis-normal",
+        "name": "p065-bannerfish-skin-normal",
         "width": 512,
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 146091
+        "encodedBytes": 197944
       },
       {
-        "name": "fish-scales-base",
+        "name": "p065-bannerfish-skin-base",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 24177
+        "encodedBytes": 27795
       },
       {
-        "name": "chromis-orm",
+        "name": "p065-bannerfish-skin-orm",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 30157
+        "encodedBytes": 29543
       },
       {
-        "name": "fin-rays",
+        "name": "p065-bannerfish-fin-fins",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 45279
+        "encodedBytes": 36333
       }
     ],
-    "geometryAccessorBytes": 171624,
-    "animations": [],
+    "geometryAccessorBytes": 261276,
+    "animations": ["SwimPreview"],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
   },
   {
     "id": "parrotfish",
     "file": "assets/models/fish/parrotfish.glb",
-    "sha256": "f6538aa67c81640edb8f3b8ae6e0279432d2da4439c34b14223f29d13782352b",
+    "sha256": "3c452b119e47be628337d932aee03f83e8f83cda0bb77bfa1945d189a118efe8",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 620728,
-    "visualPrimitives": 14,
-    "visualTriangles": 14450,
+    "bytes": 699080,
+    "visualPrimitives": 12,
+    "visualTriangles": 13160,
     "collisionTriangles": 0,
-    "materials": 5,
+    "materials": 4,
     "images": [
       {
-        "name": "chromis-normal",
+        "name": "p065-parrotfish-skin-normal",
         "width": 512,
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 146091
+        "encodedBytes": 208431
       },
       {
-        "name": "fish-scales-base",
+        "name": "p065-parrotfish-skin-base",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 24177
+        "encodedBytes": 25088
       },
       {
-        "name": "chromis-orm",
+        "name": "p065-parrotfish-skin-orm",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 30157
+        "encodedBytes": 33209
       },
       {
-        "name": "fin-rays",
+        "name": "p065-parrotfish-fin-fins",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 45279
+        "encodedBytes": 34328
       }
     ],
-    "geometryAccessorBytes": 171072,
-    "animations": [],
+    "geometryAccessorBytes": 261276,
+    "animations": ["SwimPreview"],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
   },
   {
     "id": "trevally",
     "file": "assets/models/fish/trevally.glb",
-    "sha256": "b37f365a0e77b1f0a274e1e14644aae1cee8de433f0605bd3e18530cdf115ca8",
+    "sha256": "cfc5b8ac9582c916d1e7c6ac9df1bbe3f8f32ef5d36144ef364d9f1eefd320c7",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 612732,
-    "visualPrimitives": 14,
-    "visualTriangles": 14448,
+    "bytes": 709608,
+    "visualPrimitives": 12,
+    "visualTriangles": 13159,
     "collisionTriangles": 0,
-    "materials": 5,
+    "materials": 4,
     "images": [
       {
-        "name": "chromis-normal",
+        "name": "p065-trevally-skin-normal",
         "width": 512,
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 146091
+        "encodedBytes": 198812
       },
       {
-        "name": "fish-scales-base",
+        "name": "p065-trevally-skin-base",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 24177
+        "encodedBytes": 45802
       },
       {
-        "name": "chromis-orm",
+        "name": "p065-trevally-skin-orm",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 30157
+        "encodedBytes": 31377
       },
       {
-        "name": "fin-rays",
+        "name": "p065-trevally-fin-fins",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 45279
+        "encodedBytes": 35429
       }
     ],
-    "geometryAccessorBytes": 171120,
-    "animations": [],
+    "geometryAccessorBytes": 261180,
+    "animations": ["SwimPreview"],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
   },
   {
     "id": "napoleon",
     "file": "assets/models/fish/napoleon.glb",
-    "sha256": "dd6344e19205c511800590a144837d775476846d83926b310fbc8dad31079d9d",
+    "sha256": "7f1fd5c08e1d4e62fefbb01f71baad043f430f0db06f696a057c8eaa36391128",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 617784,
-    "visualPrimitives": 14,
-    "visualTriangles": 14448,
+    "bytes": 707532,
+    "visualPrimitives": 12,
+    "visualTriangles": 13160,
     "collisionTriangles": 0,
-    "materials": 5,
+    "materials": 4,
     "images": [
       {
-        "name": "chromis-normal",
+        "name": "p065-napoleon-skin-normal",
         "width": 512,
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 146091
+        "encodedBytes": 214466
       },
       {
-        "name": "fish-scales-base",
+        "name": "p065-napoleon-skin-base",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 24177
+        "encodedBytes": 25856
       },
       {
-        "name": "chromis-orm",
+        "name": "p065-napoleon-skin-orm",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 30157
+        "encodedBytes": 33797
       },
       {
-        "name": "fin-rays",
+        "name": "p065-napoleon-fin-fins",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 45279
+        "encodedBytes": 34609
       }
     ],
-    "geometryAccessorBytes": 171144,
-    "animations": [],
+    "geometryAccessorBytes": 261516,
+    "animations": ["SwimPreview"],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
   },
@@ -1826,102 +1826,102 @@
   {
     "id": "seabass",
     "file": "assets/models/fish/seabass.glb",
-    "sha256": "0ac30b30b7813d07d87d3bac7b6492b14c47ee05f33ae8f15f8a59ad63423517",
+    "sha256": "edc3f6ca5c27fe434a55a0798447c942639dfb079130553233bea0aeb486a5d1",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 613616,
-    "visualPrimitives": 14,
-    "visualTriangles": 14450,
+    "bytes": 732200,
+    "visualPrimitives": 12,
+    "visualTriangles": 13160,
     "collisionTriangles": 0,
-    "materials": 5,
+    "materials": 4,
     "images": [
       {
-        "name": "chromis-normal",
+        "name": "p065-seabass-skin-normal",
         "width": 512,
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 146091
+        "encodedBytes": 212752
       },
       {
-        "name": "fish-scales-base",
+        "name": "p065-seabass-skin-base",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 24177
+        "encodedBytes": 52213
       },
       {
-        "name": "chromis-orm",
+        "name": "p065-seabass-skin-orm",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 30157
+        "encodedBytes": 34649
       },
       {
-        "name": "fin-rays",
+        "name": "p065-seabass-fin-fins",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 45279
+        "encodedBytes": 34742
       }
     ],
-    "geometryAccessorBytes": 171048,
-    "animations": [],
+    "geometryAccessorBytes": 261420,
+    "animations": ["SwimPreview"],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
   },
   {
     "id": "sheephead",
     "file": "assets/models/fish/sheephead.glb",
-    "sha256": "0105304faa64d56fa3334d7f4427c60b2a5c5e1d0278fcc8397dfee88da6b53c",
+    "sha256": "415ea51aedc5b7c3d2b709213a480c26e2e53e61a8d45193212db091f1fc2b90",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 603056,
-    "visualPrimitives": 14,
-    "visualTriangles": 14449,
+    "bytes": 677392,
+    "visualPrimitives": 12,
+    "visualTriangles": 13159,
     "collisionTriangles": 0,
-    "materials": 5,
+    "materials": 4,
     "images": [
       {
-        "name": "chromis-normal",
+        "name": "p065-sheephead-skin-normal",
         "width": 512,
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 146091
+        "encodedBytes": 195539
       },
       {
-        "name": "fish-scales-base",
+        "name": "p065-sheephead-skin-base",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 24177
+        "encodedBytes": 19889
       },
       {
-        "name": "chromis-orm",
+        "name": "p065-sheephead-skin-orm",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 30157
+        "encodedBytes": 30797
       },
       {
-        "name": "fin-rays",
+        "name": "p065-sheephead-fin-fins",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 45279
+        "encodedBytes": 32851
       }
     ],
-    "geometryAccessorBytes": 171072,
-    "animations": [],
+    "geometryAccessorBytes": 261228,
+    "animations": ["SwimPreview"],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
   },
@@ -2057,102 +2057,102 @@
   {
     "id": "icefish",
     "file": "assets/models/fish/icefish.glb",
-    "sha256": "e693c7f49a93bb5f2ae4044b03e485aa89b99c35b9fa93e9abddf5c95838aff3",
+    "sha256": "5c29b0ae759f90a26797cb2bde56cbeaac8f4ea096887f9469a39e6c2754bc1a",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 604400,
-    "visualPrimitives": 14,
-    "visualTriangles": 14448,
+    "bytes": 692940,
+    "visualPrimitives": 12,
+    "visualTriangles": 13159,
     "collisionTriangles": 0,
-    "materials": 5,
+    "materials": 4,
     "images": [
       {
-        "name": "chromis-normal",
+        "name": "p065-icefish-skin-normal",
         "width": 512,
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 146091
+        "encodedBytes": 189601
       },
       {
-        "name": "fish-scales-base",
+        "name": "p065-icefish-skin-base",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 24177
+        "encodedBytes": 36701
       },
       {
-        "name": "chromis-orm",
+        "name": "p065-icefish-skin-orm",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 30157
+        "encodedBytes": 33720
       },
       {
-        "name": "fin-rays",
+        "name": "p065-icefish-fin-fins",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 45279
+        "encodedBytes": 36862
       }
     ],
-    "geometryAccessorBytes": 170928,
-    "animations": [],
+    "geometryAccessorBytes": 260796,
+    "animations": ["SwimPreview"],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
   },
   {
     "id": "notothen",
     "file": "assets/models/fish/notothen.glb",
-    "sha256": "f260e5634824c89a1158313675c381d3dac99e765fe081d20f618a75cdd0ba61",
+    "sha256": "94b9d9a1afe1d09f3d1c6a68742c41e9e2aa0261768c2f64fbcb3826cfb20c7f",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 613920,
-    "visualPrimitives": 14,
-    "visualTriangles": 14448,
+    "bytes": 711364,
+    "visualPrimitives": 12,
+    "visualTriangles": 13160,
     "collisionTriangles": 0,
-    "materials": 5,
+    "materials": 4,
     "images": [
       {
-        "name": "chromis-normal",
+        "name": "p065-notothen-skin-normal",
         "width": 512,
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 146091
+        "encodedBytes": 200101
       },
       {
-        "name": "fish-scales-base",
+        "name": "p065-notothen-skin-base",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 24177
+        "encodedBytes": 44957
       },
       {
-        "name": "chromis-orm",
+        "name": "p065-notothen-skin-orm",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 30157
+        "encodedBytes": 32360
       },
       {
-        "name": "fin-rays",
+        "name": "p065-notothen-fin-fins",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 45279
+        "encodedBytes": 36753
       }
     ],
-    "geometryAccessorBytes": 170952,
-    "animations": [],
+    "geometryAccessorBytes": 260604,
+    "animations": ["SwimPreview"],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
   },
@@ -2331,51 +2331,51 @@
   {
     "id": "toothfish",
     "file": "assets/models/fish/toothfish.glb",
-    "sha256": "7c77bc17f227e6e9121d6d23c0b76a261271db7d8800ec023774d851ffc2cbdf",
+    "sha256": "4b1f698f7c1255af3d2f02f1b68fda5cf765eb99311cad3d8323a55f7bf66b0d",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 614480,
-    "visualPrimitives": 14,
-    "visualTriangles": 14447,
+    "bytes": 707504,
+    "visualPrimitives": 12,
+    "visualTriangles": 13159,
     "collisionTriangles": 0,
-    "materials": 5,
+    "materials": 4,
     "images": [
       {
-        "name": "chromis-normal",
+        "name": "p065-toothfish-skin-normal",
         "width": 512,
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 146091
+        "encodedBytes": 201208
       },
       {
-        "name": "fish-scales-base",
+        "name": "p065-toothfish-skin-base",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 24177
+        "encodedBytes": 40663
       },
       {
-        "name": "chromis-orm",
+        "name": "p065-toothfish-skin-orm",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 30157
+        "encodedBytes": 32996
       },
       {
-        "name": "fin-rays",
+        "name": "p065-toothfish-fin-fins",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 45279
+        "encodedBytes": 35322
       }
     ],
-    "geometryAccessorBytes": 170928,
-    "animations": [],
+    "geometryAccessorBytes": 261180,
+    "animations": ["SwimPreview"],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
   }
