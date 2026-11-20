@@ -12,9 +12,12 @@ import { AQUARIUM } from '../config/world';
 export const OUTLOOK = {
   /** Mip level sampled (the capture is 128 px per face: level 1.2 is roughly 55 px). */
   blur: 1.2,
-  /** How far the view is drawn towards the water colour, and dimmed. */
-  tint: 0.28,
-  light: 0.9,
+  /**
+   * How far the view is drawn towards the water colour, and dimmed. V0.7 Pass 064: 0.28 / 0.9
+   * let the pale office wash the tank out (Pass 061 audit's milky haze); the room still shows.
+   */
+  tint: 0.5,
+  light: 0.78,
   water: 0x2b6f83,
   /** Just outside the glass (aquarium units). */
   margin: 0.04,

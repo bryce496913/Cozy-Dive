@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { WATER_PROFILES } from '../config/waterProfiles';
+import { createLightRig } from './atmosphere/lightRig';
 import type { AssetLoader } from '../assets/AssetLoader';
 import { ICE, ICE_FRAME } from '../config/passage';
 import type { Bounds, Vec3 } from '../config/world';
@@ -130,8 +132,9 @@ export class UnderIceScene implements WaterWorld {
     this.environment = parts.environment;
     this.extras = parts.extras;
     this.scene.name = 'Under the ice';
-    this.scene.background = new THREE.Color(ICE.water);
-    this.scene.fog = new THREE.FogExp2(ICE.water, ICE.fog);
+    const profile = WATER_PROFILES.ice;
+    this.scene.background = new THREE.Color(profile.water);
+    this.scene.fog = new THREE.FogExp2(profile.water, profile.fogDensity);
     this.garden = parts.garden;
     this.scene.add(
       this.environment.root,
@@ -142,11 +145,7 @@ export class UnderIceScene implements WaterWorld {
     this.sightings.push(...this.extras.sightings);
     // The same kinds and number of lights as the tank: a cold sky light (the ice glowing above,
     // the seabed dark below), the sun low and pale through the ice, and a blue fill.
-    const sky = new THREE.HemisphereLight(0xdff2ff, 0x2a3442, 1.25),
-      sun = new THREE.DirectionalLight(0xf2f6ff, 1.5),
-      fill = new THREE.DirectionalLight(0x6fa8d8, 0.45);
-    sun.position.set(-10, 60, -20);
-    fill.position.set(20, 10, 30);
+    const { sky, sun, fill } = createLightRig(profile);
     this.lights.push(sky, sun, fill);
     this.scene.add(sky, sun, fill);
     this.world = new TerrainCollisionWorld(

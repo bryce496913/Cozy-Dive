@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { WATER_PROFILES } from '../config/waterProfiles';
+import { createLightRig } from './atmosphere/lightRig';
 import type { AssetLoader } from '../assets/AssetLoader';
 import { CAVE, CAVE_FRAME } from '../config/passage';
 import type { Bounds, Vec3 } from '../config/world';
@@ -159,8 +161,9 @@ export class SeaCaveScene implements WaterWorld {
   ) {
     this.environment = parts.environment;
     this.scene.name = 'Sea cave';
-    this.scene.background = new THREE.Color(CAVE.water);
-    this.scene.fog = new THREE.FogExp2(CAVE.water, CAVE.fog);
+    const profile = WATER_PROFILES.cave;
+    this.scene.background = new THREE.Color(profile.water);
+    this.scene.fog = new THREE.FogExp2(profile.water, profile.fogDensity);
     this.lobsters = parts.lobsters;
     this.crabs = parts.crabs;
     this.dressing = parts.dressing;
@@ -173,11 +176,7 @@ export class SeaCaveScene implements WaterWorld {
     );
     // The same kinds and number of lights as the tank, so most programs are shared with it: a
     // sky light (its ground colour lighting the rock roof from below, so the roof reads), the sun from above through the roof, and a cool fill.
-    const sky = new THREE.HemisphereLight(0x8fc4c4, 0x6a6452, 1.1),
-      sun = new THREE.DirectionalLight(0xfff0cf, 1.7),
-      fill = new THREE.DirectionalLight(0x6aaabb, 0.35);
-    sun.position.set(CAVE.skylight.x + 6, 60, CAVE.skylight.z - 4);
-    fill.position.set(-20, 10, 30);
+    const { sky, sun, fill } = createLightRig(profile);
     this.lights.push(sky, sun, fill);
     this.scene.add(sky, sun, fill);
     this.nooks = caveNooks(this.environment.skylightTop);

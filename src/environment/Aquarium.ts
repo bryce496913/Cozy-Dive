@@ -9,6 +9,8 @@ import type { HabitatInterest } from '../fish/FishHabitat';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
 import * as THREE from 'three';
 import { AQUARIUM } from '../config/world';
+import { WATER_PROFILES } from '../config/waterProfiles';
+import { beamGeometry, beamMaterial } from './shared/LightBeam';
 import { CollisionWorld, type ConvexCollider } from '../player/collision';
 import { rockCollider } from './rockCollider';
 import { Crevice } from './passage/Crevice';
@@ -221,22 +223,28 @@ export class Aquarium {
     );
     this.root.add(this.motes);
     this.beams = new THREE.Group();
-    const beamMaterial = new THREE.MeshBasicMaterial({
-      color: 0xc7efce,
-      transparent: true,
-      opacity: 0.025,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-      blending: THREE.AdditiveBlending,
-    });
-    for (let i = 0; i < 7; i++) {
-      const beam = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.18, 1.4, 15, 12, 1, true),
-        beamMaterial,
-      );
-      beam.position.set(-12 + i * 4, 7, -6 + (i % 3) * 3);
-      beam.rotation.z = -0.23;
-      this.beams.add(beam);
+    this.beams.name = 'Tank light shafts';
+    // V0.7 Pass 064: soft layered beams (bright under the surface, fading with depth, soft edges)
+    // replace the flat uniform cylinders, which read as sheets.
+    const shafts = WATER_PROFILES.tank.shafts;
+    if (shafts) {
+      const geometry = beamGeometry({
+        length: AQUARIUM.max.y - 0.4,
+        topRadius: 0.45,
+        bottomRadius: 1.7,
+        intensity: shafts.intensity,
+        tint: shafts.tint,
+        topFade: 0.12,
+      });
+      const material = beamMaterial('Tank light shaft');
+      for (let i = 0; i < 7; i++) {
+        const beam = new THREE.Mesh(geometry, material);
+        beam.name = `Tank light shaft ${i}`;
+        beam.position.set(-12 + i * 4, AQUARIUM.max.y - 0.2, -6 + (i % 3) * 3);
+        beam.rotation.z = -0.23;
+        beam.renderOrder = 2;
+        this.beams.add(beam);
+      }
     }
     this.root.add(this.beams);
     for (const rock of this.rockColliders) {

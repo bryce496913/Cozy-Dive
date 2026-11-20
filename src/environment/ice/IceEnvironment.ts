@@ -1,5 +1,7 @@
 import { HabitatSurface } from '../shared/HabitatSurface';
 import * as THREE from 'three';
+import { WATER_PROFILES } from '../../config/waterProfiles';
+import { beamGeometry, beamMaterial } from '../shared/LightBeam';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { ICE, ICE_FRAME } from '../../config/passage';
 import type { ConvexCollider } from '../../player/collision';
@@ -141,17 +143,9 @@ export class IceEnvironment {
         roughness: 0.95,
       }),
     );
-    this.shafts = this.own(
-      new THREE.MeshBasicMaterial({
-        name: 'Ice light',
-        color: 0xd6efff,
-        transparent: true,
-        opacity: 0.11,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-        side: THREE.DoubleSide,
-      }),
-    );
+    // V0.7 Pass 064: soft layered beams (vertex-coloured, additive, fading with depth) replace
+    // the hard-edged uniform cones, whose base read as a disc on the seabed.
+    this.shafts = this.own(beamMaterial('Ice light'));
     const sky = this.own(
       new THREE.MeshBasicMaterial({
         name: 'Ice daylight',
@@ -417,16 +411,22 @@ export class IceEnvironment {
       this.add(day, sky, 'Breathing hole daylight');
       const floor = iceFloor(h.x, h.z),
         height = top - floor;
-      const shaft = new THREE.CylinderGeometry(
-        h.r * 0.95,
-        h.r * 2.3,
-        height,
-        24,
-        1,
-        true,
-      );
-      shaft.translate(h.x - 0.6, floor + height / 2, h.z + 0.4);
-      this.add(shaft, this.shafts, 'Breathing hole light');
+      const spec = WATER_PROFILES.ice.shafts;
+      if (spec) {
+        const shaft = beamGeometry({
+          length: height + 0.6,
+          topRadius: h.r * 0.95,
+          bottomRadius: h.r * 2.3,
+          intensity: spec.intensity,
+          tint: spec.tint,
+          topFade: 0.08,
+        });
+        // A slight lean along the light, as before (bottom 0.6 m west, 0.4 m south).
+        shaft.rotateX(Math.atan2(-0.4, height));
+        shaft.rotateZ(Math.atan2(-0.6, height));
+        shaft.translate(h.x, top + 0.3, h.z);
+        this.add(shaft, this.shafts, 'Breathing hole light').renderOrder = 2;
+      }
     }
     const merged = mergeGeometries(blocks, false);
     blocks.forEach((g) => g.dispose());
@@ -484,7 +484,7 @@ export class IceEnvironment {
   update(dt: number, active: boolean, reducedMotion: boolean): void {
     if (this.disposed || !active || reducedMotion || !(dt > 0)) return;
     this.time += Math.min(dt, 0.1);
-    this.shafts.opacity = 0.1 + 0.025 * Math.sin(this.time * 0.5);
+    this.shafts.opacity = 0.88 + 0.12 * Math.sin(this.time * 0.5);
   }
   dispose(): void {
     if (this.disposed) return;

@@ -1,6 +1,9 @@
 import * as THREE from 'three';
+import { WATER_PROFILES } from '../config/waterProfiles';
+import { createLightRig } from './atmosphere/lightRig';
+import { advanceCaustics } from './atmosphere/Caustics';
 import type { AssetLoader } from '../assets/AssetLoader';
-import { GROTTO, KELP, KELP_FRAME } from '../config/passage';
+import { GROTTO, KELP_FRAME } from '../config/passage';
 import type { Bounds, Vec3 } from '../config/world';
 import type { SightCandidate } from '../discovery/journal';
 import { KELP_SIGHTS } from '../discovery/sights';
@@ -157,8 +160,9 @@ export class KelpForestScene implements WaterWorld {
     this.light = parts.light;
     this.grotto = parts.grotto;
     this.scene.name = 'Kelp forest';
-    this.scene.background = new THREE.Color(KELP.water);
-    this.scene.fog = new THREE.FogExp2(KELP.water, KELP.fog);
+    const profile = WATER_PROFILES.kelp;
+    this.scene.background = new THREE.Color(profile.water);
+    this.scene.fog = new THREE.FogExp2(profile.water, profile.fogDensity);
     this.scene.add(
       this.environment.root,
       this.stalks.root,
@@ -168,11 +172,7 @@ export class KelpForestScene implements WaterWorld {
       this.snow.points,
     );
     // The same kinds and number of lights as the tank, so most programs are shared with it.
-    const sky = new THREE.HemisphereLight(0xd8f0c8, 0x3a4630, 1.35),
-      sun = new THREE.DirectionalLight(0xfff0c6, 2.3),
-      fill = new THREE.DirectionalLight(0x8fd0aa, 0.45);
-    sun.position.set(-15, 60, -30);
-    fill.position.set(25, 15, 30);
+    const { sky, sun, fill } = createLightRig(profile);
     this.lights.push(sky, sun, fill);
     this.scene.add(sky, sun, fill);
     this.world = new TerrainCollisionWorld(
@@ -333,13 +333,15 @@ export class KelpForestScene implements WaterWorld {
     return easeInKelp(p, dir);
   }
   render(
-    _time: number,
+    time: number,
     reducedMotion: boolean,
     dt: number,
     active: boolean,
     player: PlayerPresence,
   ): void {
     if (this.disposed) return;
+    // V0.7 Pass 064: the sand's caustics follow simulation time (frozen under reduced motion).
+    advanceCaustics(time, reducedMotion);
     this.renderer.getDrawingBufferSize(this.size);
     const aspect = this.size.x / Math.max(1, this.size.y);
     if (Math.abs(this.camera.aspect - aspect) > 1e-6) {

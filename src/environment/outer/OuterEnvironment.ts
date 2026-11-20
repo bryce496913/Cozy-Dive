@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { WATER_PROFILES } from '../../config/waterProfiles';
+import { beamGeometry, beamMaterial } from '../shared/LightBeam';
 import { OUTER, TUNNEL_FRAME } from '../../config/passage';
 import type { ConvexCollider } from '../../player/collision';
 import { boxCollider } from '../passage/Crevice';
@@ -450,23 +452,26 @@ export class OuterEnvironment {
   }
   /** Broad light shafts from the far surface, slanting down past the lip into the blue. */
   private shafts(): THREE.Group {
+    // V0.7 Pass 064: soft layered beams that fade with depth (were flat uniform cylinders).
     const group = new THREE.Group(),
-      g = new THREE.CylinderGeometry(0.8, 5, 60, 14, 1, true),
-      m = this.own(
-        new THREE.MeshBasicMaterial({
-          color: 0xc9f0dc,
-          transparent: true,
-          opacity: 0.016,
-          depthWrite: false,
-          side: THREE.DoubleSide,
-          blending: THREE.AdditiveBlending,
-        }),
-      );
+      spec = WATER_PROFILES.outer.shafts;
+    if (!spec) return group;
+    const g = beamGeometry({
+        length: 60,
+        topRadius: 1.6,
+        bottomRadius: 6,
+        intensity: spec.intensity,
+        tint: spec.tint,
+        topFade: 0.1,
+      }),
+      m = this.own(beamMaterial('Outer light shaft'));
     this.geometries.push(g);
     for (let i = 0; i < 7; i++) {
       const beam = new THREE.Mesh(g, m);
-      beam.position.set(-27 + i * 9, 12, -46 - (i % 3) * 9);
+      // Hung from the top (the old cylinders were centred 30 m lower).
+      beam.position.set(-27 + i * 9, 42, -46 - (i % 3) * 9);
       beam.rotation.set(0.18, 0, -0.2);
+      beam.renderOrder = 2;
       group.add(beam);
     }
     group.name = 'Outer light shafts';

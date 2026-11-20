@@ -18,6 +18,9 @@
       // views on a fixed simulation clock, and reports renderer statistics. Dev server only.
       import * as THREE from 'three';
       import { AssetLoader } from '/src/assets/AssetLoader.ts';
+      import { installDeepFog } from '/src/rendering/deepFog.ts';
+      // The game installs its water fog shader before anything compiles (Application).
+      installDeepFog();
       import { ASSET_REGISTRY } from '/src/assets/AssetRegistry.ts';
       import { PROCEDURAL_ASSETS } from '/src/assets/ProceduralAssets.ts';
       import { KelpForestScene } from '/src/rendering/KelpForestScene.ts';
