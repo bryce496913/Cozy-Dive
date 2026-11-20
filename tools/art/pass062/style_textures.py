@@ -79,7 +79,7 @@ def normal_from_height(h, strength):
     return n / np.linalg.norm(n, axis=-1, keepdims=True)
 
 
-def write(name, base, height, strength, rough, occlusion):
+def write(name, base, height, strength, rough, occlusion, metal=None):
     OUT.mkdir(parents=True, exist_ok=True)
 
     def save(suffix, a):
@@ -88,7 +88,7 @@ def write(name, base, height, strength, rough, occlusion):
     save('base', base)
     # Normal strength is given per 512 texels so both resolutions read at the same physical slope.
     save('normal', normal_from_height(height, strength * len(height) / 512) * 0.5 + 0.5)
-    save('orm', np.stack([occlusion, rough, np.zeros_like(rough)], -1))
+    save('orm', np.stack([occlusion, rough, np.zeros_like(rough) if metal is None else metal], -1))
 
 
 def mix(col, mask, colour, amount):

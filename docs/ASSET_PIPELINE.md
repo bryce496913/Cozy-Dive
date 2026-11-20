@@ -178,3 +178,14 @@ python3 tools/art/inspect_assets.py
 - **Controller contract.** Child nodes carry no transform. `FrogJaw` vertices are local to `JAW_HINGE` and `FrogLure` vertices to `LURE_BASE`; they must equal `FROGFISH_JAW_HINGE` and `FROGFISH_LURE_BASE` in `Frogfish.ts`. `FrogFoot` is the +X pectoral limb, mirrored at runtime.
 - **Splice.** `splice_frogfish.mjs` merges the new root into the old one's slot and transform. It reuses the shipped KTX2 `FrogSkin15` material by name, keeps the new untextured `FrogMouth` and `FrogIris`, prunes the old frog (and its now-unused `HorseSkin` lure material and textures), and writes with the pinned Pass 017 Draco settings. The seahorse, moray and anemone are not re-authored.
 - **Size.** The frogfish draws about 44.3k triangles (body 32.6k, jaw 8.0k, lure 1.1k, foot 1.3k drawn twice). `anchored-life.glb` is 2.35 MB (was 2.39 MB).
+
+## V0.7 production conventions (Pass 063)
+
+New and remade assets follow the [V0.7 art production specification](V07_ART_PRODUCTION.md):
+
+- Shared Blender helpers: `tools/art/v07/cozy_art.py`, providing templated PBR materials, game-space mesh building, colliders, static LODs, pre-export checks, packed `.blend` saving and the one standard GLB export.
+- Shared standards: `tools/art/v07/standards.json`.
+- Material library: `tools/art/v07/reference/material-library.blend`.
+- Validator: `node validation/AssetStandards.ts <file.glb>`, or `--all`.
+
+`compress.mjs` takes an optional directory for non-shipped asset folders.
