@@ -13,7 +13,7 @@
  *   npm run dev -- --host 127.0.0.1 --port 5173 --strictPort
  *   COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/v07-baseline node validation/v07/baseline.mjs
  *
- * Env: COZY_PLAYWRIGHT (module path), COZY_CHROMIUM, COZY_DPR (default 1), COZY_OUTER=1, COZY_OFFICE=1, COZY_SIZE
+ * Env: COZY_PLAYWRIGHT (module path), COZY_CHROMIUM, COZY_DPR (default 1), COZY_OUTER=1, COZY_OFFICE=1, COZY_FISH=1, COZY_SIZE
  * (WxH, default 960x600). Writes <output>/*.png and <output>/baseline.json.
  */
 import fs from 'node:fs';
@@ -189,6 +189,55 @@ try {
   };
   // Settle after the dive, the same number of steps every run.
   await step(30);
+  if (process.env.COZY_FISH === '1') {
+    // V0.7 Pass 065: side views of real simulated fish (close and medium), on the fixed clock.
+    for (const [species, tag] of [
+      ['blue-green-chromis', 'chromis'],
+      ['ocellaris-clownfish', 'clownfish'],
+      ['royal-gramma', 'gramma'],
+    ])
+      for (const [distance, range] of [
+        ['close', 0.9],
+        ['medium', 2.4],
+      ]) {
+        const at = await page.evaluate(
+          ([species, range]) => {
+            const fish = window.__cozy.world.aquarium.fish.simulation.fish.find(
+              (f) => f.species.id === species,
+            );
+            if (!fish) return null;
+            const p = fish.position,
+              side = [Math.sin(fish.yaw), 0, Math.cos(fish.yaw)];
+            return {
+              eye: [
+                p.x + side[0] * range,
+                p.y + range * 0.18,
+                p.z + side[2] * range,
+              ],
+              target: [p.x, p.y, p.z],
+            };
+          },
+          [species, range],
+        );
+        if (!at) continue;
+        await place(at.eye, at.target);
+        // One frame only: the fish has barely moved, the camera holds still.
+        await step(1);
+        const file = path.join(output, `fish-${tag}-${distance}.png`);
+        const png = await page.screenshot({ path: file });
+        report.views.push({
+          name: `fish-${tag}-${distance}`,
+          distance,
+          image: path.basename(file),
+          hash: crypto
+            .createHash('sha256')
+            .update(png)
+            .digest('hex')
+            .slice(0, 16),
+        });
+        console.log(`fish-${tag}-${distance}`);
+      }
+  }
   for (const [name, distance, eye, target] of TANK_VIEWS)
     await capture('aquarium', name, distance, eye, target);
   if (process.env.COZY_OUTER === '1') {
