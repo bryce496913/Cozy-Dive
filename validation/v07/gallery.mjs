@@ -31,7 +31,7 @@ try {
   for (const [name, yaw, pitch] of [
     ['side', 0],
     ['three-quarter', 0.7],
-    ...(set === 'creatures' ? [['top', 0.35, 1.0]] : []),
+    ...(set === 'creatures' ? [['top', 0.35, -1.0]] : []),
   ]) {
     const stats = await page.evaluate(
       ([y, p]) => window.view(y, p ?? 0),

@@ -178,9 +178,14 @@ def ray_parts(an: hf.Anatomy):
 
         def we(u, s0=s0, s1=s1, side=side):
             s = s1 - (s1 - s0) * u
-            # Pointed, swept-back wingtip at u ~ 0.55.
-            reach = span * np.sin(np.pi * np.clip(u, 0, 1)) ** 0.75
-            sweep = chord * 0.55 * np.clip(u - 0.2, 0, 1) ** 1.3
+            # Pointed, swept-back wingtip: a near-straight leading edge out to the tip at u = ut,
+            # then a concave trailing edge back to the root.
+            u = np.clip(u, 0, 1)
+            ut = sp.get('tip_u', 0.38)
+            lead = (u / ut) ** 0.85
+            trail = ((1 - u) / (1 - ut)) ** 1.8
+            reach = span * np.where(u < ut, lead, trail)
+            sweep = chord * 0.75 * (reach / span) ** 1.4
             return np.stack([an.x(s) - sweep, an.C(s) + 0.05 * reach * sp.get('dihedral', 0.3),
                              side * (an.W(s) * 0.8 + reach)], 1)
         parts.append(fin(wb, we, 14, hm * 0.55, 0 if side > 0 else 1, kind='wing', normal=(0, 1, 0), v_steps=8))
@@ -409,10 +414,26 @@ def build(name, spec):
     body.shape_key_add(name='Basis', from_mix=False)
     for sign, key in ((1, 'Stroke_Left'), (-1, 'Stroke_Right')):
         q = np.concatenate([stroke_field(an, part, part.p, sign) for part in parts])
-        body.shape_key_add(name=key, from_mix=False).data.foreach_set('co', ca.to_blender(q).ravel())
+        kb = body.shape_key_add(name=key, from_mix=False)
+        kb.data.foreach_set('co', ca.to_blender(q).ravel())
+        kb.value = 0.0  # rest pose by default; the runtime drives the weights
     import fish_lod  # noqa: PLC0415
     fish_lod.RATIOS['Body'] = spec.get('lod', 0.16)
-    fish_lod.lod(body)
+    low = fish_lod.lod(body)
+    # Edge collapse leaves sliver triangles where thin fin edges fold; dissolve them (shape-key
+    # layers ride along in bmesh) and keep the distance level's morphs at rest by default.
+    bm = bmesh.new()
+    bm.from_mesh(low.data)
+    bmesh.ops.dissolve_degenerate(bm, dist=2e-4, edges=bm.edges[:])
+    bmesh.ops.triangulate(bm, faces=bm.faces[:])
+    # Collinear slivers (long edges, no area) along folded fin rims add nothing visible.
+    flat = [f for f in bm.faces if f.calc_area() < 1e-8]
+    bmesh.ops.delete(bm, geom=flat, context='FACES_ONLY')
+    bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+    bm.to_mesh(low.data)
+    bm.free()
+    for kb in low.data.shape_keys.key_blocks[1:]:
+        kb.value = 0.0
     for w in ca.check_scene('creature'):
         print('  note:', w)
     ca.save_blend(HERE / f'{name}.blend')
