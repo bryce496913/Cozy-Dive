@@ -28,6 +28,8 @@ from PIL import Image, ImageFilter
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
+sys.path.insert(0, str(ROOT / 'tools/art/v07'))
+import cozy_art as ca  # noqa: E402
 SOURCES = {'chromis': ROOT / 'tools/art/pass017/accepted/chromis.glb',
            'clownfish': ROOT / 'tools/art/pass017/accepted/clownfish.glb'}
 TEX = ROOT / 'tools/art/textures/pass062'
@@ -223,8 +225,10 @@ def build(fish: str, style: str):
         if base.endswith('_Scale_Skin'):
             swap[base] = retint(mat, f'{label}_Scale_Skin', skin_img, normal_img, 1.0 if natural else 0.6,
                                 1.15 if natural else 0.95)
+            swap[base]['template'] = 'fish-skin'
         elif base.endswith('_Fin_Membrane'):
             swap[base] = retint(mat, f'{label}_Fin_Membrane', fin_img)
+            swap[base]['template'] = 'fin'
     for obj in bpy.context.scene.objects:
         if obj.type != 'MESH':
             continue
@@ -232,14 +236,11 @@ def build(fish: str, style: str):
             nm = slot.material.name.split('.')[0] if slot.material else ''
             if nm in swap:
                 obj.data.materials[i] = swap[nm]
-    for image in bpy.data.images:
-        if image.source == 'FILE' and image.has_data:
-            image.pack()
-    bpy.ops.wm.save_as_mainfile(filepath=str(HERE / f'{style}-{fish}.blend'), compress=True)
-    RAW.mkdir(exist_ok=True)
-    raw = RAW / f'{style}-{fish}.glb'
-    bpy.ops.export_scene.gltf(filepath=str(raw), export_format='GLB', export_yup=True, export_extras=True,
-                              export_animations=False, export_vertex_color='ACTIVE')
+    # Pass 063: the shared V0.7 checks and export settings.
+    for w in ca.check_scene('fish'):
+        print('  note:', w)
+    ca.save_blend(HERE / f'{style}-{fish}.blend')
+    raw = ca.export_glb(RAW / f'{style}-{fish}.glb')
     OUT.mkdir(parents=True, exist_ok=True)
     shutil.copy(raw, OUT / raw.name)
     print('exported', raw, raw.stat().st_size)

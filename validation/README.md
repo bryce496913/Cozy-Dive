@@ -284,3 +284,7 @@ Run alone, after CPU checks. The harness restores twenty valid decorations from 
 ## V0.7 style benchmark (Pass 062)
 
 `validation/v07/style.mjs` renders `style-benchmark.html` for every combination of model treatment and lighting treatment (baseline, A natural, B crafted) at four fixed views, records draw calls, triangles, textures, programs and per-subject material costs in `style.json`, and composes the side-by-side and models-by-lighting sheets. Repeat runs are pixel-identical. See `docs/V07_STYLE_BENCHMARK.md`.
+
+## Asset production checks (Pass 063)
+
+`node validation/AssetStandards.ts --all` checks every shipped and benchmark GLB against `tools/art/v07/standards.json`: required nodes, scale, transforms, geometry integrity, PBR map sets and texture sizes, morph targets and animation channels. Run `--warnings` to list review items. `tests/asset-production.test.ts` runs the same checks and seeds each failure type.

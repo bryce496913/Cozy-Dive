@@ -1,4 +1,26 @@
-# Cozy Diver art direction — candidate foundation
+# Cozy Diver art direction
+
+## V0.7 — Crafted Stylized Realism (approved, Pass 062)
+
+The user selected **Crafted Stylized Realism** (benchmark treatment B, [`V07_STYLE_BENCHMARK.md`](V07_STYLE_BENCHMARK.md)) as the visual standard for every creature and environment. It supersedes earlier guidance where they conflict. The production rules, templates, tools and checks are in the **[V0.7 art production specification](V07_ART_PRODUCTION.md)**; the numbers live in [`tools/art/v07/standards.json`](../tools/art/v07/standards.json).
+
+The standard in brief:
+
+- **Biology first, organised for reading.** Correct anatomy for every species, grouped into a few large clean masses with sparse crisp accents. Appeal adjustments are small and bounded: body depth up to +5 %, eyes up to +12 %, median fins up to +6 %. Never change fin count, mouth or tail type.
+- **Primary, secondary, tertiary.** The silhouette and primary mass read from 10 m, secondary forms from 3 m; pores, septa and scales live in maps. No primitive or stacked forms; everything on the bottom grows out of it (skirts, holdfasts, undercuts).
+- **Corals and plants.** Single grounded colonies; branches that keep their diameter, fork wide and end in pale rounded tips; broad legible meanders; clean strap blades with deep-to-light gradients.
+- **Rock and terrain.** Slab-built outcrops with ledges, a few broad strata, clean hollows and a weathered undercut; world-space triplanar limestone; AO and tints in vertex colour.
+- **Materials.** Nine templates (fish skin, fin, shell, coral tissue, limestone, sand, plant, metal, wood) with fixed roughness, metalness and normal ranges. Base, normal and ORM maps throughout; texture size follows screen importance (512 hero, 256 secondary, 128 background; 1024 only when measured to help). Organic surfaces are dielectric; gloss is a local accent.
+- **Colour.** Calm, controlled fields, with one saturated hue per animal against calmer neutrals. Warm key against cool water.
+- **Light.** Clearer water, a warm key, a cool rim, moderate ambient and contact grounding. The sun shadow waits on a hardware measurement; per-world moods (outer blue, wreck visibility) stay.
+- **Motion.** `Stroke_Left` / `Stroke_Right` morphs on body and median fins (and their LODs), pivoted pectorals, procedural drive; plants sway from their UV1 phase.
+- **Production.** Blender helpers in `tools/art/v07/cozy_art.py`, standard export, Draco + KTX2 compression, and `validation/AssetStandards.ts` checks. Every art PR carries the checklist from the specification. Passing checks is not visual acceptance; the user approves the art.
+
+Approved references: [`docs/art-reference/v07/`](art-reference/v07/) (scene views, turnarounds, material swatches) and the Pass 062 Crafted assets in `src/benchmark/style/assets/`.
+
+The sections below record earlier passes. They remain valid where V0.7 does not override them, for example the chromis anatomy notes and the fin-membrane rules.
+
+## Earlier foundation (Passes 012–015)
 
 The target is high-quality stylized realism: a carefully crafted miniature marine reef, believable anatomy, subtle coloration and useful inspection detail. Recognition is necessary but insufficient. The player should see fine detail become meaningful as they approach, rather than discover a larger smooth primitive.
 

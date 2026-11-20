@@ -1,0 +1,204 @@
+{
+  "$comment": "V0.7 Pass 063: the production standards shared by the Blender helpers (tools/art/v07/cozy_art.py), the GLB validator (validation/AssetStandards.ts) and docs/V07_ART_PRODUCTION.md. Values are the approved Pass 062 Crafted Stylized Realism (B) benchmark's, measured from its sources.",
+  "version": 1,
+  "space": {
+    "units": "metres in game units (the tank's scale: real animals x ~5.75)",
+    "up": "+Y in glTF / game (Blender +Z, exported with export_yup)",
+    "fishForward": "+X",
+    "creatureForward": "+X",
+    "origin": {
+      "fish": "body centre on the lateral line, between snout and tail root",
+      "creature": "body centre (swimmers) or ventral contact point (crawlers)",
+      "reef": "on the sand plane at the footprint centre; the buried skirt extends below 0",
+      "plant": "at the holdfast on the sand plane",
+      "prop": "on the floor/sand plane at the footprint centre"
+    }
+  },
+  "naming": {
+    "root": "^[A-Z][A-Za-z0-9]*(_[A-Za-z0-9]+)*_Root$",
+    "node": "^[A-Z][A-Za-z0-9]*(_[A-Za-z0-9]+)*$",
+    "lod": "_LOD[12]$",
+    "collider": "^COLLIDER_",
+    "dynamic": "^DYNAMIC_",
+    "texture": "^[a-z0-9]+(-[a-z0-9]+)*-(base|normal|orm|fins)$"
+  },
+  "textureTiers": {
+    "hero": 512,
+    "secondary": 256,
+    "background": 128,
+    "closeupMax": 1024
+  },
+  "categories": {
+    "fish": {
+      "dimension": [0.08, 3.0],
+      "requiredNodes": [
+        "Body",
+        "Median_Fins",
+        "Eyes_Gills_Mouth",
+        "Pectoral_Left",
+        "Pectoral_Right"
+      ],
+      "morphs": ["Stroke_Left", "Stroke_Right"],
+      "morphMeshes": ["Body", "Median_Fins"],
+      "lod": ["Body_LOD1", "Median_Fins_LOD1"],
+      "texture": "hero"
+    },
+    "creature": {
+      "dimension": [0.1, 26],
+      "requiredNodes": ["Body"],
+      "morphs": ["Stroke_Left", "Stroke_Right"],
+      "morphMeshes": ["Body"],
+      "lod": ["Body_LOD1"],
+      "texture": "hero"
+    },
+    "reef": {
+      "dimension": [0.15, 6],
+      "requiredNodes": [],
+      "morphs": [],
+      "morphMeshes": [],
+      "lod": [],
+      "texture": "hero"
+    },
+    "plant": {
+      "dimension": [0.05, 4],
+      "requiredNodes": [],
+      "morphs": [],
+      "morphMeshes": [],
+      "lod": [],
+      "texture": "secondary"
+    },
+    "prop": {
+      "dimension": [0.05, 45],
+      "requiredNodes": [],
+      "morphs": [],
+      "morphMeshes": [],
+      "lod": [],
+      "texture": "hero"
+    },
+    "library": {
+      "dimension": [0.05, 200],
+      "requiredNodes": [],
+      "morphs": [],
+      "morphMeshes": [],
+      "lod": [],
+      "texture": "hero"
+    }
+  },
+  "materials": {
+    "fish-skin": {
+      "roughness": [0.35, 0.65],
+      "metallic": 0,
+      "normalStrength": 0.6,
+      "doubleSided": false,
+      "alpha": "OPAQUE",
+      "maps": ["base", "normal", "orm"],
+      "tier": "hero",
+      "note": "Calm scale relief: softened normals at 60 %, colour fields evened; species colour lives in the base map."
+    },
+    "fin": {
+      "roughness": [0.45, 0.7],
+      "metallic": 0,
+      "normalStrength": 0.5,
+      "doubleSided": true,
+      "alpha": "BLEND",
+      "maps": ["base"],
+      "tier": "hero",
+      "note": "Translucent membrane: ray detail and edge alpha in the base map; depth write off; review overlaps in schools."
+    },
+    "shell": {
+      "roughness": [0.45, 0.7],
+      "metallic": 0,
+      "normalStrength": 0.8,
+      "doubleSided": false,
+      "alpha": "OPAQUE",
+      "maps": ["base", "normal", "orm"],
+      "tier": "secondary",
+      "note": "Calcium carbonate: growth ridges in geometry, fine growth lines in normals, gloss only on worn crests."
+    },
+    "coral-tissue": {
+      "roughness": [0.55, 0.7],
+      "metallic": 0,
+      "normalStrength": 0.75,
+      "doubleSided": false,
+      "alpha": "OPAQUE",
+      "maps": ["base", "normal", "orm"],
+      "tier": "hero",
+      "note": "Living tissue over skeleton: corallite cups and septa in maps, colour gradient (dark base to pale growing tips) in vertex colour."
+    },
+    "limestone": {
+      "roughness": [0.82, 0.92],
+      "metallic": 0,
+      "normalStrength": 0.8,
+      "doubleSided": false,
+      "alpha": "OPAQUE",
+      "maps": ["base", "normal", "orm"],
+      "tier": "hero",
+      "note": "World-space triplanar at runtime (rockTexelScale 0.85); broad bedding and a few crisp pockets; AO from cavity in vertex colour."
+    },
+    "sand": {
+      "roughness": [0.9, 1.0],
+      "metallic": 0,
+      "normalStrength": 0.9,
+      "doubleSided": false,
+      "alpha": "OPAQUE",
+      "maps": ["base", "normal", "orm"],
+      "tier": "hero",
+      "note": "Shared tank sand (Pass 014): grain and micro-ripple maps; large ripples stay in geometry."
+    },
+    "plant": {
+      "roughness": [0.45, 0.6],
+      "metallic": 0,
+      "normalStrength": 0.5,
+      "doubleSided": true,
+      "alpha": "OPAQUE",
+      "maps": ["base", "normal", "orm"],
+      "tier": "secondary",
+      "note": "Blades and fronds: clean veins/midrib in maps, deep-to-light gradient in vertex colour, phase in UV1 for sway."
+    },
+    "metal": {
+      "roughness": [0.55, 0.85],
+      "metallic": [0.0, 0.85],
+      "normalStrength": 0.8,
+      "doubleSided": false,
+      "alpha": "OPAQUE",
+      "maps": ["base", "normal", "orm"],
+      "tier": "secondary",
+      "note": "Submerged metal: metalness only where bare metal shows on worn edges (ORM blue); crust and rust are dielectric and rough."
+    },
+    "wood": {
+      "roughness": [0.75, 0.9],
+      "metallic": 0,
+      "normalStrength": 0.8,
+      "doubleSided": false,
+      "alpha": "OPAQUE",
+      "maps": ["base", "normal", "orm"],
+      "tier": "secondary",
+      "note": "Waterlogged timber: softened grain, rounded worn edges, silt in recesses."
+    }
+  },
+  "untexturedAllowed": ["Iris", "Pupil", "Gill_Recess", "Proxy", "Eye", "Lens"],
+  "lod": {
+    "LOD0": { "screen": "close (under ~4 m)", "note": "full authored mesh" },
+    "LOD1": {
+      "ratio": [0.12, 0.35],
+      "screen": "medium (~4-12 m)",
+      "note": "silhouette kept; morphs transferred; small appendages may drop"
+    },
+    "LOD2": {
+      "ratio": [0.04, 0.12],
+      "screen": "distant (12 m+)",
+      "note": "static scenery only; fish/creatures use LOD1 and impostors are not used"
+    }
+  },
+  "budgets": {
+    "fish": { "triangles": [6000, 14000], "lod1": [1200, 2600] },
+    "creature": { "triangles": [5000, 16000], "lod1": [800, 2600] },
+    "heroRockOrCoral": { "triangles": [4000, 20480] },
+    "plantClump": { "triangles": [200, 1500] },
+    "prop": { "triangles": [500, 30000] }
+  },
+  "geometry": {
+    "maxDegenerateRatio": 0.02,
+    "minTriangleArea": 1e-10
+  }
+}
