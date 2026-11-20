@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { ASSET_REGISTRY, type AssetId } from '../src/assets/AssetRegistry';
 import { ReefAsset } from '../validation/ReefAsset';
 import { validateGlbFile } from '../validation/AssetStandards';
 
@@ -17,7 +18,32 @@ const CREATURES = [
   ['sea-turtle', 'Turtle'],
   ['ocean-sunfish', 'Sunfish'],
   ['humpback-whale', 'Humpback'],
+  // V0.7 Pass 068: marine mammals, penguins and the gull, authored in Blender (they replace the
+  // ice world's code-built stand-ins and the kelp forest's earlier models).
+  ['killer-whale', 'Orca'],
+  ['minke-whale', 'Minke'],
+  ['leopard-seal', 'LeopardSeal'],
+  ['harbour-seal', 'Seal'],
+  ['sea-lion', 'SeaLion'],
+  ['polar-bear', 'PolarBear'],
+  ['sea-otter', 'Otter'],
+  ['emperor-penguin', 'EmperorPenguin'],
+  ['adelie-penguin', 'AdeliePenguin'],
+  ['western-gull', 'Gull'],
 ] as const;
+
+const MAMMALS: readonly AssetId[] = [
+  'killerWhale',
+  'minkeWhale',
+  'leopardSeal',
+  'harbourSeal',
+  'seaLion',
+  'polarBear',
+  'seaOtter',
+  'emperorPenguin',
+  'adeliePenguin',
+  'westernGull',
+];
 
 const tris = (a: ReefAsset, name: string) =>
   a.doc.meshes[a.node(name).mesh!].primitives.reduce(
@@ -58,4 +84,39 @@ describe('V0.7 Pass 067 large creatures', () => {
     expect(r.errors).toEqual([]);
     expect(r.stats.morphTargets).toEqual(['Stroke_Left', 'Stroke_Right']);
   });
+});
+
+describe('V0.7 Pass 068 mammals and birds', () => {
+  it.each(MAMMALS)(
+    '%s loads from its file, fits its registry bounds and really strokes',
+    (id) => {
+      const entry = ASSET_REGISTRY[id];
+      const a = new ReefAsset(`public/${entry.path}`);
+      const base = a.primitive('Body').positions;
+      const extent = (pos: ArrayLike<number>, add?: Float32Array) => {
+        const lo = [Infinity, Infinity, Infinity],
+          hi = [-Infinity, -Infinity, -Infinity];
+        for (let i = 0; i < pos.length; i++) {
+          const v = pos[i] + (add ? add[i] : 0);
+          lo[i % 3] = Math.min(lo[i % 3], v);
+          hi[i % 3] = Math.max(hi[i % 3], v);
+        }
+        return Math.max(...hi.map((h, k) => h - lo[k]));
+      };
+      const rest = extent(base);
+      expect(rest).toBeGreaterThanOrEqual(entry.minDimension);
+      expect(rest).toBeLessThanOrEqual(entry.maxDimension);
+      for (const morph of a.morphPositions('Body')) {
+        expect(extent(base, morph)).toBeLessThanOrEqual(entry.maxDimension);
+        let moved = 0;
+        for (let i = 0; i < morph.length; i += 3)
+          moved = Math.max(
+            moved,
+            Math.hypot(morph[i], morph[i + 1], morph[i + 2]),
+          );
+        // Each stroke visibly moves part of the animal (at least 4 % of its size).
+        expect(moved).toBeGreaterThan(rest * 0.04);
+      }
+    },
+  );
 });

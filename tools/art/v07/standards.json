@@ -95,6 +95,26 @@
       "tier": "hero",
       "note": "Calm scale relief: softened normals at 60 %, colour fields evened; species colour lives in the base map."
     },
+    "fur": {
+      "roughness": [0.6, 0.9],
+      "metallic": 0,
+      "normalStrength": 0.6,
+      "doubleSided": false,
+      "alpha": "OPAQUE",
+      "maps": ["base", "normal", "orm"],
+      "tier": "hero",
+      "note": "Wet or dry pelt (polar bear, sea otter): combed relief in the normal map, matte, species colour in the base map."
+    },
+    "feather": {
+      "roughness": [0.4, 0.75],
+      "metallic": 0,
+      "normalStrength": 0.6,
+      "doubleSided": false,
+      "alpha": "OPAQUE",
+      "maps": ["base", "normal", "orm"],
+      "tier": "hero",
+      "note": "Sleek plumage (penguins, gull): fine barb relief, satin sheen; markings in the base map."
+    },
     "fin": {
       "roughness": [0.45, 0.7],
       "metallic": 0,
@@ -178,7 +198,10 @@
   },
   "untexturedAllowed": ["Iris", "Pupil", "Gill_Recess", "Proxy", "Eye", "Lens"],
   "lod": {
-    "LOD0": { "screen": "close (under ~4 m)", "note": "full authored mesh" },
+    "LOD0": {
+      "screen": "close (under ~4 m)",
+      "note": "full authored mesh"
+    },
     "LOD1": {
       "ratio": [0.12, 0.35],
       "screen": "medium (~4-12 m)",
@@ -191,11 +214,23 @@
     }
   },
   "budgets": {
-    "fish": { "triangles": [6000, 14000], "lod1": [1200, 2600] },
-    "creature": { "triangles": [5000, 16000], "lod1": [800, 2600] },
-    "heroRockOrCoral": { "triangles": [4000, 20480] },
-    "plantClump": { "triangles": [200, 1500] },
-    "prop": { "triangles": [500, 30000] }
+    "fish": {
+      "triangles": [6000, 14000],
+      "lod1": [1200, 2600]
+    },
+    "creature": {
+      "triangles": [5000, 16000],
+      "lod1": [800, 2600]
+    },
+    "heroRockOrCoral": {
+      "triangles": [4000, 20480]
+    },
+    "plantClump": {
+      "triangles": [200, 1500]
+    },
+    "prop": {
+      "triangles": [500, 30000]
+    }
   },
   "geometry": {
     "maxDegenerateRatio": 0.02,
