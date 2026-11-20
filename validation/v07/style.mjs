@@ -31,6 +31,7 @@ const LABEL = {
   natural: 'A · Natural Realism',
   crafted: 'B · Crafted Stylized Realism',
 };
+const SHORT = { baseline: 'Baseline', natural: 'A · Natural', crafted: 'B · Crafted' };
 const VIEWS = ['swimming', 'medium', 'close-brain', 'close-staghorn'];
 fs.mkdirSync(output, { recursive: true });
 fs.mkdirSync(sheets, { recursive: true });
@@ -148,8 +149,8 @@ await grid(
 for (const view of VIEWS)
   await grid(
     `matrix-${view}.jpg`,
-    TREATMENTS.map((t) => ({ id: t, label: `Models: ${LABEL[t]}` })),
-    TREATMENTS.map((t) => ({ id: t, label: `Lighting: ${LABEL[t]}` })),
+    TREATMENTS.map((t) => ({ id: t, label: `Models: ${SHORT[t]}` })),
+    TREATMENTS.map((t) => ({ id: t, label: `Lighting: ${SHORT[t]}` })),
     (r, c) => `${r.id}-${c.id}-${view}.png`,
     `Pass 062 · ${view}: models (rows) x lighting (columns)`,
   );

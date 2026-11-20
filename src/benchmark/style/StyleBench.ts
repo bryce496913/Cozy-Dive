@@ -52,6 +52,7 @@ export const MODEL_FILES: Readonly<
 /** The shipped tank's per-rock mineral tint (AuthoredReef ROCK_TINTS[0]); candidates author theirs. */
 const BASELINE_ROCK_TINT = 0xeee9e2;
 const SAND_SIZE = 40;
+const FAR_SAND_SIZE = 240;
 /** World metres per sand texture repeat, as in the tank (36 m / 26 repeats). */
 const SAND_TILE = 36 / REEF_LAYOUT.sandRepeat[0];
 
@@ -116,7 +117,7 @@ function textureEdge(t: THREE.Texture): number {
 export class StyleBench {
   readonly renderer: THREE.WebGLRenderer;
   readonly scene = new THREE.Scene();
-  readonly camera = new THREE.PerspectiveCamera(FOV, 1, 0.05, 80);
+  readonly camera = new THREE.PerspectiveCamera(FOV, 1, 0.05, 160);
   private readonly owned: { dispose(): void }[] = [];
   private readonly assets: GLTF[] = [];
   private readonly ktx2: Ktx2Lease;
@@ -378,6 +379,25 @@ export class StyleBench {
     sand.name = 'Sand';
     sand.receiveShadow = LIGHTING[this.selection.lighting].shadows;
     this.scene.add(sand);
+    // Far sand: one flat quad out to where the water hides it, so no seabed edge shows (two
+    // triangles; the same maps, its own repeat, the near sand's average tint).
+    const far = this.own(m.clone());
+    far.vertexColors = false;
+    far.color.setHSL(0.105, 0.2, 0.6);
+    for (const key of ['map', 'normalMap', 'roughnessMap'] as const) {
+      const t = this.own(m[key]!.clone());
+      t.repeat.set(FAR_SAND_SIZE / SAND_TILE, FAR_SAND_SIZE / SAND_TILE);
+      t.needsUpdate = true;
+      far[key] = t;
+    }
+    const farGeometry = this.own(
+      new THREE.PlaneGeometry(FAR_SAND_SIZE, FAR_SAND_SIZE),
+    );
+    farGeometry.rotateX(-Math.PI / 2);
+    const farSand = new THREE.Mesh(farGeometry, far);
+    farSand.name = 'Far sand';
+    farSand.position.y = -0.045;
+    this.scene.add(farSand);
   }
 
   private own<T extends { dispose(): void }>(value: T): T {
