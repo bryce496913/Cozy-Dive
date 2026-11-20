@@ -442,8 +442,8 @@ export class StyleBench {
       let triangles = 0,
         meshes = 0;
       for (const root of roots)
-        root.traverse((o) => {
-          if (!(o instanceof THREE.Mesh) || !o.visible) return;
+        root.traverseVisible((o) => {
+          if (!(o instanceof THREE.Mesh)) return;
           meshes++;
           const g = o.geometry;
           triangles +=

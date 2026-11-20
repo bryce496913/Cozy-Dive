@@ -280,3 +280,7 @@ Run alone, after CPU checks. The harness restores twenty valid decorations from 
 ## V0.7 visual baseline (Pass 061)
 
 `validation/v07/baseline.mjs` captures seven fixed tank benchmark views (plus three outer reef views with `COZY_OUTER=1`) from the real game with a fixed simulation clock. `validation/v07/worlds.mjs` captures the kelp, cave, ice and wreck worlds in isolation through the dev-only `validation/v07/worlds.html` and records an inventory of every registered model. Repeat runs are pixel-identical; compare the `hash` fields. See `docs/V07_VISUAL_BASELINE.md` for the views, the baseline numbers and the workflow.
+
+## V0.7 style benchmark (Pass 062)
+
+`validation/v07/style.mjs` renders `style-benchmark.html` for every combination of model treatment and lighting treatment (baseline, A natural, B crafted) at four fixed views, records draw calls, triangles, textures, programs and per-subject material costs in `style.json`, and composes the side-by-side and models-by-lighting sheets. Repeat runs are pixel-identical. See `docs/V07_STYLE_BENCHMARK.md`.

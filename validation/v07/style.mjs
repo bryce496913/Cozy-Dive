@@ -31,7 +31,11 @@ const LABEL = {
   natural: 'A · Natural Realism',
   crafted: 'B · Crafted Stylized Realism',
 };
-const SHORT = { baseline: 'Baseline', natural: 'A · Natural', crafted: 'B · Crafted' };
+const SHORT = {
+  baseline: 'Baseline',
+  natural: 'A · Natural',
+  crafted: 'B · Crafted',
+};
 const VIEWS = ['swimming', 'medium', 'close-brain', 'close-staghorn'];
 fs.mkdirSync(output, { recursive: true });
 fs.mkdirSync(sheets, { recursive: true });
