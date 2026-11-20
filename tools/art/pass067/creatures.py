@@ -43,6 +43,9 @@ N = 512
 TAU = math.tau
 smooth = hf.smooth
 BODY_V = 0.75  # body occupies UV v in [0, 0.75]; fins the band above
+# The body's wrap seam runs along the back: keep it off the band edges so mipmaps don't bleed the fin
+# band (or the image edge) into it; the gutters repeat the dorsal colour.
+GUT = 0.025
 
 
 # ------------------------------------------------------------------ parts
@@ -57,9 +60,12 @@ class Part:
 def loft(an: hf.Anatomy, rows=64, cols=36, eye=True):
     spec = an.spec
     s = np.linspace(0, 1, rows)
-    th = np.linspace(0, TAU, cols, endpoint=False)
+    # cols + 1 columns: the last repeats the first (T = 2 pi) with its own UVs, so no face wraps
+    # the whole body band; `build` merges the duplicate positions once the morphs are made.
+    th = np.linspace(0, TAU, cols + 1)
     S, T = np.meshgrid(s, th, indexing='ij')
     y, z = an.section(S, T)
+    z[:, -1], y[:, -1] = z[:, 0], y[:, 0]
     p = np.stack([an.x(S), y, z], -1).reshape(-1, 3)
     if eye and 'eye' in spec:
         e = spec['eye']
@@ -67,14 +73,14 @@ def loft(an: hf.Anatomy, rows=64, cols=36, eye=True):
         er = e['r'] * spec['hm']
         d = np.hypot(p[:, 0] - ex, p[:, 1] - ey) / er
         p[:, 2] += np.sign(p[:, 2]) * 0.18 * er * smooth(1.0, 0.0, d) * (np.abs(p[:, 2]) > 0.2 * an.W(e['s']))
-    uv = np.stack([S.ravel(), (T / TAU).ravel() * BODY_V], 1)
-    faces = hf.grid_faces(rows, cols, closed=True)
+    uv = np.stack([S.ravel(), GUT + (T / TAU).ravel() * (BODY_V - 2 * GUT)], 1)
+    faces = hf.grid_faces(rows, cols, closed=False)
     tip = len(p)
     p = np.vstack([p, [[an.x_snout + 0.004 * spec['body'], an.C(1), 0], [an.x_root - 0.002, an.C(0), 0]]])
     uv = np.vstack([uv, [[1, BODY_V / 2], [0, BODY_V / 2]]])
-    last = (rows - 1) * cols
-    faces += [(last + j, last + (j + 1) % cols, tip) for j in range(cols)]
-    faces += [((j + 1) % cols, j, tip + 1) for j in range(cols)]
+    last = (rows - 1) * (cols + 1)
+    faces += [(last + j, last + j + 1, tip) for j in range(cols)]
+    faces += [(j + 1, j, tip + 1) for j in range(cols)]
     return Part(p, faces, uv, 'body')
 
 
@@ -229,7 +235,7 @@ def turtle_parts(an: hf.Anatomy):
     L = sp['body']
     for side in (-1, 1):
         fx = an.x(0.68)
-        parts.append(flipper((fx, an.C(.68) - 0.1 * an.H(.68), side * an.W(.68) * 0.8), -0.3 * L, 0.55 * L,
+        parts.append(flipper((fx, an.C(.68) - 0.1 * an.H(.68), side * an.W(.68) * 0.8), -0.3 * L, 0.48 * L,
                              0.5 * L, 0.18 * L, side, 0, 'fore'))
         hx = an.x(0.18)
         parts.append(flipper((hx, an.C(.18) - 0.15 * an.H(.18), side * an.W(.18) * 0.75), -0.18 * L, 0.18 * L,
@@ -339,7 +345,7 @@ def body_texture(an: hf.Anatomy):
     sp = an.spec
     v, u = np.mgrid[0:N, 0:N] / N
     body = v < BODY_V
-    S, T = u, np.clip(v / BODY_V, 0, 1) * TAU
+    S, T = u, np.clip((v - GUT) / (BODY_V - 2 * GUT), 0, 1) * TAU
     y, z = an.section(S, T)
     x = an.x(S)
     yn = (y - an.C(S)) / an.H(S)
@@ -413,6 +419,10 @@ def build(name, spec):
         UV.append(part.uv)
         off += len(part.p)
     P = np.concatenate(P)
+    # Centre the animal's length on the origin, as the earlier models were: the runtime turns and
+    # scales them about the root (tank babies, cruisers), so the pivot stays mid-body.
+    shift = np.array([(P[:, 0].min() + P[:, 0].max()) / 2, 0, 0])
+    P = P - shift
     body = ca.mesh_from_arrays('Body', P, F, np.concatenate(UV), np.ones((len(P), 4)), skin, root)
     bm = bmesh.new()
     bm.from_mesh(body.data)
@@ -421,10 +431,17 @@ def build(name, spec):
     bm.free()
     body.shape_key_add(name='Basis', from_mix=False)
     for sign, key in ((1, 'Stroke_Left'), (-1, 'Stroke_Right')):
-        q = np.concatenate([stroke_field(an, part, part.p, sign) for part in parts])
+        q = np.concatenate([stroke_field(an, part, part.p, sign) for part in parts]) - shift
         kb = body.shape_key_add(name=key, from_mix=False)
         kb.data.foreach_set('co', ca.to_blender(q).ravel())
         kb.value = 0.0  # rest pose by default; the runtime drives the weights
+    # Weld the loft's UV seam (duplicate positions in the basis and every key); UVs stay split per
+    # face corner, normals become continuous.
+    bm = bmesh.new()
+    bm.from_mesh(body.data)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts[:], dist=1e-6)
+    bm.to_mesh(body.data)
+    bm.free()
     import fish_lod  # noqa: PLC0415
     fish_lod.RATIOS['Body'] = spec.get('lod', 0.16)
     low = fish_lod.lod(body)

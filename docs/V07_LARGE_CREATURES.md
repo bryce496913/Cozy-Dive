@@ -94,6 +94,14 @@ This renders the side, three-quarter, top and mid-stroke views of every rebuilt 
 
 - **Captures:** before/after captures for each view are in `docs/screenshots/v07-pass067/`. They come from the shipped GLBs under the tank light rig (SwiftShader).
 
+## Fixes after the first review build
+
+- **Texture orientation:** the atlas was painted upside down for glTF's UV convention. Bodies read the fin band, so countershading, spots and saddles were lost. The painted maps are now flipped before saving.
+- **Dorsal seam:** the body loft wrapped its UV seam inside one face column, which drew a pale line along every back. The seam column is now duplicated with its own UVs and welded after the morphs are built.
+- **Centring:** models are centred lengthwise on the origin, as the earlier models were, so turning and tank-baby scaling pivot mid-body. This keeps the blacktip baby inside its envelope.
+- **Turtle flippers:** the turtle's fore-flipper reach is trimmed (0.55 → 0.48 of the body length) to fit the green sea turtle baby's tank envelope.
+- **Download budget:** the shipped-models budget test moves from 34 to 36 MB. Each animal now carries its own maps, and each area still loads only its own animals.
+
 ## Separate design issue (not changed)
 
 - **The polar bear is in the Antarctic ice world.** Polar bears live only in the Arctic.
