@@ -485,4 +485,13 @@ The Pass 062 build scripts now use the shared helpers (`pbr_material`, `mesh_fro
 | `style-crafted.glb`, `style-natural.glb`                        | identical                                       | identical                  | Each material gains a `template` extra.        |
 | `crafted-chromis.glb`, `crafted-clownfish.glb`, `natural-*.glb` | identical                                       | identical                  | Skin and fin materials gain `template` extras. |
 
-**Geometry, UVs, vertex colours, morph targets, pivots, materials and textures are preserved byte for byte.** After compression, the in-engine Crafted benchmark captures match the Pass 062 approved captures (see the PR for hashes).
+**Geometry, UVs, vertex colours, morph targets, pivots, materials and textures are preserved byte for byte.**
+
+After recompression with `compress.mjs`, `validation/v07/style.mjs` rendered all 36 benchmark captures (three models × three lights × four views, with the fish mid-stroke at the same time). All 36 are **pixel-identical** to the approved Pass 062 run: same SHA-256, same draw calls, same triangles. The approved Crafted captures:
+
+| View           | Hash               |
+| -------------- | ------------------ |
+| swimming       | `e75cbec5986873c9` |
+| medium         | `3e16b137ebbc248b` |
+| close-brain    | `bbd6e96c9884ed86` |
+| close-staghorn | `a657048f3460245d` |
