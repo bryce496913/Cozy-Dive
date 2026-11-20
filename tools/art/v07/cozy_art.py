@@ -319,5 +319,7 @@ def export_glb(path, *, animations: bool = False) -> Path:
     `node tools/art/pass017/compress.mjs <dir>` and validate with `node validation/AssetStandards.ts`."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    _bpy().ops.export_scene.gltf(filepath=str(path), export_animations=animations, **EXPORT_SETTINGS)
+    # Clips are exported per NLA track, so a track's name (e.g. `SwimPreview`) is the clip name.
+    extra = {'export_animation_mode': 'NLA_TRACKS'} if animations else {}
+    _bpy().ops.export_scene.gltf(filepath=str(path), export_animations=animations, **EXPORT_SETTINGS, **extra)
     return path

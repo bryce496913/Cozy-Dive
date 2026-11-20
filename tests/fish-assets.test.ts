@@ -4,12 +4,13 @@ import { ASSET_REGISTRY } from '../src/assets/AssetRegistry';
 import { FISH_SPECIES } from '../src/fish/FishSpecies';
 import { ReefAsset } from '../validation/ReefAsset';
 
-const chromis = new ReefAsset('public/assets/models/fish/chromis.glb');
+// The Pass 016 species are reshaped from the pinned accepted chromis rig (the shipped chromis is
+// the V0.7 Pass 065 hero model, with its own topology).
+const chromis = new ReefAsset('tools/art/pass017/accepted/chromis.glb');
 const SPECIES = [
   ['cardinalfish', 'pajama-cardinalfish'],
   ['firefish', 'firefish-goby'],
   ['assessor', 'yellow-assessor'],
-  ['gramma', 'royal-gramma'],
 ] as const;
 const box = (asset: ReefAsset, names: readonly string[]): THREE.Box3 => {
   const b = new THREE.Box3();
