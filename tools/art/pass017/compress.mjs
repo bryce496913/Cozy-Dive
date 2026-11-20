@@ -1,6 +1,7 @@
 /* Compress every shipped GLB in place: Draco geometry (Pass 017) + KTX2/Basis textures (Pass 018).
  *
  *   node tools/art/pass017/compress.mjs            # after any authoring script
+ *   node tools/art/pass017/compress.mjs <dir>      # another folder (Pass 062 benchmark assets)
  *   python3 tools/art/inspect_assets.py
  *
  * Geometry: authoring scripts write uncompressed GLBs. Files already using
@@ -31,7 +32,11 @@ import { ktx2 } from 'ktx2-encoder/gltf-transform';
 import sharp from 'sharp';
 
 const repo = path.resolve(import.meta.dirname, '../../..');
-const root = path.join(repo, 'public/assets/models');
+// Pass 062: an optional directory (relative to the repo) compresses another asset folder, such as
+// the benchmark-only src/benchmark/style/assets, with exactly the same settings.
+const root = process.argv[2]
+  ? path.resolve(repo, process.argv[2])
+  : path.join(repo, 'public/assets/models');
 const sources = new Map(
   readdirSync(path.join(repo, 'tools/art/textures'), { recursive: true })
     .map(String)
