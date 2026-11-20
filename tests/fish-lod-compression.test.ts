@@ -170,7 +170,9 @@ describe('Pass 017/018 asset compression', () => {
     // v0.6 Pass 043: 26 MB (was 20) for seven more reef fish and two big animals; Pass 044: 30 MB
     // for the kelp forest's six. Each area's models load only on entering it.
     // v0.6 Pass 048: 34 MB for the Antarctic animals (all loaded only under the ice).
-    expect(bytes).toBeLessThan(34 * 1024 * 1024);
+    // V0.7 Pass 067: 36 MB. The rebuilt large animals each carry their own 512 px base, normal and
+    // ORM maps (they had shared tints); each area's animals still load only on entering it.
+    expect(bytes).toBeLessThan(36 * 1024 * 1024);
     // Source maps are authoring inputs only and no longer ship in public/.
     expect(existsSync('public/assets/textures')).toBe(false);
   });
