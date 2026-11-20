@@ -27,7 +27,24 @@
       import { TANK_LIGHTING } from '/src/config/tankLighting.ts';
       import { createLightRig } from '/src/rendering/atmosphere/lightRig.ts';
       installDeepFog();
-      const FISH = [
+      // `?set=creatures` shows the large animals (Pass 067); `&stroke=1` poses them mid-stroke.
+      const query = new URLSearchParams(location.search);
+      const CREATURES = [
+        'reefShark',
+        'whitetipShark',
+        'greatWhite',
+        'hammerhead',
+        'leopardShark',
+        'nurseShark',
+        'whaleShark',
+        'barracuda',
+        'eagleRay',
+        'mantaRay',
+        'seaTurtle',
+        'sunfish',
+        'humpbackWhale',
+      ];
+      const FISHES = [
         'chromis',
         'clownfish',
         'gramma',
@@ -87,6 +104,14 @@
           const m = lease.model;
           m.traverse((o) => {
             if (o.name.includes('_LOD1')) o.visible = false;
+            if (
+              o.isMesh &&
+              o.morphTargetDictionary &&
+              o.morphTargetInfluences
+            ) {
+              const k = o.morphTargetDictionary.Stroke_Left;
+              if (k !== undefined) o.morphTargetInfluences[k] = stroke;
+            }
             if (o.isMesh) {
               const mats = Array.isArray(o.material)
                 ? o.material
@@ -115,8 +140,8 @@
           rigs.push(holder);
         }),
       );
-      window.view = (yaw) => {
-        for (const r of rigs) r.rotation.set(0, yaw, 0);
+      window.view = (yaw, pitch = 0) => {
+        for (const r of rigs) r.rotation.set(pitch, yaw, 0, 'XYZ');
         camera.position.set(0, 0.6, 20);
         camera.lookAt(0, 0, 0);
         renderer.render(scene, camera);
