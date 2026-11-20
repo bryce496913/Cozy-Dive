@@ -46,9 +46,7 @@
       }
     ],
     "geometryAccessorBytes": 261036,
-    "animations": [
-      "SwimPreview"
-    ],
+    "animations": ["SwimPreview"],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Development benchmark"
   },
@@ -324,9 +322,7 @@
       }
     ],
     "geometryAccessorBytes": 259740,
-    "animations": [
-      "SwimPreview"
-    ],
+    "animations": ["SwimPreview"],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
   },
@@ -347,11 +343,7 @@
         "Rubble": 150,
         "Sand": 1
       },
-      "rockLevels": [
-        20480,
-        5120,
-        1280
-      ]
+      "rockLevels": [20480, 5120, 1280]
     },
     "id": "reef-environment",
     "file": "assets/models/reef/reef-environment.glb",
@@ -782,9 +774,7 @@
       }
     ],
     "geometryAccessorBytes": 269772,
-    "animations": [
-      "SwimPreview"
-    ],
+    "animations": ["SwimPreview"],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium reef fish (Pass 016)"
   },
