@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Cozy Diver — Fish Gallery</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #1f5a6e;
+      }
+      canvas {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="c"></canvas>
+    <script type="module">
+      // V0.7 Pass 066: every registered fish, in a grid, in the tank's water and light rig, side
+      // and three-quarter views. Renders the shipped GLBs through the game's AssetLoader (Draco,
+      // KTX2), so before/after runs compare what the game actually draws. Dev server only.
+      import * as THREE from 'three';
+      import { AssetLoader } from '/src/assets/AssetLoader.ts';
+      import { installDeepFog } from '/src/rendering/deepFog.ts';
+      import { WATER_PROFILES } from '/src/config/waterProfiles.ts';
+      import { TANK_LIGHTING } from '/src/config/tankLighting.ts';
+      import { createLightRig } from '/src/rendering/atmosphere/lightRig.ts';
+      installDeepFog();
+      const FISH = [
+        'chromis',
+        'clownfish',
+        'gramma',
+        'assessor',
+        'cardinalfish',
+        'firefish',
+        'butterflyfish',
+        'bannerfish',
+        'moorishIdol',
+        'blueTang',
+        'icefish',
+        'notothen',
+        'toothfish',
+        'humpheadWrasse',
+        'giantSeaBass',
+        'parrotfish',
+        'sheephead',
+        'trevally',
+      ];
+      const cols = 6,
+        rows = 3,
+        cell = 2.2;
+      const width = innerWidth,
+        height = innerHeight;
+      const canvas = document.getElementById('c');
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+      renderer.setPixelRatio(1);
+      renderer.setSize(width, height, false);
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = TANK_LIGHTING.exposure;
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      const scene = new THREE.Scene();
+      const p = WATER_PROFILES.tank;
+      scene.background = new THREE.Color(p.water);
+      scene.fog = new THREE.FogExp2(p.water, 0.01);
+      const rig = createLightRig(p);
+      scene.add(...rig.lights);
+      const camera = new THREE.OrthographicCamera(
+        (-cols * cell) / 2,
+        (cols * cell) / 2,
+        ((rows * cell * width) / height / 2) * (height / width) * 1,
+        (-rows * cell) / 2,
+        0.1,
+        100,
+      );
+      camera.top = (rows * cell) / 2;
+      camera.bottom = -camera.top;
+      const aspect = width / height;
+      camera.left = -camera.top * aspect;
+      camera.right = camera.top * aspect;
+      camera.updateProjectionMatrix();
+      const loader = new AssetLoader(undefined, undefined, renderer);
+      const rigs = [];
+      window.ready = Promise.all(
+        FISH.map(async (id, i) => {
+          const lease = await loader.acquire(id);
+          const m = lease.model;
+          m.traverse((o) => {
+            if (o.name.includes('_LOD1')) o.visible = false;
+            if (o.isMesh) {
+              const mats = Array.isArray(o.material)
+                ? o.material
+                : [o.material];
+              for (const mat of mats)
+                if (mat.name.includes('Fin_')) {
+                  mat.transparent = true;
+                  mat.depthWrite = false;
+                  mat.side = THREE.DoubleSide;
+                }
+            }
+          });
+          const box = new THREE.Box3().setFromObject(m);
+          const size = box.getSize(new THREE.Vector3());
+          const s = (cell * 0.82) / Math.max(size.x, size.y);
+          const holder = new THREE.Group();
+          m.position.sub(box.getCenter(new THREE.Vector3()));
+          holder.add(m);
+          holder.scale.setScalar(s);
+          holder.position.set(
+            ((i % cols) - (cols - 1) / 2) * cell,
+            ((rows - 1) / 2 - Math.floor(i / cols)) * cell,
+            0,
+          );
+          scene.add(holder);
+          rigs.push(holder);
+        }),
+      );
+      window.view = (yaw) => {
+        for (const r of rigs) r.rotation.set(0, yaw, 0);
+        camera.position.set(0, 0.6, 20);
+        camera.lookAt(0, 0, 0);
+        renderer.render(scene, camera);
+        return {
+          calls: renderer.info.render.calls,
+          triangles: renderer.info.render.triangles,
+        };
+      };
+    </script>
+  </body>
+</html>

@@ -282,6 +282,12 @@ def median_fins(an: Anatomy):
         elif shape == 'rounded':
             back = lc * (1 - 0.32 * k ** 2)
             span = 0.78 * hm
+        elif shape == 'lunate':  # crescent: long, pointed lobes (jacks, tangs)
+            back = lc * (0.45 + 0.55 * np.abs(k) ** 0.8)
+            span = spec.get('caudal_span', 1.05) * hm
+        elif shape == 'emarginate':  # shallowly notched
+            back = lc * (0.82 + 0.18 * np.abs(k) ** 1.5)
+            span = spec.get('caudal_span', 0.85) * hm
         else:  # truncate with softly rounded corners
             back = lc * (0.94 - 0.12 * k ** 4)
             span = 0.82 * hm
@@ -386,7 +392,9 @@ def body_texture(name, an: Anatomy):
         return (out - out.mean()) / (out.std() + 1e-9)
 
     broad = noise(40, 1)
-    if name == 'chromis':
+    if 'paint' in spec:  # Pass 066 roster species carry their own painter
+        col = spec['paint'](S=S, T=T, x=x, y=y, yn=yn, an=an, noise=noise, smooth=smooth)
+    elif name == 'chromis':
         back, flank, belly = np.array([.28, .58, .66]), np.array([.50, .84, .74]), np.array([.86, .95, .9])
         col = flank + (back - flank) * smooth(0.15, 0.85, yn)[..., None] + (belly - flank) * smooth(-0.1, -0.85, yn)[..., None]
         col *= (1 + broad * 0.025)[..., None]
@@ -416,7 +424,7 @@ def body_texture(name, an: Anatomy):
     gill = smooth(0.006, 0.0, np.abs(S - gill_edge)) * (np.abs(yn) < 0.85) * (np.abs(np.sin(T)) > 0.3)
     col *= (1 - 0.35 * gill)[..., None]
     # Scales: offset rows in physical space; relief only, no engraved outlines.
-    cell = spec['hm'] * 0.11
+    cell = spec['hm'] * spec.get('scale', 0.11)
     gx, gy = x / cell, (y - an.C(S)) / (cell * 0.8)
     row = np.floor(gy)
     gx = gx + 0.5 * (row % 2)
@@ -426,15 +434,22 @@ def body_texture(name, an: Anatomy):
     fins_free = 1 - head
     height = scale * 0.6 * fins_free + broad * 0.05
     col *= (0.97 + 0.04 * scale * fins_free)[..., None]
-    rough = 0.42 + 0.06 * (1 - scale) * fins_free + 0.03 * broad + 0.05 * gill
+    rough = spec.get('rough', 0.42) + 0.06 * (1 - scale) * fins_free + 0.03 * broad + 0.05 * gill
     return np.clip(col, 0, 1), height, rough, 1 - 0.4 * gill
 
 
-def fin_texture(name):
+def fin_texture(name, spec=None):
     v, u = np.mgrid[0:N, 0:N] / N
     rays = np.abs(np.cos(np.pi * 24 * u)) ** 8
     edge = smooth(0.8, 1.0, v)
-    if name == 'chromis':
+    fin = (spec or {}).get('fin')
+    if fin:  # Pass 066: species fin colour, optional edge colour, translucency
+        col = np.array(fin['color'], float) * (1 - 0.12 * rays[..., None])
+        if 'edge' in fin:
+            band = smooth(fin.get('edge_at', 0.84), fin.get('edge_at', 0.84) + 0.06, v)
+            col = col * (1 - band[..., None]) + np.array(fin['edge'], float) * band[..., None]
+        alpha = fin.get('alpha', 0.85) - fin.get('fade', 0.35) * v + 0.1 * rays
+    elif name == 'chromis':
         col = np.array([.62, .86, .82]) * (1 - 0.15 * rays[..., None])
         alpha = 0.78 - 0.45 * v + 0.12 * rays
     elif name == 'clownfish':
@@ -464,7 +479,7 @@ def write_textures(name, an):
     save(col, f'{stem}-base.png')
     save(normal_from_height(height, 2.0) * 0.5 + 0.5, f'{stem}-normal.png')
     save(np.stack([ao, rough, np.zeros_like(rough)], -1), f'{stem}-orm.png')
-    save(fin_texture(name), f'p065-{name}-fin-fins.png')
+    save(fin_texture(name, an.spec), f'p065-{name}-fin-fins.png')
     return stem
 
 
@@ -536,12 +551,12 @@ def build(name):
     stem = write_textures(name, an)
     ca.reset_scene()
     label = spec['name']
-    root = ca.create_root(f'{label}_Root', 'fish', species=name, standards_pass='065')
-    skin = ca.pbr_material(f'{label}_Scale_Skin', 'fish-skin', stem, roughness=0.45, normal_strength=0.6,
+    root = ca.create_root(f"{spec.get('root', label)}_Root", 'fish', species=name, standards_pass='065')
+    skin = ca.pbr_material(f'{label}_Scale_Skin', 'fish-skin', stem, roughness=spec.get('skin_rough', 0.45), normal_strength=0.6,
                            vertex_tint=False)
     fin = ca.pbr_material(f'{label}_Fin_Membrane', 'fin', stem, roughness=0.55, vertex_tint=False,
                           paths={'base': TEX / f'p065-{name}-fin-fins.png'})
-    iris, pupil = plain('Iris', IRIS[name], 0.22), plain('Pupil', (.01, .012, .015), 0.08)
+    iris, pupil = plain('Iris', spec.get('iris', IRIS.get(name, (.4, .4, .3))), 0.22), plain('Pupil', (.01, .012, .015), 0.08)
     white = np.ones((1, 4))
     # Body.
     p, f, uv = body_mesh(an)
@@ -586,7 +601,7 @@ def build(name):
     # Distance levels with transferred morphs (the Pass 017 tool).
     import fish_lod  # noqa: E402,PLC0415
     # Seated lens eyes keep more of their (small) mesh, so the far level stays inside the near one.
-    fish_lod.RATIOS['Eyes_Gills_Mouth'] = 0.3
+    fish_lod.RATIOS['Eyes_Gills_Mouth'] = spec.get('eye_lod', 0.3)
     for part in ('Body', 'Median_Fins', 'Eyes_Gills_Mouth'):
         fish_lod.lod(bpy.data.objects[part])
     for w in ca.check_scene('fish'):

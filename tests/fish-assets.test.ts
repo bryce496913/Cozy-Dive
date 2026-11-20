@@ -4,9 +4,6 @@ import { ASSET_REGISTRY } from '../src/assets/AssetRegistry';
 import { FISH_SPECIES } from '../src/fish/FishSpecies';
 import { ReefAsset } from '../validation/ReefAsset';
 
-// The Pass 016 species are reshaped from the pinned accepted chromis rig (the shipped chromis is
-// the V0.7 Pass 065 hero model, with its own topology).
-const chromis = new ReefAsset('tools/art/pass017/accepted/chromis.glb');
 const SPECIES = [
   ['cardinalfish', 'pajama-cardinalfish'],
   ['firefish', 'firefish-goby'],
@@ -25,7 +22,9 @@ const box = (asset: ReefAsset, names: readonly string[]): THREE.Box3 => {
 };
 
 describe('Pass 016 authored reef fish', () => {
-  it.each(SPECIES)('%s keeps the accepted chromis rig contract', (id) => {
+  // V0.7 Pass 066: each species now has its own anatomy (no longer the chromis topology); the
+  // runtime rig contract is what instancing, morphs and pivots depend on.
+  it.each(SPECIES)('%s keeps the runtime rig contract', (id) => {
     const fish = new ReefAsset(`public/assets/models/fish/${id}.glb`);
     for (const name of ASSET_REGISTRY[id].requiredNodes)
       expect(fish.has(name), name).toBe(true);
@@ -36,11 +35,7 @@ describe('Pass 016 authored reef fish', () => {
       'Pectoral_Left',
       'Pectoral_Right',
     ]) {
-      const a = chromis.primitive(name),
-        b = fish.primitive(name);
-      // Same topology as the accepted rig: morphs, pivots and instancing behave identically.
-      expect(b.positions.length, name).toBe(a.positions.length);
-      expect(b.indices.length, name).toBe(a.indices.length);
+      const b = fish.primitive(name);
       expect(b.positions.every(Number.isFinite), name).toBe(true);
       expect(b.attributes, name).toContain('COLOR_0');
     }

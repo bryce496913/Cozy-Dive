@@ -92,3 +92,51 @@ describe('V0.7 Pass 065 hero fish', () => {
     expect(r.stats.morphTargets).toEqual(['Stroke_Left', 'Stroke_Right']);
   });
 });
+
+/** V0.7 Pass 066: the whole roster is built on the hero standard. */
+const ROSTER = [
+  'chromis',
+  'clownfish',
+  'gramma',
+  'assessor',
+  'cardinalfish',
+  'firefish',
+  'butterflyfish',
+  'bannerfish',
+  'idol',
+  'bluetang',
+  'icefish',
+  'notothen',
+  'toothfish',
+  'napoleon',
+  'seabass',
+  'parrotfish',
+  'sheephead',
+  'trevally',
+] as const;
+describe('V0.7 Pass 066 fish roster', () => {
+  it.each(ROSTER)(
+    '%s meets the hero production standard and budget',
+    async (id) => {
+      const file = `public/assets/models/fish/${id}.glb`;
+      const r = await validateGlbFile(file);
+      expect(r.errors).toEqual([]);
+      expect(r.warnings).toEqual([]);
+      const fish = new ReefAsset(file);
+      const sum = (names: string[]) =>
+        names.map((n) => tris(fish, n)).reduce((a, b) => a + b);
+      expect(
+        sum([
+          'Body',
+          'Median_Fins',
+          'Eyes_Gills_Mouth',
+          'Pectoral_Left',
+          'Pectoral_Right',
+        ]),
+      ).toBeLessThan(12686);
+      expect(
+        sum(['Body_LOD1', 'Median_Fins_LOD1', 'Eyes_Gills_Mouth_LOD1']),
+      ).toBeLessThan(2600);
+    },
+  );
+});
