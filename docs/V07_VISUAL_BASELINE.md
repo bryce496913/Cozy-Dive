@@ -100,7 +100,15 @@ Load to first ready: about 4.1–4.3 s on this container.
 
 Geometry and texture counts include the office, which stays resident while the player is diving.
 
-<!-- OUTER -->
+### Outer reef (real game, `COZY_OUTER=1`)
+
+| View              | Distance | Draw calls | Triangles | Geometries | Textures | Programs | Hash               |
+| ----------------- | -------- | ---------: | --------: | ---------: | -------: | -------: | ------------------ |
+| outer-reef-top    | swimming |        124 | 3,799,455 |        503 |      241 |       93 | `f44f734e4a320eb2` |
+| outer-coral-close | close    |        126 | 3,976,039 |        507 |      241 |       93 | `d55fa6d54cc8318d` |
+| outer-wall-lip    | medium   |        123 | 4,112,381 |        509 |      243 |       93 | `cd3ca579989053dd` |
+
+The outer views are **not** pixel-reproducible. Reaching them needs a real swim through the crevice, and when the outer reef finishes loading depends on wall-clock time. As a result, fish and plant phases differ between runs, and triangle counts can differ by about 1%. Compare them by eye and by draw and triangle counts. The tank hashes stayed identical in the same runs.
 
 ### Other water worlds (isolated scenes)
 
@@ -121,7 +129,11 @@ Geometry and texture counts include the office, which stays resident while the p
 
 **Observations**
 
-- **Kelp and ice carry the most triangles.**
+- **The outer reef is the heaviest world.**
+  - It draws about 3.8–4.1 M triangles per frame in about 125 draws.
+  - Since #108, its whole reef is drawn at one detail level out to 30 m, as the user asked.
+  - New coral detail there must come from better forms, not more triangles. Lighter instance meshes for distant coral would also leave room.
+- **Kelp and ice come next.**
   - Kelp is about 2.2–2.4 M per frame in only 43–59 draws: the instanced stalks and blades are dense.
   - The ice underside view is about 2.2 M.
   - Both are well above the tank (about 0.9–1.1 M).
@@ -167,12 +179,13 @@ Each element is classified by **quality** (good / fair / weak), **prominence** (
 
 ### Outer reef
 
-| Element                | Construction                                                | Prominence | Quality   | Notes                                                                          |
-| ---------------------- | ----------------------------------------------------------- | ---------- | --------- | ------------------------------------------------------------------------------ |
-| Wall and reef top      | Procedural terrain + triplanar material with ridges (#108)  | Very high  | Fair      | It reads as rock from a distance; at close range the ridge pattern is regular. |
-| Reef-top coral         | Reef library instances (the tank's authored corals, reused) | High       | Weak/fair | It inherits the tank's coral weaknesses and repeats visibly over a large area. |
-| Schools, big creatures | Authored                                                    | High       | Good/fair | Fine at the distances they are seen.                                           |
-| The blue               | Fog/darkness                                                | High       | Good      | The bottomless feel the user asked for. Keep.                                  |
+| Element                | Construction                                                | Prominence    | Quality   | Notes                                                                                                                                                                                                                                                   |
+| ---------------------- | ----------------------------------------------------------- | ------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Wall and reef top      | Procedural terrain + triplanar material with ridges (#108)  | Very high     | Fair      | It reads as rock from a distance; at close range the ridge pattern is regular.                                                                                                                                                                          |
+| Reef-top rocks         | Reef library instances (tank rocks, reused)                 | Very high     | **Weak**  | Flat, rounded slab "pucks" repeated across the reef top. Corals sit on top of them, not grown into them.                                                                                                                                                |
+| Reef-top coral         | Reef library instances (the tank's authored corals, reused) | **Very high** | **Weak**  | The massive corals read as two or three balls stacked on a slab, sometimes visibly hovering. The same few shapes repeat across the whole reef top (`outer-coral-close`). Brain-groove detail is good close up. The staghorn and the gorgonian are fair. |
+| Schools, big creatures | Authored                                                    | High          | Good/fair | Fine at the distances they are seen.                                                                                                                                                                                                                    |
+| The blue               | Fog/darkness                                                | High          | Good      | The bottomless feel the user asked for. Keep.                                                                                                                                                                                                           |
 
 ### Kelp forest
 
@@ -222,11 +235,11 @@ Each element is classified by **quality** (good / fair / weak), **prominence** (
 
 | Category                            | Most visible examples (most visible first)                                                                                                                                                        |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Primitive or stacked geometry       | Cave rock ring; tank stacked-slab outcrop; tank massive coral "ball on ball"; wreck superstructure boxes; kelp and cave boulders.                                                                 |
+| Primitive or stacked geometry       | Outer reef-top brain corals (stacked balls on slab rocks); cave rock ring; tank stacked-slab outcrop; tank massive coral "ball on ball"; wreck superstructure boxes; kelp and cave boulders.      |
 | Oversimplified anatomy              | Kelp blades (flat paper triangles); ice sea spiders (rod legs); kelp anemones (cylinders); the early Blender seals and sea lion (smooth tubes); procedural ice animals at 128 px skin.            |
 | Flat or plastic materials           | Tank seagrass; ice glass sponges; tank sand; kelp seabed; wreck deck.                                                                                                                             |
 | Unconvincing plants and corals      | Tank seagrass; Halimeda/Caulerpa grape chains; tank branching coral; red algae wires; wreck growth floating on the hull.                                                                          |
-| Repetitive procedural scenery       | Kelp stalk forest (identical silhouettes in rows); outer reef-top coral instances; ice sponge fields; tank and kelp pebble scatter.                                                               |
+| Repetitive procedural scenery       | Outer reef-top slab rocks and stacked brain corals; kelp stalk forest (identical silhouettes in rows); outer reef-top coral instances; ice sponge fields; tank and kelp pebble scatter.           |
 | Lighting and colour inconsistencies | Tank milky low-contrast haze, set against the high-contrast cave and wreck; flat shaft planes in the tank; hard ice cones with seabed discs; little contact shading under objects in every world. |
 | Weak close-up detail                | Tank rock surfaces (smooth at 1 m); kelp boulders; wreck hull and deck; ice sponges at 2 m.                                                                                                       |
 
@@ -234,20 +247,20 @@ Each element is classified by **quality** (good / fair / weak), **prominence** (
 
 Rank = how much of ordinary exploration it affects × how weak it is now. The tank comes first because every session starts there.
 
-| Rank | Item                                                                               | World                             | Construction now                    | Why it ranks here                                          | Suggested pass direction                                                                                                              |
-| ---: | ---------------------------------------------------------------------------------- | --------------------------------- | ----------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-|    1 | Reef rocks: boulders and the stacked-slab outcrop                                  | Tank (+ outer reef, where reused) | Authored GLB                        | The largest, most-seen surfaces; read as primitives        | Re-sculpt in Blender with eroded, overhanging, layered forms; keep colliders and positions.                                           |
-|    2 | Water colour, haze and light shafts                                                | Tank                              | `UnderwaterScene`                   | Affects every frame; flattens every material               | Measured tuning of fog and contrast; replace flat shaft planes with softer volumes (as in the cave) — needs before/after measurement. |
-|    3 | Massive and branching corals                                                       | Tank, outer reef                  | Authored GLB                        | Focal points of the section; stacked lobes, uniform antler | New Blender forms with skirts into the substrate, taper and tip colour; keep LOD1.                                                    |
-|    4 | Seagrass and macroalgae                                                            | Tank                              | Authored templates + `MeadowSystem` | Large area near the floor; plastic ribbons                 | Varied blade width, curl and colour gradient, epiphyte specks; vary the grape-chain algae.                                            |
-|    5 | Sand and substrate                                                                 | Tank, kelp                        | Procedural                          | Fills the lower half of most views                         | Ripple/normal detail and rubble variation like the cave sand; contact darkening under objects.                                        |
-|    6 | Giant kelp blades and stalks                                                       | Kelp                              | Procedural, instanced               | Whole world; also the heaviest geometry                    | Rebuild with fewer, better blades (ruffled, translucent, pneumatocysts); recover triangles.                                           |
-|    7 | Boulders                                                                           | Kelp, cave                        | Procedural                          | Very common; potato forms                                  | Share an improved rock generator (or the new tank rock set) across worlds.                                                            |
-|    8 | Wreck hull, deck and superstructure                                                | Wreck                             | Procedural                          | The whole world is the ship                                | Plating, rivet lines, rust and sediment gradients; break up boxes; give growth a shared encrusted base.                               |
-|    9 | Glass sponges, ice walls and light cones                                           | Ice                               | Procedural                          | Fills the ice views                                        | Smooth-shaded sponge walls with lattice texture; soft shaft volumes without base discs; less faceted ice.                             |
-|   10 | Cave rock ring                                                                     | Cave                              | Procedural                          | A focal point, but in one world                            | Replace the ring of spheres with a single eroded arch.                                                                                |
-|   11 | Outer reef-top coral repetition                                                    | Outer reef                        | Library instances                   | Wide but seen at distance                                  | Follows rank 3, plus more variants per instance.                                                                                      |
-|   12 | Early Blender creatures (seals, sea lion, otter, bat ray) and the ice animal skins | Kelp, ice                         | Authored / procedural               | Encounters, not constant                                   | Upgrade the skins (256–512 px) and add LOD1s to the procedural ice animals.                                                           |
+| Rank | Item                                                                               | World                                | Construction now                    | Why it ranks here                                                                                        | Suggested pass direction                                                                                                              |
+| ---: | ---------------------------------------------------------------------------------- | ------------------------------------ | ----------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+|    1 | Reef rocks: boulders, slab pucks and the stacked-slab outcrop                      | Tank + outer reef (the same library) | Authored GLB                        | The largest, most-seen surfaces; read as primitives                                                      | Re-sculpt in Blender with eroded, overhanging, layered forms; keep colliders and positions.                                           |
+|    2 | Water colour, haze and light shafts                                                | Tank                                 | `UnderwaterScene`                   | Affects every frame; flattens every material                                                             | Measured tuning of fog and contrast; replace flat shaft planes with softer volumes (as in the cave) — needs before/after measurement. |
+|    3 | Massive and branching corals                                                       | Tank, outer reef                     | Authored GLB                        | Focal points of the section, and repeated across the whole outer reef top; stacked lobes, uniform antler | New Blender forms with skirts into the substrate, taper and tip colour; keep LOD1.                                                    |
+|    4 | Seagrass and macroalgae                                                            | Tank                                 | Authored templates + `MeadowSystem` | Large area near the floor; plastic ribbons                                                               | Varied blade width, curl and colour gradient, epiphyte specks; vary the grape-chain algae.                                            |
+|    5 | Sand and substrate                                                                 | Tank, kelp                           | Procedural                          | Fills the lower half of most views                                                                       | Ripple/normal detail and rubble variation like the cave sand; contact darkening under objects.                                        |
+|    6 | Giant kelp blades and stalks                                                       | Kelp                                 | Procedural, instanced               | Whole world; also the heaviest geometry                                                                  | Rebuild with fewer, better blades (ruffled, translucent, pneumatocysts); recover triangles.                                           |
+|    7 | Boulders                                                                           | Kelp, cave                           | Procedural                          | Very common; potato forms                                                                                | Share an improved rock generator (or the new tank rock set) across worlds.                                                            |
+|    8 | Wreck hull, deck and superstructure                                                | Wreck                                | Procedural                          | The whole world is the ship                                                                              | Plating, rivet lines, rust and sediment gradients; break up boxes; give growth a shared encrusted base.                               |
+|    9 | Glass sponges, ice walls and light cones                                           | Ice                                  | Procedural                          | Fills the ice views                                                                                      | Smooth-shaded sponge walls with lattice texture; soft shaft volumes without base discs; less faceted ice.                             |
+|   10 | Cave rock ring                                                                     | Cave                                 | Procedural                          | A focal point, but in one world                                                                          | Replace the ring of spheres with a single eroded arch.                                                                                |
+|   11 | Outer reef-top coral repetition                                                    | Outer reef                           | Library instances                   | Covered by ranks 1 and 3 once the library improves; what remains is variety                              | More variants per instance and coral bases grown into the rock; keep the triangle budget, since this is already the heaviest world.   |
+|   12 | Early Blender creatures (seals, sea lion, otter, bat ray) and the ice animal skins | Kelp, ice                            | Authored / procedural               | Encounters, not constant                                                                                 | Upgrade the skins (256–512 px) and add LOD1s to the procedural ice animals.                                                           |
 
 ## 7. Preserve or adapt
 
@@ -284,5 +297,5 @@ Rank = how much of ordinary exploration it affects × how weak it is now. The ta
   - The passage approach and the tank-to-world transition are not in these shots.
   - Their fish placement is deterministic for the fixed steps but is not reached through the game's save state.
 - **Outer reef:** the outer views need one passage swim. That adds a few minutes of software rendering, so it is opt-in (`COZY_OUTER=1`).
-- **Tank only:** the reproducibility check (three identical runs) was done for the tank views. The world harness uses the same fixed-step method.
+- **Reproducibility:** the check (three identical runs) covers the tank views. The world harness uses the same fixed-step method. The outer views depend on a timed swim and are not pixel-reproducible (see section 3).
 - **Office:** the office was not audited. V0.7 is about the water worlds.

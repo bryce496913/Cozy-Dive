@@ -39,7 +39,7 @@ export const TANK_VIEWS = [
 ];
 export const OUTER_VIEWS = [
   ['outer-reef-top', 'swimming', [0, 5, -36], [0, 3.5, -46]],
-  ['outer-coral-close', 'close', [-8, 3, -44], [-9.6, 1.8, -45.6]],
+  ['outer-coral-close', 'close', [-0.2, 2.6, -38.6], [1.4, 1.2, -41.2]],
   ['outer-wall-lip', 'medium', [4, 3, -55], [4, 0, -62]],
 ];
 
