@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { WATER_PROFILES } from '../../config/waterProfiles';
+import { addCaustics } from '../../rendering/atmosphere/Caustics';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { KELP, KELP_FRAME, PASSAGE } from '../../config/passage';
 import type { ConvexCollider } from '../../player/collision';
@@ -159,6 +161,9 @@ export class KelpEnvironment {
           depthWrite: false,
         }),
       );
+    // V0.7 Pass 064: dappled surface caustics on the lane's shallow sand.
+    const caustics = WATER_PROFILES.kelp.caustics;
+    if (caustics) addCaustics(sand, caustics);
     this.add(this.seabed(), sand, 'Kelp seabed');
     this.add(this.wallMesh(), this.rock, 'Kelp wall');
     this.add(this.tunnelMesh(), tunnel, 'Kelp tunnel');

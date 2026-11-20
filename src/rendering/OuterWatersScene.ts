@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+import { WATER_PROFILES } from '../config/waterProfiles';
+import { createLightRig } from './atmosphere/lightRig';
+import { advanceCaustics } from './atmosphere/Caustics';
 import type { AssetLoader } from '../assets/AssetLoader';
 import { OUTER } from '../config/passage';
 import type { Bounds, Vec3 } from '../config/world';
@@ -49,7 +52,6 @@ import { warmUpScene } from './warmUp';
  * that can be seen here. Only one water
  * world renders per frame.
  */
-const WATER = 0x1d5d76;
 /**
  * Pass 026: while the reef loads, the light beyond the tunnel stays at `dark` (fraction), and
  * swimming eases to a stop over `band` m, `hold` m inside the cliff. Once ready, the light opens
@@ -153,8 +155,11 @@ export class OuterWatersScene implements WaterWorld {
     libraries: SharedLibraries,
   ) {
     this.scene.name = 'Outer waters';
-    this.background = new THREE.Color(WATER);
-    this.fog = new THREE.FogExp2(WATER, OUTER.fog);
+    this.background = new THREE.Color(WATER_PROFILES.outer.water);
+    this.fog = new THREE.FogExp2(
+      WATER_PROFILES.outer.water,
+      WATER_PROFILES.outer.fogDensity,
+    );
     this.scene.background = this.background;
     this.scene.fog = this.fog;
     this.scene.add(
@@ -167,11 +172,7 @@ export class OuterWatersScene implements WaterWorld {
     // The same kinds and number of lights as the tank, so most shader programs are shared with
     // it and need no new compilation (programs are keyed by light counts).
     // Pass 026: a softer sky light, so the reef's lit tops sink into the blue instead of glowing.
-    const sky = new THREE.HemisphereLight(0x9fd6e0, 0x3d5a4e, 1.25),
-      sun = new THREE.DirectionalLight(0xfff1d2, 2.4),
-      fill = new THREE.DirectionalLight(0x75ced0, 0.5);
-    sun.position.set(-20, 60, -40);
-    fill.position.set(30, 20, 40);
+    const { sky, sun, fill } = createLightRig(WATER_PROFILES.outer);
     this.lights.push(sky, sun, fill);
     for (const l of this.lights) this.brightness.push(l.intensity);
     this.scene.add(sky, sun, fill);
@@ -416,13 +417,15 @@ export class OuterWatersScene implements WaterWorld {
     return easeAtEdges(p, dir);
   }
   render(
-    _time: number,
+    time: number,
     reducedMotion: boolean,
     dt: number,
     active: boolean,
     player: PlayerPresence,
   ): void {
     if (this.disposed) return;
+    // V0.7 Pass 064: the sand's caustics follow simulation time (frozen under reduced motion).
+    advanceCaustics(time, reducedMotion);
     this.renderer.getDrawingBufferSize(this.size);
     const aspect = this.size.x / Math.max(1, this.size.y);
     if (Math.abs(this.camera.aspect - aspect) > 1e-6) {

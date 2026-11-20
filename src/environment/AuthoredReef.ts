@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { WATER_PROFILES } from '../config/waterProfiles';
+import { addCaustics } from '../rendering/atmosphere/Caustics';
 import { ConvexGeometry } from 'three/addons/geometries/ConvexGeometry.js';
 import { AssetLoader, type AssetLease } from '../assets/AssetLoader';
 import { isCollisionNode } from '../assets/AssetValidation';
@@ -438,6 +440,9 @@ export class AuthoredReef {
     m.normalScale.set(0.9, 0.9);
     m.vertexColors = true;
     m.roughness = 1;
+    // V0.7 Pass 064: surface caustics on the tank sand.
+    const caustics = WATER_PROFILES.tank.caustics;
+    if (caustics) addCaustics(m, caustics);
     this.sandMaterial = m;
     this.originalSandMaterial = this.q.sand.material;
     const debris = scatterDebris(

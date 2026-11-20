@@ -11,6 +11,9 @@ import { SEAHORSE_SCALE } from '../creatures/discoveries/Seahorse';
 import { AssetLoader } from '../assets/AssetLoader';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
 import * as THREE from 'three';
+import { advanceCaustics } from './atmosphere/Caustics';
+import { WATER_PROFILES } from '../config/waterProfiles';
+import { createLightRig } from './atmosphere/lightRig';
 import { TANK_LIGHTING } from '../config/tankLighting';
 import { Aquarium } from '../environment/Aquarium';
 import { AQUARIUM, type Bounds } from '../config/world';
@@ -107,25 +110,13 @@ export class UnderwaterScene implements WaterWorld {
       'A tropical marine aquarium with reef fish, corals, macroalgae and seagrass',
     );
     host.append(this.renderer.domElement);
-    const rig = TANK_LIGHTING;
-    this.scene.background = new THREE.Color(rig.background);
+    const profile = WATER_PROFILES.tank;
+    this.scene.background = new THREE.Color(profile.water);
     this.outlook = new TankOutlook(this.scene.background);
-    this.scene.fog = new THREE.FogExp2(rig.background, UNDERWATER_HAZE);
-    this.scene.add(
-      new THREE.HemisphereLight(
-        rig.hemisphere.sky,
-        rig.hemisphere.ground,
-        rig.hemisphere.intensity,
-      ),
-    );
-    const sunlight = new THREE.DirectionalLight(
-      rig.sun.color,
-      rig.sun.intensity,
-    );
-    sunlight.position.set(...rig.sun.position);
+    this.scene.fog = new THREE.FogExp2(profile.water, UNDERWATER_HAZE);
+    const { sky, sun: sunlight, fill } = createLightRig(profile);
+    this.scene.add(sky);
     this.scene.add(sunlight);
-    const fill = new THREE.DirectionalLight(rig.fill.color, rig.fill.intensity);
-    fill.position.set(...rig.fill.position);
     this.scene.add(fill);
     this.aquarium = new Aquarium();
     this.scene.add(this.aquarium.root);
@@ -334,6 +325,7 @@ export class UnderwaterScene implements WaterWorld {
         this.babies = undefined;
       }
     }
+    advanceCaustics(time, reducedMotion);
     this.aquarium.update(time, reducedMotion, dt, active, player);
     // After the home fish move, so the added fish school with where they are now.
     this.tankFish?.update(dt, active, reducedMotion, player, camera);

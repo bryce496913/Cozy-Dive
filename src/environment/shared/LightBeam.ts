@@ -59,13 +59,24 @@ export function beamGeometry(b: BeamShape): THREE.BufferGeometry {
   return merged;
 }
 
-/** The material all beams use: additive vertex colour, unaffected by fog, not writing depth. */
+/**
+ * The material all beams use: additive vertex colour, unaffected by fog, not writing depth.
+ *
+ * V0.7 Pass 064: colour is added but destination alpha is left untouched. Standard additive
+ * blending also adds alpha, which marks the beam as solid in views rendered into a transparent
+ * target (the office's miniature tank keys its background on alpha).
+ */
 export function beamMaterial(name: string): THREE.MeshBasicMaterial {
   return new THREE.MeshBasicMaterial({
     name,
     vertexColors: true,
     transparent: true,
-    blending: THREE.AdditiveBlending,
+    blending: THREE.CustomBlending,
+    blendEquation: THREE.AddEquation,
+    blendSrc: THREE.SrcAlphaFactor,
+    blendDst: THREE.OneFactor,
+    blendSrcAlpha: THREE.ZeroFactor,
+    blendDstAlpha: THREE.OneFactor,
     depthWrite: false,
     side: THREE.DoubleSide,
     fog: false,

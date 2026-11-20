@@ -13,7 +13,7 @@
  *   npm run dev -- --host 127.0.0.1 --port 5173 --strictPort
  *   COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/v07-baseline node validation/v07/baseline.mjs
  *
- * Env: COZY_PLAYWRIGHT (module path), COZY_CHROMIUM, COZY_DPR (default 1), COZY_OUTER=1, COZY_SIZE
+ * Env: COZY_PLAYWRIGHT (module path), COZY_CHROMIUM, COZY_DPR (default 1), COZY_OUTER=1, COZY_OFFICE=1, COZY_SIZE
  * (WxH, default 960x600). Writes <output>/*.png and <output>/baseline.json.
  */
 import fs from 'node:fs';
@@ -86,6 +86,33 @@ try {
     Promise.all([window.__cozy.world.prepared, window.__cozy.office.prepared]),
   );
   report.loadMs = Date.now() - started;
+  if (process.env.COZY_OFFICE === '1') {
+    // V0.7 Pass 064: the office view of the miniature tank (its portal renders the underwater
+    // scene), before diving, on the same fixed clock.
+    const hide = await page.addStyleTag({
+      content:
+        'body * { visibility: hidden !important; } canvas { visibility: visible !important; }',
+    });
+    await page.evaluate(async () => {
+      const a = window.__cozy;
+      for (let i = 0; i < 30; i++) {
+        await new Promise((r) => requestAnimationFrame(r));
+        cancelAnimationFrame(a.frame);
+        a.__t = (a.__t ?? 1000) + 1000 / 15;
+        a.tick(a.__t);
+        cancelAnimationFrame(a.frame);
+      }
+    });
+    const file = path.join(output, 'office-tank.png');
+    const png = await page.screenshot({ path: file });
+    report.views.push({
+      name: 'office-tank',
+      distance: 'office',
+      image: 'office-tank.png',
+      hash: crypto.createHash('sha256').update(png).digest('hex').slice(0, 16),
+    });
+    await hide.evaluate((el) => el.remove());
+  }
   await page.getByRole('button', { name: 'Dive In', exact: true }).click();
   await page.waitForFunction(
     () =>

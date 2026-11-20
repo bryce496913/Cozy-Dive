@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { WATER_PROFILES } from '../config/waterProfiles';
+import { createLightRig } from './atmosphere/lightRig';
 import type { AssetLoader } from '../assets/AssetLoader';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
 import { WreckLife } from '../environment/wreck/WreckLife';
@@ -77,7 +79,7 @@ export class ShipwreckScene implements WaterWorld {
   private readonly world: TerrainCollisionWorld;
   private readonly lights: THREE.Light[] = [];
   private readonly base: number[] = [];
-  private readonly water = new THREE.Color(WRECK.water);
+  private readonly water = new THREE.Color(WATER_PROFILES.wreck.water);
   private readonly black = new THREE.Color(0x020405);
   private readonly fog: THREE.FogExp2;
   private readonly size = new THREE.Vector2();
@@ -118,15 +120,14 @@ export class ShipwreckScene implements WaterWorld {
     this.environment = environment;
     this.scene.name = 'Shipwreck';
     this.scene.background = this.water.clone();
-    this.fog = new THREE.FogExp2(WRECK.water, WRECK.fog);
+    this.fog = new THREE.FogExp2(
+      WATER_PROFILES.wreck.water,
+      WATER_PROFILES.wreck.fogDensity,
+    );
     this.scene.fog = this.fog;
     this.scene.add(environment.root, this.snow.points);
     // Dim light from far above (through the kelp and the shaft), deep blue-green fill.
-    const sky = new THREE.HemisphereLight(0x9fc8c4, 0x161c1c, 0.9),
-      sun = new THREE.DirectionalLight(0xd8eee6, 0.7),
-      fill = new THREE.DirectionalLight(0x3f7f86, 0.35);
-    sun.position.set(4, 60, -20);
-    fill.position.set(-20, 10, 30);
+    const { sky, sun, fill } = createLightRig(WATER_PROFILES.wreck);
     this.lights.push(sky, sun, fill);
     this.base.push(sky.intensity, sun.intensity, fill.intensity);
     this.scene.add(sky, sun, fill, this.torch, this.torch.target);
