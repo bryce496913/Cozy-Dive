@@ -5,6 +5,7 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 import { clone } from 'three/addons/utils/SkeletonUtils.js';
 import { ASSET_REGISTRY, type AssetId } from './AssetRegistry';
+import { PROCEDURAL_ASSETS } from './ProceduralAssets';
 import {
   disposeAsset,
   validateAsset,
@@ -109,8 +110,15 @@ export class AssetLoader {
     let entry = this.entries.get(id);
     if (!entry) {
       this.status?.(id, 'loading');
-      const pending = Promise.resolve().then(() =>
-        this.read(`${import.meta.env.BASE_URL}${ASSET_REGISTRY[id].path}`),
+      // Playtest: some assets are built in code (see `PROCEDURAL_ASSETS`), not decoded.
+      const build = PROCEDURAL_ASSETS[id];
+      const pending = Promise.resolve().then(
+        (): LoadedAsset | Promise<LoadedAsset> =>
+          build
+            ? { scene: build(), scenes: [], animations: [] }
+            : this.read(
+                `${import.meta.env.BASE_URL}${ASSET_REGISTRY[id].path}`,
+              ),
       );
       entry = { promise: pending, refs: 0, retired: false, freed: false };
       const current = entry;

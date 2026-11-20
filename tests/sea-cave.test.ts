@@ -127,3 +127,44 @@ describe('Pass 034 the sea cave', () => {
     env.dispose();
   });
 });
+
+describe('the way home from the sea cave (playtest fix)', () => {
+  it('swims from the cavern up the front tunnel and over its threshold', async () => {
+    const { ColliderGrid, TerrainCollisionWorld } =
+      await import('../src/player/terrainCollision');
+    const { CAVE } = await import('../src/config/passage');
+    const { easeInCave } = await import('../src/environment/cave/CaveTerrain');
+    const env = new CaveEnvironment(),
+      world = new TerrainCollisionWorld(
+        new ColliderGrid(env.colliders),
+        CAVE.bounds,
+        caveFloor,
+      ),
+      state = {
+        position: { x: 0.5, y: CAVE.tunnel.y - 0.3, z: CAVE.tunnel.openZ - 7 },
+        velocity: { x: 0, y: 0, z: 0 },
+      };
+    let target: string | undefined;
+    for (let i = 0; i < 600 && !target; i++) {
+      const p = state.position,
+        from = { ...p },
+        dir = { x: -p.x * 0.3, y: (CAVE.tunnel.y - p.y) * 0.3, z: 1 },
+        l = Math.hypot(dir.x, dir.y, dir.z);
+      dir.x /= l;
+      dir.y /= l;
+      dir.z /= l;
+      easeInCave(p, dir);
+      p.x += dir.x * 0.08;
+      p.y += dir.y * 0.08;
+      p.z += dir.z * 0.08;
+      world.move(state, from.x, from.y, from.z);
+      target = crossing('cave', p, {
+        outer: true,
+        kelp: true,
+        cave: true,
+      })?.target;
+    }
+    expect(target).toBe('kelp');
+    env.dispose();
+  });
+});

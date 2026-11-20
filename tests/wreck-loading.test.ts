@@ -110,11 +110,13 @@ it('releases fulfilled leases immediately when another member of the same fish g
     },
     evictUnused: vi.fn(),
   } as unknown as ConstructorParameters<typeof WreckLife>[0];
-  const life = new WreckLife(source);
+  const life = new WreckLife(source),
+    // Every grouper but the failed one: the hold's, the stern's and those beside the hull.
+    healthy = 2 + life.hullGroupers.length - 1;
   expect(await life.ready).toBe(false);
-  expect(release).toHaveBeenCalledTimes(1);
+  expect(release).toHaveBeenCalledTimes(healthy);
   life.dispose();
-  expect(release).toHaveBeenCalledTimes(1);
+  expect(release).toHaveBeenCalledTimes(healthy);
 });
 
 it('waits for healthy members of a partially failed group before settling readiness', async () => {

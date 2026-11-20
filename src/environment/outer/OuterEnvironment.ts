@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { tileTexture } from '../office/OfficeTextures';
 import { OUTER, TUNNEL_FRAME } from '../../config/passage';
 import type { ConvexCollider } from '../../player/collision';
 import { boxCollider } from '../passage/Crevice';
@@ -100,7 +99,6 @@ export class OuterEnvironment {
   readonly exit: THREE.Vector3;
   private readonly geometries: THREE.BufferGeometry[] = [];
   private readonly materials: THREE.Material[] = [];
-  private readonly roomTiles = tileTexture();
   private disposed = false;
 
   constructor() {
@@ -132,39 +130,8 @@ export class OuterEnvironment {
       ),
       'Outer seabed',
     );
-    // The dry room continues beyond the aquarium glass; the reef itself keeps its seabed.
-    const width = OUTER.bounds.max.x - OUTER.bounds.min.x,
-      depth = OUTER.glass.z - OUTER.bounds.min.z;
-    this.roomTiles.repeat.set(width / 0.6, depth / 1.2);
-    const floor = this.add(
-      new THREE.PlaneGeometry(width, depth),
-      this.own(
-        new THREE.MeshStandardMaterial({
-          map: this.roomTiles,
-          roughness: 0.35,
-          transparent: true,
-          depthWrite: false,
-        }),
-      ),
-      'Room tile floor beyond reef glass',
-    );
-    // Room-scale haze keeps the tile finish readable nearby without a hard far edge in the blue.
-    const floorMaterial = floor.material as THREE.MeshStandardMaterial;
-    floorMaterial.onBeforeCompile = (shader) => {
-      shader.fragmentShader = shader.fragmentShader.replace(
-        '#include <fog_fragment>',
-        `#ifdef FOG_EXP2
-          float roomDistance = max(0.0, vFogDepth - 20.0);
-          float roomDensity = fogDensity * 0.4;
-          gl_FragColor.a *= exp(-roomDensity * roomDensity * roomDistance * roomDistance);
-        #endif`,
-      );
-    };
-    floorMaterial.customProgramCacheKey = () => 'cozy-reef-room-floor-v1';
-    floor.rotation.x = -Math.PI / 2;
-    floor.position.set(0, OUTER.glass.bottom, OUTER.glass.z - depth / 2);
-
-    floor.updateMatrix();
+    // Beyond the glass there is no floor: the wall falls away into bottomless dark (the reef's own
+    // seabed stops at the drop-off).
     this.root.add(this.motes());
     this.root.add(this.shafts());
     this.colliders = colliders;
@@ -513,6 +480,5 @@ export class OuterEnvironment {
     this.root.clear();
     this.geometries.forEach((g) => g.dispose());
     this.materials.forEach((m) => m.dispose());
-    this.roomTiles.dispose();
   }
 }

@@ -291,6 +291,13 @@ export class WreckLife {
   readonly barracuda: FishPose[];
   readonly wrasse: LoopSwim;
   readonly shark: LoopSwim;
+  /** Playtest (more big life): eagle rays, a manta, blacktip sharks. */
+  readonly rays: LoopSwim[];
+  readonly manta: LoopSwim;
+  readonly blacktips: LoopSwim[];
+  /** Two more groupers hanging beside the hull, and a whitetip asleep on the sand. */
+  readonly hullGroupers = [createPose(), createPose()];
+  readonly restingShark = createPose();
   readonly turtle: LoopSwim;
   /** The turtle asleep on the forecastle. */
   readonly sleeper = createPose();
@@ -323,6 +330,27 @@ export class WreckLife {
     ).map(() => rand());
     this.wrasse = new LoopSwim(around(7.5, 22, 3.6, 14), 0.55, 0.6, 0.3);
     this.shark = new LoopSwim(around(11, 24.5, 2.2, 14), 0.75, 0.5, 0.7);
+    // A pair of eagle rays gliding low laps, a manta wheeling slowly high over the wreck, and
+    // two blacktips circling wide (each loop round the whole ship, clear of it and each other).
+    this.rays = [
+      new LoopSwim(around(15, 25, 5, 14), 0.8, 0.22, 0.15),
+      new LoopSwim(around(15.6, 25.6, 5.6, 14), 0.8, 0.22, 0.19),
+    ];
+    this.manta = new LoopSwim(around(9.5, 18, 13.6, 14), 0.6, 0.12, 0.5);
+    this.blacktips = [
+      new LoopSwim(around(18, 27, 3.5, 14), 0.9, 0.55, 0.05),
+      new LoopSwim(around(17, 26, 9.5, 14), 0.95, 0.55, 0.62),
+    ];
+    Object.assign(this.hullGroupers[0].position, at(-5.6, 2.8, -33.5));
+    this.hullGroupers[0].yaw = Math.PI / 2 + 0.3;
+    Object.assign(this.hullGroupers[1].position, at(5.8, 3.2, -26));
+    this.hullGroupers[1].yaw = -Math.PI / 2 - 0.2;
+    {
+      const p = at(-8.5, 0, -40);
+      p.y = wreckFloor(p.x, p.z) + 0.14;
+      Object.assign(this.restingShark.position, p);
+      this.restingShark.yaw = 1.2;
+    }
     this.turtle = new LoopSwim(around(8.5, 21, 9.8, 12), 0.35, 0.25, 0.1);
     Object.assign(this.sternGrouper.position, at(0, 3.0, SHIP.sternZ - 0.4));
     this.sternGrouper.yaw = -Math.PI / 2 + 0.5;
@@ -409,7 +437,7 @@ export class WreckLife {
       this.part(async () => {
         await this.fish(
           'giantSeaBass',
-          [this.patrol.pose, this.sternGrouper],
+          [this.patrol.pose, this.sternGrouper, ...this.hullGroupers],
           'Queensland groupers',
           WRECK_LIFE.bass.length,
           8,
@@ -467,6 +495,42 @@ export class WreckLife {
           whitetip.radius + 0.6,
         );
       }, 'shark'),
+      this.part(async () => {
+        const ray = CRUISE_SPECIES['spotted-eagle-ray'],
+          manta = CRUISE_SPECIES['manta-ray'],
+          tip = CRUISE_SPECIES['blacktip-reef-shark'],
+          white = CRUISE_SPECIES['whitetip-reef-shark'];
+        await this.group([
+          ...this.rays.map((r, n) =>
+            this.solo(ray.asset, r.pose, ray.scale, `Eagle ray ${n + 1}`),
+          ),
+          this.solo(manta.asset, this.manta.pose, manta.scale, 'Manta ray'),
+          ...this.blacktips.map((b, n) =>
+            this.solo(tip.asset, b.pose, tip.scale, `Blacktip ${n + 1}`),
+          ),
+          this.solo(
+            white.asset,
+            this.restingShark,
+            white.scale,
+            'Whitetip asleep',
+          ),
+        ]);
+        this.sight(
+          { id: creatureSight(ray.id), label: ray.name },
+          this.rays[0].pose.position,
+          ray.radius + 0.8,
+        );
+        this.sight(
+          { id: creatureSight(manta.id), label: manta.name },
+          this.manta.pose.position,
+          manta.radius + 1,
+        );
+        this.sight(
+          { id: creatureSight(tip.id), label: tip.name },
+          this.blacktips[0].pose.position,
+          tip.radius + 0.6,
+        );
+      }, 'rays and sharks'),
     ]);
     if (this.disposed) return false;
     this.root.add(this.schools.root);
@@ -537,6 +601,13 @@ export class WreckLife {
     g.fins = Math.sin(t * 1.1);
     g.pitch = 0.04 * Math.sin(t * 0.2);
     this.sleeper.effort = 0.06 * Math.sin(t * 0.3);
+    this.hullGroupers.forEach((h, i) => {
+      h.effort = beat(t + i * 3, 0.22, 0.12);
+      h.fins = Math.sin(t * 1.1 + i);
+      h.pitch = 0.04 * Math.sin(t * 0.17 + i);
+    });
+    // The resting whitetip only breathes, its tail stirring now and then.
+    this.restingShark.effort = 0.08 * Math.sin(t * 0.35);
   }
   update(
     dt: number,
@@ -549,6 +620,8 @@ export class WreckLife {
     if (active) {
       this.patrol.update(dt, reducedMotion);
       this.wrasse.update(dt, reducedMotion);
+      for (const loop of [...this.rays, this.manta, ...this.blacktips])
+        loop.update(dt, reducedMotion);
       this.shark.update(dt, reducedMotion);
       this.turtle.update(dt, reducedMotion);
       this.place(dt, reducedMotion);
