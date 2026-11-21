@@ -54,6 +54,16 @@
         urchinShape,
       } from '/src/environment/kelp/KelpShapes.ts';
       import { spanishShawlGeometry } from '/src/environment/kelp/SpanishShawl.ts';
+      import * as Wreck from '/src/environment/wreck/WreckGrowth.ts';
+      import {
+        cushionGeometry,
+        tubeClusterGeometry,
+        squirtClusterGeometry,
+      } from '/src/environment/cave/CaveEncrusting.ts';
+      import {
+        spongeGeometry,
+        softCoralGeometry,
+      } from '/src/environment/ice/IceGarden.ts';
       installDeepFog();
 
       const LIBRARY = [
@@ -98,21 +108,49 @@
         ['spanish shawl', () => [spanishShawlGeometry()], 0x9a4ab0],
       ];
       const query = new URLSearchParams(location.search);
+      // V0.7 Pass 069: `?set=coral` shows every coral and reef growth instead.
+      const CORAL_LIBRARY = [
+        ...['Branching', 'Massive', 'Plate'].flatMap((k) =>
+          [0, 1, 2].map((i) => ['reef', `Coral_${k}_${i}`]),
+        ),
+        ...['Soft_Coral', 'Sea_Fan'].flatMap((k) =>
+          [0, 1, 2].map((i) => ['reef', `${k}_${i}`]),
+        ),
+        ['acropora', 'Acropora_Root'],
+      ];
+      const CORAL_CODE = [
+        ['wreck sea fan', () => [Wreck.seaFan()], 0xc8603a],
+        ['wreck soft coral', () => [Wreck.softCoral()], 0xd88a9a],
+        ['black coral', () => [Wreck.blackCoral()], 0x404040],
+        ['wire coral', () => [Wreck.wireCoral()], 0x9a7a40],
+        ['barrel sponge', () => [Wreck.barrelSponge()], 0x9a5a40],
+        ['cushion sponge', () => [Wreck.cushionSponge()], 0xc0a040],
+        ['wreck plate coral', () => [Wreck.plateCoral()], 0x8a7a50],
+        ['hydroid', () => [Wreck.hydroid()], 0xd8d0b0],
+        ['cave cushion', () => [cushionGeometry()], 0xc06040],
+        ['cave tubes', () => [tubeClusterGeometry()], 0xd0c0a0],
+        ['sea squirts', () => [squirtClusterGeometry()], 0xd09060],
+        ['glass sponge', () => [spongeGeometry()], 0xd8d0c0],
+        ['ice soft coral', () => [softCoralGeometry()], 0xe08060],
+      ];
+      const coralSet = query.get('set') === 'coral';
       const only = query.get('only');
       const items = [
-        ...LIBRARY.map(([asset, node]) => ({
+        ...(coralSet ? CORAL_LIBRARY : LIBRARY).map(([asset, node]) => ({
           kind: 'lib',
           asset,
           node,
           label: node,
         })),
-        ...CODE.map(([label, build, tint, glass]) => ({
-          kind: 'code',
-          label,
-          build,
-          tint,
-          glass,
-        })),
+        ...(coralSet ? CORAL_CODE : CODE).map(
+          ([label, build, tint, glass]) => ({
+            kind: 'code',
+            label,
+            build,
+            tint,
+            glass,
+          }),
+        ),
       ].filter(
         (i) => !only || i.label.toLowerCase().includes(only.toLowerCase()),
       );
@@ -150,11 +188,20 @@
       const rigs = [];
       async function model(item) {
         if (item.kind === 'lib') {
-          const src = (await lease(item.asset)).model.getObjectByName(
-            item.node,
-          );
-          const m = src.clone(true);
-          m.position.set(0, 0, 0);
+          const model = (await lease(item.asset)).model,
+            src = model.getObjectByName(item.node),
+            m = new THREE.Group();
+          // The node, plus sibling detail meshes that belong to it (branching-coral tips).
+          for (const o of [src, model.getObjectByName(`${item.node}_Tips`)]) {
+            if (!o) continue;
+            const c = o.clone(true);
+            c.position.set(0, 0, 0);
+            c.traverse((x) => {
+              if (x.name.includes('LOD') || x.name.startsWith('COLLIDER'))
+                x.visible = false;
+            });
+            m.add(c);
+          }
           return m;
         }
         const g = new THREE.Group();

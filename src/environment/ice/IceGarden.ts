@@ -58,7 +58,7 @@ export function spongeGeometry(): THREE.BufferGeometry {
       ),
     );
   }
-  const g = new THREE.LatheGeometry(pts, 18);
+  const g = new THREE.LatheGeometry(pts, 36);
   const p = g.getAttribute('position');
   for (let i = 0; i < p.count; i++) {
     const x = p.getX(i),
@@ -74,25 +74,68 @@ export function spongeGeometry(): THREE.BufferGeometry {
 export function softCoralGeometry(): THREE.BufferGeometry {
   const rand = random(46211),
     parts: THREE.BufferGeometry[] = [];
-  const trunk = new THREE.CylinderGeometry(0.07, 0.11, 0.35, 8);
-  trunk.translate(0, 0.17, 0);
-  parts.push(only(trunk));
+  // V0.7 Pass 069: a continuous fleshy colony: a flaring trunk dividing into curving branches that
+  // swell into polyp-covered club tips (it was cylinders tipped with loose spheres).
+  const trunkPts = [
+    new THREE.Vector3(0, -0.02, 0),
+    new THREE.Vector3(0.01, 0.15, 0.005),
+    new THREE.Vector3(0, 0.32, 0),
+  ];
+  parts.push(
+    only(
+      organicTube(
+        trunkPts,
+        (u) => 0.13 - 0.07 * u + 0.05 * Math.exp(-u / 0.12),
+        8,
+        10,
+      ),
+    ),
+  );
   for (let i = 0; i < 7; i++) {
     const a = (i / 7) * Math.PI * 2 + rand(),
       lean = 0.35 + rand() * 0.4,
       len = 0.35 + rand() * 0.35,
-      b = new THREE.CylinderGeometry(0.03, 0.05, len, 6);
-    b.translate(0, len / 2, 0);
-    b.rotateZ(lean);
-    b.rotateY(a);
-    b.translate(0, 0.3, 0);
-    parts.push(only(b));
-    const tip = new THREE.SphereGeometry(0.075, 8, 6);
-    tip.translate(0, len, 0);
-    tip.rotateZ(lean);
-    tip.rotateY(a);
-    tip.translate(0, 0.3, 0);
-    parts.push(only(tip));
+      dir = new THREE.Vector3(
+        Math.sin(lean) * Math.cos(a),
+        Math.cos(lean),
+        Math.sin(lean) * Math.sin(a),
+      ),
+      start = new THREE.Vector3(0, 0.24 + rand() * 0.06, 0),
+      mid = start
+        .clone()
+        .addScaledVector(dir, len * 0.5)
+        .add(new THREE.Vector3(0, 0.04, 0)),
+      end = start
+        .clone()
+        .addScaledVector(dir, len)
+        .add(new THREE.Vector3(0, 0.08, 0)),
+      club = organicTube(
+        [start, mid, end],
+        // Slim near the trunk, swelling into a rounded club of polyps.
+        (u) => 0.042 - 0.012 * u + 0.05 * Math.max(0, (u - 0.62) / 0.38) ** 1.4,
+        12,
+        9,
+      );
+    // Polyp texture: small bumps over the swollen tip.
+    const p = club.getAttribute('position');
+    for (let k = 0; k < p.count; k++) {
+      const x = p.getX(k),
+        y = p.getY(k),
+        z = p.getZ(k),
+        tipness = Math.max(
+          0,
+          1 - Math.hypot(x - end.x, y - end.y, z - end.z) / 0.11,
+        ),
+        bump =
+          1 + 0.18 * tipness * Math.sin(x * 160) * Math.sin(y * 150 + z * 130);
+      p.setXYZ(
+        k,
+        end.x + (x - end.x) * bump,
+        end.y + (y - end.y) * bump,
+        end.z + (z - end.z) * bump,
+      );
+    }
+    parts.push(only(club));
   }
   const g = mergeGeometries(parts, false)!;
   parts.forEach((p) => p.dispose());
