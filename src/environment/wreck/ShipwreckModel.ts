@@ -1079,10 +1079,7 @@ export class ShipwreckModel {
           loose = rand() < 0.15,
           z = loose
             ? zFrom + rand() * zSpan
-            : Math.min(
-                zFrom + zSpan,
-                Math.max(zFrom, patch.z + gauss() * 2.2),
-              );
+            : Math.min(zFrom + zSpan, Math.max(zFrom, patch.z + gauss() * 2.2));
         if (rand() < onDeck) {
           const y = deckTopAt(z),
             x =
