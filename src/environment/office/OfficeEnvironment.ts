@@ -11,6 +11,7 @@ import {
   ceilingTileTexture,
   clockTexture,
   grassclothTexture,
+  plankFloorTexture,
   posterTexture,
   screenTexture,
   streetTexture,
@@ -309,6 +310,8 @@ export class OfficeEnvironment {
   readonly tankGlass: THREE.Mesh[] = [];
   /** Pass 027: the main ceiling light panel's centre (it was the desk lamp's bulb). */
   readonly lampBulb = new THREE.Vector3();
+  /** V0.7 Pass 073: the desk lamp's bulb (a warm local light). */
+  readonly deskLamp = new THREE.Vector3();
   /** Pass 027: the second ceiling panel, nearer the glass. */
   readonly panel = new THREE.Vector3();
   /** Window opening on the back wall (centre, size), for the daylight. */
@@ -341,10 +344,12 @@ export class OfficeEnvironment {
     };
     const wood = own(woodTexture()),
       grasscloth = own(grassclothTexture());
-    const white = hex(0xf2f2ef),
-      black = hex(0x18191b),
-      darkWood = hex(0x3b3530),
-      chrome = hex(0xc7cbcf);
+    // V0.7 Pass 073: a warm palette (cream paint, warm charcoal trim, walnut, brushed steel),
+    // so the room feels lived-in and belongs with the underwater worlds.
+    const white = hex(0xefe6d6),
+      black = hex(0x2a2420),
+      darkWood = hex(0x6a4a33),
+      chrome = hex(0xbdb7ae);
 
     // --- Room shell: grasscloth side walls, a white back wall around the window, black skirting.
     b.add(
@@ -604,7 +609,7 @@ export class OfficeEnvironment {
       'paint',
       new THREE.BoxGeometry(dk.size.x - 0.14, 0.42, 0.016),
       [dk.center.x, top - 0.28, dz1 + 0.02],
-      hex(0xd9dbdb),
+      hex(0xd8cdb8),
     );
     // Two monitors on arms, facing the desk chair (their screens glow softly; generic).
     const screens: THREE.BufferGeometry[] = [];
@@ -711,13 +716,13 @@ export class OfficeEnvironment {
         'fabric',
         rounded(0.46, 0.07, 0.44, 0.025),
         [c.x, 0.46, c.z],
-        hex(0x24407e),
+        hex(0x9a5236),
       );
       b.add(
         'paint',
         rounded(0.44, 0.3, 0.035, 0.03),
         [c.x, 0.8, c.z + 0.22],
-        hex(0xb9bcbd),
+        hex(0xd9ccb4),
         [0.12, 0, 0],
       );
       for (const sx of [-0.2, 0.2]) {
@@ -742,6 +747,94 @@ export class OfficeEnvironment {
         );
       }
     }
+    // V0.7 Pass 073: lived-in touches. A wool rug under the guest chairs (its top below the baked
+    // contact shadows), a desk lamp with a warm glowing shade, a stack of books, and a floor plant
+    // in the front corner (in OFFICE.plants, so walking collides with it).
+    b.add(
+      'fabric',
+      rounded(1.6, 0.005, 1.3, 0.004),
+      [-0.95, 0.0025, 0.02],
+      hex(0x7a5a46),
+    );
+    b.add(
+      'fabric',
+      rounded(1.42, 0.006, 1.12, 0.004),
+      [-0.95, 0.003, 0.02],
+      hex(0xbfa985),
+    );
+    b.add(
+      'fabric',
+      rounded(1.24, 0.007, 0.94, 0.004),
+      [-0.95, 0.0035, 0.02],
+      hex(0x8f6d55),
+    );
+    {
+      const dk = OFFICE.desk,
+        top = dk.size.y,
+        lx = dk.center.x - 0.62,
+        lz = dk.center.z - 0.2;
+      b.add(
+        'metal',
+        cylinder(0.075, 0.085, 0.022, 24),
+        [lx, top + 0.011, lz],
+        hex(0x3a3330),
+      );
+      b.add(
+        'metal',
+        cylinder(0.009, 0.009, 0.36, 10),
+        [lx, top + 0.2, lz],
+        hex(0x3a3330),
+        [0, 0, 0.18],
+      );
+      b.add(
+        'metal',
+        cylinder(0.008, 0.008, 0.26, 10),
+        [lx + 0.07, top + 0.42, lz],
+        hex(0x3a3330),
+        [0, 0, -0.95],
+      );
+      b.add(
+        'paint',
+        cylinder(0.05, 0.095, 0.11, 24),
+        [lx + 0.18, top + 0.43, lz],
+        hex(0xc9b48a),
+        [0, 0, -0.35],
+      );
+      b.add(
+        'glow',
+        cylinder(0.045, 0.045, 0.004, 20),
+        [lx + 0.2, top + 0.375, lz],
+        hex(0xffd59a),
+        [0, 0, -0.35],
+      );
+      this.deskLamp.set(lx + 0.2, top + 0.33, lz);
+      // A short stack of books by the lamp.
+      for (const [i, c] of [
+        hex(0x5b6b4a),
+        hex(0x8a4b32),
+        hex(0xd8c9a4),
+      ].entries())
+        b.add(
+          'paper',
+          rounded(0.24, 0.035, 0.17, 0.006),
+          [lx + 0.02, top + 0.0175 + i * 0.036, lz + 0.22],
+          c,
+          [0, 0.12 * i - 0.1, 0],
+        );
+    }
+    for (const p of OFFICE.plants)
+      this.potPlant(
+        b,
+        p.x,
+        0,
+        p.z,
+        p.radius,
+        0.38,
+        hex(0xb5694a),
+        31,
+        'fiddle',
+        p.height,
+      );
     // --- Boxes in the back-right corner.
     const bx = OFFICE.boxes;
     b.add(
@@ -758,13 +851,13 @@ export class OfficeEnvironment {
       [0, 0.12, 0],
     );
 
-    // --- Aquarium cabinet (charcoal) and the tank.
+    // --- Aquarium cabinet (V0.7 Pass 073: dark walnut, so it sits in the warm room) and the tank.
     const st = OFFICE.stand;
     b.add(
       'darkWood',
       rounded(st.size.x, st.size.y - 0.04, st.size.z, 0.01),
       [st.center.x, (st.size.y - 0.04) / 2 + 0.04, st.center.z],
-      hex(0x2b2b2d),
+      hex(0x4a3426),
     );
     b.add(
       'trim',
@@ -799,8 +892,8 @@ export class OfficeEnvironment {
       mesh.name = `Office ${key}`;
       this.root.add(mesh);
     }
-    const tiles = own(tileTexture());
-    tiles.repeat.set((r.max.x - r.min.x) / 0.6, (r.max.z - r.min.z) / 1.2);
+    const tiles = own(plankFloorTexture());
+    tiles.repeat.set((r.max.x - r.min.x) / 1.2, (r.max.z - r.min.z) / 1.2);
     const floorGeometry = new THREE.PlaneGeometry(
       r.max.x - r.min.x,
       r.max.z - r.min.z,
@@ -808,7 +901,7 @@ export class OfficeEnvironment {
     floorGeometry.rotateX(-Math.PI / 2);
     this.plane(
       floorGeometry,
-      new THREE.MeshStandardMaterial({ map: tiles, roughness: 0.35 }),
+      new THREE.MeshStandardMaterial({ map: tiles, roughness: 0.62 }),
       'Office floor',
     );
     const ceilingMap = own(ceilingTileTexture());

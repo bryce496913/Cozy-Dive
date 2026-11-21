@@ -41,7 +41,8 @@ export const OFFICE = {
   /** Boxes stacked in the back-right corner, under the window's edge. */
   boxes: { center: { x: 1.52, z: -1.82 }, size: { x: 0.5, y: 0.6, z: 0.42 } },
   stand: { center: { x: 1.34, z: 0.6 }, size: { x: 0.88, y: 0.75, z: 1.12 } },
-  plants: [] as readonly {
+  /** V0.7 Pass 073: a fiddle-leaf fig in the front-left corner (walking collides with its pot). */
+  plants: [{ x: -1.45, z: 1.7, radius: 0.22, height: 1.25 }] as readonly {
     readonly x: number;
     readonly z: number;
     readonly radius: number;

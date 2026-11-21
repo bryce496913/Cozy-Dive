@@ -114,12 +114,14 @@ export class OfficeScene {
 
   constructor(private readonly world: UnderwaterScene) {
     this.scene.name = 'Office';
-    this.scene.background = new THREE.Color(0xd9dbdb);
+    this.scene.background = new THREE.Color(0xe2dccf);
     this.scene.add(this.office.root);
     // Pass 027: a bright, cool office: ceiling panels, daylight through the window, and the
     // open-plan office beyond the glass lit by its own panels.
-    const sky = new THREE.HemisphereLight(0xf2f5f6, 0x8a8478, 1.25);
-    const daylight = new THREE.SpotLight(0xe6eef4, 5, 7, 1.1, 1, 1.2);
+    // V0.7 Pass 073: warm, gentler interior light; the window daylight stays cool and the tank's
+    // aqua light is the room's focal contrast.
+    const sky = new THREE.HemisphereLight(0xfff0dc, 0x7a6450, 1.05);
+    const daylight = new THREE.SpotLight(0xe6eef4, 4, 7, 1.1, 1, 1.2);
     daylight.position.set(
       this.office.window.center.x,
       this.office.window.center.y + 0.3,
@@ -127,19 +129,29 @@ export class OfficeScene {
     );
     daylight.target.position.set(this.office.window.center.x - 0.3, 0.4, 0.8);
     this.scene.add(daylight.target);
-    const bounce = new THREE.PointLight(0xf4f6f6, 2.2, 7, 1.4);
+    const bounce = new THREE.PointLight(0xffe9cc, 2.0, 7, 1.4);
     bounce.position.copy(this.office.panel);
-    const lamp = new THREE.PointLight(0xf6f7f4, 2.6, 6, 1.4);
+    const lamp = new THREE.PointLight(0xffe4bd, 2.2, 6, 1.4);
     lamp.position.copy(this.office.lampBulb);
     const openPlan = new THREE.PointLight(0xf4f6f6, 7, 14, 1.2);
     openPlan.position.set(0, 2.6, 6.2);
-    const tankLight = new THREE.PointLight(0xbfe8e8, 0.35, 1.6, 2);
+    const deskLamp = new THREE.PointLight(0xffb36b, 1.3, 2.4, 1.6);
+    deskLamp.position.copy(this.office.deskLamp);
+    const tankLight = new THREE.PointLight(0xbfe8e8, 0.45, 1.6, 2);
     tankLight.position.set(
       OFFICE.stand.center.x - 0.6,
       1.25,
       OFFICE.stand.center.z,
     );
-    this.lights.push(sky, daylight, bounce, lamp, openPlan, tankLight);
+    this.lights.push(
+      sky,
+      daylight,
+      bounce,
+      lamp,
+      deskLamp,
+      openPlan,
+      tankLight,
+    );
     this.scene.add(...this.lights);
 
     this.target = new THREE.WebGLRenderTarget(1, 1, {
