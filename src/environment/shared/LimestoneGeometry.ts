@@ -25,6 +25,8 @@ export function limestoneGeometry(
   seed: number,
   family: number,
   carved = false,
+  detail = 3,
+  massing = true,
 ): THREE.BufferGeometry {
   const source = rockShape(seed, family, 2),
     vertices = source.getAttribute('position');
@@ -48,9 +50,9 @@ export function limestoneGeometry(
     const g = carveConvexHull(
         hullPositions,
         family,
-        3,
+        detail,
         seed * 7 + 13,
-        BOULDER_MASSING,
+        massing ? BOULDER_MASSING : undefined,
       ),
       pos = g.getAttribute('position'),
       carve = g.getAttribute('carve'),

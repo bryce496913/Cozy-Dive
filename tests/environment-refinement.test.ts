@@ -155,3 +155,116 @@ describe('V0.7 Pass 079 office furniture forms', () => {
     g.dispose();
   });
 });
+
+describe('V0.7 Pass 079 follow-up: large life, formations and tunnels', () => {
+  it('sways the algae on simulation time, frozen with reduced motion', async () => {
+    const { SwayingAlgae, strapAlgaGeometry } =
+      await import('../src/environment/shared/LargeLife');
+    const a = new SwayingAlgae(
+      'test',
+      strapAlgaGeometry(3, 1, [0.3, 0.2, 0.1], [0.5, 0.4, 0.2]),
+      [{ x: 0, y: 0, z: 0, scale: 1, yaw: 0 }],
+      0.3,
+    );
+    try {
+      const sway = a.geometry.getAttribute('sway');
+      let lo = Infinity,
+        hi = -Infinity;
+      for (let i = 0; i < sway.count; i++) {
+        lo = Math.min(lo, sway.getX(i));
+        hi = Math.max(hi, sway.getX(i));
+      }
+      // Anchored at the holdfast, free at the tip.
+      expect(lo).toBe(0);
+      expect(hi).toBeGreaterThan(0.9);
+      a.update(1, true, true);
+      expect((a as unknown as { time: { value: number } }).time.value).toBe(0);
+      a.update(1, true, false);
+      expect(
+        (a as unknown as { time: { value: number } }).time.value,
+      ).toBeGreaterThan(0);
+    } finally {
+      a.dispose();
+    }
+  });
+  it('keeps the ice formations and algae out of the sand lanes and the holes, and solid', async () => {
+    const { IceEnvironment } =
+      await import('../src/environment/ice/IceEnvironment');
+    const { inIceLane } = await import('../src/environment/ice/IceGarden');
+    const { ICE } = await import('../src/config/passage');
+    const env = new IceEnvironment();
+    try {
+      const m = new THREE.Matrix4(),
+        p = new THREE.Vector3();
+      for (const name of ['Giant strap algae', 'Bushy brown algae']) {
+        const mesh = env.root.getObjectByName(name) as THREE.InstancedMesh;
+        expect(mesh.count).toBeGreaterThan(20);
+        for (let i = 0; i < mesh.count; i++) {
+          mesh.getMatrixAt(i, m);
+          p.setFromMatrixPosition(m);
+          expect(inIceLane(p.x, p.z)).toBe(false);
+        }
+      }
+      // The outcrops' boulders are solid and keep clear of the breathing holes' light.
+      const big = env.stones.filter((s) => s.size > 2);
+      expect(big.length).toBeGreaterThanOrEqual(4);
+      for (const s of big)
+        for (const h of ICE.holes)
+          expect(Math.hypot(s.x - h.x, s.z - h.z)).toBeGreaterThan(h.r + 1);
+      expect(env.colliders.length).toBeGreaterThan(40);
+    } finally {
+      env.dispose();
+    }
+  });
+  it('makes the cave pillars solid from sand to roof', async () => {
+    const { CaveEnvironment } =
+      await import('../src/environment/cave/CaveEnvironment');
+    const env = new CaveEnvironment();
+    try {
+      for (const [x, z] of [
+        [-15.3, -22.6],
+        [15.4, -25],
+      ]) {
+        const solid = (y: number) =>
+          env.colliders.some((c) =>
+            c.planes.every(
+              (pl) => pl.x * x + pl.y * y + pl.z * z - pl.offset < 0.05,
+            ),
+          );
+        expect(solid(1)).toBe(true);
+        expect(solid(5)).toBe(true);
+      }
+    } finally {
+      env.dispose();
+    }
+  });
+  it('carries a tunnel on into darkness instead of ending it in a flat disc', async () => {
+    const { tunnelThroat } = await import('../src/environment/shared/RockTube');
+    const g = tunnelThroat({ x: 0, y: 3, radius: 1.45 }, -40, -1, 4),
+      p = g.getAttribute('position'),
+      c = g.getAttribute('color');
+    let near = -Infinity,
+      far = Infinity,
+      darkest = Infinity;
+    for (let i = 0; i < p.count; i++) {
+      near = Math.max(near, p.getZ(i));
+      far = Math.min(far, p.getZ(i));
+      darkest = Math.min(darkest, c.getX(i));
+    }
+    expect(near - far).toBeGreaterThan(3.9);
+    expect(darkest).toBe(0);
+    g.dispose();
+  });
+});
+
+describe('V0.7 Pass 079 tunnel collar', () => {
+  it.each([1, -1] as const)('faces its open side (out %i)', async (out) => {
+    const { mouthCollar } = await import('../src/environment/shared/RockTube');
+    const g = mouthCollar({ x: 0, y: 3, radius: 1.45 }, -8, out),
+      n = g.getAttribute('normal');
+    let sum = 0;
+    for (let i = 0; i < n.count; i++) sum += n.getZ(i);
+    expect(Math.sign(sum)).toBe(out);
+    g.dispose();
+  });
+});

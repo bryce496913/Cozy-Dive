@@ -7,8 +7,18 @@ import { ICE, ICE_FRAME } from '../../config/passage';
 import type { ConvexCollider } from '../../player/collision';
 import { boxCollider } from '../passage/Crevice';
 import { rockShape } from '../RockGeometry';
+import { rockCollider } from '../rockCollider';
+import {
+  bushyAlgaGeometry,
+  strapAlgaGeometry,
+  SwayingAlgae,
+  type AlgaPlacement,
+} from '../shared/LargeLife';
+import { inIceLane } from './IceGarden';
 import {
   icicles,
+  tunnelThroat,
+  mouthCollar,
   mouthRocks,
   rockTubeColliders,
   rockTubeGeometry,
@@ -111,6 +121,8 @@ export class IceEnvironment {
   private readonly shafts: THREE.MeshBasicMaterial;
   private time = 0;
   private disposed = false;
+  /** V0.7 Pass 079: the giant strap algae and bushy algae, swaying. */
+  private readonly algae: SwayingAlgae[] = [];
 
   constructor() {
     this.root.name = 'Under the ice';
@@ -253,6 +265,11 @@ export class IceEnvironment {
     // v0.6 Pass 052: the mouth into the waters under the ice: frosted boulders heaped round it,
     // icicles hanging over it and in the tunnel's last stretch.
     this.add(
+      mouthCollar(tube, t.wallZ - 0.3, -1, 1.4, 0.24),
+      rock,
+      'Ice tunnel collar',
+    );
+    this.add(
       mouthRocks(tube, t.wallZ - 0.2, -1, 0.85, 14, 52130),
       rock,
       'Ice tunnel mouth',
@@ -273,18 +290,8 @@ export class IceEnvironment {
       ice,
       'Ice mouth icicles',
     );
-    const cap = new THREE.CircleGeometry(t.radius + 0.3, 24);
-    // v0.6 Pass 052: facing back down the tunnel (it faced away, so looking back it was not drawn).
-    cap.rotateY(Math.PI);
-    cap.translate(0, t.y, t.startZ + 0.2);
-    cap.setAttribute(
-      'color',
-      new THREE.Float32BufferAttribute(
-        new Float32Array(cap.getAttribute('position').count * 3).fill(0.04),
-        3,
-      ),
-    );
-    this.add(cap, rock, 'Ice tunnel cap');
+    // V0.7 Pass 079: the tunnel's start (behind the swap) recedes into darkness, not a flat disc.
+    this.add(tunnelThroat(tube, t.startZ + 0.25, 1), rock, 'Ice tunnel cap');
     const d = ICE_LAYOUT.duct;
     this.colliders.push(
       ...rockTubeColliders(tube, d, ICE_LAYOUT.wall),
@@ -431,6 +438,7 @@ export class IceEnvironment {
         this.add(shaft, this.shafts, 'Breathing hole light').renderOrder = 2;
       }
     }
+    blocks.push(...this.iceFormations());
     const merged = mergeGeometries(blocks, false);
     blocks.forEach((g) => g.dispose());
     if (merged) {
@@ -461,10 +469,199 @@ export class IceEnvironment {
           ),
         );
     }
+    stones.push(...this.outcrops());
     const rocks = mergeGeometries(stones, false);
     stones.forEach((g) => g.dispose());
     if (rocks) {
       this.add(rocks, rock, 'Dropstones');
+    }
+    this.plantAlgae();
+  }
+  /**
+   * V0.7 Pass 079 (playtest: "feels like a large empty room"): grounded iceberg fragments along
+   * the sides and the far end, and two great ice columns joining seabed to sea ice near the side
+   * walls, so the open water has structure at every height. All stand clear of the breathing
+   * holes' light, the tunnel's approach, the sand lanes and the penguins' loop (round x 2, z -38),
+   * and each is solid (convex colliders from its own surface).
+   */
+  private iceFormations(): THREE.BufferGeometry[] {
+    const rand = random(79300),
+      out: THREE.BufferGeometry[] = [],
+      top = ICE.ceiling;
+    const piece = (
+      x: number,
+      y0: number,
+      z: number,
+      sx: number,
+      h: number,
+      sz: number,
+      k: number,
+      deep: number,
+    ) => {
+      const g = lump(79310 + k * 13, k % 4, 2);
+      g.scale(sx, h, sz);
+      g.rotateY(rand() * Math.PI);
+      g.translate(x, y0 + h / 2, z);
+      iceColours(g, deep);
+      this.colliders.push(rockCollider(g, new THREE.Matrix4()));
+      out.push(g);
+    };
+    // Grounded fragments: broad, low-ish blocks sunk into the seabed.
+    const grounded: [number, number, number, number, number][] = [
+      [-18, -19, 4.5, 5.5, 4],
+      [18.5, -23, 5, 4.5, 4.5],
+      [-19, -40, 4, 6.5, 5],
+      [18, -50, 5.5, 5, 4],
+      [-5, -55.5, 6, 4.5, 3.5],
+      [12, -56, 4.5, 6, 3.5],
+    ];
+    grounded.forEach(([x, z, sx, h, sz], i) => {
+      piece(
+        x,
+        iceFloor(x, z) - 1.2,
+        z,
+        sx,
+        h + 1.2,
+        sz,
+        i,
+        0.45 + rand() * 0.25,
+      );
+      // A smaller shard leaning against each.
+      const a = rand() * Math.PI * 2;
+      piece(
+        x + Math.cos(a) * sx * 0.55,
+        iceFloor(x, z) - 0.6,
+        z + Math.sin(a) * sz * 0.55,
+        sx * 0.45,
+        h * 0.5,
+        sz * 0.4,
+        i + 20,
+        0.5,
+      );
+    });
+    // Columns: wide feet, a narrower waist, and a broad head merging into the sea ice.
+    for (const [x, z] of [
+      [-19.5, -31],
+      [19.5, -37],
+    ] as const) {
+      const floor = iceFloor(x, z);
+      piece(x, floor - 1, z, 5, 5.5, 4.5, 40, 0.5);
+      piece(x, floor + 3.5, z, 2.8, top - floor - 6, 2.6, 41, 0.6);
+      piece(x, top - 4.5, z, 5.5, 5.5, 5, 42, 0.4);
+    }
+    return out;
+  }
+  /**
+   * V0.7 Pass 079: rock outcrops (clusters of carved boulders, 1.5-3 m), dark like the dropstones,
+   * set clear of the sand lanes and the holes. They join the stones, so the garden's anemones and
+   * feather stars settle on them too.
+   */
+  private outcrops(): THREE.BufferGeometry[] {
+    const rand = random(79400),
+      out: THREE.BufferGeometry[] = [];
+    for (const [cx, cz] of [
+      [-6.5, -17],
+      [6.5, -32],
+      [-17.5, -46],
+      [17.5, -31],
+    ] as const) {
+      for (let k = 0; k < 4; k++) {
+        const a = rand() * Math.PI * 2,
+          d = k === 0 ? 0 : 1.1 + rand() * 0.9,
+          x = cx + Math.cos(a) * d,
+          z = cz + Math.sin(a) * d,
+          s = k === 0 ? 2.4 + rand() * 0.8 : 1.1 + rand() * 0.9,
+          y = iceFloor(x, z),
+          g = lump(79410 + k * 7 + Math.round(cx), k % 3, 2);
+        g.scale(s * 1.2, s * (k === 0 ? 1.1 : 0.75), s);
+        g.rotateY(rand() * Math.PI);
+        g.translate(x, y + s * 0.3, z);
+        const c = g.getAttribute('color');
+        for (let v = 0; v < c.count; v++) {
+          const t = 0.22 + 0.05 * Math.sin(v * 0.37);
+          c.setXYZ(v, t, t * 0.97, t * 0.97);
+        }
+        this.colliders.push(rockCollider(g, new THREE.Matrix4()));
+        this.stones.push({ x, y, z, size: s });
+        out.push(g);
+      }
+    }
+    return out;
+  }
+  /**
+   * V0.7 Pass 079: giant strap algae ringing the breathing holes (in their light) and bushy algae
+   * round the outcrops and along the side walls: tall, swaying vertical structure (two draws).
+   */
+  private plantAlgae(): void {
+    const rand = random(79500),
+      straps: AlgaPlacement[] = [],
+      bushes: AlgaPlacement[] = [];
+    const ok = (x: number, z: number) =>
+      !inIceLane(x, z, 0.4) &&
+      Math.abs(x) < ICE.walls.x - 3 &&
+      z < ICE.tunnel.wallZ - 3 &&
+      z > ICE.walls.farZ + 3;
+    for (const h of ICE.holes)
+      for (let i = 0; i < 16; i++) {
+        const a = rand() * Math.PI * 2,
+          d = h.r * (1.1 + rand() * 1.4),
+          x = h.x + Math.cos(a) * d,
+          z = h.z + Math.sin(a) * d;
+        if (ok(x, z))
+          straps.push({
+            x,
+            y: iceFloor(x, z) - 0.05,
+            z,
+            scale: 0.7 + rand() * 0.7,
+            yaw: rand() * Math.PI * 2,
+          });
+      }
+    for (const st of this.stones.slice(-16)) {
+      for (let i = 0; i < 2; i++) {
+        const a = rand() * Math.PI * 2,
+          x = st.x + Math.cos(a) * (st.size * 0.7 + 0.4),
+          z = st.z + Math.sin(a) * (st.size * 0.7 + 0.4);
+        if (ok(x, z))
+          bushes.push({
+            x,
+            y: iceFloor(x, z) - 0.03,
+            z,
+            scale: 0.8 + rand() * 0.7,
+            yaw: rand() * Math.PI * 2,
+          });
+      }
+    }
+    for (let i = 0; i < 40; i++) {
+      const side = i % 2 ? 1 : -1,
+        x = side * (ICE.walls.x - 4 - rand() * 3),
+        z =
+          ICE.tunnel.wallZ -
+          5 +
+          rand() * (ICE.walls.farZ - ICE.tunnel.wallZ + 8);
+      if (!ok(x, z)) continue;
+      (i % 3 ? bushes : straps).push({
+        x,
+        y: iceFloor(x, z) - 0.05,
+        z,
+        scale: 0.7 + rand() * 0.8,
+        yaw: rand() * Math.PI * 2,
+      });
+    }
+    const strap = new SwayingAlgae(
+      'Giant strap algae',
+      strapAlgaGeometry(3.2, 79510, [0.3, 0.2, 0.09], [0.56, 0.42, 0.17]),
+      straps,
+      0.35,
+    );
+    const bush = new SwayingAlgae(
+      'Bushy brown algae',
+      bushyAlgaGeometry(1.1, 79520, [0.36, 0.17, 0.08], [0.72, 0.38, 0.2]),
+      bushes,
+      0.12,
+    );
+    for (const a of [strap, bush]) {
+      this.algae.push(a);
+      this.root.add(a.mesh);
     }
   }
   private own<T extends THREE.Material>(m: T): T {
@@ -487,11 +684,13 @@ export class IceEnvironment {
     if (this.disposed || !active || reducedMotion || !(dt > 0)) return;
     this.time += Math.min(dt, 0.1);
     this.shafts.opacity = 0.88 + 0.12 * Math.sin(this.time * 0.5);
+    for (const a of this.algae) a.update(dt, active, reducedMotion);
   }
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
     this.root.removeFromParent();
+    this.algae.forEach((a) => a.dispose());
     this.root.clear();
     this.geometries.forEach((g) => g.dispose());
     this.materials.forEach((m) => m.dispose());

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { organicTube } from './organicGeometry';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { ConvexCollider } from '../../player/collision';
 import { boxCollider } from '../passage/Crevice';
@@ -99,6 +100,9 @@ function plain(
   g: THREE.BufferGeometry,
   colour: (y: number, i: number) => readonly [number, number, number],
 ): THREE.BufferGeometry {
+  // V0.7 Pass 079: keep smooth normals (computed before de-indexing, or the part's own); they
+  // were recomputed per triangle afterwards, which shaded every rock and icicle flat-faceted.
+  if (!g.getAttribute('normal')) g.computeVertexNormals();
   const out = g.index ? g.toNonIndexed() : g;
   if (out !== g) g.dispose();
   for (const name of Object.keys(out.attributes))
@@ -107,7 +111,6 @@ function plain(
     c = new Float32Array(p.count * 3);
   for (let i = 0; i < p.count; i++) c.set(colour(p.getY(i), i), i * 3);
   out.setAttribute('color', new THREE.Float32BufferAttribute(c, 3));
-  out.computeVertexNormals();
   return out;
 }
 /**
@@ -132,9 +135,10 @@ export function mouthRocks(
   for (let i = 0; i < count; i++) {
     // Round the mouth, heavier at the sides and over the top than underneath.
     const a = ((i + 0.16 * Math.sin(i * 2.7)) / count) * Math.PI * 2 + 0.2,
-      g = limestoneGeometry(seed + (i % 8) * 11, i % 3),
+      // V0.7 Pass 079 (playtest: tunnel rocks read faceted): carved inside their hull.
+      g = limestoneGeometry(seed + (i % 8) * 11, i % 3, true, 1, false),
       d =
-        (1.5 + 0.5 * Math.abs(Math.sin(i * 2.3))) *
+        (1.65 + 0.55 * Math.abs(Math.sin(i * 2.3))) *
         (Math.sin(a) < -0.4 ? 0.7 : 1),
       ring = t.radius + 0.35 + d * 0.3;
     g.computeBoundingBox();
@@ -202,16 +206,29 @@ export function icicles(
       // Short enough that their tips stay above the swimmer's head in the tunnel.
       len = (0.08 + 0.22 * rand() * rand()) * (0.5 + 0.5 * u),
       r = 0.025 + 0.03 * rand(),
-      cone = new THREE.ConeGeometry(r, len, 6);
-    cone.rotateX(Math.PI);
-    const rim = t.radius - 0.08;
-    cone.translate(
-      t.x + Math.cos(a) * rim,
-      t.y + Math.sin(a) * rim - len / 2,
-      z,
+      rim = t.radius - 0.08,
+      x0 = t.x + Math.cos(a) * rim,
+      y0 = t.y + Math.sin(a) * rim,
+      bend = (rand() - 0.5) * len * 0.25,
+      phase = rand() * 6.28;
+    // V0.7 Pass 079: an icicle as ice grows: a broad root fused to the rock, a slightly crooked
+    // body rippled by drip rings, tapering to a fine tip (was a straight six-sided cone).
+    const g = organicTube(
+      [
+        new THREE.Vector3(x0, y0 + r * 0.6, z),
+        new THREE.Vector3(x0 + bend * 0.3, y0 - len * 0.35, z + bend * 0.2),
+        new THREE.Vector3(x0 + bend, y0 - len, z + bend * 0.5),
+      ],
+      (v) =>
+        r *
+          (1.35 - 1.25 * v ** 0.8) *
+          (1 + 0.12 * Math.sin(v * 22 + phase) * (1 - v)) +
+        0.0015,
+      14,
+      7,
     );
     parts.push(
-      plain(cone, (y) => {
+      plain(g, (y) => {
         const k = 0.7 + 0.3 * Math.min(1, Math.max(0, (y - t.y) / t.radius));
         return [0.62 * k, 0.8 * k, 0.95 * k];
       }),
@@ -221,4 +238,112 @@ export function icicles(
   parts.forEach((g) => g.dispose());
   if (!merged) throw Error('Icicles could not be built');
   return merged;
+}
+
+/**
+ * V0.7 Pass 079 (playtest: the tunnels' ends read as flat black discs): where a tunnel's drawn
+ * tube ends, a short rough throat carries on `depth` m along z (`dir` -1 or +1), narrowing and
+ * fading to black, so the passage reads as continuing into darkness. Faces inward.
+ */
+export function tunnelThroat(
+  t: Pick<Tube, 'x' | 'y' | 'radius'>,
+  z: number,
+  dir: 1 | -1,
+  depth = 4,
+): THREE.BufferGeometry {
+  const rings = 10,
+    sides = 28,
+    pos: number[] = [],
+    col: number[] = [],
+    idx: number[] = [];
+  for (let i = 0; i <= rings; i++) {
+    const u = i / rings,
+      r = (t.radius + 0.25) * (1 - 0.75 * u ** 1.4),
+      k = 0.07 * (1 - u) ** 2;
+    for (let j = 0; j < sides; j++) {
+      const a = (j / sides) * Math.PI * 2,
+        lump =
+          1 + 0.08 * Math.sin(a * 3 + u * 5) + 0.05 * Math.sin(a * 7 - u * 9);
+      pos.push(
+        t.x + Math.cos(a) * r * lump,
+        t.y + Math.sin(a) * r * lump,
+        z + dir * depth * u,
+      );
+      col.push(k, k * 1.02, k * 1.05);
+    }
+  }
+  for (let i = 0; i < rings; i++)
+    for (let j = 0; j < sides; j++) {
+      const a = i * sides + j,
+        b = i * sides + ((j + 1) % sides);
+      if (dir < 0) idx.push(a, a + sides, b, b, a + sides, b + sides);
+      else idx.push(a, b, a + sides, b, b + sides, a + sides);
+    }
+  // Closed at the far end in black.
+  const tip = pos.length / 3;
+  pos.push(t.x, t.y, z + dir * depth * 1.02);
+  col.push(0, 0, 0);
+  for (let j = 0; j < sides; j++) {
+    const a = rings * sides + j,
+      b = rings * sides + ((j + 1) % sides);
+    if (dir < 0) idx.push(a, tip, b);
+    else idx.push(a, b, tip);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+
+/**
+ * V0.7 Pass 079: a rough rock collar round a tunnel's mouth where it meets a rock face, covering
+ * the stair-stepped edge of the hole cut in the face (the water showed through round the tube).
+ * Lies at `z`, facing `out` (+1 or -1 along z).
+ */
+export function mouthCollar(
+  t: Pick<Tube, 'x' | 'y' | 'radius'>,
+  z: number,
+  out: 1 | -1,
+  width = 1.3,
+  tone = 0.2,
+): THREE.BufferGeometry {
+  const rings = 6,
+    sides = 48,
+    pos: number[] = [],
+    col: number[] = [],
+    idx: number[] = [];
+  for (let i = 0; i <= rings; i++) {
+    const u = i / rings,
+      r = t.radius - 0.06 + width * u;
+    for (let j = 0; j < sides; j++) {
+      const a = (j / sides) * Math.PI * 2,
+        lump =
+          0.12 * Math.sin(a * 5 + u * 3) * Math.sin(a * 3 - u * 4) +
+          0.06 * Math.sin(a * 11);
+      // Bulging out of the face toward its middle, flush at both edges.
+      pos.push(
+        t.x + Math.cos(a) * r,
+        t.y + Math.sin(a) * r,
+        z + out * (0.18 * Math.sin(Math.PI * u) + lump * Math.sin(Math.PI * u)),
+      );
+      const k = tone * (0.85 + 0.25 * Math.sin(a * 7 + u * 5));
+      col.push(k, k, k * 1.03);
+    }
+  }
+  for (let i = 0; i < rings; i++)
+    for (let j = 0; j < sides; j++) {
+      const a = i * sides + j,
+        b = i * sides + ((j + 1) % sides);
+      // Wound to face `out` (single-sided materials cull the other side).
+      if (out > 0) idx.push(a, a + sides, b, b, a + sides, b + sides);
+      else idx.push(a, b, a + sides, b, b + sides, a + sides);
+    }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
 }

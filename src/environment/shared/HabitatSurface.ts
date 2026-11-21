@@ -102,6 +102,9 @@ export class HabitatSurface {
       t.generateMipmaps = true;
       t.minFilter = THREE.LinearMipmapLinearFilter;
       t.magFilter = THREE.LinearFilter;
+      // V0.7 Pass 079 (playtest: moire on tunnel rock at grazing angles): anisotropic filtering
+      // (three clamps it to what the device supports).
+      t.anisotropy = 8;
       t.needsUpdate = true;
       this.maps.push(t);
     }

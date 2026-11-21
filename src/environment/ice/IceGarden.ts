@@ -24,6 +24,17 @@ export const GARDEN = {
   feathers: 50,
 } as const;
 
+/**
+ * V0.7 Pass 079: three winding sand lanes run front to back under the ice and stay open (no
+ * sponges, corals, formations or algae), so small crawlers and drifters show against bare seabed.
+ */
+export function inIceLane(x: number, z: number, margin = 0): boolean {
+  return [-12, 0.5, 12].some(
+    (base, k) =>
+      Math.abs(x - (base + 2.6 * Math.sin(z * 0.11 + k * 1.9))) < 1.7 + margin,
+  );
+}
+
 function random(seed: number): () => number {
   let s = seed >>> 0;
   return () => {
@@ -236,11 +247,7 @@ export class IceGarden {
       c = new THREE.Color();
     // V0.7 Pass 079: three winding sand lanes run front to back between the gardens and stay
     // open, so small crawlers and drifters show against bare seabed; growth gathers into clumps.
-    const inLane = (x: number, z: number) =>
-      [-12, 0.5, 12].some(
-        (base, k) =>
-          Math.abs(x - (base + 2.6 * Math.sin(z * 0.11 + k * 1.9))) < 1.7,
-      );
+    const inLane = inIceLane;
     const spot = (clear = 0, lanes = true) => {
       for (let i = 0; i < 40; i++) {
         const x = (rand() * 2 - 1) * (w.x - 4),

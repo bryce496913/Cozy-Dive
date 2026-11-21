@@ -11,12 +11,21 @@ import type { ConvexCollider } from '../../player/collision';
 import { boxCollider } from '../passage/Crevice';
 import {
   icicles,
+  tunnelThroat,
+  mouthCollar,
   mouthRocks as tunnelMouthRocks,
   rockTubeColliders,
   rockTubeGeometry,
 } from '../shared/RockTube';
 import { createRockGeometry, rockShape } from '../RockGeometry';
 import { rockCollider } from '../rockCollider';
+import { seaFan } from '../wreck/WreckGrowth';
+import {
+  strapAlgaGeometry,
+  SwayingAlgae,
+  type AlgaPlacement,
+} from '../shared/LargeLife';
+import { CAVE_LIFE } from './CaveLife';
 import { caveFloor, chamberDepth, wallLumps, wallPoint } from './CaveTerrain';
 
 /**
@@ -106,6 +115,8 @@ export class CaveEnvironment {
   private readonly geometries: THREE.BufferGeometry[] = [];
   private readonly materials: THREE.Material[] = [];
   private time = 0;
+  /** V0.7 Pass 079: the kelp under the skylight and by the entrance, swaying. */
+  private readonly algae: SwayingAlgae[] = [];
   private disposed = false;
   /** The roof's height at the skylight (where the sunbeam starts). */
   readonly skylightTop: number;
@@ -200,6 +211,11 @@ export class CaveEnvironment {
     // v0.6 Pass 052 (playtest: "the tunnel to the ice needs to be better designed"): boulders
     // heaped round its mouth (frosted a little), and icicles hanging in its colder half.
     this.add(
+      mouthCollar(backTube, backMouthZ() + 0.15, 1, 1.2, 0.16),
+      tunnel,
+      'Cave back tunnel collar',
+    );
+    this.add(
       tunnelMouthRocks(backTube, backMouthZ() + 0.1, 1, 0.25, 12, 52110),
       tunnel,
       'Cave back tunnel mouth',
@@ -210,16 +226,12 @@ export class CaveEnvironment {
       'Cave back tunnel icicles',
     );
     // Its far end fades into darkness (beyond the threshold, where the swap has happened).
-    const backCap = new THREE.CircleGeometry(back.radius + 0.4, 24);
-    backCap.translate(back.x, back.y, backTube.to);
-    backCap.setAttribute(
-      'color',
-      new THREE.Float32BufferAttribute(
-        new Float32Array(backCap.getAttribute('position').count * 3).fill(0.02),
-        3,
-      ),
+    // V0.7 Pass 079: a receding throat, not a flat black disc.
+    this.add(
+      tunnelThroat(backTube, backTube.to + 0.05, -1),
+      tunnel,
+      'Cave back tunnel end',
     );
-    this.add(backCap, tunnel, 'Cave back tunnel end');
     const s = CAVE.skylight,
       top = this.roofAt(s.x, s.z);
     this.skylightTop = top;
@@ -307,10 +319,11 @@ export class CaveEnvironment {
       );
       rocks.push(g.applyMatrix4(m));
     }
-    rocks.push(...this.skylightRubble());
+    rocks.push(...this.skylightRubble(), ...this.pillars(colliders));
     const merged = mergeGeometries(rocks, false);
     rocks.forEach((g) => g.dispose());
     if (merged) this.add(merged, this.rock, 'Cave boulders');
+    this.largeLife();
     this.add(this.sponges(), this.glow, 'Cave glowing sponges');
     // A crack low in the wall at the back, too.
     for (const a of [2.6, 3.4, -2.5]) {
@@ -593,6 +606,186 @@ export class CaveEnvironment {
     }
     return out;
   }
+  /**
+   * V0.7 Pass 079 (playtest: "feels like a large empty room"): two great limestone pillars from
+   * sand to roof against the side walls, between the boulders: a flared foot, a carved shaft and a
+   * broad head spreading into the roof, each part carved inside its own hull (its collider). Clear
+   * of the fish schools, the whitetips' resting and settling spots, the nooks and the sunbeam.
+   */
+  private pillars(colliders: ConvexCollider[]): THREE.BufferGeometry[] {
+    const out: THREE.BufferGeometry[] = [],
+      m = new THREE.Matrix4(),
+      q = new THREE.Quaternion(),
+      size = new THREE.Vector3(),
+      centre = new THREE.Vector3();
+    const part = (
+      seed: number,
+      family: number,
+      x: number,
+      y: number,
+      z: number,
+      w: number,
+      h: number,
+      d: number,
+      yaw: number,
+    ) => {
+      const g = limestoneGeometry(seed, family, true);
+      g.computeBoundingBox();
+      g.boundingBox!.getSize(size);
+      g.boundingBox!.getCenter(centre);
+      q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+      m.compose(
+        new THREE.Vector3(x, y, z),
+        q,
+        new THREE.Vector3(w / size.x, h / size.y, d / size.z),
+      ).multiply(
+        new THREE.Matrix4().makeTranslation(-centre.x, -centre.y, -centre.z),
+      );
+      colliders.push(rockCollider(g, m));
+      out.push(g.applyMatrix4(m));
+    };
+    [
+      [-15.3, -22.6],
+      [15.4, -25],
+    ].forEach(([x, z], i) => {
+      const floor = caveFloor(x, z),
+        roof = this.roofAt(x, z),
+        span = roof - floor;
+      part(79600 + i * 31, 0, x, floor + 1.3, z, 4.4, 3.4, 4.0, i * 1.3);
+      part(
+        79610 + i * 31,
+        2,
+        x,
+        floor + span * 0.48,
+        z,
+        3.0,
+        span * 0.72,
+        2.8,
+        0.6 + i,
+      );
+      part(
+        79615 + i * 31,
+        1,
+        x + 0.5,
+        floor + span * 0.4,
+        z - 0.4,
+        2.4,
+        span * 0.45,
+        2.2,
+        1.7 + i,
+      );
+      part(79620 + i * 31, 1, x, roof - 1.1, z, 4.8, 3.4, 4.4, 2.1 + i);
+    });
+    return out;
+  }
+  /**
+   * V0.7 Pass 079: large living structure. Big orange and red sea fans on the walls and pillars,
+   * facing into the cavern's slow current (one instanced draw), and a ring of strap kelp round the
+   * edge of the sunbeam's pool with a few stands by the entrance, swaying (one draw).
+   */
+  private largeLife(): void {
+    const rand = random(79700),
+      fanGeometry = seaFan(11),
+      fans = new THREE.InstancedMesh(
+        fanGeometry,
+        this.own(
+          new THREE.MeshStandardMaterial({
+            name: 'Cave sea fans',
+            vertexColors: !!fanGeometry.getAttribute('color'),
+            roughness: 0.75,
+            side: THREE.DoubleSide,
+          }),
+        ),
+        26,
+      );
+    this.geometries.push(fanGeometry);
+    fans.name = 'Cave sea fans';
+    const c = CAVE.chamber,
+      m = new THREE.Matrix4(),
+      q = new THREE.Quaternion(),
+      e = new THREE.Euler(),
+      p = { x: 0, y: 0, z: 0 },
+      colour = new THREE.Color();
+    let n = 0;
+    for (let i = 0; i < 60 && n < 26; i++) {
+      const a = rand() * Math.PI * 2,
+        up = -0.55 + rand() * 0.45;
+      wallPoint(Math.sin(a), up, Math.cos(a), p);
+      // Not over the tunnels' mouths, not in the sunbeam's pool.
+      if (p.z > c.z + c.rz - 3.5 && Math.abs(p.x) < 4.5) continue;
+      if (p.z < c.z - c.rz + 3.5 && Math.abs(p.x - CAVE.backTunnel.x) < 4.5)
+        continue;
+      const k = 0.9,
+        x = c.x + (p.x - c.x) * k,
+        z = c.z + (p.z - c.z) * k,
+        y = Math.max(caveFloor(x, z) + 0.2, p.y),
+        s = 1.3 + rand() * 1.1;
+      e.set(
+        (rand() - 0.5) * 0.25,
+        Math.atan2(c.x - x, c.z - z) + (rand() - 0.5) * 0.5,
+        (rand() - 0.5) * 0.3,
+      );
+      m.compose(
+        new THREE.Vector3(x, y, z),
+        q.setFromEuler(e),
+        new THREE.Vector3(s, s, s),
+      );
+      fans.setMatrixAt(n, m);
+      fans.setColorAt(
+        n,
+        rand() < 0.5
+          ? colour.setRGB(0.95, 0.45, 0.2)
+          : colour.setRGB(0.8, 0.2, 0.18),
+      );
+      n++;
+    }
+    fans.count = n;
+    this.root.add(fans);
+    // Kelp: round the sunbeam's pool (in its light) and in the entrance's light.
+    const s = CAVE.skylight,
+      poolX = s.x - 0.12 * (this.roofAt(s.x, s.z) - caveFloor(s.x, s.z)),
+      clear = [...CAVE_LIFE.settle, ...CAVE_LIFE.resting],
+      kelp: AlgaPlacement[] = [],
+      free = (x: number, z: number) =>
+        clear.every((r) => Math.hypot(x - r.x, z - r.z) > 1.8) &&
+        CAVE_ROCKS.every(
+          (r) => Math.hypot(x - r.x, z - r.z) > r.size * 0.6 + 0.5,
+        );
+    for (let i = 0; i < 40 && kelp.length < 22; i++) {
+      const a = rand() * Math.PI * 2,
+        d = s.radius * 2.1 + rand() * 2.2,
+        x = poolX + Math.cos(a) * d,
+        z = s.z + Math.sin(a) * d;
+      if (free(x, z))
+        kelp.push({
+          x,
+          y: caveFloor(x, z) - 0.05,
+          z,
+          scale: 0.65 + rand() * 0.55,
+          yaw: rand() * Math.PI * 2,
+        });
+    }
+    for (let i = 0; i < 20 && kelp.length < 32; i++) {
+      const x = (rand() < 0.5 ? -1 : 1) * (3 + rand() * 4),
+        z = c.z + c.rz - 2.5 - rand() * 3;
+      if (free(x, z))
+        kelp.push({
+          x,
+          y: caveFloor(x, z) - 0.05,
+          z,
+          scale: 0.5 + rand() * 0.4,
+          yaw: rand() * Math.PI * 2,
+        });
+    }
+    const algae = new SwayingAlgae(
+      'Cave kelp',
+      strapAlgaGeometry(3.2, 79710, [0.22, 0.2, 0.08], [0.48, 0.44, 0.18]),
+      kelp,
+      0.25,
+    );
+    this.algae.push(algae);
+    this.root.add(algae.mesh);
+  }
   /** Inside-facing tube from just behind its start to the dome, black at the start, lit at the end. */
   private tunnelMesh(mouthZ: number): THREE.BufferGeometry {
     const t = CAVE.tunnel;
@@ -744,6 +937,7 @@ export class CaveEnvironment {
   update(dt: number, active: boolean, reducedMotion: boolean): void {
     if (this.disposed || !active || reducedMotion || !(dt > 0)) return;
     this.time += Math.min(dt, 0.1);
+    for (const a of this.algae) a.update(dt, active, reducedMotion);
     this.shaft.color.setScalar(0.85 + 0.15 * Math.sin(this.time * 0.6));
     const g = 0.8 + 0.2 * Math.sin(this.time * 0.45 + 1);
     this.glow.color.setRGB(0.35 * g, 0.91 * g, 0.81 * g);
@@ -774,6 +968,7 @@ export class CaveEnvironment {
     if (this.disposed) return;
     this.disposed = true;
     this.root.removeFromParent();
+    this.algae.forEach((a) => a.dispose());
     this.root.clear();
     this.geometries.forEach((g) => g.dispose());
     this.materials.forEach((m) => m.dispose());
