@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Cozy Diver — Small Life Gallery</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #1f5a6e;
+      }
+      canvas {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="c"></canvas>
+    <script type="module">
+      // V0.7 Pass 068 (small life): a close-up gallery of the small, hidden and crawling animals,
+      // each framed to fill its cell from the same three-quarter view, in the tank's water and
+      // light rig. Authored libraries load through the game's AssetLoader; code-built animals use
+      // their shipped geometry builders (vertex colours where they have them, else a species
+      // tint). Dev server only. `window.view(yaw, pitch)` renders.
+      import * as THREE from 'three';
+      import { AssetLoader } from '/src/assets/AssetLoader.ts';
+      import { installDeepFog } from '/src/rendering/deepFog.ts';
+      import { WATER_PROFILES } from '/src/config/waterProfiles.ts';
+      import { TANK_LIGHTING } from '/src/config/tankLighting.ts';
+      import { createLightRig } from '/src/rendering/atmosphere/lightRig.ts';
+      import { crabBody } from '/src/environment/cave/CaveCrabs.ts';
+      import { spinyLobsterBody } from '/src/environment/cave/SpinyLobster.ts';
+      import { lobsterAntennae } from '/src/environment/cave/CaveLobsters.ts';
+      import {
+        krillShape,
+        seaButterflyShape,
+        combJellyShape,
+      } from '/src/environment/ice/IceCritterShapes.ts';
+      import { squidGeometry } from '/src/environment/ice/SquidGeometry.ts';
+      import { featherStarGeometry } from '/src/environment/ice/IceGarden.ts';
+      import {
+        scallopGeometry,
+        urchinGeometry,
+        brittleStarGeometry,
+        cucumberGeometry,
+        seaPenGeometry,
+        isopodGeometry,
+        salpGeometry,
+        jellyBellGeometry,
+        jellyArmsGeometry,
+      } from '/src/environment/ice/IceExtras.ts';
+      import {
+        seaStarShape,
+        urchinShape,
+      } from '/src/environment/kelp/KelpShapes.ts';
+      import { spanishShawlGeometry } from '/src/environment/kelp/SpanishShawl.ts';
+      installDeepFog();
+
+      const LIBRARY = [
+        ['anchored', 'Seahorse'],
+        ['anchored', 'Frogfish'],
+        ['anchored', 'Moray'],
+        ['anchored', 'Anemone'],
+        ['nudibranchs', 'Nudibranch_1_Root'],
+        ['nudibranchs', 'Nudibranch_2_Root'],
+        ['nudibranchs', 'Nudibranch_3_Root'],
+        ['nudibranchs', 'Nudibranch_4_Root'],
+        ['nudibranchs', 'Nudibranch_5_Root'],
+      ];
+      /** [label, geometries, tint, translucent] */
+      const CODE = [
+        ['cave crab', () => [crabBody()], 0xb5502e],
+        [
+          'spiny lobster',
+          () => [spinyLobsterBody(), lobsterAntennae()],
+          0x9a5a35,
+        ],
+        ['krill', () => [krillShape()], 0xe0805a, true],
+        ['sea butterfly', () => [seaButterflyShape()], 0xc9d6e0, true],
+        ['comb jelly', () => [combJellyShape()], 0xbfe6f0, true],
+        ['squid', () => [squidGeometry()], 0xc87a6a],
+        ['feather star', () => [featherStarGeometry()], 0xd06a40],
+        ['scallop', () => [scallopGeometry()], 0xd8b080],
+        ['ice urchin', () => [urchinGeometry()], 0xa06aa0],
+        ['brittle star', () => [brittleStarGeometry()], 0xc08a60],
+        ['sea cucumber', () => [cucumberGeometry()], 0xb06a5a],
+        ['sea pen', () => [seaPenGeometry()], 0xe0d0b0],
+        ['isopod', () => [isopodGeometry()], 0x9a8a78],
+        ['salp', () => [salpGeometry()], 0xd8eef0, true],
+        [
+          'jelly',
+          () => [jellyBellGeometry(), jellyArmsGeometry()],
+          0xe8c8e0,
+          true,
+        ],
+        ['bat star', () => [seaStarShape()], 0xd06030],
+        ['purple urchin', () => [urchinShape()], 0x6a3a8a],
+        ['spanish shawl', () => [spanishShawlGeometry()], 0x9a4ab0],
+      ];
+      const query = new URLSearchParams(location.search);
+      const only = query.get('only');
+      const items = [
+        ...LIBRARY.map(([asset, node]) => ({
+          kind: 'lib',
+          asset,
+          node,
+          label: node,
+        })),
+        ...CODE.map(([label, build, tint, glass]) => ({
+          kind: 'code',
+          label,
+          build,
+          tint,
+          glass,
+        })),
+      ].filter(
+        (i) => !only || i.label.toLowerCase().includes(only.toLowerCase()),
+      );
+      const cols = Math.min(7, items.length),
+        rows = Math.ceil(items.length / cols),
+        cell = 2.2;
+      const width = innerWidth,
+        height = innerHeight;
+      const renderer = new THREE.WebGLRenderer({
+        canvas: document.getElementById('c'),
+        antialias: true,
+      });
+      renderer.setPixelRatio(1);
+      renderer.setSize(width, height, false);
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = TANK_LIGHTING.exposure;
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      const scene = new THREE.Scene();
+      const p = WATER_PROFILES.tank;
+      scene.background = new THREE.Color(p.water);
+      scene.fog = new THREE.FogExp2(p.water, 0.01);
+      scene.add(...createLightRig(p).lights);
+      const aspect = width / height;
+      const camera = new THREE.OrthographicCamera();
+      camera.top = Math.max(rows * cell, (cols * cell) / aspect) / 2;
+      camera.bottom = -camera.top;
+      camera.left = -camera.top * aspect;
+      camera.right = camera.top * aspect;
+      camera.near = 0.1;
+      camera.far = 100;
+      camera.updateProjectionMatrix();
+      const loader = new AssetLoader(undefined, undefined, renderer);
+      const leases = {};
+      const lease = (id) => (leases[id] ??= loader.acquire(id));
+      const rigs = [];
+      async function model(item) {
+        if (item.kind === 'lib') {
+          const src = (await lease(item.asset)).model.getObjectByName(
+            item.node,
+          );
+          const m = src.clone(true);
+          m.position.set(0, 0, 0);
+          return m;
+        }
+        const g = new THREE.Group();
+        for (const geo of item.build()) {
+          const vc = !!geo.getAttribute('color');
+          const mat = new THREE.MeshStandardMaterial({
+            color: vc ? 0xffffff : item.tint,
+            vertexColors: vc,
+            roughness: 0.6,
+            transparent: !!item.glass,
+            opacity: item.glass ? 0.7 : 1,
+            side: THREE.DoubleSide,
+          });
+          g.add(new THREE.Mesh(geo, mat));
+        }
+        return g;
+      }
+      window.ready = Promise.all(
+        items.map(async (item, i) => {
+          const m = await model(item);
+          const holder = new THREE.Group();
+          const inner = new THREE.Group();
+          inner.add(m);
+          const box = new THREE.Box3().setFromObject(inner);
+          const size = box.getSize(new THREE.Vector3());
+          m.position.sub(box.getCenter(new THREE.Vector3()));
+          inner.scale.setScalar(
+            (cell * 0.8) / Math.max(size.x, size.y, size.z),
+          );
+          holder.add(inner);
+          holder.position.set(
+            ((i % cols) - (cols - 1) / 2) * cell,
+            ((rows - 1) / 2 - Math.floor(i / cols)) * cell,
+            0,
+          );
+          scene.add(holder);
+          rigs.push(inner);
+        }),
+      );
+      window.labels = items.map((i) => i.label);
+      window.view = (yaw, pitch = 0) => {
+        for (const r of rigs) r.rotation.set(pitch, yaw, 0, 'XYZ');
+        camera.position.set(0, 0, 20);
+        camera.lookAt(0, 0, 0);
+        renderer.render(scene, camera);
+        return {
+          calls: renderer.info.render.calls,
+          triangles: renderer.info.render.triangles,
+        };
+      };
+    </script>
+  </body>
+</html>

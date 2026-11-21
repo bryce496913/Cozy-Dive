@@ -1,4 +1,10 @@
 import * as THREE from 'three';
+import {
+  organicTube,
+  polarSheet,
+  smoothed,
+  toned,
+} from '../shared/organicGeometry';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { ICE } from '../../config/passage';
 import type { Vec3 } from '../../config/world';
@@ -57,10 +63,8 @@ function coloured(
   c: RGB,
   speck = 0.1,
 ): THREE.BufferGeometry {
-  const out = g.index ? g.toNonIndexed() : g;
-  if (out !== g) g.dispose();
-  for (const name of Object.keys(out.attributes))
-    if (name !== 'position' && name !== 'normal') out.deleteAttribute(name);
+  // V0.7 Pass 068: creased normals (smooth across gentle bends), kept through the merge.
+  const out = smoothed(g);
   const n = out.getAttribute('position').count,
     col = new Float32Array(n * 3);
   for (let i = 0; i < n; i++) {
@@ -70,14 +74,12 @@ function coloured(
     col[i * 3 + 2] = c[2] * k;
   }
   out.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-  out.computeVertexNormals();
   return out;
 }
 function merge(parts: THREE.BufferGeometry[]): THREE.BufferGeometry {
   const m = mergeGeometries(parts, false);
   parts.forEach((g) => g.dispose());
   if (!m) throw Error('Ice detail could not be built');
-  m.computeVertexNormals();
   return m;
 }
 /** A tapered limb from a to b. */
@@ -90,7 +92,7 @@ function limb(
   sides = 5,
 ) {
   const d = b.clone().sub(a),
-    g = new THREE.CylinderGeometry(r1, r0, d.length(), sides, 1);
+    g = new THREE.CylinderGeometry(r1, r0, d.length(), Math.max(sides, 5), 1);
   g.translate(0, d.length() / 2, 0);
   g.applyQuaternion(
     new THREE.Quaternion().setFromUnitVectors(
@@ -179,43 +181,51 @@ function anchorIceGeometry(): THREE.BufferGeometry {
 export function scallopGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [],
     ribs = 18,
-    fan = (side: 1 | -1, tone: RGB, gape: number) => {
-      const g = new THREE.CircleGeometry(
-          1,
-          36,
-          -Math.PI * 0.42,
-          Math.PI * 0.84,
+    // V0.7 Pass 068: each valve is a ringed polar sheet, so its dome, radial ribs and growth lines
+    // actually show (the old single-ring disc was flat inside its rim).
+    valve = (side: 1 | -1, tone: RGB, gape: number) =>
+      toned(
+        coloured(
+          polarSheet(
+            (r, a, out) => {
+              const rib = 0.06 * Math.pow(Math.abs(Math.cos(a * ribs)), 3) * r,
+                dome = Math.sqrt(Math.max(0, 1 - r * r * 0.85)) * 0.3,
+                growth = 0.012 * Math.sin(r * 26) * r;
+              out.set(
+                Math.sin(a) * r * 0.05,
+                side * (dome + rib + growth) * 0.05 +
+                  0.012 +
+                  (side > 0 ? gape * r : 0),
+                Math.cos(a) * r * 0.05 - 0.022,
+              );
+            },
+            -Math.PI * 0.42,
+            Math.PI * 0.42,
+            3,
+            30,
+          ),
+          tone,
+          0.2,
         ),
-        q = g.getAttribute('position');
-      for (let i = 0; i < q.count; i++) {
-        const x = q.getX(i),
-          z = q.getY(i),
-          r = Math.hypot(x, z),
-          a = Math.atan2(x, z),
-          rib = 0.06 * Math.pow(Math.abs(Math.cos(a * ribs)), 3) * r,
-          dome = Math.sqrt(Math.max(0, 1 - r * r * 0.85)) * 0.3;
-        q.setXYZ(
-          i,
-          x * 0.05,
-          side * (dome + rib) * 0.05 + 0.012 + (side > 0 ? gape * r : 0),
-          z * 0.05 - 0.022,
-        );
-      }
-      g.computeVertexNormals();
-      return coloured(g, tone, 0.2);
-    };
-  parts.push(fan(1, [0.82, 0.6, 0.52], 0.008));
-  parts.push(fan(-1, [0.72, 0.6, 0.58], 0));
-  // The ears either side of the hinge.
+        // Concentric growth bands, paler toward the rim.
+        (x, _y, z) => {
+          const r = Math.hypot(x, z + 0.022) / 0.05;
+          return 0.86 + 0.14 * r + 0.08 * Math.sin(r * 30);
+        },
+      );
+  parts.push(valve(1, [0.82, 0.6, 0.52], 0.008));
+  parts.push(valve(-1, [0.72, 0.6, 0.58], 0));
+  // The ears either side of the hinge: small flattened, rounded wings.
   for (const side of [-1, 1]) {
-    const ear = new THREE.BoxGeometry(0.016, 0.004, 0.01);
-    ear.translate(side * 0.012, 0.012, -0.024);
+    const ear = new THREE.SphereGeometry(1, 10, 6);
+    ear.scale(0.011, 0.0028, 0.007);
+    ear.translate(side * 0.011, 0.012, -0.022);
     parts.push(coloured(ear, [0.78, 0.6, 0.54], 0.15));
   }
   // Mantle eyes along the gape.
   for (let k = 0; k < 16; k++) {
     const a = -Math.PI * 0.38 + (k / 15) * Math.PI * 0.76,
-      eye = new THREE.SphereGeometry(0.0013, 5, 4);
+      eye = new THREE.SphereGeometry(0.0013, 4, 3);
     eye.translate(Math.sin(a) * 0.047, 0.0135, Math.cos(a) * 0.047 - 0.022);
     parts.push(coloured(eye, [0.15, 0.35, 0.85], 0.05));
   }
@@ -251,35 +261,46 @@ export function urchinGeometry(): THREE.BufferGeometry {
   dirs.dispose();
   return merge(parts);
 }
-/** A brittle star: a small disc and five long, wavy, banded arms (about 25 cm across). */
+/** A brittle star: a small disc and five long, wavy, banded arms (about 25 cm across).
+ * V0.7 Pass 068: a soft pentagonal dome and five continuous, tapering, slightly flattened arms
+ * (one surface each, banded by position) instead of chains of cylinders. */
 export function brittleStarGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [],
-    disc = new THREE.CylinderGeometry(0.025, 0.028, 0.012, 10);
-  disc.translate(0, 0.008, 0);
-  parts.push(coloured(disc, [0.6, 0.45, 0.4], 0.15));
+    disc = new THREE.SphereGeometry(1, 25, 8, 0, Math.PI * 2, 0, Math.PI / 2),
+    dp = disc.getAttribute('position');
+  for (let i = 0; i < dp.count; i++) {
+    const x = dp.getX(i),
+      y = dp.getY(i),
+      z = dp.getZ(i),
+      lobe = 1 + 0.14 * Math.cos(5 * Math.atan2(z, x));
+    dp.setXYZ(i, x * 0.026 * lobe, y * 0.012 + 0.003, z * 0.026 * lobe);
+  }
+  parts.push(
+    toned(coloured(disc, [0.6, 0.45, 0.4], 0.12), (x, _y, z) =>
+      Math.hypot(x, z) < 0.012 ? 0.8 : 1,
+    ),
+  );
   for (let a = 0; a < 5; a++) {
-    const base = (a / 5) * Math.PI * 2;
-    let prev = v3(Math.cos(base) * 0.02, 0.008, Math.sin(base) * 0.02);
-    for (let k = 1; k <= 6; k++) {
-      const u = k / 6,
+    const base = (a / 5) * Math.PI * 2,
+      pts: THREE.Vector3[] = [];
+    for (let k = 0; k <= 7; k++) {
+      const u = k / 7,
         ang = base + 0.35 * Math.sin(u * 4 + a),
-        next = v3(
-          Math.cos(ang) * (0.02 + u * 0.12),
-          0.006 + 0.004 * Math.sin(u * 6),
-          Math.sin(ang) * (0.02 + u * 0.12),
-        );
-      parts.push(
-        limb(
-          prev,
-          next,
-          0.006 * (1 - u * 0.7),
-          0.006 * (1 - (u + 0.16) * 0.7),
-          k % 2 ? [0.62, 0.48, 0.42] : [0.45, 0.32, 0.3],
-          4,
+        r = 0.016 + u * 0.13;
+      pts.push(
+        v3(
+          Math.cos(ang) * r,
+          0.006 + 0.004 * Math.sin(u * 6) + 0.006 * u * u,
+          Math.sin(ang) * r,
         ),
       );
-      prev = next;
     }
+    const arm = organicTube(pts, (u) => 0.0058 * (1 - 0.82 * u), 14, 5, 0.7);
+    parts.push(
+      toned(coloured(arm, [0.62, 0.48, 0.42], 0.06), (x, _y, z) =>
+        Math.sin(Math.hypot(x, z) * 140) > 0.35 ? 0.72 : 1,
+      ),
+    );
   }
   return merge(parts);
 }
@@ -394,17 +415,43 @@ export function cucumberGeometry(): THREE.BufferGeometry {
   }
   return merge(parts);
 }
-/** A sea pen: a stalk with a feathery plume of leaves (unit height), base at y 0. */
+/** A sea pen: a stalk with a feathery plume of leaves (unit height), base at y 0.
+ * V0.7 Pass 068: the leaves are curved, flattened, tapering blades sweeping up from the rachis,
+ * each fringed with polyps, instead of flat boxes. */
 export function seaPenGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
-  parts.push(limb(v3(0, 0, 0), v3(0, 1, 0), 0.03, 0.012, [0.9, 0.75, 0.55], 6));
+  parts.push(
+    coloured(
+      organicTube(
+        [v3(0, 0, 0), v3(0.01, 0.35, 0), v3(0, 0.7, 0.005), v3(0, 1, 0)],
+        (u) => 0.03 - 0.018 * u,
+        10,
+        7,
+      ),
+      [0.9, 0.75, 0.55],
+      0.08,
+    ),
+  );
   for (let k = 0; k < 14; k++) {
-    const y = 0.35 + k * 0.045;
+    const y = 0.35 + k * 0.045,
+      len = 0.17 * (1 - k / 18);
     for (const side of [-1, 1]) {
-      const leaf = new THREE.BoxGeometry(0.16 * (1 - k / 18), 0.012, 0.03);
-      leaf.translate(side * 0.08 * (1 - k / 18), y, 0);
-      leaf.rotateY(k * 0.3);
-      parts.push(coloured(leaf, [0.98, 0.85, 0.6], 0.15));
+      const yaw = k * 0.3,
+        dir = v3(Math.cos(yaw) * side, 0, -Math.sin(yaw) * side),
+        at = (t: number) =>
+          v3(0, y + t * len * 0.45, 0).addScaledVector(dir, 0.012 + t * len),
+        blade = organicTube(
+          [at(0), at(0.5), at(1)],
+          (u) => 0.016 * (1 - 0.7 * u),
+          3,
+          5,
+          0.28,
+        );
+      parts.push(
+        toned(coloured(blade, [0.98, 0.85, 0.6], 0.12), (_x, yy) =>
+          yy > y + len * 0.3 ? 1.05 : 0.92,
+        ),
+      );
     }
   }
   return merge(parts);

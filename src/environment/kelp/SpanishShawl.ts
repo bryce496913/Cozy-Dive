@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { smoothed } from '../shared/organicGeometry';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 /**
@@ -23,10 +24,8 @@ function coloured(
   base: RGB,
   tip?: { colour: RGB; from: number; to: number; axis: 'y' | 'z' },
 ): THREE.BufferGeometry {
-  const out = g.index ? g.toNonIndexed() : g;
-  if (out !== g) g.dispose();
-  for (const name of Object.keys(out.attributes))
-    if (name !== 'position' && name !== 'normal') out.deleteAttribute(name);
+  // V0.7 Pass 068: creased normals (smooth across gentle bends), kept through the merge.
+  const out = smoothed(g);
   const p = out.getAttribute('position'),
     c = new Float32Array(p.count * 3);
   for (let i = 0; i < p.count; i++) {
@@ -39,7 +38,6 @@ function coloured(
       c[i * 3 + j] = base[j] + ((tip?.colour[j] ?? base[j]) - base[j]) * k;
   }
   out.setAttribute('color', new THREE.Float32BufferAttribute(c, 3));
-  out.computeVertexNormals();
   return out;
 }
 /** A tapered, curved tube through `points` (radius from `r0` to `r1`). */

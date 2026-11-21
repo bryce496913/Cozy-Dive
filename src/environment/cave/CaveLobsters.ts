@@ -1,5 +1,6 @@
 import { benthicGait } from './BenthicGait';
 import * as THREE from 'three';
+import { smoothed } from '../shared/organicGeometry';
 import { spinyLobsterBody } from './SpinyLobster';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { SightCandidate } from '../../discovery/journal';
@@ -50,10 +51,8 @@ function part(
   gr: number,
   b: number,
 ): THREE.BufferGeometry {
-  const out = g.index ? g.toNonIndexed() : g;
-  if (out !== g) g.dispose();
-  for (const name of Object.keys(out.attributes))
-    if (name !== 'position' && name !== 'normal') out.deleteAttribute(name);
+  // V0.7 Pass 068: creased normals (smooth across gentle bends), kept through the merge.
+  const out = smoothed(g);
   const n = out.getAttribute('position').count,
     c = new Float32Array(n * 3);
   for (let i = 0; i < n; i++) {
@@ -75,7 +74,6 @@ export function merged(parts: THREE.BufferGeometry[]): THREE.BufferGeometry {
   const m = mergeGeometries(parts, false);
   parts.forEach((g) => g.dispose());
   if (!m) throw Error('Lobster could not be built');
-  m.computeVertexNormals();
   return m;
 }
 const SHELL = [0.55, 0.2, 0.1] as const,
@@ -92,7 +90,7 @@ export function limb(
   color: readonly [number, number, number],
 ): THREE.BufferGeometry {
   const d = b.clone().sub(a),
-    g = new THREE.CylinderGeometry(r1, r0, d.length(), 5, 1, false);
+    g = new THREE.CylinderGeometry(r1, r0, d.length(), 8, 1, false);
   g.translate(0, d.length() / 2, 0);
   g.applyQuaternion(
     new THREE.Quaternion().setFromUnitVectors(
@@ -163,7 +161,6 @@ function twoSided(
     );
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(out, 3));
-  g.computeVertexNormals();
   return tinted(g, color);
 }
 

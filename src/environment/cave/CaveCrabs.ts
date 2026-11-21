@@ -7,6 +7,7 @@ import type { PlayerPresence } from '../../fish/FishDiverReaction';
 import type { CaveRock } from './CaveEnvironment';
 import { limb, merged, tinted } from './CaveLobsters';
 import { caveFloor } from './CaveTerrain';
+import { organicTube, toned } from '../shared/organicGeometry';
 
 /**
  * v0.6 Pass 041: small rock crabs picking their way round the feet of the cave's boulders, built
@@ -212,9 +213,39 @@ export function crabBody(): THREE.BufferGeometry {
         knee = v(side * 0.12, 0.082, z - i * 0.008),
         ankle = v(side * 0.165, 0.04, z - 0.006 - i * 0.014),
         foot = v(side * 0.185, 0.0, z - 0.012 - i * 0.02);
-      segment(hip, knee, 0.0085, 0.007, SHELL, parts);
-      segment(knee, ankle, 0.007, 0.005, i % 2 ? CLAW : SHELL, parts);
-      parts.push(limb(ankle, foot, 0.0045, 0.0008, TIP));
+      // V0.7 Pass 068: one continuous, tapering leg (no stacked cylinders and joint balls), banded
+      // darker at the knee and ankle and dark at the tip.
+      const leg = tinted(
+        organicTube(
+          [hip, knee, ankle, foot],
+          (u) =>
+            0.0088 * (1 - 0.8 * u ** 1.4) +
+            0.0012 * Math.exp(-(((u - 0.38) / 0.05) ** 2)),
+          20,
+          7,
+          0.85,
+        ),
+        i % 2 ? CLAW : SHELL,
+      );
+      const near = (
+        q: THREE.Vector3,
+        x: number,
+        y: number,
+        z: number,
+        r: number,
+      ) => Math.hypot(x - q.x, y - q.y, z - q.z) < r;
+      parts.push(
+        mottled(
+          toned(leg, (x, y, z) =>
+            near(foot, x, y, z, 0.022)
+              ? 0.3
+              : near(knee, x, y, z, 0.008) || near(ankle, x, y, z, 0.007)
+                ? 0.62
+                : 1,
+          ),
+          0.2,
+        ),
+      );
     }
   }
   return merged(parts);
