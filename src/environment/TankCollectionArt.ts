@@ -1,8 +1,21 @@
 import * as THREE from 'three';
+import {
+  GELATINOUS_PRESETS,
+  gelatinousMaterial,
+  type GelatinousOptions,
+} from '../rendering/Gelatinous';
 import type { AssetLoader, AssetLease } from '../assets/AssetLoader';
 import type { BabyDefinition } from '../config/babies';
 import { creatureStroke } from './creatureStroke';
 import { collectionShape } from './TankCollectionShapes';
+
+/** V0.7 Pass 078: collection animals drawn with the shared gelatinous material. */
+const GELATINOUS_COLLECTION: Partial<Record<string, GelatinousOptions>> = {
+  'comb-jelly': GELATINOUS_PRESETS.combJelly,
+  'antarctic-jellyfish': GELATINOUS_PRESETS.jellyfish,
+  salp: GELATINOUS_PRESETS.salp,
+  'sea-squirt': GELATINOUS_PRESETS.seaSquirt,
+};
 
 export interface CollectionArt {
   readonly model: THREE.Object3D;
@@ -112,20 +125,30 @@ export async function acquireCollectionArt(
         'antarctic-soft-coral': 0xdfa7b5,
         'antarctic-anemone': 0xe8b9aa,
       };
-      const material = new THREE.MeshStandardMaterial({
-        vertexColors: shape.hasAttribute('color'),
-        color: colors[d.id] ?? 0xffffff,
-        roughness: 0.6,
-        opacity:
-          d.id === 'sea-squirt'
-            ? 0.72
-            : d.id === 'sea-angel'
-              ? 0.8
-              : d.id === 'ice-algae'
-                ? 0.6
-                : 1,
-        side: THREE.DoubleSide,
-      });
+      // V0.7 Pass 078: the gelatinous animals keep their clear, rim-dense jelly here too.
+      const jelly = GELATINOUS_COLLECTION[d.id];
+      const material = jelly
+        ? gelatinousMaterial({
+            ...jelly,
+            name: d.id,
+            vertexColors: shape.hasAttribute('color'),
+            color: colors[d.id] ?? 0xffffff,
+            side: THREE.DoubleSide,
+          })
+        : new THREE.MeshStandardMaterial({
+            vertexColors: shape.hasAttribute('color'),
+            color: colors[d.id] ?? 0xffffff,
+            roughness: 0.6,
+            opacity:
+              d.id === 'sea-squirt'
+                ? 0.72
+                : d.id === 'sea-angel'
+                  ? 0.8
+                  : d.id === 'ice-algae'
+                    ? 0.6
+                    : 1,
+            side: THREE.DoubleSide,
+          });
       sourceMaterials.push(material);
       const near = new THREE.Mesh(shape, material);
       near.name = 'Body';

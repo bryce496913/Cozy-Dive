@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Cozy Diver — Creature Studio</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #1f5a6e;
+      }
+      canvas {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="c"></canvas>
+    <script type="module">
+      // V0.7 Pass 078: one animal at a time, assembled exactly as its runtime controller does
+      // (authored parts on their pivots, the moray body bent along its real centreline with the
+      // code-built head on its end), in the tank's water and light rig, with in-game materials.
+      // `?animal=<id>`; `window.shot(view)` poses and renders 'side', 'three-quarter', 'close-up'
+      // or 'pose' (the controller's motion extreme). Dev server only. Runs on older checkouts too
+      // (for "before" views): the gelatinous material is optional.
+      import * as THREE from 'three';
+      import { AssetLoader } from '/src/assets/AssetLoader.ts';
+      import { installDeepFog } from '/src/rendering/deepFog.ts';
+      import { WATER_PROFILES } from '/src/config/waterProfiles.ts';
+      import { TANK_LIGHTING } from '/src/config/tankLighting.ts';
+      import { createLightRig } from '/src/rendering/atmosphere/lightRig.ts';
+      import { spinyLobsterBody } from '/src/environment/cave/SpinyLobster.ts';
+      import { lobsterAntennae } from '/src/environment/cave/CaveLobsters.ts';
+      import { combJellyShape } from '/src/environment/ice/IceCritterShapes.ts';
+      import {
+        salpGeometry,
+        jellyBellGeometry,
+        jellyArmsGeometry,
+      } from '/src/environment/ice/IceExtras.ts';
+      import { squirtClusterGeometry } from '/src/environment/cave/CaveEncrusting.ts';
+      import { morayCenter } from '/src/creatures/MorayBehavior.ts';
+      import {
+        MORAY_JAW_HINGE,
+        morayHeadParts,
+      } from '/src/creatures/MorayHead.ts';
+      import {
+        FROGFISH_JAW_HINGE,
+        FROGFISH_LURE_BASE,
+      } from '/src/creatures/discoveries/Frogfish.ts';
+      installDeepFog();
+      let gel;
+      try {
+        gel = await import('/src/rendering/Gelatinous.ts');
+      } catch {
+        gel = undefined;
+      }
+      /** The in-game materials these animals had before Pass 078 (for "before" views). */
+      const OLD_GLASS = {
+        combJelly: {
+          roughness: 0.15,
+          opacity: 0.55,
+          emissive: 0xffffff,
+          emissiveIntensity: 0.15,
+        },
+        salp: {
+          roughness: 0.15,
+          opacity: 0.45,
+          emissive: 0x1a3a48,
+          emissiveIntensity: 0.5,
+        },
+        jellyfish: {
+          roughness: 0.25,
+          opacity: 0.6,
+          emissive: 0x4a1a10,
+          emissiveIntensity: 0.35,
+          side: THREE.DoubleSide,
+        },
+        seaSquirt: { roughness: 0.2, opacity: 0.72 },
+      };
+      const glass = (preset) =>
+        gel
+          ? gel.gelatinousMaterial(gel.GELATINOUS_PRESETS[preset])
+          : new THREE.MeshStandardMaterial({
+              vertexColors: true,
+              transparent: true,
+              depthWrite: false,
+              ...OLD_GLASS[preset],
+            });
+      const lit = () =>
+        new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.55 });
+
+      const query = new URLSearchParams(location.search);
+      const animal = query.get('animal') ?? 'seahorse';
+      const renderer = new THREE.WebGLRenderer({
+        canvas: document.getElementById('c'),
+        antialias: true,
+      });
+      renderer.setPixelRatio(1);
+      renderer.setSize(innerWidth, innerHeight, false);
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = TANK_LIGHTING.exposure;
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      const scene = new THREE.Scene();
+      const p = WATER_PROFILES.tank;
+      scene.background = new THREE.Color(p.water);
+      scene.fog = new THREE.FogExp2(p.water, 0.01);
+      scene.add(...createLightRig(p).lights);
+      const camera = new THREE.PerspectiveCamera(
+        30,
+        innerWidth / innerHeight,
+        0.01,
+        50,
+      );
+      const loader = new AssetLoader(undefined, undefined, renderer);
+      const root = new THREE.Group();
+      scene.add(root);
+      /** Pose hooks: set(pose 0..1). */
+      const posers = [];
+      /** [target, distance, close target, close distance] in the animal's own units. */
+      let frame;
+
+      const node = (model, name) => {
+        const o = model.getObjectByName(name);
+        if (!o) throw Error(`missing ${name}`);
+        const c = o.clone(true);
+        c.position.set(0, 0, 0);
+        return c;
+      };
+      async function build() {
+        if (animal === 'seahorse') {
+          const m = (await loader.acquire('anchored')).model;
+          const body = node(m, 'HorseBody'),
+            tail = new THREE.Group(),
+            dorsal = new THREE.Group(),
+            left = new THREE.Group(),
+            right = new THREE.Group();
+          tail.position.y = 0.33;
+          tail.add(node(m, 'HorseTail'));
+          dorsal.position.set(0, 0.59, -0.14);
+          dorsal.add(node(m, 'HorseDorsal'));
+          left.position.set(0.045, 0.97, 0.02);
+          left.add(node(m, 'HorseLeftFin'));
+          right.position.set(-0.045, 0.97, 0.02);
+          const r = node(m, 'HorseRightFin');
+          r.scale.x = -1;
+          right.add(r);
+          root.add(body, tail, dorsal, left, right);
+          posers.push((k) => {
+            tail.scale.set(1, 1 - 0.04 * k, 1 - 0.06 * k);
+            dorsal.rotation.y = 0.18 * k;
+            left.rotation.y = 0.14 * k;
+            right.rotation.y = -0.14 * k;
+          });
+          frame = [[0, 0.65, 0.04], 2.6, [0, 1.0, 0.14], 0.8];
+        } else if (animal === 'frogfish') {
+          const m = (await loader.acquire('anchored')).model;
+          const body = node(m, 'FrogBody'),
+            jaw = new THREE.Group(),
+            lure = new THREE.Group();
+          jaw.position.set(
+            FROGFISH_JAW_HINGE.x,
+            FROGFISH_JAW_HINGE.y,
+            FROGFISH_JAW_HINGE.z,
+          );
+          jaw.add(node(m, 'FrogJaw'));
+          lure.position.set(
+            FROGFISH_LURE_BASE.x,
+            FROGFISH_LURE_BASE.y,
+            FROGFISH_LURE_BASE.z,
+          );
+          lure.add(node(m, 'FrogLure'));
+          const lf = node(m, 'FrogFoot'),
+            rf = node(m, 'FrogFoot');
+          rf.scale.x = -1;
+          root.add(body, jaw, lure, lf, rf);
+          posers.push((k) => {
+            jaw.rotation.x = 0.42 * k;
+            lure.rotation.z = 0.045 * k;
+          });
+          frame = [[0, 0.3, -0.05], 2.2, [0, 0.36, 0.25], 0.95];
+        } else if (animal === 'moray') {
+          const m = (await loader.acquire('anchored')).model;
+          const skin = [];
+          const headParts = morayHeadParts();
+          let skinMaterial;
+          for (const name of ['MorayBody', 'MorayDorsal']) {
+            const part = node(m, name);
+            part.traverse((o) => {
+              if (!(o instanceof THREE.Mesh)) return;
+              const g = o.geometry.clone(),
+                pos = g.getAttribute('position'),
+                uv = g.getAttribute('uv');
+              o.userData.rest = {
+                pos: pos.array.slice(),
+                t: Array.from({ length: pos.count }, (_, i) => uv.getY(i)),
+              };
+              o.geometry = g;
+              if (o.material.map && !skinMaterial) skinMaterial = o.material;
+              skin.push(o);
+            });
+            root.add(part);
+          }
+          const headMaterial = new THREE.MeshStandardMaterial({
+            map: skinMaterial?.map,
+            normalMap: skinMaterial?.normalMap,
+            roughnessMap: skinMaterial?.roughnessMap,
+            vertexColors: true,
+          });
+          const detail = new THREE.MeshStandardMaterial({
+            vertexColors: true,
+            roughness: 0.6,
+          });
+          const head = new THREE.Group(),
+            jaw = new THREE.Group();
+          head.add(new THREE.Mesh(headParts.headSkin, headMaterial));
+          for (const g of headParts.head) head.add(new THREE.Mesh(g, detail));
+          jaw.position.copy(MORAY_JAW_HINGE);
+          jaw.add(new THREE.Mesh(headParts.jawSkin, headMaterial));
+          for (const g of headParts.jaw) jaw.add(new THREE.Mesh(g, detail));
+          head.add(jaw);
+          root.add(head);
+          const c = new THREE.Vector3(),
+            n = new THREE.Vector3(),
+            t = new THREE.Vector3(),
+            s = new THREE.Vector3(),
+            u = new THREE.Vector3(),
+            up = new THREE.Vector3(0, 1, 0);
+          const bend = (ext, phase) => {
+            for (const o of skin) {
+              const pos = o.geometry.getAttribute('position'),
+                rest = o.userData.rest;
+              for (let i = 0; i < pos.count; i++) {
+                const k = rest.t[i];
+                morayCenter(k, ext, phase, c);
+                morayCenter(Math.min(1, k + 0.002), ext, phase, n);
+                morayCenter(Math.max(0, k - 0.002), ext, phase, t);
+                t.subVectors(n, t).normalize();
+                s.crossVectors(up, t).normalize();
+                u.crossVectors(t, s).normalize();
+                pos.setXYZ(
+                  i,
+                  c.x + s.x * rest.pos[i * 3] + u.x * rest.pos[i * 3 + 1],
+                  c.y + s.y * rest.pos[i * 3] + u.y * rest.pos[i * 3 + 1],
+                  c.z + s.z * rest.pos[i * 3] + u.z * rest.pos[i * 3 + 1],
+                );
+              }
+              pos.needsUpdate = true;
+              o.geometry.computeVertexNormals();
+            }
+            morayCenter(1, ext, phase, head.position);
+            morayCenter(0.998, ext, phase, n);
+            n.subVectors(head.position, n).normalize();
+            head.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), n);
+          };
+          posers.push((k) => {
+            bend(1, 2 + 9 * k);
+            jaw.rotation.x = 0.08 + 0.09 * k;
+          });
+          frame = [[0, 0.02, -0.15], 3.2, [0, 0.05, 0.42], 1.2];
+        } else if (animal === 'lobster') {
+          const body = new THREE.Mesh(spinyLobsterBody(), lit()),
+            antennae = new THREE.Mesh(lobsterAntennae(), lit());
+          antennae.position.set(0, 0.1, 0.17);
+          root.add(body, antennae);
+          posers.push((k) => {
+            antennae.rotation.y = 0.35 * k;
+            antennae.rotation.x = -0.15 * k;
+          });
+          frame = [[0, 0.06, 0.05], 1.6, [0.08, 0.06, 0.12], 0.5];
+        } else if (animal === 'comb-jelly') {
+          root.add(new THREE.Mesh(combJellyShape(), glass('combJelly')));
+          posers.push((k) => root.rotation.set(0.2 * k, 1.2 * k, 0));
+          frame = [[0, -0.01, 0], 0.32, [0, 0.005, 0], 0.18];
+        } else if (animal === 'salp') {
+          root.add(new THREE.Mesh(salpGeometry(), glass('salp')));
+          posers.push((k) => root.rotation.set(0, 0.8 * k, 0.2 * k));
+          frame = [[0, 0, 0], 0.5, [-0.03, 0.01, 0], 0.25];
+        } else if (animal === 'jellyfish') {
+          const m = glass('jellyfish');
+          const bell = new THREE.Mesh(jellyBellGeometry(), m),
+            arms = new THREE.Mesh(jellyArmsGeometry(), m);
+          root.add(bell, arms);
+          posers.push((k) => {
+            bell.scale.set(1 + 0.08 * k, 1 - 0.14 * k, 1 + 0.08 * k);
+            arms.rotation.set(0.08 * k, 0, 0.05 * k);
+          });
+          frame = [[0, -0.7, 0], 6.5, [0, 0.05, 0], 2.0];
+        } else if (animal === 'sea-squirts') {
+          root.add(new THREE.Mesh(squirtClusterGeometry(), glass('seaSquirt')));
+          posers.push((k) => root.rotation.set(0, 0.6 * k, 0));
+          frame = [[0, 0.04, 0], 0.55, [0, 0.05, 0.02], 0.3];
+        }
+      }
+      window.ready = build();
+      /** View: [yaw (radians around y, 0 = from the front/+z), pitch, close-up?, pose]. */
+      const VIEWS = {
+        side: [Math.PI / 2, 0.04, false, 0],
+        'three-quarter': [0.75, 0.25, false, 0],
+        'close-up': [0.9, 0.12, true, 0],
+        pose: [1.15, 0.32, false, 1],
+      };
+      window.shot = (view) => {
+        const [yaw, pitch, close, pose] = VIEWS[view];
+        for (const f of posers) f(pose);
+        const [target, d, ct, cd] = frame;
+        const at = new THREE.Vector3(...(close ? ct : target)),
+          dist = close ? cd : d;
+        camera.position.set(
+          at.x + Math.sin(yaw) * Math.cos(pitch) * dist,
+          at.y + Math.sin(pitch) * dist,
+          at.z + Math.cos(yaw) * Math.cos(pitch) * dist,
+        );
+        camera.lookAt(at);
+        renderer.render(scene, camera);
+        return {
+          calls: renderer.info.render.calls,
+          triangles: renderer.info.render.triangles,
+        };
+      };
+    </script>
+  </body>
+</html>

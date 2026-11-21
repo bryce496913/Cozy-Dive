@@ -1,6 +1,6 @@
 import { benthicGait } from './BenthicGait';
 import * as THREE from 'three';
-import { smoothed } from '../shared/organicGeometry';
+import { organicTube, smoothed } from '../shared/organicGeometry';
 import { spinyLobsterBody } from './SpinyLobster';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { SightCandidate } from '../../discovery/journal';
@@ -102,38 +102,158 @@ export function limb(
   return part(g, color[0], color[1], color[2]);
 }
 
-/** The two long antennae from a pivot at the head (origin), facing +z: thick spiny bases, long whips. */
+type RGB = readonly [number, number, number];
+/**
+ * V0.7 Pass 078: one exoskeleton segment (podomere) from joint `a` to joint `b`, as a crustacean's
+ * is: it leaves the previous segment through a narrow, darker articular membrane, swells into a
+ * slightly flattened shaft, and ends in a flared, paler rim, the socket the next segment seats
+ * into. Chained, the segments overlap at every joint like real articulation instead of meeting as
+ * plain cylinders. Smooth, vertex-coloured, non-indexed (merges with the other parts).
+ */
+export function podomere(
+  a: THREE.Vector3,
+  b: THREE.Vector3,
+  r0: number,
+  r1: number,
+  shell: RGB,
+  rim: RGB = shell,
+  membrane: RGB = [shell[0] * 0.55, shell[1] * 0.55, shell[2] * 0.55],
+  sides = 8,
+  bow = 0.06,
+): THREE.BufferGeometry {
+  const d = b.clone().sub(a),
+    len = d.length(),
+    dir = d.clone().normalize(),
+    // A slight outward bow, so long segments are not ruler-straight.
+    side = new THREE.Vector3(0, 1, 0).cross(dir),
+    mid = a
+      .clone()
+      .lerp(b, 0.5)
+      .addScaledVector(
+        side.lengthSq() > 1e-8 ? side.normalize() : new THREE.Vector3(1, 0, 0),
+        len * bow * 0.3,
+      )
+      .add(new THREE.Vector3(0, len * bow, 0)),
+    radius = (u: number) => {
+      const shaft = r0 + (r1 - r0) * u,
+        neck = 0.7 + 0.3 * Math.min(1, u / 0.16),
+        flare = 1 + 0.16 * Math.exp(-(((u - 0.9) / 0.06) ** 2));
+      return shaft * neck * flare * (1 + 0.05 * Math.sin(u * Math.PI));
+    };
+  const g = smoothed(
+      organicTube([a, mid, b], radius, 14, sides, 0.82),
+      Math.PI / 2,
+    ),
+    pos = g.getAttribute('position'),
+    col = new Float32Array(pos.count * 3),
+    q = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    q.fromBufferAttribute(pos, i).sub(a);
+    const u = Math.min(1, Math.max(0, q.dot(dir) / len)),
+      m = Math.max(0, 1 - u / 0.14),
+      r = Math.exp(-(((u - 0.92) / 0.05) ** 2)),
+      speck = 0.92 + 0.08 * Math.sin(i * 12.9898);
+    for (let k = 0; k < 3; k++)
+      col[i * 3 + k] =
+        (shell[k] * (1 - m - r) + membrane[k] * m + rim[k] * r) * speck;
+  }
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  return g;
+}
+/** Podomeres along a chain of joints, tapering from `r0` to `r1`, alternately banded. */
+export function articulated(
+  joints: readonly THREE.Vector3[],
+  r0: number,
+  r1: number,
+  shell: RGB,
+  band: RGB,
+  sides = 8,
+): THREE.BufferGeometry[] {
+  const n = joints.length - 1;
+  return joints.slice(0, -1).map((j, i) =>
+    podomere(
+      j,
+      // Each segment seats a little inside the previous one's flared rim.
+      joints[i + 1].clone().lerp(j, i === n - 1 ? 0 : -0.04),
+      r0 + ((r1 - r0) * i) / n,
+      r0 + ((r1 - r0) * (i + 1)) / n,
+      i % 2 ? band : shell,
+      band,
+      undefined,
+      sides,
+    ),
+  );
+}
+
+/**
+ * The two long antennae from a pivot at the head (origin), facing +z. V0.7 Pass 078: three thick,
+ * spiny, articulated basal segments, then a long annulated whip (a continuous surface ringed every
+ * centimetre, banded in groups), and a short pair of feelers.
+ */
 export function lobsterAntennae(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
   for (const side of [-1, 1]) {
-    const points = [
+    const base = [
       new THREE.Vector3(side * 0.02, 0, 0),
-      new THREE.Vector3(side * 0.07, 0.04, 0.09),
-      new THREE.Vector3(side * 0.16, 0.06, 0.24),
-      new THREE.Vector3(side * 0.28, 0.04, 0.42),
-      new THREE.Vector3(side * 0.4, -0.01, 0.6),
+      new THREE.Vector3(side * 0.045, 0.022, 0.045),
+      new THREE.Vector3(side * 0.072, 0.04, 0.095),
+      new THREE.Vector3(side * 0.1, 0.05, 0.15),
     ];
-    // Banded: alternate segments of the whip in pale and dark.
-    for (let i = 0; i < points.length - 1; i++) {
-      const r0 = 0.016 * (1 - i / points.length) + 0.003,
-        r1 = 0.016 * (1 - (i + 1) / points.length) + 0.002;
-      parts.push(limb(points[i], points[i + 1], r0, r1, i % 2 ? PALE : SHELL));
-    }
-    // Spines on the thick base.
-    for (let k = 0; k < 4; k++) {
-      const at = points[0].clone().lerp(points[1], (k + 0.5) / 4),
-        spine = new THREE.ConeGeometry(0.004, 0.018, 3);
-      spine.translate(at.x, at.y + 0.012, at.z);
+    parts.push(...articulated(base, 0.017, 0.011, SHELL, PALE, 9));
+    // Spines along the thick base, raked forward.
+    for (let k = 0; k < 6; k++) {
+      const s = Math.floor(k / 2),
+        at = base[s].clone().lerp(base[s + 1], 0.35 + (k % 2) * 0.35),
+        spine = new THREE.ConeGeometry(0.0035, 0.016, 5);
+      spine.rotateX(0.5);
+      spine.translate(at.x, at.y + 0.013 - s * 0.002, at.z);
       parts.push(part(spine, ...DARK));
     }
+    // The whip: one smooth, ringed surface sweeping out and down.
+    const whip = [
+        base[3],
+        new THREE.Vector3(side * 0.16, 0.062, 0.24),
+        new THREE.Vector3(side * 0.28, 0.045, 0.42),
+        new THREE.Vector3(side * 0.4, -0.01, 0.6),
+      ],
+      rings = 60,
+      w = smoothed(
+        organicTube(
+          whip,
+          (u) =>
+            (0.0095 - 0.0072 * u) *
+            (1 + 0.11 * Math.abs(Math.sin(u * Math.PI * rings))),
+          rings * 3,
+          6,
+        ),
+      ),
+      wp = w.getAttribute('position'),
+      wc = new Float32Array(wp.count * 3),
+      q = new THREE.Vector3(),
+      start = whip[0];
+    for (let i = 0; i < wp.count; i++) {
+      const u = Math.min(
+          1,
+          q.fromBufferAttribute(wp, i).distanceTo(start) / 0.62,
+        ),
+        c = Math.floor(u * 9) % 2 ? PALE : SHELL;
+      wc.set([c[0], c[1], c[2]], i * 3);
+    }
+    w.setAttribute('color', new THREE.Float32BufferAttribute(wc, 3));
+    parts.push(w);
     // A shorter pair of feelers between them.
     parts.push(
-      limb(
-        new THREE.Vector3(side * 0.008, -0.01, 0.01),
-        new THREE.Vector3(side * 0.03, 0.01, 0.11),
-        0.003,
-        0.0015,
+      ...articulated(
+        [
+          new THREE.Vector3(side * 0.008, -0.01, 0.01),
+          new THREE.Vector3(side * 0.018, 0.0, 0.06),
+          new THREE.Vector3(side * 0.03, 0.01, 0.11),
+        ],
+        0.0035,
+        0.0018,
         LEG,
+        PALE,
+        6,
       ),
     );
   }

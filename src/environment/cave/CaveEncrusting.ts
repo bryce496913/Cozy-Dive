@@ -1,6 +1,10 @@
 import { CAVE_SIGHTS, type Sight } from '../../discovery/sights';
 import type { SightCandidate } from '../../discovery/journal';
 import * as THREE from 'three';
+import {
+  GELATINOUS_PRESETS,
+  gelatinousMaterial,
+} from '../../rendering/Gelatinous';
 import { smoothed } from '../shared/organicGeometry';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { CAVE } from '../../config/passage';
@@ -265,14 +269,8 @@ export class CaveEncrusting {
       0.45,
       () => 0.8 + rand() * 0.6,
       () => (rand() < 0.5 ? [0.82, 0.9, 0.95] : [0.95, 0.88, 0.62]),
-      new THREE.MeshStandardMaterial({
-        vertexColors: true,
-        roughness: 0.2,
-        metalness: 0,
-        transparent: true,
-        opacity: 0.72,
-        depthWrite: false,
-      }),
+      // V0.7 Pass 078: glassy tunics, clear face-on and dense at the edge.
+      gelatinousMaterial(GELATINOUS_PRESETS.seaSquirt),
       'Sea squirts',
       CAVE_SIGHTS.seaSquirt,
     );

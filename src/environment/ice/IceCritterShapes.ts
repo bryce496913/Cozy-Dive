@@ -10,8 +10,8 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
  *     fanned tail, big stalked black eyes, long antennae and a fringe of swimming legs;
  *   - sea butterfly: a coiled, glassy shell with a dark gut showing through, and two broad, veined
  *     wing-lobes held up and out;
- *   - comb jelly: a clear lobed oval with eight iridescent comb rows (bands of tiny combs, not
- *     smooth rings), a pale mouth and two trailing tentacles.
+ *   - comb jelly: a clear lobed oval with eight iridescent comb rows, a pale mouth and two trailing
+ *     tentacles. V0.7 Pass 078: continuous ciliary ridges, a visible pharynx, tentacle sheaths.
  */
 type RGB = readonly [number, number, number];
 function paint(g: THREE.BufferGeometry, c: RGB): THREE.BufferGeometry {
@@ -165,37 +165,68 @@ export function combJellyShape(): THREE.BufferGeometry {
     bp.setXYZ(i, bp.getX(i) * lobe, bp.getY(i) * 1.35, bp.getZ(i) * lobe);
   }
   parts.push(paint(body, [0.85, 0.92, 0.95]));
-  // Eight comb rows: bands of tiny combs from pole to pole, alternating bright colours.
+  // Eight comb rows. V0.7 Pass 078: each a continuous raised ciliary ridge from pole to pole (was a
+  // row of loose boxes), saturated so the gelatinous material makes it diffract with the view.
   const hues: RGB[] = [
-    [0.6, 0.95, 1],
-    [1, 0.7, 0.95],
-    [0.75, 1, 0.75],
-    [1, 0.95, 0.6],
+    [0.45, 0.9, 1],
+    [1, 0.55, 0.9],
+    [0.6, 1, 0.6],
+    [1, 0.9, 0.45],
   ];
   for (let k = 0; k < 8; k++) {
-    const a = (k / 8) * Math.PI * 2 + Math.PI / 8;
-    for (let j = 0; j < 9; j++) {
-      const t = -0.8 + (j / 8) * 1.6,
-        y = Math.sin(t) * 0.025 * 1.35,
-        r = Math.cos(t) * 0.0262,
-        comb = new THREE.BoxGeometry(0.0055, 0.0011, 0.0012);
-      comb.rotateY(-a);
-      comb.translate(Math.cos(a) * r, y, Math.sin(a) * r);
-      parts.push(paint(comb, hues[(k + j) % hues.length]));
+    const a = (k / 8) * Math.PI * 2 + Math.PI / 8,
+      ridge: THREE.Vector3[] = [];
+    for (let j = 0; j <= 8; j++) {
+      const t = -0.85 + (j / 8) * 1.7,
+        lobe = 1 + 0.05 * Math.cos(a * 4),
+        r = Math.cos(t) * 0.0258 * lobe;
+      ridge.push(
+        v(Math.cos(a) * r, Math.sin(t) * 0.025 * 1.35, Math.sin(a) * r),
+      );
     }
+    parts.push(
+      paint(
+        organicTube(
+          ridge,
+          (u) => 0.0016 * Math.sin(Math.PI * (0.08 + 0.84 * u)) ** 0.5,
+          18,
+          5,
+          0.55,
+        ),
+        hues[k % hues.length],
+      ),
+    );
   }
-  // A pale mouth below, and two trailing tentacles.
-  const mouth = new THREE.SphereGeometry(0.004, 6, 4);
+  // The pharynx: a darker, slightly opaque gut running up the middle (shows through the body).
+  const gut = new THREE.SphereGeometry(0.0075, 10, 8);
+  gut.scale(0.8, 2.2, 0.8);
+  gut.translate(0, -0.006, 0);
+  parts.push(paint(gut, [0.55, 0.42, 0.4]));
+  // A pale mouth below, and two trailing tentacles from their sheaths: smooth, curling filaments.
+  const mouth = new THREE.SphereGeometry(0.004, 8, 6);
   mouth.translate(0, -0.032, 0);
   parts.push(paint(mouth, [0.95, 0.85, 0.8]));
-  for (const s of [-1, 1])
+  for (const s of [-1, 1]) {
+    const sheath = new THREE.SphereGeometry(0.0035, 8, 6);
+    sheath.scale(1, 2.4, 1);
+    sheath.translate(s * 0.011, -0.004, 0);
+    parts.push(paint(sheath, [0.85, 0.6, 0.65]));
     parts.push(
-      stick(
-        v(s * 0.012, -0.01, 0),
-        v(s * 0.02, -0.07, 0.01),
-        0.0008,
+      paint(
+        organicTube(
+          [
+            v(s * 0.012, -0.012, 0),
+            v(s * 0.02, -0.035, 0.006),
+            v(s * 0.014, -0.058, 0.014),
+            v(s * 0.024, -0.08, 0.008),
+          ],
+          (u) => 0.0009 * (1 - 0.7 * u),
+          14,
+          4,
+        ),
         [0.95, 0.75, 0.8],
       ),
     );
+  }
   return merge(parts);
 }
