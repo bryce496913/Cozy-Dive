@@ -97,10 +97,69 @@ The office grows by about 27k triangles, mostly the hero chairs; it remains the 
 - **Checks:** typecheck, lint and build pass.
 - **Screenshots:** matched before/after views of each location are in `docs/screenshots/v07-pass079/`. No world traversal was run.
 
+## Playtest follow-up: filling the ice and cave, and finishing the tunnels
+
+**Playtest feedback:** "the ice and cave areas still feel empty compared to the outer reef and kelp ... add larger plant life and more rock/ice formation"; models and tunnels needed improving.
+
+This round was agreed by the user in the playtest. It adds structure, but no new locations or animal species. Every addition is solid where it should be and keeps clear of:
+
+- the sand lanes and the breathing holes' light;
+- the tunnel approaches;
+- the penguins' loop, the fish schools, and the whitetips' resting and settling spots.
+
+### Large life (`src/environment/shared/LargeLife.ts`)
+
+`SwayingAlgae` draws one instanced draw per form. A `sway` attribute (0 at the holdfast, 1 at the tip) bends each plant in the vertex shader on its own phase. The sway runs on simulation time and freezes with reduced motion.
+
+- **Strap algae:** a short stipe and one long, gently rippled strap blade, 1.5–4 m tall. The form follows the giant Antarctic brown alga _Himantothallus_, and the strap kelps of sea caves.
+- **Bushy algae:** a stipe forking into fine fronds, about 1 m tall. The form follows _Desmarestia_.
+
+### Under the ice
+
+- **Grounded ice:** six grounded iceberg fragments, each with a leaning shard, stand along the sides and the far end.
+- **Ice columns:** two ice columns join the seabed to the sea ice near the side walls, with a wide foot, a waist and a broad head.
+- **Rock outcrops:** four outcrops, clusters of four carved boulders up to about 3 m. They join the stones, so anemones and feather stars settle on them.
+- **Algae:** giant strap algae ring the three breathing holes, and bushy algae grow round the outcrops and along the walls.
+
+### Sea cave
+
+- **Pillars:** two limestone pillars run from sand to roof against the side walls. Each has a flared foot, a carved double shaft and a broad head spreading into the roof. Every part is carved inside its own hull, which is its collider.
+- **Sea fans:** 26 large orange and red sea fans sit on the walls (one instanced draw), facing into the cavern.
+- **Kelp:** strap kelp rings the edge of the sunbeam's pool, with a few stands by the entrance.
+
+### Tunnels
+
+The tunnel mouths, the icicles and the tunnels' ends are reworked; this also applies to every world's tunnel mouths:
+
+- **Smooth shading:** the shared `plain()` helper recomputed normals after de-indexing, which shaded every tunnel-mouth rock and icicle flat-faceted. Smooth normals are now kept.
+- **Mouth rocks:** they are carved inside their hulls, with no clefts, and sized up a little so the ring still closes.
+- **Icicles:** organic icicles, with a broad root, a slightly crooked body, drip rings and a fine tip (were six-sided cones).
+- **Tunnel ends:** a receding throat narrows and fades to black, instead of the flat black disc at the cave's back tunnel and the ice tunnel's start (`tunnelThroat`).
+- **Collars:** a rough rock collar covers the stair-stepped edge of the hole cut in the rock face round the ice and back-tunnel mouths, where the water showed through (`mouthCollar`).
+- **Moiré:** anisotropic filtering on the shared rock, ice and sand maps, against moiré at grazing angles.
+
+### Cost
+
+| View              | Draws   | Triangles (first round → follow-up) |
+| ----------------- | ------- | ----------------------------------- |
+| Cave, cavern      | 57 → 60 | 1.19 → 1.25 M                       |
+| Cave, back tunnel | 46 → 49 | 1.11 → 1.17 M                       |
+| Ice, open water   | 81 → 79 | 2.44 → 2.56 M                       |
+| Ice, far end      | 87      | 2.50 → 2.63 M                       |
+| Ice, tunnel mouth | 57 → 60 | 2.22 → 2.37 M                       |
+
+- **Draws:** each world gains two or three (algae, fans, collar).
+- **Triangles:** about +0.06 M in the cave and +0.12 M under the ice.
+- **First version:** the bushy algae doubled that. It was cut to two branching levels.
+
+### Not in this pass
+
+The seals, the polar bear and the cave lobster from the playtest screenshots are creature models; they belong to the paused creature pass (Pass 078, `codex/v0.7-pass-078-creatures`).
+
 ## Limitations
 
 - **Office:** the furniture is code-modelled, not Blender-authored, and there is no fabric or wood micro-geometry beyond the shared maps.
 - **Cave:** the floor film is vertex colour, so it is soft at the floor's grid resolution. The rubble has no colliders, by design: it is too low to block swimming.
-- **Ice:** the clumps reuse the existing sponge, coral and star geometry; only placement changed.
+- **Ice:** the clumps reuse the existing sponge, coral and star geometry; only placement changed. The grounded ice and columns are rounded carved lumps, softer than real fractured ice. Fish schools are not steered round the new formations, as they were not steered round the icebergs before.
 - **Sediment:** the breakup applies to upward faces only. Steep sediment banks still show the base tiling.
 - **Captures:** SwiftShader stills. The in-game look on the MacBook Air needs the user's check.
