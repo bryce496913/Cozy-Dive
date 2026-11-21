@@ -26,11 +26,13 @@ import { WRECK_GROWTH, type GrowthMode } from './WreckGrowth';
  */
 type RGB = readonly [number, number, number];
 const RUST: RGB = [0.4, 0.22, 0.14];
-const STEEL: RGB = [0.33, 0.3, 0.27];
+const STEEL: RGB = [0.37, 0.34, 0.3];
 const PAINT: RGB = [0.5, 0.48, 0.43];
-const DECK: RGB = [0.34, 0.3, 0.24];
+const DECK: RGB = [0.37, 0.32, 0.25];
 const BOTTOM: RGB = [0.42, 0.16, 0.12];
 const DARK: RGB = [0.08, 0.07, 0.06];
+const GROWTH_FILM: RGB = [0.3, 0.34, 0.23];
+const frac = (v: number) => v - Math.floor(v);
 
 function random(seed: number): () => number {
   let s = seed >>> 0;
@@ -64,11 +66,15 @@ const mix = (a: RGB, b: RGB, t: number): RGB => [
   a[1] + (b[1] - a[1]) * t,
   a[2] + (b[2] - a[2]) * t,
 ];
-/** Weathered steel: mottled, rust bleeding through. */
+/**
+ * Weathered steel: mottled, rust bleeding through. V0.7 Pass 076: with welded plate seams on a
+ * world-space grid (dark lines, rust bleeding below them) and a patchy growth film, so decks,
+ * the hold and the superstructure read as the same plated steel as the hull.
+ */
 function weathered(base: RGB) {
   return (x: number, y: number, z: number): RGB => {
     const mottle =
-        0.78 +
+        0.8 +
         0.12 *
           Math.sin(z * 2.3 + Math.sin(y * 0.9) * 2) *
           Math.sin(x * 1.7 + y * 0.6) +
@@ -76,32 +82,118 @@ function weathered(base: RGB) {
       rust = Math.max(
         0,
         Math.sin(x * 3.1 + z * 1.3) * Math.sin(y * 2.2 - z * 0.7) - 0.3,
-      );
-    return scale(mix(base, RUST, Math.min(1, rust * 1.6)), mottle);
+      ),
+      gx = Math.abs(frac((x + 100) / 1.5) - 0.5) * 1.5,
+      gy = frac((y + 100) / 1.15),
+      gz = Math.abs(frac((z + 100) / 1.5) - 0.5) * 1.5,
+      onSeam = Math.min(0.75 - gx, 0.75 - gz) < 0.04 || gy > 0.95,
+      bleed = Math.pow(gy, 6) * Math.max(0, Math.sin(x * 4.3 + z * 3.9)),
+      film =
+        Math.max(
+          0,
+          Math.sin(x * 0.9 + z * 0.7) * Math.sin(z * 1.7 - x * 1.1 + y) - 0.2,
+        ) * 0.5;
+    return scale(
+      mix(
+        mix(base, RUST, Math.min(1, rust * 1.6 + bleed * 0.5)),
+        GROWTH_FILM,
+        film,
+      ),
+      mottle * (onSeam ? 0.6 : 1),
+    );
   };
 }
-/** The hull's own colouring: faded red bottom, rust streaks running down, plating seams. */
+/** V0.7 Pass 076: faded topside paint (grey-green) over the old red bottom. */
+const TOPSIDE: RGB = [0.44, 0.44, 0.38];
+/** Hull plate construction: strakes (horizontal bands) and butts (plate ends), frames inside. */
+const STRAKE = 1.15,
+  BUTT = 2.6,
+  FRAME = 0.7;
+const hash = (a: number, b: number) =>
+  frac(Math.sin(a * 12.9898 + b * 78.233) * 43758.5453);
+/** How open the breach is at (z, y): > 0 inside its ragged, smooth-edged hole. */
+export function breachOpen(z: number, y: number): number {
+  const b = SHIP.breach,
+    cz = (b.foreZ + b.aftZ) / 2,
+    cy = (b.low + b.high) / 2,
+    // The hole always contains the collision opening (the rectangle), with a ragged margin.
+    margin =
+      0.2 +
+      0.45 *
+        (0.5 +
+          0.5 * Math.sin(z * 2.3 + y * 1.7) * Math.cos(y * 2.9 - z * 1.1)) +
+      // Jagged teeth where the plating tore.
+      0.14 *
+        Math.abs(Math.sin(z * 9.7 + y * 3.1) * Math.sin(y * 11.3 - z * 2.7)),
+    dz = Math.abs(z - cz) - ((b.aftZ - b.foreZ) / 2 + margin),
+    dy = Math.abs(y - cy) - ((b.high - b.low) / 2 + margin * 0.8);
+  return -Math.max(dz, dy);
+}
+/**
+ * V0.7 Pass 076: how far (m) the plating sits inside the hull's design surface at (y, z): each
+ * strake leans in toward its top edge (so every seam is a shadow line under the plate above),
+ * shallow grooves at the plate butts, the plating sagging in between the internal frames (the
+ * starved-horse look of an old hull), soft dents, and torn plating curling in round the breach.
+ * Inward only: the shell stays within the hull's collision.
+ */
+export function hullInset(y: number, z: number): number {
+  const t = frac((y - 0.2) / STRAKE),
+    lap = 0.018 * t,
+    f = frac((z + 100) / FRAME),
+    sag =
+      0.022 *
+      (0.5 - 0.5 * Math.cos(Math.PI * 2 * f)) *
+      (0.55 + 0.45 * Math.sin(z * 0.37 + y * 0.9)),
+    bt = frac((z + 100) / BUTT),
+    butt = 0.012 * Math.exp(-(((Math.min(bt, 1 - bt) * BUTT) / 0.08) ** 2)),
+    open = breachOpen(z, y),
+    curl = open < 0 && open > -0.7 ? 0.1 * (1 + open / 0.7) ** 2 : 0;
+  return lap + sag + butt + 0.6 * dent(y, z) + curl;
+}
+/** The hull's colouring: plate by plate, faded paint, seams, rust bleeding down, growth film. */
 function hullColour(x: number, y: number, z: number): RGB {
-  const top = DECK_TOP,
-    // Boot-topping: the old red bottom paint below the line, faded and patchy.
+  const sv = (y - 0.2) / STRAKE,
+    t = frac(sv),
+    bv = (z + 100) / BUTT,
+    bt = frac(bv),
+    // Each plate weathered a little differently.
+    plate = 0.9 + 0.16 * hash(Math.floor(sv), Math.floor(bv)),
+    // Boot-topping: the old red bottom below the line, faded and patchy; topsides above.
     bottom = 1 - Math.min(1, Math.max(0, (y - 2.4) / 0.5)),
-    base = mix(STEEL, BOTTOM, bottom * (0.7 + 0.3 * Math.sin(z * 0.9 + y))),
-    // Long streaks of rust, running down from the deck edge.
-    streak =
-      Math.pow(Math.max(0, Math.sin(z * 1.7 + 0.6 * Math.sin(z * 0.3))), 12) *
-      Math.min(1, Math.max(0, (y - 1) / (top - 1))),
-    // Strakes (horizontal seams) and butts (vertical seams) between the plates.
-    seam =
-      Math.abs(((y - 0.2) / 1.15) % 1) < 0.05 ||
-      Math.abs(((z + 100) / 2.6) % 1) < 0.025
-        ? 0.72
-        : 1,
+    base = mix(TOPSIDE, BOTTOM, bottom * (0.7 + 0.3 * Math.sin(z * 0.9 + y))),
+    // Rust bleeding down from the seam above each plate, in streaks along the hull.
+    streak = Math.pow(
+      Math.max(0, Math.sin(z * 3.7 + 2 * Math.sin(z * 0.8))),
+      6,
+    ),
+    bleed = t * t * streak,
+    // Broad corroded patches, and heavy rust round the torn breach.
+    patch =
+      Math.max(
+        0,
+        Math.sin(z * 0.73 + y * 1.1) * Math.sin(z * 1.9 - y * 0.6) - 0.35,
+      ) * 1.6,
+    open = breachOpen(z, y),
+    torn = open < 0 && open > -1 ? 1 + open : 0,
+    rust = Math.min(1, 0.12 + bleed * 0.85 + patch * 0.6 + torn * 0.8),
+    // Shadow under each plate's proud lower edge; that edge itself catches the light.
+    seam = t > 0.86 ? 0.55 : t < 0.1 ? 1.18 : 1,
+    butt = Math.min(bt, 1 - bt) * BUTT < 0.05 ? 0.78 : 1,
+    // A patchy film of growth on the plating, thicker low down; a darker sand line at the foot.
+    film =
+      0.45 *
+      Math.max(
+        0,
+        Math.sin(z * 0.41 + y * 0.7) * Math.sin(z * 1.3 + y * 1.9 + x) + 0.1,
+      ) *
+      (y > 0.8 ? 1 : 0.4),
+    sand = y < 0.9 ? 0.75 + 0.25 * (y / 0.9) : 1,
     mottle =
-      0.82 +
-      0.12 * Math.sin(z * 3.3 + y * 2.1) * Math.sin(z * 0.7 - y * 1.9 + x);
+      0.86 +
+      0.1 * Math.sin(z * 3.3 + y * 2.1) * Math.sin(z * 0.7 - y * 1.9 + x);
   return scale(
-    mix(base, RUST, Math.min(1, streak * 0.9 + 0.15)),
-    mottle * seam,
+    mix(mix(base, RUST, rust), GROWTH_FILM, Math.min(0.55, film)),
+    plate * seam * butt * sand * mottle,
   );
 }
 function block(
@@ -113,7 +205,17 @@ function block(
   z1: number,
   c: RGB = STEEL,
 ): THREE.BufferGeometry {
-  const g = new THREE.BoxGeometry(x1 - x0, y1 - y0, z1 - z0);
+  // V0.7 Pass 076: subdivided (about 0.3 m cells) so seams, rust and growth resolve on it.
+  const seg = (d: number) =>
+    Math.max(1, Math.min(20, Math.round(Math.abs(d) / 0.3)));
+  const g = new THREE.BoxGeometry(
+    x1 - x0,
+    y1 - y0,
+    z1 - z0,
+    seg(x1 - x0),
+    seg(y1 - y0),
+    seg(z1 - z0),
+  );
   g.translate((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
   return painted(g, weathered(c));
 }
@@ -149,20 +251,38 @@ const dent = (y: number, z: number): number =>
   (1 + Math.sin(z * 1.9 + y * 0.8)) *
   (0.5 + 0.5 * Math.sin(z * 0.6 - y * 1.7));
 
+/**
+ * The old shell drew one random number per starboard quad below the rail (30 rows, 240
+ * stations) for its breach edge. Later steps (growth placement) continue the same sequence, so
+ * draw exactly as many to keep everything downstream where it was.
+ */
+function skipLegacyHullDraws(rand: () => number): void {
+  const rows = 30,
+    stations = 240;
+  const yAt = (i: number, j: number) => {
+    const y = SHIP.keel + ((DECK_TOP + 3.5 - SHIP.keel) * j) / rows,
+      v = Math.max(0, Math.min(1, (y - SHIP.keel) / (DECK_TOP - SHIP.keel))),
+      start = SHIP.bowZ - SHIP.rake * (y - SHIP.keel),
+      end = SHIP.sternZ - SHIP.undercut * (1 - v) * (1 - v),
+      u = 0.5 - 0.5 * Math.cos((Math.PI * i) / stations),
+      z = start + (end - start) * u;
+    return Math.min(y, railAt(z));
+  };
+  for (let i = 0; i < stations; i++)
+    for (let j = 0; j < rows; j++) {
+      if (yAt(i, j) === yAt(i, j + 1) && yAt(i + 1, j) === yAt(i + 1, j + 1))
+        continue;
+      rand();
+    }
+}
 /** The hull plating, keel to rail, lofted section by section, open where it has rusted through. */
 function hullShell(rand: () => number): THREE.BufferGeometry {
-  const rows = 30,
-    stations = 240,
-    b = SHIP.breach,
-    open = (z: number, y: number) => {
-      const j = (rand() - 0.5) * 0.7;
-      return (
-        z > b.foreZ + j && z < b.aftZ - j && y > b.low + j && y < b.high - j
-      );
-    };
-  // Each row runs exactly from the stem (raked, so further forward higher up) to the stern
-  // (cut back below the counter), with stations closer together towards both ends; so the stem
-  // and stern are clean edges, not stepped.
+  skipLegacyHullDraws(rand);
+  // V0.7 Pass 076: finer (60 rows, 360 stations) so plate laps, butts and frame sag resolve; one
+  // indexed grid per side with smooth normals; the breach a smooth ragged hole round the
+  // collision opening (it was cut quad by quad at random, so its edge was stair-stepped).
+  const rows = 60,
+    stations = 360;
   const at = (i: number, j: number, side: number) => {
     const y = SHIP.keel + ((DECK_TOP + 3.5 - SHIP.keel) * j) / rows,
       v = Math.max(0, Math.min(1, (y - SHIP.keel) / (DECK_TOP - SHIP.keel))),
@@ -174,32 +294,48 @@ function hullShell(rand: () => number): THREE.BufferGeometry {
       yy = Math.min(y, top),
       x = hullX(z, yy);
     return new THREE.Vector3(
-      side * Math.max(0, x - (x > 0.3 ? dent(yy, z) : 0)),
+      side * Math.max(0, x - (x > 0.3 ? hullInset(yy, z) : 0)),
       yy,
       z,
     );
   };
-  const positions: number[] = [];
-  for (const side of [-1, 1])
+  const parts: THREE.BufferGeometry[] = [];
+  for (const side of [-1, 1]) {
+    const pos: number[] = [],
+      grid: THREE.Vector3[] = [],
+      idx: number[] = [],
+      w = rows + 1;
+    for (let i = 0; i <= stations; i++)
+      for (let j = 0; j <= rows; j++) {
+        const p = at(i, j, side);
+        grid.push(p);
+        pos.push(p.x, p.y, p.z);
+      }
     for (let i = 0; i < stations; i++)
       for (let j = 0; j < rows; j++) {
-        const a = at(i, j, side),
-          bb = at(i + 1, j, side),
-          c = at(i + 1, j + 1, side),
-          d = at(i, j + 1, side);
+        const a = i * w + j,
+          bb = (i + 1) * w + j,
+          c = (i + 1) * w + j + 1,
+          d = i * w + j + 1;
         // Above the rail (rows run past it, to cover the forecastle): nothing.
-        if (a.y === d.y && bb.y === c.y) continue;
-        if (side > 0 && open((a.z + bb.z) / 2, (a.y + c.y) / 2)) continue;
-        const quad = side > 0 ? [a, bb, c, a, c, d] : [a, c, bb, a, d, c];
-        for (const v of quad) positions.push(v.x, v.y, v.z);
+        if (grid[a].y === grid[d].y && grid[bb].y === grid[c].y) continue;
+        if (
+          side > 0 &&
+          breachOpen(
+            (grid[a].z + grid[bb].z) / 2,
+            (grid[a].y + grid[c].y) / 2,
+          ) > 0
+        )
+          continue;
+        if (side > 0) idx.push(a, bb, c, a, c, d);
+        else idx.push(a, c, bb, a, d, c);
       }
-  const shell = new THREE.BufferGeometry();
-  shell.setAttribute(
-    'position',
-    new THREE.Float32BufferAttribute(positions, 3),
-  );
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.setIndex(idx);
+    parts.push(painted(g, hullColour, true));
+  }
   // The rail capping the bulwark, all round.
-  const parts = [painted(shell, hullColour)];
   for (const side of [-1, 1])
     for (let za = SHIP.bowZ - 3; za < SHIP.sternZ; za += 0.6) {
       const zb = za + 0.6;
@@ -851,13 +987,15 @@ export class ShipwreckModel {
       shell = new THREE.MeshStandardMaterial({
         vertexColors: true,
         roughness: 0.9,
-        metalness: 0.2,
+        // V0.7 Pass 076: corroded, growth-covered steel behaves as a dielectric; metalness with no
+        // environment map only darkened it into a slab.
+        metalness: 0.05,
         side: THREE.DoubleSide,
       }),
       steel = new THREE.MeshStandardMaterial({
         vertexColors: true,
         roughness: 0.86,
-        metalness: 0.18,
+        metalness: 0.06,
       }),
       soft = new THREE.MeshStandardMaterial({
         vertexColors: true,
@@ -935,7 +1073,8 @@ export class ShipwreckModel {
         } else {
           const side = rand() < 0.5 ? -1 : 1,
             y = 1.2 + Math.sqrt(rand()) * (railAt(z) - 1.6),
-            x = side * hullX(z, y);
+            // V0.7 Pass 076: set into the plating (it sits inside the design surface by its inset).
+            x = side * (hullX(z, y) - hullInset(y, z) - 0.01);
           if (Math.abs(x) < 0.5 || !clearOfOpenings(x, y, z)) continue;
           at.set(x, y, z);
           // Leaning out and up from the plating (fans stand up into the current); plates stand

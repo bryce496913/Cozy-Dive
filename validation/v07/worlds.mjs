@@ -40,6 +40,12 @@ export const WORLD_VIEWS = {
     ['wreck-overview', 'swimming', [14, 9, -14], [0, 5, -30]],
     ['wreck-deck', 'medium', [6, 12.5, -20], [0, 7, -30]],
     ['wreck-hull-close', 'close', [7.5, 4.8, -33], [3.5, 4.4, -33.4]],
+    // V0.7 Pass 076: matched views of the bow, stern, broadside, cargo hold and bridge.
+    ['wreck-bow', 'medium', [9, 5, -56], [0, 4, -46]],
+    ['wreck-stern', 'medium', [8, 4, -7.5], [0, 3, -16]],
+    ['wreck-broadside', 'swimming', [17, 4.2, -31], [0, 3.6, -31]],
+    ['wreck-hold', 'close', [0.6, 3, -26.5], [0, 1.6, -38]],
+    ['wreck-bridge', 'medium', [6, 11, -12.5], [0, 8.6, -19.5]],
   ],
 };
 const browser = await chromium.launch({
