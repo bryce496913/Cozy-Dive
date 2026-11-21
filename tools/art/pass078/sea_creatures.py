@@ -723,7 +723,8 @@ class SeaLion(m.Seal):
     external ears, long wing-like fore-flippers and hind flippers turned back; warm brown, darker
     and glossy along the back, paler on the chest."""
     root = 'SeaLion'
-    length = 2.05
+    # 1.9: the stroke-inclusive bounds (what the loader validates) stay under the 2.6 m limit.
+    length = 1.9
     rough = 0.4
     spine_y = ((0, 0.0), (0.4, 0.02), (0.7, 0.045), (0.84, 0.1), (1, 0.13))
     height = [(0, .03), (.06, .06), (.2, .12), (.45, .16), (.62, .155), (.74, .12), (.82, .085),

@@ -34,8 +34,14 @@ const CORAL_NODES = {
   rounded: 'Coral_Massive',
   plate: 'Coral_Plate',
 } as const;
-/** Subtle per-rock mineral tints multiplied over the authored limestone maps. */
-const ROCK_TINTS = [0xeee9e2, 0xdfdfdc, 0xe4e6dc, 0xeee2de] as const;
+/**
+ * Per-rock mineral tints multiplied over the authored limestone maps. V0.7 Pass 080: the four tints
+ * were within a few percent of one white, so under the tank's aqua light every boulder read as the
+ * same olive mound. They now span the art bible's rock palette (warm beige, cool grey, pale sand,
+ * a faint coralline pink) at the same overall value, so neighbouring rocks separate without any
+ * one becoming a colour accent.
+ */
+const ROCK_TINTS = [0xfae6cf, 0xd2dadf, 0xefe5c8, 0xf6d8d0] as const;
 
 /**
  * Authored plant templates carry RGB colour and a per-stem phase in their second UV set. The runtime

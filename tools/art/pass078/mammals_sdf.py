@@ -351,7 +351,8 @@ class PolarBear(Species):
     """Polar bear, swimming: long neck and narrow Roman-nosed head held forward, a gentle shoulder
     hump, jointed legs (forelegs reaching to paddle, hind legs trailing) with broad paws."""
     root = 'PolarBear'
-    length = 2.05
+    # 1.9 and a calmer paddle: the loader's stroke-inclusive bounds stay inside 3.1 m (Pass 080).
+    length = 1.9
     template = 'fur'
     rough = 0.82
     blend = 0.045
@@ -464,7 +465,7 @@ class PolarBear(Species):
             # Rotate about the shoulder/hip (z axis), fading in from the joint so the hide stretches.
             d = np.linalg.norm(p - pivot, axis=1)
             w = smooth(0.02 * L, 0.12 * L, d) * smooth(0.05 * L, -0.03 * L, ds[kind] - ds['body']) * m
-            ang = (0.45 if kind == 'fore' else -0.28) * sign * sd * w
+            ang = (0.3 if kind == 'fore' else -0.19) * sign * sd * w
             v = p - pivot
             cs, sn = np.cos(ang), np.sin(ang)
             q[:, 0] = np.where(m, pivot[0] + v[:, 0] * cs - v[:, 1] * sn, q[:, 0])

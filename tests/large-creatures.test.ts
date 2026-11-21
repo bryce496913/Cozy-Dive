@@ -120,3 +120,52 @@ describe('V0.7 Pass 068 mammals and birds', () => {
     },
   );
 });
+
+describe('V0.7 Pass 080 loader bounds', () => {
+  /**
+   * The runtime loader measures each model as three.js does: the rest pose united with every
+   * morph target (Box3 over the base and each stroke). Pass 078 shipped a sea lion whose two
+   * strokes together measured 2.63 m against a 2.6 m limit, so it fell back to the procedural
+   * model in game while each stroke alone passed. Check the union, as the loader does.
+   */
+  const MORPHED = (Object.keys(ASSET_REGISTRY) as AssetId[]).filter(
+    (id) =>
+      ASSET_REGISTRY[id].requireMorphs &&
+      ASSET_REGISTRY[id].path.startsWith('assets/models/creatures/'),
+  );
+  it.each(MORPHED)('%s fits its registry bounds with every stroke', (id) => {
+    const entry = ASSET_REGISTRY[id];
+    const a = new ReefAsset(`public/${entry.path}`);
+    const box = (pos: ArrayLike<number>) => {
+      const lo = [Infinity, Infinity, Infinity],
+        hi = [-Infinity, -Infinity, -Infinity];
+      for (let i = 0; i < pos.length; i++) {
+        lo[i % 3] = Math.min(lo[i % 3], pos[i]);
+        hi[i % 3] = Math.max(hi[i % 3], pos[i]);
+      }
+      return { lo, hi };
+    };
+    const lo = [Infinity, Infinity, Infinity],
+      hi = [-Infinity, -Infinity, -Infinity];
+    for (const name of ['Body', 'Body_LOD1'].filter((n) => a.has(n))) {
+      // BufferGeometry.computeBoundingBox with relative morphs: the base box, then for each morph
+      // in turn the box's current corners offset by that morph's delta box (cumulatively, so the
+      // two strokes' reaches add up), united per mesh in the asset's space.
+      const { lo: mlo, hi: mhi } = box(a.primitive(name).positions);
+      for (const morph of a.morphPositions(name)) {
+        const d = box(morph);
+        for (let k = 0; k < 3; k++) {
+          mlo[k] = Math.min(mlo[k], mlo[k] + d.lo[k]);
+          mhi[k] = Math.max(mhi[k], mhi[k] + d.hi[k]);
+        }
+      }
+      for (let k = 0; k < 3; k++) {
+        lo[k] = Math.min(lo[k], mlo[k]);
+        hi[k] = Math.max(hi[k], mhi[k]);
+      }
+    }
+    const size = Math.max(...hi.map((h, k) => h - lo[k]));
+    expect(size).toBeGreaterThanOrEqual(entry.minDimension);
+    expect(size).toBeLessThanOrEqual(entry.maxDimension);
+  });
+});

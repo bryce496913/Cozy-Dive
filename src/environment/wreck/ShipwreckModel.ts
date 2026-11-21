@@ -1057,12 +1057,36 @@ export class ShipwreckModel {
       this.geometries.push(geometry);
       const mesh = new THREE.InstancedMesh(geometry, material, count);
       mesh.name = name;
+      // V0.7 Pass 080: colonies, not confetti. Each kind was scattered uniformly over the whole
+      // ship, which read as an even sprinkle of stickers in bands along the flanks. Now each kind
+      // settles in a few patches (its larvae settle near their own kind), with extra growth
+      // along the rail edges where the current runs, and bare plate showing between patches.
+      const zFrom = SHIP.bowZ + 1.5,
+        zSpan = SHIP.sternZ - SHIP.bowZ - 2.5,
+        gauss = () => rand() + rand() + rand() - 1.5,
+        patches = Array.from(
+          { length: Math.max(3, Math.round(count / 14)) },
+          () => ({
+            side: rand() < 0.5 ? -1 : 1,
+            z: zFrom + rand() * zSpan,
+            y: 0.3 + 0.7 * rand(),
+            x: rand() * 2 - 1,
+          }),
+        );
       let placed = 0;
       for (let tries = 0; placed < count && tries < count * 20; tries++) {
-        const z = SHIP.bowZ + 1.5 + rand() * (SHIP.sternZ - SHIP.bowZ - 2.5);
+        const patch = patches[Math.floor(rand() * patches.length)],
+          loose = rand() < 0.15,
+          z = loose
+            ? zFrom + rand() * zSpan
+            : Math.min(zFrom + zSpan, Math.max(zFrom, patch.z + gauss() * 2.2));
         if (rand() < onDeck) {
           const y = deckTopAt(z),
-            x = (rand() * 2 - 1) * (hullX(z, y) - 0.5);
+            x =
+              (loose
+                ? rand() * 2 - 1
+                : Math.max(-1, Math.min(1, patch.x + gauss() * 0.5))) *
+              (hullX(z, y) - 0.5);
           if (
             !clearOfOpenings(x, y, z) ||
             Math.abs(z - SHIP.forecastle.aftZ) < 0.6
@@ -1071,8 +1095,16 @@ export class ShipwreckModel {
           at.set(x, y, z);
           n.copy(up);
         } else {
-          const side = rand() < 0.5 ? -1 : 1,
-            y = 1.2 + Math.sqrt(rand()) * (railAt(z) - 1.6),
+          // A patch's own side and height band; a share hugs the rail edge, where the current
+          // runs and growth crowds thickest on a wreck.
+          const side = loose ? (rand() < 0.5 ? -1 : 1) : patch.side,
+            edge = rand() < 0.3,
+            band = edge
+              ? 0.88 + 0.12 * rand()
+              : loose
+                ? Math.sqrt(rand())
+                : Math.max(0, Math.min(1, patch.y + gauss() * 0.35)),
+            y = 1.2 + band * (railAt(z) - 1.6),
             // V0.7 Pass 076: set into the plating (it sits inside the design surface by its inset).
             x = side * (hullX(z, y) - hullInset(y, z) - 0.01);
           if (Math.abs(x) < 0.5 || !clearOfOpenings(x, y, z)) continue;

@@ -33,6 +33,17 @@ Standards established while bringing every environment onto the V0.7 style (Pass
 
 The integration audit and remaining-issues checklist are in [`V07_VISUAL_INTEGRATION.md`](V07_VISUAL_INTEGRATION.md).
 
+## V0.7 consistency rules (Pass 080)
+
+Added after the final cross-world review ([`V07_ART_CONSISTENCY.md`](V07_ART_CONSISTENCY.md)):
+
+- **Every rock wears a mapped surface.** Boulders, walls and tunnels use the shared world-space `HabitatSurface` (or the authored limestone maps), tinted per world. No large surface ships as a plain colour.
+- **Ice has its own template** (`ice` in `standards.json`): roughness 0.3–0.5, a dielectric, and a cold self-glow of at most 0.3. Light and shade, not emission, model the masses.
+- **Shared parts take the host world's palette.** Helpers reused across worlds (tunnel mouths, rubble) take their colour from the world they sit in.
+- **Growth settles in colonies.** Encrusting life is placed in patches and along edges where the current runs, with bare substrate between, never as an even scatter.
+- **Variation within a palette, not across it.** Per-object tints vary in temperature (warm, cool, pink, sand) at a matched value, so neighbours separate without new colour accents.
+- **Assets must pass the loader, not only the file checks.** A creature's bounds are measured as three.js measures them (rest box plus cumulative stroke reaches). `tests/large-creatures.test.ts` enforces it.
+
 The sections below record earlier passes. They remain valid where V0.7 does not override them, for example the chromis anatomy notes and the fin-membrane rules.
 
 ## Earlier foundation (Passes 012–015)

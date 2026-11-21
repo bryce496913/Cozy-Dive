@@ -134,12 +134,17 @@ export class IceEnvironment {
       this.iceSurface.material({
         name: 'Ice',
         vertexColors: true,
-        roughness: 0.22,
-        metalness: 0.02,
+        // V0.7 Pass 080: the icebergs and sea ice read as glowing blue plastic: a near-glassy
+        // 0.22 roughness put a hard sheen on every face, and a strong blue self-glow lifted the
+        // shadowed sides to the lit ones, so the masses had no light and shade and the far walls
+        // matched the near ones in value. Worn, wet ice (0.38, the new ice template) with half
+        // the glow keeps its cold translucence but lets the key light model the forms.
+        roughness: 0.38,
+        metalness: 0,
         // V0.7 Pass 074: shaded from each lump's own creased normals (crisp at fractures, smooth
         // over worn faces) rather than forced flat: the big icebergs read low-poly when faceted.
         emissive: 0x0f3550,
-        emissiveIntensity: 0.55,
+        emissiveIntensity: 0.28,
       }),
     );
     const rock = this.own(

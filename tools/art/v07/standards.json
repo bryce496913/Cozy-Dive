@@ -194,6 +194,16 @@
       "maps": ["base", "normal", "orm"],
       "tier": "secondary",
       "note": "Waterlogged timber: softened grain, rounded worn edges, silt in recesses."
+    },
+    "ice": {
+      "roughness": [0.3, 0.5],
+      "metallic": 0,
+      "normalStrength": 0.35,
+      "doubleSided": false,
+      "alpha": "OPAQUE",
+      "maps": ["base", "normal", "orm"],
+      "tier": "secondary",
+      "note": "V0.7 Pass 080: worn, wet sea ice and icebergs (runtime HabitatSurface 'ice'): trapped veins in the maps, a soft sheen rather than glass, and only a faint cold self-glow (emissive intensity 0.3 or less) so the key light still models the masses."
     }
   },
   "untexturedAllowed": ["Iris", "Pupil", "Gill_Recess", "Proxy", "Eye", "Lens"],

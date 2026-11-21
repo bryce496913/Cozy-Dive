@@ -21,6 +21,12 @@ import { SINKHOLE } from '../../config/wreck';
 import { shaftColliders, shaftLining } from '../shared/Shaft';
 
 /**
+ * V0.7 Pass 080: the kelp rock's surface density (world-space repeats per metre). Finer than the
+ * cave's broad walls: the boulders are seen close, among the stalks.
+ */
+const KELP_ROCK_GRAIN = 1.1;
+
+/**
  * v0.6 Pass 032: the kelp forest's ground and walls. The tunnel from the cleft runs straight
  * south from its start (capped behind, where the darkness is deepest) through a rock wall, and
  * opens onto a rocky seabed with boulders, under a bright, distant surface. Everything solid is
@@ -127,18 +133,29 @@ export class KelpEnvironment {
   private readonly geometries: THREE.BufferGeometry[] = [];
   private readonly materials: THREE.Material[] = [];
   private readonly sediment = new HabitatSurface('sediment');
+  private readonly stone = new HabitatSurface('limestone');
   private disposed = false;
   constructor() {
     this.root.name = 'Kelp forest ground';
+    // V0.7 Pass 080: the kelp boulders and walls were the only rock in the game with no surface
+    // maps, so they read as smooth, plastic blobs beside the cave's and reef's carved stone. They
+    // now wear the shared world-space rock surface (strata, warped grain, pores) under the same
+    // dark coralline-encrusted tint, at the limestone template's roughness.
     this.rock = this.own(
-      new THREE.MeshStandardMaterial({
-        name: 'Kelp rock',
-        // Dark rock, encrusted pinkish-brown (coralline algae) over the vertex mottling.
-        color: 0x7d6a62,
-        vertexColors: true,
-        roughness: 0.96,
-      }),
+      this.stone.material(
+        {
+          name: 'Kelp rock',
+          // Dark rock, encrusted pinkish-brown (coralline algae) over the vertex mottling.
+          color: 0x7d6a62,
+          vertexColors: true,
+          roughness: 0.9,
+        },
+        KELP_ROCK_GRAIN,
+      ),
     );
+    // On dark rock the shared surface's default relief nearly vanishes: the limestone template's
+    // full normal strength, so the grain and pores still read under the canopy's dim light.
+    this.rock.normalScale.setScalar(0.8);
     // V0.7 Pass 075: the shared sediment surface (wandering ripples, grain and grit, world-space
     // triplanar), tinted by the seabed's vertex colours; it was a plain colour field.
     const sand = this.own(
@@ -149,12 +166,15 @@ export class KelpEnvironment {
         }),
       ),
       tunnel = this.own(
-        new THREE.MeshStandardMaterial({
-          name: 'Kelp tunnel',
-          vertexColors: true,
-          roughness: 0.95,
-          side: THREE.DoubleSide,
-        }),
+        this.stone.material(
+          {
+            name: 'Kelp tunnel',
+            vertexColors: true,
+            roughness: 0.9,
+            side: THREE.DoubleSide,
+          },
+          KELP_ROCK_GRAIN,
+        ),
       ),
       surface = this.own(
         new THREE.MeshBasicMaterial({
@@ -670,5 +690,6 @@ export class KelpEnvironment {
     this.geometries.forEach((g) => g.dispose());
     this.materials.forEach((m) => m.dispose());
     this.sediment.dispose();
+    this.stone.dispose();
   }
 }

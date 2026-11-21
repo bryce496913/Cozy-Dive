@@ -128,6 +128,12 @@ export function mouthRocks(
   frost = 0,
   count = 12,
   seed = 52100,
+  /**
+   * V0.7 Pass 080: the rocks' base colour (before frost). The default is the ice world's dark
+   * basalt; the cave passes its pale limestone, so its mouths match the cavern's own boulders
+   * instead of reading as a ring of blue-slate rubble.
+   */
+  base: readonly [number, number, number] = [0.22, 0.22, 0.2244],
 ): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [],
     m = new THREE.Matrix4(),
@@ -163,7 +169,7 @@ export function mouthRocks(
     g.applyMatrix4(m);
     parts.push(
       plain(g, (y, k) => {
-        const tone = 0.22 + 0.06 * Math.sin(k * 0.37),
+        const tone = 1 + 0.27 * Math.sin(k * 0.37),
           f =
             frost *
             Math.max(
@@ -171,9 +177,9 @@ export function mouthRocks(
               Math.min(1, (y - t.y + t.radius * 0.5) / (t.radius * 1.5)),
             );
         return [
-          tone * (1 - 0.1 * f) + 0.35 * f,
-          tone + 0.4 * f,
-          tone * 1.02 + 0.55 * f,
+          base[0] * tone * (1 - 0.1 * f) + 0.35 * f,
+          base[1] * tone + 0.4 * f,
+          base[2] * tone + 0.55 * f,
         ];
       }),
     );
