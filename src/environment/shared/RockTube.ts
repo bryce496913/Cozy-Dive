@@ -63,9 +63,11 @@ export function rockTubeGeometry(t: Tube, reach = 3.2): THREE.BufferGeometry {
     for (let j = 0; j < around; j++) {
       const a = i * (around + 1) + j,
         b = a + around + 1;
-      // Faces inwards whichever way the tube runs.
-      if (t.to < t.from) indices.push(a, b, a + 1, a + 1, b, b + 1);
-      else indices.push(a, a + 1, b, a + 1, b + 1, b);
+      // Faces inwards whichever way the tube runs. V0.7 Pass 079: the -z branch was wound
+      // outward; the cave draws its tubes double-sided so it never showed there, but the ice
+      // world's single-sided rock culled its tunnel's walls (the passage read as a blue void).
+      if (t.to < t.from) indices.push(a, a + 1, b, a + 1, b + 1, b);
+      else indices.push(a, b, a + 1, a + 1, b, b + 1);
     }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
@@ -276,8 +278,9 @@ export function tunnelThroat(
     for (let j = 0; j < sides; j++) {
       const a = i * sides + j,
         b = i * sides + ((j + 1) % sides);
-      if (dir < 0) idx.push(a, a + sides, b, b, a + sides, b + sides);
-      else idx.push(a, b, a + sides, b, b + sides, a + sides);
+      // Wound to face the axis (seen from inside the tunnel; single-sided materials cull it).
+      if (dir < 0) idx.push(a, b, a + sides, b, b + sides, a + sides);
+      else idx.push(a, a + sides, b, b, a + sides, b + sides);
     }
   // Closed at the far end in black.
   const tip = pos.length / 3;
@@ -286,8 +289,8 @@ export function tunnelThroat(
   for (let j = 0; j < sides; j++) {
     const a = rings * sides + j,
       b = rings * sides + ((j + 1) % sides);
-    if (dir < 0) idx.push(a, tip, b);
-    else idx.push(a, b, tip);
+    if (dir < 0) idx.push(a, b, tip);
+    else idx.push(a, tip, b);
   }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));

@@ -34,6 +34,7 @@ export const WORLD_VIEWS = {
     ['cave-boulders-far', 'swimming', [10, 6, -14], [-12, 2, -30]],
     ['cave-sunbeam-floor', 'medium', [0.5, 5, -21.5], [3.5, 0, -27.5]],
     ['cave-back-tunnel', 'medium', [-3, 3.4, -29], [-3, 3.2, -42]],
+    ['cave-back-tunnel-inside', 'close', [-3, 3.2, -37.5], [-3, 3.1, -44]],
     ['cave-pillar', 'swimming', [-4, 5, -17], [-15, 5, -24]],
   ],
   ice: [
@@ -43,6 +44,8 @@ export const WORLD_VIEWS = {
     // V0.7 Pass 079: the seabed's composition at swimming distance.
     ['ice-seabed-wide', 'swimming', [3, 4, -20], [-5, 0.5, -33]],
     ['ice-tunnel-mouth', 'medium', [1, 4.5, -15], [0, 4, -7]],
+    ['ice-tunnel-inside', 'close', [0, 4, 0.8], [0, 3.9, -8]],
+    ['ice-tunnel-looking-back', 'close', [0, 4, -6], [0, 4.1, 1.5]],
     ['ice-far-end', 'swimming', [0, 7, -24], [0, 5, -50]],
   ],
   wreck: [

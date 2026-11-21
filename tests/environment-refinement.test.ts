@@ -268,3 +268,57 @@ describe('V0.7 Pass 079 tunnel collar', () => {
     g.dispose();
   });
 });
+
+describe('V0.7 Pass 079 tunnel walls', () => {
+  it.each([
+    [1.8, -8.3],
+    [-8.3, 1.8],
+  ])('faces every wall inward (from %f to %f)', async (from, to) => {
+    const { rockTubeGeometry } =
+      await import('../src/environment/shared/RockTube');
+    const g = rockTubeGeometry({ x: 0, y: 4, radius: 1.45, from, to, dark: 0 }),
+      p = g.getAttribute('position'),
+      idx = g.getIndex()!,
+      a = new THREE.Vector3(),
+      b = new THREE.Vector3(),
+      c = new THREE.Vector3();
+    let inward = 0;
+    for (let f = 0; f < idx.count; f += 3) {
+      a.fromBufferAttribute(p, idx.getX(f));
+      b.fromBufferAttribute(p, idx.getX(f + 1));
+      c.fromBufferAttribute(p, idx.getX(f + 2));
+      const n = b.clone().sub(a).cross(c.clone().sub(a)),
+        toAxis = new THREE.Vector3(-a.x, 4 - a.y, 0);
+      if (n.dot(toAxis) > 0) inward++;
+    }
+    // Single-sided materials draw the walls from inside the tunnel.
+    expect(inward / (idx.count / 3)).toBeGreaterThan(0.98);
+    g.dispose();
+  });
+});
+
+describe('V0.7 Pass 079 tunnel throat winding', () => {
+  it.each([1, -1] as const)('faces the axis (dir %i)', async (dir) => {
+    const { tunnelThroat } = await import('../src/environment/shared/RockTube');
+    const g = tunnelThroat({ x: 0, y: 3, radius: 1.45 }, 0, dir, 4),
+      p = g.getAttribute('position'),
+      idx = g.getIndex()!,
+      a = new THREE.Vector3(),
+      b = new THREE.Vector3(),
+      c = new THREE.Vector3();
+    let inward = 0,
+      walls = 0;
+    for (let f = 0; f < idx.count; f += 3) {
+      a.fromBufferAttribute(p, idx.getX(f));
+      b.fromBufferAttribute(p, idx.getX(f + 1));
+      c.fromBufferAttribute(p, idx.getX(f + 2));
+      const n = b.clone().sub(a).cross(c.clone().sub(a)),
+        centre = a.clone().add(b).add(c).divideScalar(3),
+        toAxis = new THREE.Vector3(-centre.x, 3 - centre.y, -dir * 0.3);
+      walls++;
+      if (n.dot(toAxis) > 0) inward++;
+    }
+    expect(inward / walls).toBeGreaterThan(0.95);
+    g.dispose();
+  });
+});
