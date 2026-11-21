@@ -64,6 +64,10 @@
         spongeGeometry,
         softCoralGeometry,
       } from '/src/environment/ice/IceGarden.ts';
+      import {
+        GELATINOUS_PRESETS,
+        gelatinousMaterial,
+      } from '/src/rendering/Gelatinous.ts';
       installDeepFog();
 
       const LIBRARY = [
@@ -87,7 +91,7 @@
         ],
         ['krill', () => [krillShape()], 0xe0805a, true],
         ['sea butterfly', () => [seaButterflyShape()], 0xc9d6e0, true],
-        ['comb jelly', () => [combJellyShape()], 0xbfe6f0, true],
+        ['comb jelly', () => [combJellyShape()], 0xbfe6f0, 'combJelly'],
         ['squid', () => [squidGeometry()], 0xc87a6a],
         ['feather star', () => [featherStarGeometry()], 0xd06a40],
         ['scallop', () => [scallopGeometry()], 0xd8b080],
@@ -96,12 +100,12 @@
         ['sea cucumber', () => [cucumberGeometry()], 0xb06a5a],
         ['sea pen', () => [seaPenGeometry()], 0xe0d0b0],
         ['isopod', () => [isopodGeometry()], 0x9a8a78],
-        ['salp', () => [salpGeometry()], 0xd8eef0, true],
+        ['salp', () => [salpGeometry()], 0xd8eef0, 'salp'],
         [
           'jelly',
           () => [jellyBellGeometry(), jellyArmsGeometry()],
           0xe8c8e0,
-          true,
+          'jellyfish',
         ],
         ['bat star', () => [seaStarShape()], 0xd06030],
         ['purple urchin', () => [urchinShape()], 0x6a3a8a],
@@ -129,7 +133,7 @@
         ['hydroid', () => [Wreck.hydroid()], 0xd8d0b0],
         ['cave cushion', () => [cushionGeometry()], 0xc06040],
         ['cave tubes', () => [tubeClusterGeometry()], 0xd0c0a0],
-        ['sea squirts', () => [squirtClusterGeometry()], 0xd09060],
+        ['sea squirts', () => [squirtClusterGeometry()], 0xd09060, 'seaSquirt'],
         ['glass sponge', () => [spongeGeometry()], 0xd8d0c0],
         ['ice soft coral', () => [softCoralGeometry()], 0xe08060],
       ];
@@ -178,7 +182,12 @@
           }),
         ),
       ].filter(
-        (i) => !only || i.label.toLowerCase().includes(only.toLowerCase()),
+        (i) =>
+          !only ||
+          only
+            .toLowerCase()
+            .split(',')
+            .some((o) => i.label.toLowerCase().includes(o)),
       );
       const cols = Math.min(7, items.length),
         rows = Math.ceil(items.length / cols),
@@ -237,14 +246,18 @@
         const g = new THREE.Group();
         for (const geo of item.build()) {
           const vc = !!geo.getAttribute('color');
-          const mat = new THREE.MeshStandardMaterial({
-            color: vc ? 0xffffff : item.tint,
-            vertexColors: vc,
-            roughness: 0.6,
-            transparent: !!item.glass,
-            opacity: item.glass ? 0.7 : 1,
-            side: THREE.DoubleSide,
-          });
+          // V0.7 Pass 078: gelatinous animals use their real in-game material preset.
+          const mat =
+            typeof item.glass === 'string'
+              ? gelatinousMaterial(GELATINOUS_PRESETS[item.glass])
+              : new THREE.MeshStandardMaterial({
+                  color: vc ? 0xffffff : item.tint,
+                  vertexColors: vc,
+                  roughness: 0.6,
+                  transparent: !!item.glass,
+                  opacity: item.glass ? 0.7 : 1,
+                  side: THREE.DoubleSide,
+                });
           g.add(new THREE.Mesh(geo, mat));
         }
         return g;

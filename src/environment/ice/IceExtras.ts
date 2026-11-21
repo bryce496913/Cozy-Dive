@@ -1,5 +1,9 @@
 import * as THREE from 'three';
 import {
+  GELATINOUS_PRESETS,
+  gelatinousMaterial,
+} from '../../rendering/Gelatinous';
+import {
   organicTube,
   polarSheet,
   smoothed,
@@ -577,12 +581,17 @@ export function salpGeometry(): THREE.BufferGeometry {
   );
   return merge(parts);
 }
-/** A jellyfish bell (about 0.6 m across), rim at y 0, with frilled oral arms and long tentacles. */
+/**
+ * A jellyfish bell (about 0.6 m across), rim at y 0. V0.7 Pass 078: a thick mesoglea dome (its
+ * margin rounded into scalloped lappets) with sixteen darker radial canals, four horseshoe gonads
+ * showing through the crown and a pale ring canal at the margin; drawn with the gelatinous
+ * material, the dark organs stay opaque inside the clear bell.
+ */
 export function jellyBellGeometry(): THREE.BufferGeometry {
   const g = new THREE.SphereGeometry(
       0.32,
-      24,
-      10,
+      48,
+      18,
       0,
       Math.PI * 2,
       0,
@@ -592,52 +601,123 @@ export function jellyBellGeometry(): THREE.BufferGeometry {
   for (let i = 0; i < p.count; i++) {
     const a = Math.atan2(p.getZ(i), p.getX(i)),
       y = p.getY(i),
-      scallop = 1 + 0.05 * Math.sin(a * 16) * (1 - y / 0.32);
-    p.setXYZ(i, p.getX(i) * scallop, y * 0.75, p.getZ(i) * scallop);
+      edge = 1 - y / 0.32,
+      // Lappets: rounded scallops that deepen toward the margin.
+      scallop =
+        1 + 0.045 * Math.pow(Math.abs(Math.cos(a * 8)), 0.6) * edge ** 2,
+      lift = 0.018 * edge ** 3 * (1 - Math.abs(Math.cos(a * 8)));
+    p.setXYZ(i, p.getX(i) * scallop, y * 0.75 + lift, p.getZ(i) * scallop);
   }
-  const out = coloured(g, [0.95, 0.55, 0.35], 0.1),
+  const out = coloured(g, [0.96, 0.62, 0.42], 0.06),
     c = out.getAttribute('color'),
     pp = out.getAttribute('position');
-  // Radial dark-red bands over the bell.
   for (let i = 0; i < c.count; i++) {
-    const a = Math.atan2(pp.getZ(i), pp.getX(i));
-    if (Math.sin(a * 16) > 0.6)
-      c.setXYZ(i, c.getX(i) * 0.7, c.getY(i) * 0.4, c.getZ(i) * 0.4);
+    const x = pp.getX(i),
+      z = pp.getZ(i),
+      y = pp.getY(i),
+      a = Math.atan2(z, x),
+      r = Math.hypot(x, z) / 0.33;
+    let k = 1;
+    // Radial canals: fine dark lines from the crown to the margin.
+    const canal = Math.pow(Math.abs(Math.cos(a * 8)), 40);
+    k *= 1 - 0.35 * canal * Math.min(1, r * 1.6);
+    // Four horseshoe gonads around the crown (dark, so they read as organs).
+    const ring = Math.exp(-(((r - 0.33) / 0.09) ** 2)),
+      lobes = 0.5 + 0.5 * Math.cos(a * 4);
+    k *= 1 - 0.62 * ring * lobes * (y > 0.12 ? 1 : 0);
+    // A pale ring canal just inside the margin.
+    if (y < 0.03) k *= 1.12;
+    c.setXYZ(
+      i,
+      c.getX(i) * k,
+      c.getY(i) * k * (1 - 0.25 * ring * lobes),
+      c.getZ(i) * k * (1 - 0.35 * ring * lobes),
+    );
   }
   return out;
 }
+/** A ruffled ribbon hanging from `top`: `length` long, `width` wide, turned `yaw` about y. */
+function oralArm(
+  top: THREE.Vector3,
+  length: number,
+  width: number,
+  yaw: number,
+  seed: number,
+): THREE.BufferGeometry {
+  const rows = 26,
+    cols = 7,
+    pos: number[] = [],
+    idx: number[] = [];
+  for (let i = 0; i <= rows; i++) {
+    const u = i / rows,
+      w = width * (1 - 0.7 * u) * (0.8 + 0.2 * Math.sin(u * 9 + seed)),
+      sway = 0.06 * Math.sin(u * 3.2 + seed) * u;
+    for (let j = 0; j <= cols; j++) {
+      const x = (j / cols - 0.5) * 2,
+        // The frilled margins ruffle out of the ribbon's plane; the middle stays a firm midrib.
+        ruffle = x * x * w * 0.55 * Math.sin(u * 38 + x * 2.5 + seed),
+        lx = x * w * 0.5,
+        lz = ruffle + sway;
+      pos.push(
+        top.x + lx * Math.cos(yaw) - lz * Math.sin(yaw),
+        top.y - u * length,
+        top.z + lx * Math.sin(yaw) + lz * Math.cos(yaw),
+      );
+    }
+  }
+  const w = cols + 1;
+  for (let i = 0; i < rows; i++)
+    for (let j = 0; j < cols; j++) {
+      const q = i * w + j;
+      idx.push(q, q + w, q + 1, q + 1, q + w, q + w + 1);
+    }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  return g;
+}
+/** V0.7 Pass 078: four ruffled oral-arm ribbons (were stacked boxes) and smooth, curling
+ * tentacles (were three-sided cylinder chains), with the same reach as before. */
 export function jellyArmsGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [],
     rand = random(911);
-  // Four frilled oral arms: wavy ribbons hanging from the middle.
   for (let a = 0; a < 4; a++) {
-    const base = (a / 4) * Math.PI * 2;
-    for (let k = 0; k < 10; k++) {
-      const y0 = -k * 0.13,
-        y1 = -(k + 1) * 0.13,
-        r0 = 0.05 + 0.02 * Math.sin(k + a),
-        frill = new THREE.BoxGeometry(0.1 * (1 - k / 14), 0.13, 0.006);
-      frill.translate(0, (y0 + y1) / 2, 0);
-      frill.rotateY(base + 0.3 * Math.sin(k * 0.8));
-      frill.translate(Math.cos(base) * r0, 0.05, Math.sin(base) * r0);
-      parts.push(coloured(frill, [0.98, 0.7, 0.55], 0.1));
-    }
+    const base = (a / 4) * Math.PI * 2 + Math.PI / 4;
+    parts.push(
+      coloured(
+        oralArm(
+          v3(Math.cos(base) * 0.05, 0.05, Math.sin(base) * 0.05),
+          1.3,
+          0.13,
+          base + Math.PI / 2,
+          a * 1.7,
+        ),
+        [0.98, 0.7, 0.55],
+        0.08,
+      ),
+    );
   }
-  // Long, fine tentacles from the rim.
   for (let t = 0; t < 24; t++) {
     const a = (t / 24) * Math.PI * 2,
-      len = 1.2 + rand() * 1.4;
-    let prev = v3(Math.cos(a) * 0.3, 0, Math.sin(a) * 0.3);
-    for (let k = 1; k <= 6; k++) {
-      const u = k / 6,
-        next = v3(
+      len = 1.2 + rand() * 1.4,
+      pts: THREE.Vector3[] = [];
+    for (let k = 0; k <= 6; k++) {
+      const u = k / 6;
+      pts.push(
+        v3(
           Math.cos(a) * (0.3 - 0.08 * u) + 0.05 * Math.sin(u * 5 + t),
           -len * u,
-          Math.sin(a) * (0.3 - 0.08 * u),
-        );
-      parts.push(limb(prev, next, 0.006, 0.004, [0.95, 0.6, 0.45], 3));
-      prev = next;
+          Math.sin(a) * (0.3 - 0.08 * u) + 0.04 * Math.cos(u * 4 + t),
+        ),
+      );
     }
+    parts.push(
+      coloured(
+        organicTube(pts, (u) => 0.006 - 0.0035 * u, 24, 5),
+        [0.95, 0.6, 0.45],
+        0.06,
+      ),
+    );
   }
   return merge(parts);
 }
@@ -952,18 +1032,8 @@ export class IceExtras {
     // Salp chains drifting in mid-water.
     this.salps = this.instanced(
       salpGeometry(),
-      this.own(
-        new THREE.MeshStandardMaterial({
-          name: 'Salps',
-          vertexColors: true,
-          roughness: 0.15,
-          transparent: true,
-          opacity: 0.45,
-          depthWrite: false,
-          emissive: 0x1a3a48,
-          emissiveIntensity: 0.5,
-        }),
-      ),
+      // V0.7 Pass 078: a clear barrel whose muscle bands and dark gut show through.
+      this.own(gelatinousMaterial(GELATINOUS_PRESETS.salp)),
       ICE_EXTRAS.salpChains * ICE_EXTRAS.salpLength,
       'Salp chains',
     );
@@ -982,18 +1052,9 @@ export class IceExtras {
     const bell = jellyBellGeometry(),
       arms = jellyArmsGeometry();
     this.geometries.push(bell, arms);
+    // V0.7 Pass 078: a clear bell, thicker toward its margin, its gonads and arms showing.
     const jellyMaterial = this.own(
-      new THREE.MeshStandardMaterial({
-        name: 'Jellyfish',
-        vertexColors: true,
-        roughness: 0.25,
-        transparent: true,
-        opacity: 0.6,
-        depthWrite: false,
-        side: THREE.DoubleSide,
-        emissive: 0x4a1a10,
-        emissiveIntensity: 0.35,
-      }),
+      gelatinousMaterial(GELATINOUS_PRESETS.jellyfish),
     );
     for (let j = 0; j < ICE_EXTRAS.jellies; j++) {
       const { x, z } = spot(),

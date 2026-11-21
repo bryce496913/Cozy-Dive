@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { limb, merged, tinted } from './CaveLobsters';
+import { articulated, limb, merged, podomere, tinted } from './CaveLobsters';
 
 /**
  * v0.6 Pass 053 (visual consistency): the spiny lobster rebuilt to the creature standard. Same
@@ -12,7 +12,8 @@ import { limb, merged, tinted } from './CaveLobsters';
  *   - an abdomen of six overlapping tergites, each with a groove, a pair of pale spots, and
  *     pointed pleura curving down its sides;
  *   - a real tail fan: a rounded telson between two pairs of paddle-shaped uropods, banded;
- *   - five pairs of three-segment walking legs, banded orange and cream, with joints.
+ *   - five pairs of walking legs, banded orange and cream. V0.7 Pass 078: articulated podomeres
+ *     that overlap at each joint (`podomere`), not cylinders meeting at a ball.
  * Colour: deep red-brown, the spines darker, spots and bands pale yellow-cream.
  */
 type RGB = readonly [number, number, number];
@@ -182,20 +183,23 @@ export function spinyLobsterBody(): THREE.BufferGeometry {
     fan(side * 0.4, 0.045, 0.024, false);
     fan(side * 0.8, 0.042, 0.022, false);
   }
-  // Five pairs of walking legs: hip, knee, ankle, banded, with a joint ball at each knee.
+  // Five pairs of walking legs. V0.7 Pass 078: each four articulated podomeres (coxa, merus,
+  // carpus-propodus, dactyl) that overlap at their joints, banded orange and cream, with a dark
+  // claw-tip; no more cylinders meeting at a joint ball.
   for (const side of [-1, 1])
     for (let i = 0; i < 5; i++) {
       const z = 0.14 - i * 0.034,
         hip = v(side * 0.042, 0.04, z),
+        coxa = v(side * 0.062, 0.055, z + 0.004),
         knee = v(side * (0.11 + i * 0.004), 0.085, z + 0.02 - i * 0.01),
         ankle = v(side * (0.155 + i * 0.006), 0.035, z + 0.03 - i * 0.016),
         foot = v(side * (0.17 + i * 0.006), 0.0, z + 0.04 - i * 0.02);
-      parts.push(limb(hip, knee, 0.008, 0.0065, LEG));
-      parts.push(limb(knee, ankle, 0.0065, 0.005, i % 2 ? BAND : LEG));
-      parts.push(limb(ankle, foot, 0.005, 0.0015, BAND));
-      const joint = new THREE.SphereGeometry(0.0075, 6, 4);
-      joint.translate(knee.x, knee.y, knee.z);
-      parts.push(tinted(joint, SHELL));
+      parts.push(
+        ...articulated([hip, coxa, knee, ankle], 0.0085, 0.0052, LEG, BAND, 8),
+      );
+      parts.push(
+        podomere(ankle, foot, 0.0052, 0.0014, BAND, SPINE, undefined, 6),
+      );
     }
   // The third maxillipeds under the head, folded forward.
   for (const side of [-1, 1])

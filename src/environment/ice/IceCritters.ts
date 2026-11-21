@@ -1,5 +1,9 @@
 import * as THREE from 'three';
 import {
+  GELATINOUS_PRESETS,
+  gelatinousMaterial,
+} from '../../rendering/Gelatinous';
+import {
   combJellyShape,
   krillShape,
   seaButterflyShape,
@@ -122,18 +126,8 @@ export class IceCritters {
         roughness: 0.5,
       }),
     );
-    const clear = this.own(
-      new THREE.MeshStandardMaterial({
-        name: 'Comb jellies',
-        vertexColors: true,
-        roughness: 0.15,
-        transparent: true,
-        opacity: 0.55,
-        depthWrite: false,
-        emissive: 0xffffff,
-        emissiveIntensity: 0.15,
-      }),
-    );
+    // V0.7 Pass 078: clear bodies, denser at the rim, comb rows diffracting with the view.
+    const clear = this.own(gelatinousMaterial(GELATINOUS_PRESETS.combJelly));
     const instanced = (
       g: THREE.BufferGeometry,
       m: THREE.Material,
@@ -437,10 +431,11 @@ export class IceCritters {
         this.s.setScalar(2.4),
       );
       this.jellies.setMatrixAt(i, this.m);
-      // Rainbow light running along the comb rows.
+      // Light running along the comb rows: V0.7 Pass 078 keeps it a pale wash, so the body
+      // stays clear and the material's view-dependent shimmer carries the rainbow on the combs.
       this.jellies.setColorAt(
         i,
-        this.jellyColour.setHSL((t * 0.25 + i * 0.13) % 1, 0.8, 0.75),
+        this.jellyColour.setHSL((t * 0.25 + i * 0.13) % 1, 0.45, 0.88),
       );
       if (i < 3)
         Object.assign(
