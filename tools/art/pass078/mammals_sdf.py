@@ -499,13 +499,18 @@ def detail_texture(stem, fur):
 
 
 def build(name):
-    sp = SPECIES[name]()
+    build_species(name, SPECIES[name]())
+
+
+def build_species(name, sp):
+    """Sculpt, reduce, colour, morph and export one species instance (shared with sea_creatures)."""
     sp.build_body()
     L = sp.length
-    voxel = L / 260
+    voxel = L / getattr(sp, 'resolution', 260)
     probe = sp.body.c
-    lo = probe.min(0) - np.array([0.22, 0.42, 0.42]) * L
-    hi = probe.max(0) + np.array([0.22, 0.32, 0.42]) * L
+    pad = getattr(sp, 'pad', ((0.22, 0.42, 0.42), (0.22, 0.32, 0.42)))
+    lo = probe.min(0) - np.array(pad[0]) * L
+    hi = probe.max(0) + np.array(pad[1]) * L
     shape = np.ceil((hi - lo) / voxel).astype(int) + 1
     axes = [lo[k] + np.arange(shape[k]) * voxel for k in range(3)]
     X, Y, Z = np.meshgrid(*axes, indexing='ij')
