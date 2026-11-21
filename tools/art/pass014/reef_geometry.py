@@ -505,91 +505,61 @@ def radial_corallites(spine: np.ndarray, radii: np.ndarray, rng, color, spacing:
     return out
 
 
-def branching_coral(formation: dict, variant: int) -> Asset:
-    """Acropora-like colony: primaries follow the structural capsules; growth beyond is passable.
+#: V0.7 Pass 077: encrusting foot half-extents (x, height, z) by colony archetype.
+BRANCHING_FEET = ((0.26, 0.085, 0.24), (0.21, 0.08, 0.19), (0.15, 0.11, 0.15))
 
-    Pass 015: bushier flaring canopy, budding radial corallites on every outer branch, pale growing
-    tips over darker bases, and canopy occlusion toward the interior."""
+
+def branching_coral(formation: dict, variant: int) -> Asset:
+    """Acropora colony grown on its structural primaries; growth beyond them is passable.
+
+    V0.7 Pass 077: each variant is a distinct natural growth form (a spreading staghorn thicket,
+    a lopsided corymbose head, a tabular colony crowded with digits) grown and fused into one
+    continuous surface by `tools/art/pass077/colony.py`, reduced in Blender to a near level and a
+    distance level of the same silhouette. Budding radial corallites stay near-only; axial
+    corallites cap every growing tip (the `_Tips` mesh). Pass 015's palette is kept: pale growing
+    tips over darker, older bases, with the colony interior shaded by its own canopy."""
+    import sys as _sys
+    _sys.path.insert(0, str(HERE.parent / 'pass077'))
+    import colony  # noqa: E402
+
     rng = np.random.default_rng(14100 + variant)
-    noise = Waves(14110 + variant, 12, 3.0, 2)
     parts = [np.array(p) for p in formation['parts']]
-    tissue, tips, cups = [], [], []
     tint = [(0.74, 0.52, 0.40), (0.56, 0.50, 0.70), (0.66, 0.68, 0.44)][variant]
     tip_tint = [(0.96, 0.86, 0.74), (0.86, 0.80, 0.96), (0.92, 0.94, 0.74)][variant]
-    primaries = []
-    for k, pts in enumerate(parts):
-        a, b, radius = principal_axis(pts)
-        a = a + (b - a) / np.linalg.norm(b - a) * radius * 0.8
-        b = b - (b - a) / np.linalg.norm(b - a) * radius * 0.6
-        ctrl = np.array([a, a * 0.66 + b * 0.34, a * 0.33 + b * 0.67, b])
-        ctrl[1:3] += (rng.random((2, 3)) - 0.5) * 0.02
-        spine = curve(ctrl, 14)
-        t = np.linspace(0, 1, 14)
-        radii = (0.082 * (1 - t) + 0.042 * t) * (0.94 + 0.06 * np.sin(t * 9 + k))
-        tissue.append(tube(spine, radii, 12, tint, profile=lambda i, ang: 1 + 0.06 * math.sin(ang * 3 + i)))
-        cups.extend(radial_corallites(spine[4:], radii[4:], rng, tint, 0.03))
-        tips.append(tube(np.array([spine[-1], spine[-1] + (spine[-1] - spine[-2]) / np.linalg.norm(spine[-1] - spine[-2]) * 0.035]),
-                         np.array([radii[-1] * 0.9, radii[-1] * 0.55]), 8, tip_tint))
-        primaries.append((spine, radii))
-    # V0.7 Pass 069: every primary flares into the base with a fused tissue collar (not only the
-    # later ones), so the colony grows out of its encrusting foot.
-    for spine, radii in primaries:
-        tissue.append(blob(spine[0], radii[0] * 1.45, 2, tint, noise, 0.14, (1, 0.75, 1)))
-        tissue.append(blob(spine[1] * 0.5 + spine[0] * 0.5, radii[0] * 1.15, 2, tint, noise, 0.1, (1, 0.9, 1)))
-    out = 0
-    for spine, radii in primaries:
-        for j in range(11 + rng.integers(0, 4)):
-            i = int(rng.integers(2, 13))
-            start = spine[i]
-            tangent = spine[min(i + 1, 13)] - spine[i - 1]
-            tangent /= np.linalg.norm(tangent)
-            side = rng.standard_normal(3)
-            side -= tangent * side @ tangent
-            side /= np.linalg.norm(side)
-            direction = tangent * 0.5 + side * 0.62 + np.array([0, 0.55, 0])
-            direction /= np.linalg.norm(direction)
-            length = 0.14 + rng.random() * 0.22
-            bend = np.array([0, 0.05, 0]) + (rng.random(3) - 0.5) * 0.05
-            ctrl = np.array([start, start + direction * length * 0.5 + bend * 0.5, start + direction * length + bend])
-            sp = curve(ctrl, 7)
-            r0 = radii[i] * (0.62 + rng.random() * 0.15)
-            rr = np.linspace(r0, 0.021, 7)
-            tissue.append(tube(sp, rr, 8, tint))
-            # A swollen junction where the branch buds from its parent (continuous tissue).
-            cups.append(blob(start + direction * r0 * 0.4, r0 * 1.22, 1, tint, noise, 0.08, (1, 1, 1)))
-            cups.extend(radial_corallites(sp[1:], rr[1:], rng, tint))
-            tips.append(tube(np.array([sp[-1], sp[-1] + direction * 0.03]), np.array([0.019, 0.011]), 7, tip_tint))
-            out += 1
-            for _ in range(int(rng.random() < 0.85) + int(rng.random() < 0.4)):  # tertiaries
-                p0 = sp[int(rng.integers(2, 6))]
-                d2 = direction + (rng.random(3) - 0.5) * 0.9
-                d2[1] = abs(d2[1]) + 0.35
-                d2 /= np.linalg.norm(d2)
-                L = 0.07 + rng.random() * 0.07
-                sp2 = curve(np.array([p0, p0 + d2 * L * 0.55, p0 + d2 * L]), 5)
-                r2 = np.linspace(rr[3] * 0.8, 0.014, 5)
-                tissue.append(tube(sp2, r2, 7, tint))
-                cups.extend(radial_corallites(sp2[1:], r2[1:], rng, tint, 0.026))
-                tips.append(tube(np.array([sp2[-1], sp2[-1] + d2 * 0.022]), np.array([0.014, 0.008]), 6, tip_tint))
-    # V0.7 Pass 069: an irregular encrusting foot that climbs the trunks (it was a flat disc), sitting
-    # in the substrate, so the colony looks grown onto the rock rather than placed on it.
-    tissue.append(blob(np.array([0, -0.02, 0]), 0.24, 3, tint, noise, 0.34, (1.2, 0.3, 1.05)))
-    tissue.append(blob(np.array([0.02, 0.02, -0.01]), 0.15, 2, tint, noise, 0.3, (1.1, 0.45, 1.0)))
-    body = merge('Coral_Branching_%d' % variant, 'CoralBranch', tissue + cups)
-    top = body.positions[:, 1].max()
-    colony_occlusion(body, top, 0.6, 0.5)
-    # Growth gradient: darker, older skeleton below, paler toward the canopy.
-    h = np.clip(body.positions[:, 1] / top, 0, 1)[:, None]
-    body.colors[:, :3] = body.colors[:, :3] * (0.75 + 0.25 * h) + np.array(tip_tint) * 0.18 * h ** 2
-    body.colors[:, :3] = np.clip(body.colors[:, :3], 0, 1)
-    # Distance level: same skeleton without the budding corallites (they read as texture far away).
-    far = merge('Coral_Branching_%d_LOD1' % variant, 'CoralBranch', tissue)
-    colony_occlusion(far, top, 0.6, 0.5)
-    hf = np.clip(far.positions[:, 1] / top, 0, 1)[:, None]
-    far.colors[:, :3] = np.clip(far.colors[:, :3] * (0.75 + 0.25 * hf) + np.array(tip_tint) * 0.18 * hf ** 2, 0, 1)
+    branches = colony.grow(parts, variant, 77100 + variant)
+    verts, faces = colony.fuse(branches, BRANCHING_FEET[variant], 77200 + variant)
+    top = float(verts[:, 1].max())
+    reach = float(np.hypot(verts[:, 0], verts[:, 2]).max())
+
+    def surface(target: int) -> Mesh:
+        p, f = colony.decimate(verts, faces, target)
+        uv = box_uv(p, vertex_normals(p, f), 3.0)
+        return Mesh('tissue', 'CoralBranch', p, f, uv, np.tile([*tint, 1.0], (len(p), 1)))
+
+    def shade(m: Mesh) -> None:
+        colony_occlusion(m, top, reach, 0.35)
+        pale, cavity = colony.tip_shading(m.positions, branches)
+        h = np.clip(m.positions[:, 1] / top, 0, 1)[:, None]
+        c = m.colors[:, :3] * (0.74 + 0.26 * h) * (1 - 0.3 * cavity)[:, None]
+        k = pale[:, None] * (0.75 if variant < 2 else 0.4)  # the table's digits: paler tips only
+        c = c * (1 - k) + np.array(tip_tint) * k
+        m.colors[:, :3] = np.clip(c, 0, 1)
+
+    cups = []
+    for b in branches:
+        if b.order >= 1 and len(b.spine) > 2:
+            cups.extend(radial_corallites(b.spine[1:-1], b.radii[1:-1] * 1.08, rng, tint, 0.05))
+    body = merge('Coral_Branching_%d' % variant, 'CoralBranch', [surface(colony.NEAR_TISSUE)] + cups)
+    shade(body)
+    far = merge('Coral_Branching_%d_LOD1' % variant, 'CoralBranch', [surface(colony.FAR_TISSUE)])
+    shade(far)
+    # Axial corallites: the pale tube that leads every growing tip.
+    tips = [tube(np.array([pos - d * r * 0.6, pos + d * (r * 0.6 + 0.016)]), np.array([r * 1.02, r * 0.72]), 7 if r > 0.0145 else 5,
+                 tip_tint) for pos, d, r in colony.terminal_tips(branches)]
     tipmesh = merge('Coral_Branching_%d_Tips' % variant, 'CoralBranch', tips)
     return Asset('Coral_Branching_%d' % variant, [body, far, tipmesh], [p for p in parts],
-                 {'kind': 'branching', 'formation': formation['index'], 'passableGrowth': out})
+                 {'kind': 'branching', 'formation': formation['index'], 'archetype': colony.ARCHETYPES[variant],
+                  'passableGrowth': len(branches) - len(parts)})
 
 def shade_by_height(m: Mesh, y0: float, y1: float, low: float) -> None:
     t = np.clip((m.positions[:, 1] - y0) / (y1 - y0), 0, 1)
