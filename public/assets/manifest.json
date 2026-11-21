@@ -46,7 +46,9 @@
       }
     ],
     "geometryAccessorBytes": 261036,
-    "animations": ["SwimPreview"],
+    "animations": [
+      "SwimPreview"
+    ],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Development benchmark"
   },
@@ -163,13 +165,13 @@
   {
     "id": "anchored-life",
     "file": "assets/models/creatures/anchored-life.glb",
-    "sha256": "5f27962bd5d7f8180824d337b6e3a6d9936a6c7003c6c1ce424d0dfd508a1d1d",
+    "sha256": "adf310158336c661a4a5afca1ad00df944893c8b9e5aa48e201af81c9383c4d4",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 2353704,
+    "bytes": 2378576,
     "visualPrimitives": 22,
-    "visualTriangles": 154012,
+    "visualTriangles": 154931,
     "collisionTriangles": 0,
     "materials": 10,
     "images": [
@@ -322,7 +324,9 @@
       }
     ],
     "geometryAccessorBytes": 259740,
-    "animations": ["SwimPreview"],
+    "animations": [
+      "SwimPreview"
+    ],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
   },
@@ -331,7 +335,7 @@
       "trianglesByFamily": {
         "Rock": 161280,
         "Pebble": 960,
-        "Coral": 462759,
+        "Coral": 407420,
         "Soft": 32007,
         "Sea": 22281,
         "Turtle": 2064,
@@ -343,18 +347,22 @@
         "Rubble": 150,
         "Sand": 1
       },
-      "rockLevels": [20480, 5120, 1280]
+      "rockLevels": [
+        20480,
+        5120,
+        1280
+      ]
     },
     "id": "reef-environment",
     "file": "assets/models/reef/reef-environment.glb",
-    "sha256": "d526b3f039a2f68e38b053850e3cb8027ce7e37f3bd97d749cc349d76e7a06d5",
+    "sha256": "188c5e9804b70e8514ff187fe99e4273939dde82828ec71f42c40a2ce399acff",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 6148888,
+    "bytes": 5904528,
     "visualPrimitives": 66,
-    "visualTriangles": 710646,
-    "collisionTriangles": 9000,
+    "visualTriangles": 655307,
+    "collisionTriangles": 9102,
     "materials": 8,
     "images": [
       {
@@ -621,7 +629,9 @@
       }
     ],
     "geometryAccessorBytes": 261084,
-    "animations": ["SwimPreview"],
+    "animations": [
+      "SwimPreview"
+    ],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium reef fish (Pass 016)"
   },
@@ -672,7 +682,9 @@
       }
     ],
     "geometryAccessorBytes": 260556,
-    "animations": ["SwimPreview"],
+    "animations": [
+      "SwimPreview"
+    ],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium reef fish (Pass 016)"
   },
@@ -723,7 +735,9 @@
       }
     ],
     "geometryAccessorBytes": 261084,
-    "animations": ["SwimPreview"],
+    "animations": [
+      "SwimPreview"
+    ],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium reef fish (Pass 016)"
   },
@@ -774,7 +788,9 @@
       }
     ],
     "geometryAccessorBytes": 269772,
-    "animations": ["SwimPreview"],
+    "animations": [
+      "SwimPreview"
+    ],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium reef fish (Pass 016)"
   },
@@ -1255,7 +1271,9 @@
       }
     ],
     "geometryAccessorBytes": 261180,
-    "animations": ["SwimPreview"],
+    "animations": [
+      "SwimPreview"
+    ],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
   },
@@ -1306,7 +1324,9 @@
       }
     ],
     "geometryAccessorBytes": 261276,
-    "animations": ["SwimPreview"],
+    "animations": [
+      "SwimPreview"
+    ],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
   },
@@ -1357,7 +1377,9 @@
       }
     ],
     "geometryAccessorBytes": 261420,
-    "animations": ["SwimPreview"],
+    "animations": [
+      "SwimPreview"
+    ],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
   },
@@ -1408,7 +1430,9 @@
       }
     ],
     "geometryAccessorBytes": 261276,
-    "animations": ["SwimPreview"],
+    "animations": [
+      "SwimPreview"
+    ],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
   },
@@ -1459,7 +1483,9 @@
       }
     ],
     "geometryAccessorBytes": 261276,
-    "animations": ["SwimPreview"],
+    "animations": [
+      "SwimPreview"
+    ],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
   },
@@ -1510,7 +1536,9 @@
       }
     ],
     "geometryAccessorBytes": 261180,
-    "animations": ["SwimPreview"],
+    "animations": [
+      "SwimPreview"
+    ],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
   },
@@ -1561,7 +1589,9 @@
       }
     ],
     "geometryAccessorBytes": 261516,
-    "animations": ["SwimPreview"],
+    "animations": [
+      "SwimPreview"
+    ],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
   },
@@ -1870,7 +1900,9 @@
       }
     ],
     "geometryAccessorBytes": 261420,
-    "animations": ["SwimPreview"],
+    "animations": [
+      "SwimPreview"
+    ],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
   },
@@ -1921,7 +1953,9 @@
       }
     ],
     "geometryAccessorBytes": 261228,
-    "animations": ["SwimPreview"],
+    "animations": [
+      "SwimPreview"
+    ],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
   },
@@ -2101,7 +2135,9 @@
       }
     ],
     "geometryAccessorBytes": 260796,
-    "animations": ["SwimPreview"],
+    "animations": [
+      "SwimPreview"
+    ],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
   },
@@ -2152,49 +2188,94 @@
       }
     ],
     "geometryAccessorBytes": 260604,
-    "animations": ["SwimPreview"],
+    "animations": [
+      "SwimPreview"
+    ],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
   },
   {
     "id": "leopard-seal",
     "file": "assets/models/creatures/leopard-seal.glb",
-    "sha256": "ad6e62b61b95b0469a53ec18a3ff6f14eb4910a3ad7a03a49f850a1021ed6971",
+    "sha256": "087142375338a9b62f8c7e9415c63d85c85633b956d3bbc8c5c054de6459a998",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 682852,
+    "bytes": 495728,
     "visualPrimitives": 2,
-    "visualTriangles": 7432,
+    "visualTriangles": 8998,
     "collisionTriangles": 0,
     "materials": 1,
     "images": [
       {
-        "name": "p068-leopard-seal-skin-normal",
+        "name": "p078-leopard-seal-skin-normal",
         "width": 512,
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 324887
+        "encodedBytes": 148343
       },
       {
-        "name": "p068-leopard-seal-skin-base",
+        "name": "p078-leopard-seal-skin-base",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 55713
+        "encodedBytes": 27879
       },
       {
-        "name": "p068-leopard-seal-skin-orm",
+        "name": "p078-leopard-seal-skin-orm",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 73228
+        "encodedBytes": 9594
       }
     ],
-    "geometryAccessorBytes": 94440,
+    "geometryAccessorBytes": 108096,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium hero asset"
+  },
+  {
+    "id": "weddell-seal",
+    "file": "assets/models/creatures/weddell-seal.glb",
+    "sha256": "09d201aba543ecc21d2a71ea78fa8d9d98f8a876aa3c37746c972f465ecae7e0",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 489320,
+    "visualPrimitives": 2,
+    "visualTriangles": 9000,
+    "collisionTriangles": 0,
+    "materials": 1,
+    "images": [
+      {
+        "name": "p078-weddell-seal-skin-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 148343
+      },
+      {
+        "name": "p078-weddell-seal-skin-base",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 27879
+      },
+      {
+        "name": "p078-weddell-seal-skin-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 9594
+      }
+    ],
+    "geometryAccessorBytes": 108288,
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
@@ -2288,42 +2369,42 @@
   {
     "id": "polar-bear",
     "file": "assets/models/creatures/polar-bear.glb",
-    "sha256": "f870b0e38dcbc10fa525b1d85285c8178de32f8ca0ddf6ef04c94bd9b161536d",
+    "sha256": "91558fd2e72d7f0f0a0c643d64ee11e18290cf3684fc92e6e25eb34f1df409e2",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 631748,
+    "bytes": 447000,
     "visualPrimitives": 2,
-    "visualTriangles": 6922,
+    "visualTriangles": 8994,
     "collisionTriangles": 0,
     "materials": 1,
     "images": [
       {
-        "name": "p068-polar-bear-skin-normal",
+        "name": "p078-polar-bear-skin-normal",
         "width": 512,
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 333943
+        "encodedBytes": 138831
       },
       {
-        "name": "p068-polar-bear-skin-base",
+        "name": "p078-polar-bear-skin-base",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 69333
+        "encodedBytes": 18375
       },
       {
-        "name": "p068-polar-bear-skin-orm",
+        "name": "p078-polar-bear-skin-orm",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 53290
+        "encodedBytes": 5960
       }
     ],
-    "geometryAccessorBytes": 85896,
+    "geometryAccessorBytes": 108432,
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
@@ -2375,7 +2456,9 @@
       }
     ],
     "geometryAccessorBytes": 261180,
-    "animations": ["SwimPreview"],
+    "animations": [
+      "SwimPreview"
+    ],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
   }

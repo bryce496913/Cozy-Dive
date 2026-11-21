@@ -463,6 +463,14 @@ export const ASSET_REGISTRY = {
     requireMorphs: true,
   },
   // v0.6 Pass 048: the rare visitors under the ice.
+  // V0.7 Pass 078: the Weddell seal's own model (it was the harbour seal, tinted).
+  weddellSeal: {
+    path: 'assets/models/creatures/weddell-seal.glb',
+    requiredNodes: ['WeddellSeal_Root', 'Body', 'Body_LOD1'],
+    minDimension: 2.4,
+    maxDimension: 3.4,
+    requireMorphs: true,
+  },
   leopardSeal: {
     path: 'assets/models/creatures/leopard-seal.glb',
     requiredNodes: ['LeopardSeal_Root', 'Body', 'Body_LOD1'],
