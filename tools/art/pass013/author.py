@@ -22,7 +22,7 @@ def mat(name,color,rough=.75,metal=0,texture=None):
    if channel=='base':links.new(n.outputs['Color'],p.inputs['Base Color'])
    else:
     n.image.colorspace_settings.name='Non-Color'
-    if channel=='normal':a=nodes.new('ShaderNodeNormalMap');a.inputs['Strength'].default_value=.3;links.new(n.outputs['Color'],a.inputs['Color']);links.new(a.outputs['Normal'],p.inputs['Normal'])
+    if channel=='normal':a=nodes.new('ShaderNodeNormalMap');a.inputs['Strength'].default_value=.5;links.new(n.outputs['Color'],a.inputs['Color']);links.new(a.outputs['Normal'],p.inputs['Normal'])
     else:a=nodes.new('ShaderNodeSeparateColor');links.new(n.outputs['Color'],a.inputs['Color']);links.new(a.outputs['Green'],p.inputs['Roughness'])
  M[name]=m;return m
 def root(name,index):
@@ -77,8 +77,11 @@ def authored_stone(points,parent,name,protected=[]):
  for v in o.data.vertices:
   x,y,z=v.co.x,v.co.z,-v.co.y
   if all((Vector((x,y,z))-Vector(p)).length>.37 for p in protected):
-   # Surface breakup stays shallow; large forms and passage are authored, not random noise.
-   v.co.y-=math.sin(x*12+y*9)*math.cos(y*13+z*3)*.012
+   # V0.7 Pass 072: weathering cuts inward along the surface normal only (it was a signed offset
+   # along one axis), with rounded erosion pockets, so stone reads worn while colliders, built
+   # after this from the same vertices, can only shrink and passages never close.
+   d=.016*(.5+.5*math.sin(x*12+y*9)*math.cos(y*13+z*3))+.03*max(0,math.sin(x*5.1+z*4.3)*math.sin(y*6.7-x*2.9))**3
+   v.co-=v.normal*d
  layer=o.data.uv_layers[0] if o.data.uv_layers else o.data.uv_layers.new(name='UVMap')
  for loop in o.data.loops:
   p=o.data.vertices[loop.vertex_index].co;layer.data[loop.index].uv=(p.x*.7+p.y*.25,p.z*.7)
@@ -208,7 +211,7 @@ def props():
  # FILTER: actual panel assembly, recessed intake cage, curved return and mounting logic.
  filt=root('Filter',3)
  for name,size,p in [('Housing',(.85,2.4,.7),(0,0,0)),('Top_Cover',(1,.22,.85),(0,1.2,0)),('Intake_Core',(.67,1.85,.04),(0,-.05,.366))]:
-  o=box(name,size,p,M['Equipment'] if name!='Intake_Core' else M['Dark'],filt,.055);proxy_object(o,filt)
+  o=box(name,size,p,M['Equipment'] if name!='Intake_Core' else M['Dark'],filt,{'Housing':.12,'Top_Cover':.09}.get(name,.055));proxy_object(o,filt)
  for x in [-.37,.37]:box('Intake_Rail',(.06,2.12,.12),(x,-.04,.39),M['Equipment'],filt,.02)
  for i in range(14):box('Recessed_Vane',(.68,.045,.12),(0,-1.02+i*.145,.42),M['Equipment'],filt,.014)
  for side in [-1,1]:
@@ -216,6 +219,10 @@ def props():
    box('Wall_Bracket',(.25,.26,.2),(side*.22,y,-.43),M['Equipment'],filt,.035);sphere('Suction_Pad',(side*.22,y,-.53),(.17,.17,.045),M['Dark'],24,12,filt)
  o=tube('Intake_Elbow',[(-.3,1.18,-.22),(-.3,1.8,-.22),(-.25,2.12,-.16),(-.1,2.18,-.1)],[.10]*4,M['Equipment'],24,filt);proxy_object(o,filt)
  o=tube('Return_Nozzle',[(0,.84,.31),(0,.86,.57),(0,.82,.94)],[.145,.14,.125],M['Equipment'],24,filt);proxy_object(o,filt)
+ # V0.7 Pass 072 (visual only): a raised moulding seam round the housing, and a film of algae
+ # tufts on the cover, as on real tank equipment.
+ box('Moulding_Seam',(.9,.035,.75),(0,.88,0),M['Equipment'],filt,.012)
+ growth(filt,(.25,1.32,.2),.32,9);growth(filt,(-.15,1.32,-.18),.25,10)
  # Metal service screws and panel seams have actual thickness, not painted stripes.
  for x in [-.33,.33]:
   for y in [-1.04,1.06]:sphere('Service_Fastener',(x,y,.358),(.024,.024,.012),M['Metal'],12,8,filt)
@@ -223,7 +230,9 @@ def props():
  chest=root('Chest',4)
  for side in [-1,1]:
   for i in range(6):
-   x=-.70+i*.28;o=box('Chest_Face_Plank',(.265,.65,.13),(x,.46,side*.52),M['Wood'],chest,.018);proxy_object(o,chest)
+   # V0.7 Pass 072: planks vary slightly in height and set, with worn rounded edges.
+   rng=random.Random(7200+i+side*10);dy=(rng.random()-.6)*.03;dz=(rng.random()-.5)*.012
+   x=-.70+i*.28;o=box('Chest_Face_Plank',(.262,.65+dy,.13),(x,.46+dy/2,side*(.52+dz)),M['Wood'],chest,.03);proxy_object(o,chest)
  for side in [-1,1]:
   o=box('Chest_Side',(.13,.65,1),(side*.79,.46,0),M['Wood'],chest,.025);proxy_object(o,chest)
  o=box('Chest_Floor',(1.7,.16,1.16),(0,.1,0),M['Cut_Wood'],chest,.025);proxy_object(o,chest)
@@ -231,6 +240,20 @@ def props():
   for z in [-.59,.59]:box('Iron_Strap',(.09,.7,.035),(x,.46,z),M['Metal'],chest,.012)
   for z in [-.42,.42]:box('Chest_Foot',(.19,.17,.22),(x,.075,z),M['Wood'],chest,.025)
  for z in [-.45,.45]:box('Inner_Ledge',(1.4,.06,.06),(0,.72,z),M['Cut_Wood'],chest,.012)
+ # V0.7 Pass 072 (visual only, no colliders): rivets down each strap, iron corner brackets, and a
+ # little encrusting life (barnacles and a coral tuft) where the chest has sat in the sand.
+ for x in [-.57,.57]:
+  for z in [-.61,.61]:
+   for y in [.2,.38,.56,.72]:sphere('Strap_Rivet',(x,y,z),(.022,.022,.014),M['Metal'],10,6,chest)
+ for sx in [-1,1]:
+  for sz in [-1,1]:
+   box('Corner_Bracket',(.035,.6,.16),(sx*.86,.46,sz*.5),M['Metal'],chest,.01)
+   box('Corner_Bracket',(.16,.6,.035),(sx*.74,.46,sz*.6),M['Metal'],chest,.01)
+ brng=random.Random(7272)
+ for k in range(14):
+  a=brng.random()*1.6;r=.03+brng.random()*.05
+  sphere('Barnacle',(-.78+math.cos(a)*r*1.6,.06+brng.random()*.18,.6-math.sin(a)*r),(.02+brng.random()*.018,.016,.02+brng.random()*.018),M['Growth'],10,6,chest)
+ growth(chest,(-.66,.12,.58),.42,8)
  lid=bpy.data.objects.new('ChestLid',None);bpy.context.collection.objects.link(lid);lid.parent=chest
  lidparts=[]
  for i in range(8):
@@ -267,6 +290,12 @@ def props():
  face=mesh('Carved_Face',vs,faces,uv,M['Stone'],statue);proxy_object(face,statue,'Carved_Face')
  for x in [-.37,.37]:tube('Recessed_Eyelid',[(x-.10,2.39,.50),(x,2.38,.48),(x+.10,2.39,.50)],[.009]*3,M['Dark'],8,statue)
  growth(statue,(-.62,.31,.25),.75,7)
+ # V0.7 Pass 072 (visual only): low moss cushions on the crown.
+ mrng=random.Random(7290)
+ for k in range(6):
+  # Toward the crown's outer edges: the nudibranch's home is at its centre.
+  side=-1 if k%2 else 1
+  sphere('Moss',(side*(.38+mrng.random()*.2),3.2+mrng.random()*.04,-.25+mrng.random()*.5),(.08+mrng.random()*.05,.026,.07+mrng.random()*.04),M['Growth'],12,6,statue)
  for obj in MODEL_ROOTS:
   if obj.name!='Chest':merge_materials(obj,obj.name)
  # Chest moving parts remain separate from the static case.

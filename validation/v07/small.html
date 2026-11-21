@@ -143,17 +143,32 @@
         'Red_Algae',
       ].flatMap((k) => [0, 1, 2].map((i) => ['reef', `${k}_${i}`]));
       const plantSet = query.get('set') === 'plants';
+      // V0.7 Pass 072: `?set=ornaments` shows the aquarium ornaments (the chest with its lid).
+      const ORNAMENT_LIBRARY = [
+        'Log',
+        'Shipwreck',
+        'Arch',
+        'Filter',
+        'Chest',
+        'Statue',
+      ].map((n) => ['reefProps', n]);
+      const ornamentSet = query.get('set') === 'ornaments';
       const only = query.get('only');
       const items = [
-        ...(plantSet ? PLANT_LIBRARY : coralSet ? CORAL_LIBRARY : LIBRARY).map(
-          ([asset, node]) => ({
-            kind: 'lib',
-            asset,
-            node,
-            label: node,
-          }),
-        ),
-        ...(plantSet ? [] : coralSet ? CORAL_CODE : CODE).map(
+        ...(ornamentSet
+          ? ORNAMENT_LIBRARY
+          : plantSet
+            ? PLANT_LIBRARY
+            : coralSet
+              ? CORAL_LIBRARY
+              : LIBRARY
+        ).map(([asset, node]) => ({
+          kind: 'lib',
+          asset,
+          node,
+          label: node,
+        })),
+        ...(ornamentSet || plantSet ? [] : coralSet ? CORAL_CODE : CODE).map(
           ([label, build, tint, glass]) => ({
             kind: 'code',
             label,
@@ -203,7 +218,11 @@
             src = model.getObjectByName(item.node),
             m = new THREE.Group();
           // The node, plus sibling detail meshes that belong to it (branching-coral tips).
-          for (const o of [src, model.getObjectByName(`${item.node}_Tips`)]) {
+          for (const o of [
+            src,
+            model.getObjectByName(`${item.node}_Tips`),
+            item.node === 'Chest' ? model.getObjectByName('ChestLid') : null,
+          ]) {
             if (!o) continue;
             const c = o.clone(true);
             c.position.set(0, 0, 0);
