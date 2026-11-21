@@ -57,7 +57,21 @@ vec3 triW = triWeights(triN);
   diffuseColor.rgb *= mix(0.72, 1.06, triH);
 #endif
 #ifdef USE_MAP
-  diffuseColor *= triSample(map, triP, triW);
+  #ifdef TRI_BREAKUP
+    // V0.7 Pass 079: break up tiling on wide floors at no extra geometry. The top projection is
+    // blended with a second, rotated sample at about a third of the scale through a slow,
+    // irregular mask, and a broad tonal drift (several metres across) varies the sand's value.
+    vec2 triTop = vTriWorldPosition.xz;
+    float triMask = 0.5 + 0.5 * sin(triTop.x * 0.37 + sin(triTop.y * 0.29) * 1.7) * sin(triTop.y * 0.31 - sin(triTop.x * 0.23) * 1.9);
+    vec2 triRot = mat2(0.799, -0.602, 0.602, 0.799) * triTop * triplanarScale * 0.37 + vec2(0.31, 0.73);
+    vec4 triBase = triSample(map, triP, triW);
+    vec4 triWide = texture2D(map, triRot);
+    diffuseColor *= mix(triBase, mix(triBase, triWide, smoothstep(0.25, 0.75, triMask)), triW.y);
+    float triDrift = sin(triTop.x * 0.11 + 1.3) * sin(triTop.y * 0.13 - 0.7) + 0.5 * sin(triTop.x * 0.27 - triTop.y * 0.19);
+    diffuseColor.rgb *= 1.0 + 0.07 * triDrift * triW.y;
+  #else
+    diffuseColor *= triSample(map, triP, triW);
+  #endif
 #endif
 #ifdef USE_ROUGHNESSMAP
   diffuseColor.rgb *= mix(1.0, triSample(roughnessMap, triP, triW).r, triplanarAo);
@@ -113,6 +127,8 @@ export interface TriplanarOptions {
    * per metre and this relief (m), so the light model carries the full model's look everywhere.
    */
   readonly ridges?: { readonly frequency: number; readonly depth: number };
+  /** V0.7 Pass 079: large-scale variation on upward faces, to hide a floor texture's tiling. */
+  readonly breakup?: boolean;
 }
 
 /** Returns a material clone whose authored maps are sampled triplanarly in world space. */
@@ -129,6 +145,8 @@ export function triplanarMaterial(
   };
   if (options.ridges)
     material.defines = { ...material.defines, TRI_RIDGES: '' };
+  if (options.breakup)
+    material.defines = { ...material.defines, TRI_BREAKUP: '' };
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader
@@ -145,7 +163,11 @@ export function triplanarMaterial(
   };
   // Scale and occlusion are uniforms: every triplanar material shares one compiled program.
   material.customProgramCacheKey = () =>
-    options.ridges ? 'cozy-triplanar-ridged-v1' : 'cozy-triplanar-v2';
+    options.ridges
+      ? 'cozy-triplanar-ridged-v1'
+      : options.breakup
+        ? 'cozy-triplanar-breakup-v1'
+        : 'cozy-triplanar-v2';
   return material;
 }
 
