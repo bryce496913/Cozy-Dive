@@ -28,12 +28,27 @@ function hullRadius(
  * faces with crisp edges), bedding grooves for slabs, solution pits, and fine rounded wear. Returns
  * indexed-then-creased geometry with a `carve` attribute (depth carved, for colouring).
  */
+/**
+ * V0.7 Pass 079: optional large-scale massing for big boulders seen from afar: extra, deeper
+ * fracture caps and a few clefts (great-circle grooves) that split the silhouette into
+ * recognisable masses. Still carved only inward.
+ */
+export interface RockMassing {
+  /** Extra fracture caps, and how low they may cut (fraction of the hull radius). */
+  readonly cuts: number;
+  readonly cutLow: number;
+  /** Clefts across the rock, their depth (fraction of the hull radius) and width (radians). */
+  readonly clefts: number;
+  readonly cleftDepth: number;
+  readonly cleftWidth: number;
+}
 function carvedRock(
   hullPositions: readonly number[],
   family: number,
   detail: number,
   random: () => number,
   phase: number,
+  massing?: RockMassing,
 ): THREE.BufferGeometry {
   const planes: [number, number, number, number][] = [],
     a = new THREE.Vector3(),
@@ -60,6 +75,25 @@ function carvedRock(
       cy = Math.sin(up),
       cz = Math.sin(t) * Math.cos(up);
     cuts.push([cx, cy, cz, 0.66 + random() * 0.14]);
+  }
+  const clefts: [number, number, number][] = [];
+  if (massing) {
+    for (let k = 0; k < massing.cuts; k++) {
+      const t = random() * Math.PI * 2,
+        up = random() * 1.4 - 0.4;
+      cuts.push([
+        Math.cos(t) * Math.cos(up),
+        Math.sin(up),
+        Math.sin(t) * Math.cos(up),
+        massing.cutLow + random() * 0.12,
+      ]);
+    }
+    // Cleft planes through the centre, mostly steep (joints in the bedrock run near vertical).
+    for (let k = 0; k < massing.clefts; k++) {
+      const t = random() * Math.PI * 2,
+        tip = (random() - 0.5) * 0.6;
+      clefts.push([Math.cos(t), tip, Math.sin(t)]);
+    }
   }
   // Solution pits and cavities: dimples at random points on the surface.
   const pits: [number, number, number, number, number][] = [];
@@ -101,6 +135,21 @@ function carvedRock(
     // Bedding: fine horizontal grooves where slab layers weather back.
     if (family === 1)
       r -= 0.028 * Math.pow(0.5 + 0.5 * Math.cos(y * 22 + phase), 10);
+    for (const [kx, ky, kz] of clefts) {
+      // Angle from the cleft's plane; the groove is deepest low on the rock, closing toward the top.
+      const off = Math.asin(
+          Math.max(
+            -1,
+            Math.min(1, (kx * ux + ky * uy + kz * uz) / Math.hypot(kx, ky, kz)),
+          ),
+        ),
+        low = 1 - 0.45 * Math.max(0, uy);
+      r -=
+        (massing?.cleftDepth ?? 0) *
+        hull *
+        low *
+        Math.exp(-((off / (massing?.cleftWidth ?? 1)) ** 2));
+    }
     for (const [px, py, pz, w, depth] of pits) {
       const ang = Math.acos(Math.min(1, px * ux + py * uy + pz * uz));
       r -= depth * Math.exp(-((ang / w) ** 2));
@@ -173,6 +222,32 @@ function withHullBounds(
   }
   g.dispose();
   return out;
+}
+/**
+ * V0.7 Pass 079: carve the given convex hull (its triangle positions) with the Pass 070 surface,
+ * plus optional massing. Returns geometry inside the hull with the hull's exact bounds and a
+ * `carve` attribute (0 on the envelope, larger where carved), for callers to colour.
+ */
+export function carveConvexHull(
+  hullPositions: readonly number[],
+  family: number,
+  detail: number,
+  seed: number,
+  massing?: RockMassing,
+): THREE.BufferGeometry {
+  let state = seed >>> 0;
+  const random = (): number => {
+    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+    return state / 4294967296;
+  };
+  return carvedRock(
+    hullPositions,
+    family,
+    detail,
+    random,
+    random() * Math.PI * 2,
+    massing,
+  );
 }
 /** A small reusable sculpted family. Surface-detail seeds never consume the aquarium layout RNG. */
 export function createRockGeometry(

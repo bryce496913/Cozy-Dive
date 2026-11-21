@@ -252,7 +252,8 @@ export class CaveEnvironment {
       q = new THREE.Quaternion(),
       e = new THREE.Euler();
     CAVE_ROCKS.forEach((r, i) => {
-      const g = limestoneGeometry(34100 + (i % 8) * 13, i % 3);
+      // V0.7 Pass 079: carved inside the same hull (its collider), so silhouettes read as rock.
+      const g = limestoneGeometry(34100 + (i % 8) * 13, i % 3, true);
       g.computeBoundingBox();
       const box = g.boundingBox!,
         size = box.getSize(new THREE.Vector3()),
@@ -306,6 +307,7 @@ export class CaveEnvironment {
       );
       rocks.push(g.applyMatrix4(m));
     }
+    rocks.push(...this.skylightRubble());
     const merged = mergeGeometries(rocks, false);
     rocks.forEach((g) => g.dispose());
     if (merged) this.add(merged, this.rock, 'Cave boulders');
@@ -486,7 +488,10 @@ export class CaveEnvironment {
   private floorMesh(): THREE.BufferGeometry {
     const c = CAVE.chamber,
       s = CAVE.skylight,
-      g = new THREE.PlaneGeometry(c.rx * 2 + 4, c.rz * 2 + 4, 110, 110);
+      g = new THREE.PlaneGeometry(c.rx * 2 + 4, c.rz * 2 + 4, 110, 110),
+      // Where the sunbeam's pool falls (as in poolMesh) and its radius.
+      poolX = s.x - 0.12 * (this.roofAt(s.x, s.z) - caveFloor(s.x, s.z)),
+      poolR = s.radius * 2.2;
     g.rotateX(-Math.PI / 2);
     g.translate(c.x, 0, c.z);
     const pos = g.getAttribute('position'),
@@ -508,11 +513,85 @@ export class CaveEnvironment {
         speck =
           0.04 * Math.sin(x * 0.9 + z * 0.6) * Math.sin(x * 0.5 - z * 1.1),
         k = 0.36 + 0.22 * lit + speck;
-      colors.push(k * 1.0, k * 0.94, k * 0.8);
+      // V0.7 Pass 079: the floor under the sunbeam reads as grown and settled, not plain sand: a
+      // patchy green-gold diatom film where the light falls, a bleached centre, silt darkening
+      // round the pool's edge, and gravel flecks, all in colour (the floor's height is unchanged).
+      const pd = Math.hypot(x - poolX, z - s.z) / poolR,
+        inPool = 1 - smooth(0.55, 1.15, pd),
+        film =
+          inPool *
+          smooth(
+            0.15,
+            0.6,
+            0.5 +
+              0.5 *
+                Math.sin(x * 2.3 + Math.sin(z * 1.7) * 1.4) *
+                Math.sin(z * 2.1 - Math.sin(x * 1.3) * 1.2),
+          ),
+        bleach = 1 - smooth(0, 0.45, pd),
+        silt = Math.exp(-(((pd - 1.05) / 0.22) ** 2)),
+        gravel =
+          Math.max(
+            0,
+            Math.sin(x * 9.7 + z * 3.1) * Math.sin(z * 8.3 - x * 2.9) - 0.75,
+          ) *
+          3 *
+          (0.4 + inPool);
+      let r = k * (1 + 0.08 * bleach - 0.16 * silt - 0.25 * gravel),
+        gg = k * 0.94 * (1 + 0.06 * bleach - 0.14 * silt - 0.25 * gravel),
+        b = k * 0.8 * (1 + 0.04 * bleach - 0.12 * silt - 0.25 * gravel);
+      r = r * (1 - 0.6 * film) + k * 0.74 * 0.6 * film;
+      gg = gg * (1 - 0.6 * film) + k * 0.92 * 0.6 * film;
+      b = b * (1 - 0.6 * film) + k * 0.42 * 0.6 * film;
+      colors.push(r, gg, b);
     }
     g.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
     g.computeVertexNormals();
     return g;
+  }
+  /**
+   * V0.7 Pass 079: stones fallen through the skylight over the years, lying in a loose fan under
+   * the beam: a few flat slabs and pebbles, half-buried, small enough to swim over (so they need
+   * no colliders). Merged with the boulders (no extra draw).
+   */
+  private skylightRubble(): THREE.BufferGeometry[] {
+    const s = CAVE.skylight,
+      poolX = s.x - 0.12 * (this.roofAt(s.x, s.z) - caveFloor(s.x, s.z)),
+      rand = random(79100),
+      out: THREE.BufferGeometry[] = [],
+      m = new THREE.Matrix4(),
+      q = new THREE.Quaternion(),
+      e = new THREE.Euler(),
+      size = new THREE.Vector3(),
+      centre = new THREE.Vector3();
+    for (let i = 0; i < 26; i++) {
+      const a = rand() * Math.PI * 2,
+        d = s.radius * (0.2 + 1.3 * rand() * rand() + 0.3 * rand()),
+        x = poolX + Math.cos(a) * d,
+        z = s.z + Math.sin(a) * d,
+        slab = i % 4 === 0,
+        w = slab ? 0.5 + rand() * 0.35 : 0.14 + rand() * 0.22,
+        h = slab ? 0.12 + rand() * 0.06 : w * (0.5 + rand() * 0.3),
+        g = rockShape(34500 + (i % 6) * 17, slab ? 1 : i % 3, 1);
+      g.computeBoundingBox();
+      g.boundingBox!.getSize(size);
+      g.boundingBox!.getCenter(centre);
+      e.set((rand() - 0.5) * 0.3, rand() * Math.PI * 2, (rand() - 0.5) * 0.3);
+      q.setFromEuler(e);
+      m.compose(
+        new THREE.Vector3(x, caveFloor(x, z) + h * 0.15, z),
+        q,
+        new THREE.Vector3(
+          w / size.x,
+          h / size.y,
+          (w * (0.7 + rand() * 0.3)) / size.z,
+        ),
+      ).multiply(
+        new THREE.Matrix4().makeTranslation(-centre.x, -centre.y, -centre.z),
+      );
+      out.push(g.applyMatrix4(m));
+    }
+    return out;
   }
   /** Inside-facing tube from just behind its start to the dome, black at the start, lit at the end. */
   private tunnelMesh(mouthZ: number): THREE.BufferGeometry {

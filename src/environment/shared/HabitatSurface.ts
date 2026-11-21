@@ -120,7 +120,12 @@ export class HabitatSurface {
     source.normalScale.setScalar(
       this.kind === 'ice' ? 0.35 : this.kind === 'sediment' ? 0.5 : 0.65,
     );
-    const result = triplanarMaterial(source, { scale, ao: 0.35 });
+    const result = triplanarMaterial(source, {
+      scale,
+      ao: 0.35,
+      // V0.7 Pass 079: sediment floors are wide; break up the tile's repetition.
+      breakup: this.kind === 'sediment',
+    });
     source.dispose();
     return result;
   }
