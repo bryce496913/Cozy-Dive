@@ -1,5 +1,6 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import * as THREE from 'three';
+import { rockCollider } from '../src/environment/rockCollider';
 import { AQUARIUM, COLLISION, SPAWN } from '../src/config/world';
 import { Aquarium } from '../src/environment/Aquarium';
 import {
@@ -139,32 +140,8 @@ describe('authored reef rock collision', () => {
       const pts = asset.primitive(`Rock_${i}`).positions;
       const hull = q.rocks.find((r) => r.solid && r.template === i)!;
       void hull;
-      const original = (() => {
-        const g = templates.major[i];
-        const planes: ConvexCollider['planes'][number][] = [];
-        const pos = g.attributes.position;
-        const a = new THREE.Vector3(),
-          b = new THREE.Vector3(),
-          c = new THREE.Vector3(),
-          plane = new THREE.Plane();
-        for (let k = 0; k < pos.count; k += 3) {
-          a.fromBufferAttribute(pos, k);
-          b.fromBufferAttribute(pos, k + 1);
-          c.fromBufferAttribute(pos, k + 2);
-          plane.setFromCoplanarPoints(a, b, c);
-          planes.push({
-            x: plane.normal.x,
-            y: plane.normal.y,
-            z: plane.normal.z,
-            offset: -plane.constant,
-          });
-        }
-        return {
-          planes,
-          min: { x: -1, y: -1, z: -1 },
-          max: { x: 1, y: 1, z: 1 },
-        };
-      })();
+      // V0.7 Pass 070: templates render carved inside their convex envelope; the collider is it.
+      const original = rockCollider(templates.major[i], identity);
       const v = new THREE.Vector3();
       for (const suffix of ['', '_LOD1', '_LOD2']) {
         const p = asset.primitive(`Rock_${i}${suffix}`).positions;

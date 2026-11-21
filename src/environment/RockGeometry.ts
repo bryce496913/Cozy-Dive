@@ -9,6 +9,171 @@ export interface RockTemplates {
   readonly major: readonly THREE.BufferGeometry[];
   readonly pebbles: readonly THREE.BufferGeometry[];
 }
+/** Distance from the origin along unit `d` to the convex hull given as triangle planes. */
+function hullRadius(
+  planes: readonly (readonly [number, number, number, number])[],
+  dx: number,
+  dy: number,
+  dz: number,
+): number {
+  let r = Infinity;
+  for (const [nx, ny, nz, off] of planes) {
+    const dn = nx * dx + ny * dy + nz * dz;
+    if (dn > 1e-9) r = Math.min(r, off / dn);
+  }
+  return Number.isFinite(r) ? r : 0;
+}
+/**
+ * V0.7 Pass 070: a finer surface on the hull, carved inward: a few fracture planes (flat broken
+ * faces with crisp edges), bedding grooves for slabs, solution pits, and fine rounded wear. Returns
+ * indexed-then-creased geometry with a `carve` attribute (depth carved, for colouring).
+ */
+function carvedRock(
+  hullPositions: readonly number[],
+  family: number,
+  detail: number,
+  random: () => number,
+  phase: number,
+): THREE.BufferGeometry {
+  const planes: [number, number, number, number][] = [],
+    a = new THREE.Vector3(),
+    b = new THREE.Vector3(),
+    c = new THREE.Vector3(),
+    n = new THREE.Vector3();
+  for (let i = 0; i + 8 < hullPositions.length; i += 9) {
+    a.fromArray(hullPositions, i);
+    b.fromArray(hullPositions, i + 3);
+    c.fromArray(hullPositions, i + 6);
+    n.subVectors(c, b).cross(a.clone().sub(b)).normalize();
+    const off = n.dot(a);
+    // Hull triangles wind outward; keep the outward-facing support plane either way.
+    if (off < 0) planes.push([-n.x, -n.y, -n.z, -off]);
+    else planes.push([n.x, n.y, n.z, off]);
+  }
+  // Fracture planes cutting caps off the rock (more for the fractured family).
+  const cuts: [number, number, number, number][] = [];
+  const count = family === 2 ? 5 : family === 1 ? 3 : 2;
+  for (let k = 0; k < count; k++) {
+    const t = random() * Math.PI * 2,
+      up = random() * 1.2 - 0.3,
+      cx = Math.cos(t) * Math.cos(up),
+      cy = Math.sin(up),
+      cz = Math.sin(t) * Math.cos(up);
+    cuts.push([cx, cy, cz, 0.66 + random() * 0.14]);
+  }
+  // Solution pits and cavities: dimples at random points on the surface.
+  const pits: [number, number, number, number, number][] = [];
+  const pitCount = family === 0 ? 14 : 8;
+  for (let k = 0; k < pitCount; k++) {
+    const t = random() * Math.PI * 2,
+      u = random() * 1.6 - 0.6;
+    pits.push([
+      Math.cos(t) * Math.sqrt(1 - u * u),
+      u,
+      Math.sin(t) * Math.sqrt(1 - u * u),
+      0.08 + random() * 0.16,
+      0.04 + random() * 0.07,
+    ]);
+  }
+  const level = detail <= 1 ? 3 : Math.min(4, detail + 2);
+  const source = new THREE.IcosahedronGeometry(1, level);
+  source.deleteAttribute('normal');
+  source.deleteAttribute('uv');
+  const g = mergeVertices(source, 1e-6);
+  source.dispose();
+  const p = g.getAttribute('position'),
+    carve = new Float32Array(p.count);
+  for (let i = 0; i < p.count; i++) {
+    const dx = p.getX(i),
+      dy = p.getY(i),
+      dz = p.getZ(i),
+      len = Math.hypot(dx, dy, dz),
+      ux = dx / len,
+      uy = dy / len,
+      uz = dz / len,
+      hull = hullRadius(planes, ux, uy, uz);
+    let r = hull;
+    for (const [cx, cy, cz, h] of cuts) {
+      const dn = cx * ux + cy * uy + cz * uz;
+      if (dn > 1e-6) r = Math.min(r, (h * hull) / dn);
+    }
+    const y = uy * r;
+    // Bedding: fine horizontal grooves where slab layers weather back.
+    if (family === 1)
+      r -= 0.028 * Math.pow(0.5 + 0.5 * Math.cos(y * 22 + phase), 10);
+    for (const [px, py, pz, w, depth] of pits) {
+      const ang = Math.acos(Math.min(1, px * ux + py * uy + pz * uz));
+      r -= depth * Math.exp(-((ang / w) ** 2));
+    }
+    // Erosion: lumpy mid-scale relief and fine rounded wear (two octaves, never outward).
+    const lumps =
+      0.5 +
+      0.5 *
+        Math.sin(ux * 5.3 + uy * 2.1 + phase) *
+        Math.sin(uz * 4.7 - uy * 3.3 + phase * 1.7);
+    r -=
+      0.05 * lumps * lumps +
+      0.014 *
+        (1 +
+          Math.sin(ux * 13 + phase) * Math.sin(uz * 11 - uy * 7 + phase * 0.6));
+    r = Math.max(r, hull * 0.55);
+    carve[i] = Math.max(0, hull - r) / Math.max(hull, 1e-6);
+    p.setXYZ(i, ux * r, uy * r, uz * r);
+  }
+  g.setAttribute('carve', new THREE.BufferAttribute(carve, 1));
+  g.computeVertexNormals();
+  // Crisp where fractures fold the surface, smooth over worn rock.
+  const out = toCreasedNormals(g, Math.PI / 4);
+  g.dispose();
+  return withHullBounds(out, hullPositions);
+}
+/**
+ * Callers fit each rock to its bounding box, so the rendered bounds must be exactly the hull's or a
+ * carved (slightly smaller) surface would be scaled up, and its collider with it. Append the hull's
+ * six extreme points as zero-area triangles: invisible, inside the hull, and they pin the bounds.
+ */
+function withHullBounds(
+  g: THREE.BufferGeometry,
+  hullPositions: readonly number[],
+): THREE.BufferGeometry {
+  const extremes: number[] = [];
+  for (let axis = 0; axis < 3; axis++) {
+    let lo = 0,
+      hi = 0;
+    for (let i = 0; i < hullPositions.length; i += 3) {
+      if (hullPositions[i + axis] < hullPositions[lo + axis]) lo = i;
+      if (hullPositions[i + axis] > hullPositions[hi + axis]) hi = i;
+    }
+    for (const at of [lo, hi])
+      for (let k = 0; k < 3; k++)
+        extremes.push(
+          hullPositions[at],
+          hullPositions[at + 1],
+          hullPositions[at + 2],
+        );
+  }
+  const extra = extremes.length / 3,
+    out = new THREE.BufferGeometry();
+  for (const name of ['position', 'normal', 'carve'] as const) {
+    const src = g.getAttribute(name),
+      size = src.itemSize,
+      data = new Float32Array((src.count + extra) * size);
+    data.set(src.array as Float32Array);
+    for (let v = 0; v < extra; v++) {
+      const x = extremes[v * 3],
+        y = extremes[v * 3 + 1],
+        z = extremes[v * 3 + 2],
+        l = Math.hypot(x, y, z) || 1,
+        o = (src.count + v) * size;
+      if (name === 'position') data.set([x, y, z], o);
+      else if (name === 'normal') data.set([x / l, y / l, z / l], o);
+      else data[o] = 0;
+    }
+    out.setAttribute(name, new THREE.BufferAttribute(data, size));
+  }
+  g.dispose();
+  return out;
+}
 /** A small reusable sculpted family. Surface-detail seeds never consume the aquarium layout RNG. */
 export function createRockGeometry(
   seed: number,
@@ -50,18 +215,18 @@ export function createRockGeometry(
     points.push(p);
   }
   source.dispose();
-  // Displaced points may be concave; explicitly rebuild the convex hull, then render that exact hull.
+  // Displaced points may be concave; explicitly rebuild the convex hull: it is the rock's envelope
+  // and its collider.
   const hull = new ConvexGeometry(points);
-  hull.deleteAttribute('normal');
-  const welded = mergeVertices(hull, 1e-6);
+  const hullPositions = Array.from(hull.getAttribute('position').array);
   hull.dispose();
-  welded.computeVertexNormals();
-  const geometry = toCreasedNormals(
-    welded,
-    family === 2 ? Math.PI / 7 : Math.PI / 3,
-  );
-  welded.dispose();
+  // V0.7 Pass 070: the rendered rock is a finer surface projected onto that hull and then carved
+  // only inward (it was the bare hull: smooth, inflated). Fractured faces, bedding grooves on
+  // slabs, solution pits and rounded wear give it a formed, weathered character, and because
+  // carving never pushes outward the rock stays inside its collider and routes never narrow.
+  const geometry = carvedRock(hullPositions, family, detail, random, phase);
   const positions = geometry.getAttribute('position'),
+    carve = geometry.getAttribute('carve'),
     colors = new Float32Array(positions.count * 3),
     color = new THREE.Color();
   for (let i = 0; i < positions.count; i++) {
@@ -71,7 +236,12 @@ export function createRockGeometry(
     const bands =
       Math.sin(y * 10 + x * 2.4 + phase) * Math.cos(z * 3.5 + phase) * 0.035;
     const mineral = Math.sin(x * 4.5 + z * 3.2 + phase) * 0.045;
-    const light = 0.82 + bands + mineral + Math.max(0, y) * 0.08;
+    // Carved hollows (pits, grooves) hold shadow and silt; fresh fracture faces read paler.
+    const hollow = carve.getX(i);
+    const light = Math.max(
+      0.55,
+      0.82 + bands + mineral + Math.max(0, y) * 0.08 - hollow * 2.2,
+    );
     color.setRGB(
       light * (1 + 0.035 * Math.sin(phase)),
       light,
@@ -79,7 +249,15 @@ export function createRockGeometry(
     );
     color.toArray(colors, i * 3);
   }
+  geometry.deleteAttribute('carve');
   geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  geometry.computeBoundingBox();
+  // The exact convex envelope travels with the geometry (plain data, so clones keep it); the
+  // collider uses it while the geometry is untransformed (see rockCollider).
+  geometry.userData.collisionHull = hullPositions;
+  geometry.userData.collisionBox = geometry
+    .boundingBox!.min.toArray()
+    .concat(geometry.boundingBox!.max.toArray());
   geometry.computeBoundingBox();
   geometry.computeBoundingSphere();
   geometry.name = ['Weathered boulder', 'Sedimentary slab', 'Fractured stone'][
