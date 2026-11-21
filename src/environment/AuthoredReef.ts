@@ -360,7 +360,7 @@ export class AuthoredReef {
     m.roughness = 0.9;
     m.onBeforeCompile = plants.onBeforeCompile;
     // Algae and soft tissue differ only in maps/uniforms, so they share one program.
-    m.customProgramCacheKey = () => 'cozy-plants-authored-v1';
+    m.customProgramCacheKey = () => 'cozy-plants-authored-v2';
     return m;
   }
   private buildVegetation(): void {

@@ -57,7 +57,7 @@ export class PlantSystem {
           '#include <begin_vertex>\ntransformed.xz += cozyFlow*plantMotion.x;',
         );
     };
-    this.material.customProgramCacheKey = () => 'cozy-plants-v3';
+    this.material.customProgramCacheKey = () => 'cozy-plants-v4';
     const templates = new Map<string, THREE.BufferGeometry>();
     const geometries: THREE.BufferGeometry[] = [],
       matrix = new THREE.Matrix4(),

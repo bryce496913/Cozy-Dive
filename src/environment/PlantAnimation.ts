@@ -51,9 +51,16 @@ uniform float plantTime;
 attribute vec4 plantMotion;
 vec2 plantFlow() {
  vec3 origin=instanceMatrix[3].xyz;
- vec2 flow=vec2(sin(plantTime*.23+origin.x*.09+origin.z*.06)*.7+sin(plantTime*.13-origin.z*.07)*.3,
- cos(plantTime*.19+origin.z*.08-origin.x*.05)*.65);
- flow+=vec2(sin(plantTime*plantMotion.w+plantMotion.y+origin.x*1.7+origin.z*2.1)*.22,cos(plantTime*plantMotion.w*.83+plantMotion.y+origin.x*1.7+origin.z*2.1)*.18);
+ // V0.7 Pass 071: normalised height along the plant, recovered from the motion contract
+ // (flex = h^2 sway, tilt = 2 h sway). Higher parts follow the current a moment later, so stems
+ // and blades bend through the water with continuous curvature instead of tipping as one piece,
+ // and each plant's gusts swell and ease on their own slow cycle (no synchronised swaying).
+ float h=plantMotion.z>1e-5?2.*plantMotion.x/plantMotion.z:0.;
+ float t=plantTime-h*1.4;
+ float gust=.78+.22*sin(plantTime*.061+origin.x*.37+origin.z*.29);
+ vec2 flow=vec2(sin(t*.23+origin.x*.09+origin.z*.06)*.7+sin(t*.13-origin.z*.07)*.3,
+ cos(t*.19+origin.z*.08-origin.x*.05)*.65)*gust;
+ flow+=vec2(sin(t*plantMotion.w+plantMotion.y+origin.x*1.7+origin.z*2.1)*.22,cos(t*plantMotion.w*.83+plantMotion.y+origin.x*1.7+origin.z*2.1)*.18);
  vec3 ax=normalize(instanceMatrix[0].xyz),az=normalize(instanceMatrix[2].xyz);
  return vec2(dot(vec3(flow.x,0.,flow.y),ax),dot(vec3(flow.x,0.,flow.y),az));
 }
