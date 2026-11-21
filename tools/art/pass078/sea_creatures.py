@@ -38,6 +38,8 @@ TAU = math.tau
 def poly2d(q, V):
     """Signed distance from 2-D points `q` (N, 2) to the polygon `V` (M, 2); negative inside."""
     V = np.asarray(V, float)
+    keep = np.linalg.norm(V - np.roll(V, 1, axis=0), axis=1) > 1e-9
+    V = V[keep]
     d = np.full(len(q), np.inf)
     s = np.ones(len(q))
     j = len(V) - 1
@@ -95,7 +97,9 @@ class Creature(m.Species):
 
     def eye_paint(self, p, col, r, iris=(0.03, 0.03, 0.035), ring=None):
         for e in self.eyes:
-            d = np.linalg.norm(p - e, axis=1)
+            # Measured across the side of the head (eyes face sideways), on the eye's own side.
+            d = np.hypot(p[:, 0] - e[0], p[:, 1] - e[1])
+            d = np.where((p[:, 2] * np.sign(e[2]) > abs(e[2]) * 0.8), d, 9.0)
             if ring is not None:
                 col = np.where((d < r * 1.5)[:, None], np.array(ring), col)
             col = np.where((d < r)[:, None], np.array(iris), col)
@@ -326,15 +330,17 @@ class WhaleShark(Creature):
         k = smooth(-0.1, -0.5, yn)
         k = np.where((label != 'body') & (n[:, 1] < -0.4), np.maximum(k, 0.6), k)
         col = top * (1 - k[:, None]) + belly * k[:, None]
-        # Checkerboard: pale vertical bars across the back and flanks, pale lines along them, and
-        # round pale spots in between (smaller and denser on the head).
+        # Checkerboard: thin pale bars across the back, thin lines along it, and a round pale spot
+        # in the middle of each cell between them; small scattered spots on the head.
         pale = np.array([0.82, 0.85, 0.84])
-        bar = smooth(0.82, 0.92, np.cos(p[:, 0] / (0.06 * L) * TAU + 0.3 * noise3(p, 9, 3)))
-        line = smooth(0.85, 0.95, np.cos(theta * 7 + 0.25 * noise3(p, 7, 4)))
-        cell = np.where(s > 0.85, 0.018 * L, 0.028 * L)
-        dots = np.maximum(spots(p, 0.022 * L, 5, 0.3), spots(p, 0.034 * L, 6, 0.26) * (s < 0.85))
-        mark = np.maximum(np.maximum(bar * (s < 0.86) * (s > 0.1), line * (s > 0.12)) * 0.85, dots)
-        del cell
+        u = p[:, 0] / (0.07 * L) * TAU
+        w = theta * 8
+        bar = smooth(0.9, 0.97, np.cos(u))
+        line = smooth(0.92, 0.98, np.cos(w))
+        cellspot = smooth(-0.55, -0.8, np.cos(u)) * smooth(-0.55, -0.8, np.cos(w))
+        head = spots(p, 0.024 * L, 5, 0.26) * (s > 0.84)
+        body = (s < 0.86) & (s > 0.12)
+        mark = np.maximum(np.maximum(bar, line) * 0.7 * body, np.maximum(cellspot * body, head))
         mark = mark * smooth(-0.35, 0.0, yn)
         col = col * (1 - mark[:, None]) + pale * mark[:, None]
         col *= (1 + 0.04 * noise3(p, 12, 7))[:, None]
@@ -405,8 +411,9 @@ class Orca(Creature):
         w = smooth(-0.3 + lobe, -0.45 + lobe, yn) * smooth(0.12, 0.2, x)
         w = np.maximum(w, smooth(-0.15, -0.35, yn) * (x > 0.75))
         tip = p[:, 0].max()
-        eye = np.array([tip - 0.2 * L, 0.03 * L, 0])
-        q = (p - eye) / np.array([0.065 * L, 0.022 * L, 1])
+        eye = np.array([tip - 0.135 * L, 0.018 * L, 0])
+        q = (p - eye) / np.array([0.05 * L, 0.017 * L, 1])
+        q[:, 1] -= 0.25 * q[:, 0]
         patch = smooth(1.05, 0.9, np.hypot(q[:, 0], q[:, 1])) * (np.abs(p[:, 2]) > 0.03 * L) * (label == 'body')
         w = np.maximum(w, patch)
         w = np.where(label == 'tail', smooth(0.1, -0.2, n[:, 1]), w)
@@ -446,13 +453,13 @@ class Humpback(Creature):
         d = d + 0.0035 * L * pleat
         # Flat rostrum: shave the top of the head flat, then the tubercles in rows on it and the jaw.
         tip, *_ = b.at(1.0)
-        d = smax(d, (p[:, 1] - (tip[1] + 0.035 * L + 0.4 * (tip[0] - p[:, 0]) * 0.25)) * (s > 0.88) - 1e3 * (s <= 0.88),
-                 0.01 * L)
+        cut = p[:, 1] - (tip[1] + 0.028 * L + 0.12 * (tip[0] - p[:, 0])) - 0.15 * L * (1 - smooth(0.8, 0.93, s))
+        d = smax(d, cut, 0.02 * L)
         knobs = []
         for k, xk in enumerate(np.linspace(0.02, 0.15, 6)):
             for oz in (-0.035, -0.012, 0.012, 0.035):
-                knobs.append(ellipsoid(p, tip + np.array([-xk * L, 0.03 * L - xk * 0.02 * L, oz * L * (1 + xk)]),
-                                       (0.005 * L,) * 3))
+                y = 0.028 * L + 0.12 * xk * L - 0.003 * L - abs(oz) * 0.15 * L
+                knobs.append(ellipsoid(p, tip + np.array([-xk * L, y, oz * L * (1 + xk)]), (0.006 * L, 0.0045 * L, 0.006 * L)))
         d = smin([d, *knobs], 0.004 * L)
         d = smax(d, -ellipsoid(p, tip + np.array([-0.08 * L, -0.012 * L, 0]), (0.11 * L, 0.003 * L, 0.08 * L)), 0.002 * L)
         self.eyes = [tip + np.array([-0.17 * L, -0.012 * L, sd * 0.098 * L]) for sd in (-1, 1)]
@@ -508,7 +515,7 @@ class Sunfish(Creature):
     and anal fin, small rounded pectorals, a small beaked mouth and a large eye; silver grey, darker
     above, mottled with pale blotches."""
     root = 'Sunfish'
-    length = 1.05
+    length = 1.2
     resolution = 300
     pad = ((0.12, 0.62, 0.15), (0.05, 0.62, 0.15))
 
@@ -529,12 +536,9 @@ class Sunfish(Creature):
         d = smax(d, -ellipsoid(p, tip + np.array([0.035 * L, -0.02 * L, 0]), (0.012 * L, 0.012 * L, 0.012 * L)), 0.004 * L)
         self.eyes = []
         for sd in (-1, 1):
-            e = tip + np.array([-0.1 * L, 0.04 * L, sd * 0.075 * L])
-            d = smin([d, ellipsoid(p, e, (0.03 * L, 0.03 * L, 0.012 * L))], 0.01 * L)
-            self.eyes.append(e + np.array([0, 0, sd * 0.01 * L]))
-            # Gill opening in front of the pectoral.
-            d = smax(d, -ellipsoid(p, tip + np.array([-0.22 * L, 0.0, sd * 0.11 * L]), (0.006 * L, 0.03 * L, 0.01 * L)),
-                     0.003 * L)
+            e = tip + np.array([-0.1 * L, 0.04 * L, sd * b.W(0.86) * 0.8])
+            d = smin([d, ellipsoid(p, e, (0.036 * L, 0.036 * L, 0.024 * L))], 0.012 * L)
+            self.eyes.append(e + np.array([0, 0, sd * 0.024 * L]))
         ds = {'body': d}
         c, *_ = b.at(0.28)
         dorsal = outline(bez2((0.12 * L, -0.05 * L), (0.05 * L, 0.25 * L), (-0.12 * L, 0.48 * L)),
@@ -542,8 +546,8 @@ class Sunfish(Creature):
         ds['fins'] = np.minimum(fin(p, c + Y * 0.27 * L, X, Y, dorsal, 0.035 * L, 0.006 * L),
                                 fin(p, c - Y * 0.27 * L, X, -Y, dorsal, 0.035 * L, 0.006 * L))
         for sd in (-1, 1):
-            cp = tip + np.array([-0.27 * L, 0.0, sd * 0.11 * L])
-            u, out = flipper_frame((-0.8, 0.1, sd * 0.3), (0, 1, 0))
+            cp = tip + np.array([-0.27 * L, 0.02 * L, sd * 0.1 * L])
+            u, out = flipper_frame((-0.4, 0.8, sd * 0.45), (1, 0, 0))
             ds['fins'] = np.minimum(ds['fins'], fin(p, cp, u, out,
                                                     np.array([(0.04 * L * math.cos(a), 0.06 * L + 0.07 * L * math.sin(a))
                                                               for a in np.linspace(-math.pi / 2, 1.5 * math.pi, 18)[:-1]]),
@@ -567,7 +571,7 @@ class Sunfish(Creature):
         col = np.where((label == 'fins')[:, None], col * 0.72, col)
         col = np.where((label == 'tail')[:, None], col * 0.85, col)
         col *= (1 + 0.06 * noise3(p, 9, 15) + 0.03 * noise3(p, 40, 16))[:, None]
-        return self.eye_paint(p, col, 0.018 * L, ring=(0.7, 0.72, 0.7))
+        return self.eye_paint(p, col, 0.026 * L, ring=(0.7, 0.72, 0.72))
 
     def stroke(self, p, label, sign):
         """The dorsal and anal fins scull together to one side; the clavus follows a little."""
@@ -605,7 +609,7 @@ class EagleRay(RayBase):
     pad = ((0.02, 0.06, 0.02), (0.02, 0.06, 0.02))
 
     def build_body(self):
-        xs = np.array([-3.55, -2.0, -0.45, 0.05, 0.55, 0.75])
+        xs = np.array([-3.72, -2.0, -0.45, 0.05, 0.55, 0.68])
         spine = np.stack([xs, np.zeros_like(xs), np.zeros_like(xs)], 1)
         self.body = Body(spine, [(0, .004), (.5, .009), (.7, .025), (.74, .05), (.84, .085), (.93, .07), (.96, .055), (1, .03)],
                          [(0, .004), (.5, .009), (.7, .025), (.74, .1), (.84, .18), (.93, .11), (.96, .09), (1, .055)],
@@ -616,7 +620,7 @@ class EagleRay(RayBase):
         X, Y, Z = np.eye(3)
         b = self.body
         d = smin([b.sdf(p), ellipsoid(p, (0.6, 0.0, 0), (0.17, 0.065, 0.1)),
-                  ellipsoid(p, (0.78, -0.02, 0), (0.08, 0.025, 0.065))], 0.03)
+                  ellipsoid(p, (0.76, -0.018, 0), (0.1, 0.028, 0.07))], 0.03)
         self.eyes = []
         for sd in (-1, 1):
             e = np.array([0.55, 0.025, sd * 0.1])
@@ -630,7 +634,7 @@ class EagleRay(RayBase):
             trail = bez2((-0.2, sd * 1.5), (-0.3, sd * 0.9), (-0.5, sd * 0.12), n=14)
             wing.append(np.vstack([lead[:-1], trail]))
         outline_ = np.vstack([wing[0], wing[1][::-1]])
-        ds['wings'] = fin(p, (0, 0, 0), X, Z, outline_, 0.075, 0.008, depth=0.7)
+        ds['wings'] = fin(p, (0, 0.005, 0), X, Z, outline_, 0.1, 0.012, depth=0.9)
         for sd in (-1, 1):
             ds['wings'] = np.minimum(ds['wings'], fin(p, (-0.45, -0.01, sd * 0.07), X, Z * sd,
                                                       np.array([(0.05, 0), (0.0, 0.12), (-0.18, 0.08), (-0.12, 0.0)]),
@@ -682,15 +686,15 @@ class Manta(RayBase):
         ds = {'body': d}
         lobes = []
         for sd in (-1, 1):
-            lobes.append(chain(p, [np.array([0.85, -0.01, sd * 0.3]), np.array([1.08, -0.04, sd * 0.31]),
-                                   np.array([1.2, -0.09, sd * 0.27])], [0.04, 0.035, 0.02], flat=((0, 0, 1), 0.35)))
+            lobes.append(chain(p, [np.array([0.86, 0.0, sd * 0.29]), np.array([1.03, -0.015, sd * 0.31]),
+                                   np.array([1.11, -0.035, sd * 0.27])], [0.03, 0.026, 0.014], flat=((0, 0, 1), 0.4)))
         ds['lobes'] = np.minimum(*lobes)
         wing = []
         for sd in (1, -1):
             lead = bez2((0.75, sd * 0.25), (0.55, sd * 1.3), (-0.4, sd * 2.1), n=16)
             trail = bez2((-0.4, sd * 2.1), (-0.1, sd * 1.1), (-0.4, sd * 0.2), n=16)
             wing.append(np.vstack([lead[:-1], trail]))
-        ds['wings'] = fin(p, (0, 0, 0), X, Z, np.vstack([wing[0], wing[1][::-1]]), 0.11, 0.009, depth=0.9)
+        ds['wings'] = fin(p, (0, 0, 0), X, Z, np.vstack([wing[0], wing[1][::-1]]), 0.11, 0.012, depth=0.9)
         ds['wings'] = np.minimum(ds['wings'], fin(p, (-0.4, 0.04, 0), X, Y,
                                                   np.array([(0.05, -0.02), (-0.02, 0.06), (-0.08, 0.03), (-0.08, -0.02)]),
                                                   0.015, 0.005))
@@ -721,14 +725,14 @@ class SeaLion(m.Seal):
     root = 'SeaLion'
     length = 2.05
     rough = 0.4
-    spine_y = ((0, 0.0), (0.4, 0.02), (0.72, 0.04), (0.85, 0.075), (1, 0.09))
+    spine_y = ((0, 0.0), (0.4, 0.02), (0.7, 0.045), (0.84, 0.1), (1, 0.13))
     height = [(0, .03), (.06, .06), (.2, .12), (.45, .16), (.62, .155), (.74, .12), (.82, .085),
               (.9, .075), (.96, .06), (1, .025)]
     width = [(0, .035), (.06, .07), (.2, .13), (.45, .16), (.62, .15), (.74, .11), (.82, .075),
              (.9, .075), (.96, .06), (1, .025)]
     fore = dict(s=.66, len=.25, chord=.075, droop=.75)
     hind = dict(len=.14, spread=.4)
-    head = dict(muzzle=0.95, pads=0.7, gape=0.45)
+    head = dict(muzzle=1.2, pads=0.6, gape=0.5)
 
     def parts(self, p):
         ds = super().parts(p)
@@ -737,8 +741,8 @@ class SeaLion(m.Seal):
         ears = []
         for sd in (-1, 1):
             base = c - t * 0.03 * L + up * H * 0.55 + np.array([0, 0, sd * W * 0.85])
-            ears.append(chain(p, [base, base + np.array([-0.025 * L, 0.004 * L, sd * 0.012 * L])],
-                              [0.008 * L, 0.003 * L]))
+            ears.append(chain(p, [base, base + np.array([-0.03 * L, 0.006 * L, sd * 0.014 * L])],
+                              [0.009 * L, 0.0035 * L], flat=((0, 0, 1), 0.5)))
         ds['body'] = smin([ds['body'], *ears], 0.004 * L)
         return ds
 

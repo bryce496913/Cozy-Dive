@@ -382,7 +382,7 @@ class PolarBear(Species):
                            ellipsoid(p, c + t * 0.13 * L + up * H * 0.05, (0.09 * L, H * 0.85, W * 0.85))],
                           self.blend * 0.7)
         nose = c + t * 0.21 * L + up * H * 0.05
-        ds['body'] = smin([ds['body'], ellipsoid(p, nose, (0.03 * L, H * 0.5, W * 0.56))], 0.02 * L)
+        ds['body'] = smin([ds['body'], ellipsoid(p, nose, (0.026 * L, H * 0.42, W * 0.46))], 0.016 * L)
         self.nose = nose
         self.eyes = []
         for sd in (-1, 1):
@@ -409,18 +409,22 @@ class PolarBear(Species):
             el = sh + np.array([0.06 * L, -0.2 * L, sd * 0.03 * L])
             wr = el + np.array([0.08 * L, -0.15 * L, sd * 0.01 * L])
             paw = wr + np.array([0.06 * L, -0.03 * L, 0])
-            leg = chain(p, [sh, el, wr], [0.085 * L, 0.06 * L, 0.045 * L])
-            pad = ellipsoid(p, paw, (0.065 * L, 0.028 * L, 0.05 * L))
-            ds['fore'] = np.minimum(ds['fore'], smin([leg, pad], 0.03 * L))
+            leg = chain(p, [sh, el, wr], [0.1 * L, 0.066 * L, 0.048 * L])
+            pad = ellipsoid(p, paw, (0.07 * L, 0.024 * L, 0.06 * L))
+            toes = [ellipsoid(p, paw + np.array([0.06 * L, -0.004 * L, k * 0.022 * L]), (0.02 * L, 0.016 * L, 0.014 * L))
+                    for k in (-1.5, -0.5, 0.5, 1.5)]
+            ds['fore'] = np.minimum(ds['fore'], smin([leg, pad, *toes], 0.026 * L))
             self.pivots[('fore', sd)] = sh
             c, up, t, H, W = b.at(0.18)
             hp = c - up * H * 0.2 + np.array([0, 0, sd * W * 0.7])
             kn = hp + np.array([-0.1 * L, -0.14 * L, sd * 0.02 * L])
             hk = kn + np.array([-0.12 * L, -0.06 * L, sd * 0.01 * L])
             paw = hk + np.array([-0.07 * L, -0.005 * L, 0])
-            leg = chain(p, [hp, kn, hk], [0.095 * L, 0.06 * L, 0.045 * L])
-            pad = ellipsoid(p, paw, (0.075 * L, 0.025 * L, 0.05 * L))
-            ds['hind'] = np.minimum(ds['hind'], smin([leg, pad], 0.03 * L))
+            leg = chain(p, [hp, kn, hk], [0.11 * L, 0.066 * L, 0.048 * L])
+            pad = ellipsoid(p, paw, (0.08 * L, 0.022 * L, 0.058 * L))
+            toes = [ellipsoid(p, paw + np.array([-0.07 * L, -0.003 * L, k * 0.022 * L]), (0.02 * L, 0.015 * L, 0.014 * L))
+                    for k in (-1.5, -0.5, 0.5, 1.5)]
+            ds['hind'] = np.minimum(ds['hind'], smin([leg, pad, *toes], 0.026 * L))
             self.pivots[('hind', sd)] = hp
         # Short tail.
         c0 = b.c[0]
@@ -437,7 +441,7 @@ class PolarBear(Species):
         # Black nose pad and lips, dark eyes, dark paw pads under the paws.
         dn = np.linalg.norm(p - self.nose, axis=1)
         tip = p[:, 0] > self.nose[0] - 0.012 * L
-        col = np.where(((dn < 0.055 * L) & tip)[:, None], np.array([0.05, 0.05, 0.06]), col)
+        col = np.where(((dn < 0.044 * L) & tip)[:, None], np.array([0.05, 0.05, 0.06]), col)
         dm = np.abs(p[:, 1] - self.mouth[1]) < 0.006 * L
         lip = dm & (p[:, 0] > self.mouth[0] - 0.05 * L) & (p[:, 0] < self.nose[0])
         col = np.where(lip[:, None], np.array([0.12, 0.11, 0.11]), col)
@@ -450,13 +454,16 @@ class PolarBear(Species):
     def stroke(self, p, label, sign):
         q = p.copy()
         L = self.length
+        ds = self.parts(p)
         for (kind, sd), pivot in self.pivots.items():
-            m = (label == kind) & (np.sign(p[:, 2]) == sd)
+            # A continuous weight (closer to the leg than to the body, on its own side), so the hide
+            # where leg meets body stretches instead of tearing at the label boundary.
+            m = (np.sign(p[:, 2]) == sd) & (ds[kind] - ds['body'] < 0.06 * L)
             if not m.any():
                 continue
             # Rotate about the shoulder/hip (z axis), fading in from the joint so the hide stretches.
             d = np.linalg.norm(p - pivot, axis=1)
-            w = smooth(0.02 * L, 0.12 * L, d) * m
+            w = smooth(0.02 * L, 0.12 * L, d) * smooth(0.05 * L, -0.03 * L, ds[kind] - ds['body']) * m
             ang = (0.45 if kind == 'fore' else -0.28) * sign * sd * w
             v = p - pivot
             cs, sn = np.cos(ang), np.sin(ang)
@@ -538,6 +545,10 @@ def build_species(name, sp):
     for k in range(3):
         np.add.at(nrm, f[:, k], fn)
     nrm /= np.linalg.norm(nrm, axis=1, keepdims=True) + 1e-12
+    # Point the colouring normals outward whatever the face winding (signed volume).
+    cen = (v[f[:, 0]] + v[f[:, 1]] + v[f[:, 2]]) / 3
+    if np.sum(cen * fn) < 0:
+        nrm = -nrm
     s, theta, yn = sp.body.param(v)
     col = np.clip(sp.colour(v, nrm, s, theta, yn, label), 0, 1)
     a = np.abs(nrm).argmax(1)

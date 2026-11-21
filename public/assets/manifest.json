@@ -824,42 +824,42 @@
   {
     "id": "eagle-ray",
     "file": "assets/models/creatures/eagle-ray.glb",
-    "sha256": "cf781b7cf867ae4a488947d3e0bc00482d74a672592cea35f49ef7e4f1e7bc45",
+    "sha256": "0e341c3894ab3685fc541d277464ca8687ab3ea734c4c30d53633d5353e59c12",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 607360,
+    "bytes": 517244,
     "visualPrimitives": 2,
-    "visualTriangles": 5340,
+    "visualTriangles": 8999,
     "collisionTriangles": 0,
     "materials": 1,
     "images": [
       {
-        "name": "p067-eagle-ray-skin-normal",
+        "name": "p078-eagle-ray-skin-normal",
         "width": 512,
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 324887
+        "encodedBytes": 148343
       },
       {
-        "name": "p067-eagle-ray-skin-base",
+        "name": "p078-eagle-ray-skin-base",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 37985
+        "encodedBytes": 27879
       },
       {
-        "name": "p067-eagle-ray-skin-orm",
+        "name": "p078-eagle-ray-skin-orm",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 73187
+        "encodedBytes": 9594
       }
     ],
-    "geometryAccessorBytes": 69384,
+    "geometryAccessorBytes": 217200,
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Outer reef big creatures (Pass 025)"
@@ -910,42 +910,42 @@
   {
     "id": "hammerhead",
     "file": "assets/models/creatures/hammerhead.glb",
-    "sha256": "0776d10f415cbf26d0db9fa38766065ad4e84b6599c4b7b729a0f41f3908e17e",
+    "sha256": "43c3bbdb652b3a74e407fc22caa95f76cccf1f6ed98e60ddfd78b359a002c799",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 722404,
+    "bytes": 513072,
     "visualPrimitives": 2,
-    "visualTriangles": 7874,
+    "visualTriangles": 8934,
     "collisionTriangles": 0,
     "materials": 1,
     "images": [
       {
-        "name": "p067-hammerhead-skin-normal",
+        "name": "p078-hammerhead-skin-normal",
         "width": 512,
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 324887
+        "encodedBytes": 148343
       },
       {
-        "name": "p067-hammerhead-skin-base",
+        "name": "p078-hammerhead-skin-base",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 36482
+        "encodedBytes": 27879
       },
       {
-        "name": "p067-hammerhead-skin-orm",
+        "name": "p078-hammerhead-skin-orm",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 73228
+        "encodedBytes": 9594
       }
     ],
-    "geometryAccessorBytes": 203808,
+    "geometryAccessorBytes": 108168,
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
@@ -953,42 +953,42 @@
   {
     "id": "manta-ray",
     "file": "assets/models/creatures/manta-ray.glb",
-    "sha256": "bb43da405faa231f3fa30d619ba1d69572e29b92adfa66b32a463343c6a76053",
+    "sha256": "4b91e9f1945c0f122bb8e000497ae81f4384f45afb50ff4ca7480afdd5fb7af1",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 593988,
+    "bytes": 516440,
     "visualPrimitives": 2,
-    "visualTriangles": 5711,
+    "visualTriangles": 8998,
     "collisionTriangles": 0,
     "materials": 1,
     "images": [
       {
-        "name": "p067-manta-ray-skin-normal",
+        "name": "p078-manta-ray-skin-normal",
         "width": 512,
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 324887
+        "encodedBytes": 148343
       },
       {
-        "name": "p067-manta-ray-skin-base",
+        "name": "p078-manta-ray-skin-base",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 8353
+        "encodedBytes": 27879
       },
       {
-        "name": "p067-manta-ray-skin-orm",
+        "name": "p078-manta-ray-skin-orm",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 73187
+        "encodedBytes": 9594
       }
     ],
-    "geometryAccessorBytes": 74736,
+    "geometryAccessorBytes": 216144,
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
@@ -996,42 +996,42 @@
   {
     "id": "whale-shark",
     "file": "assets/models/creatures/whale-shark.glb",
-    "sha256": "4d6c0b9566996c0f72e00d9e511572abb684f1cb838245d626a17ed952bec529",
+    "sha256": "e833c88df73eec86f571b2bbcce830d5fd76fdf09c9d77d67870c4c5f517fd2b",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 718364,
+    "bytes": 516232,
     "visualPrimitives": 2,
-    "visualTriangles": 7875,
+    "visualTriangles": 8996,
     "collisionTriangles": 0,
     "materials": 1,
     "images": [
       {
-        "name": "p067-whale-shark-skin-normal",
+        "name": "p078-whale-shark-skin-normal",
         "width": 512,
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 324887
+        "encodedBytes": 148343
       },
       {
-        "name": "p067-whale-shark-skin-base",
+        "name": "p078-whale-shark-skin-base",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 31883
+        "encodedBytes": 27879
       },
       {
-        "name": "p067-whale-shark-skin-orm",
+        "name": "p078-whale-shark-skin-orm",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 73228
+        "encodedBytes": 9594
       }
     ],
-    "geometryAccessorBytes": 203904,
+    "geometryAccessorBytes": 108336,
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
@@ -1039,42 +1039,42 @@
   {
     "id": "humpback-whale",
     "file": "assets/models/creatures/humpback-whale.glb",
-    "sha256": "98a33ef2f9124a430dc7c17e7389ac840b4a28d4c1c62611d6bcf17b3dece30e",
+    "sha256": "2c58f284a1ef6a9f8ca5811a066dfabad312a76dbb1ddd9efdab1b61a8836c49",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 644920,
+    "bytes": 450804,
     "visualPrimitives": 2,
-    "visualTriangles": 7394,
+    "visualTriangles": 8996,
     "collisionTriangles": 0,
     "materials": 1,
     "images": [
       {
-        "name": "p067-humpback-whale-skin-normal",
+        "name": "p078-humpback-whale-skin-normal",
         "width": 512,
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 324887
+        "encodedBytes": 148343
       },
       {
-        "name": "p067-humpback-whale-skin-base",
+        "name": "p078-humpback-whale-skin-base",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 11003
+        "encodedBytes": 27879
       },
       {
-        "name": "p067-humpback-whale-skin-orm",
+        "name": "p078-humpback-whale-skin-orm",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 73228
+        "encodedBytes": 9594
       }
     ],
-    "geometryAccessorBytes": 95520,
+    "geometryAccessorBytes": 108288,
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
@@ -1125,42 +1125,42 @@
   {
     "id": "sea-lion",
     "file": "assets/models/creatures/sea-lion.glb",
-    "sha256": "55fff37e73dede10890d03fd71f7214c24604376cab4128363006586820a26bb",
+    "sha256": "132e8663cd78436071f3425da69b1c82698964102b05bb2e9efc1b1b01c9edab",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 679964,
+    "bytes": 447888,
     "visualPrimitives": 2,
-    "visualTriangles": 7488,
+    "visualTriangles": 9000,
     "collisionTriangles": 0,
     "materials": 1,
     "images": [
       {
-        "name": "p068-sea-lion-skin-normal",
+        "name": "p078-sea-lion-skin-normal",
         "width": 512,
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 324887
+        "encodedBytes": 148343
       },
       {
-        "name": "p068-sea-lion-skin-base",
+        "name": "p078-sea-lion-skin-base",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 35117
+        "encodedBytes": 27879
       },
       {
-        "name": "p068-sea-lion-skin-orm",
+        "name": "p078-sea-lion-skin-orm",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 72818
+        "encodedBytes": 9594
       }
     ],
-    "geometryAccessorBytes": 95304,
+    "geometryAccessorBytes": 108096,
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
@@ -1611,42 +1611,42 @@
   {
     "id": "ocean-sunfish",
     "file": "assets/models/creatures/ocean-sunfish.glb",
-    "sha256": "c12a05628153aa06a963895ab9b11cbd2d8d7196e116daa777fec73f3df4ae73",
+    "sha256": "534881e521ee091e77c60b6de5b49b403fd5bd81b9c9e685ac87c19a57510d27",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 639976,
+    "bytes": 477520,
     "visualPrimitives": 2,
-    "visualTriangles": 5740,
+    "visualTriangles": 8999,
     "collisionTriangles": 0,
     "materials": 1,
     "images": [
       {
-        "name": "p067-ocean-sunfish-skin-normal",
+        "name": "p078-ocean-sunfish-skin-normal",
         "width": 512,
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 324887
+        "encodedBytes": 148343
       },
       {
-        "name": "p067-ocean-sunfish-skin-base",
+        "name": "p078-ocean-sunfish-skin-base",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 35223
+        "encodedBytes": 27879
       },
       {
-        "name": "p067-ocean-sunfish-skin-orm",
+        "name": "p078-ocean-sunfish-skin-orm",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 73156
+        "encodedBytes": 9594
       }
     ],
-    "geometryAccessorBytes": 74568,
+    "geometryAccessorBytes": 108960,
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
@@ -2288,42 +2288,42 @@
   {
     "id": "killer-whale",
     "file": "assets/models/creatures/killer-whale.glb",
-    "sha256": "2b02f15a5ae9dfd3f1e8cee93b456b5aee5ccb9e320a4b8959ef63c57643f027",
+    "sha256": "dcf29191bf4979f2978a53ff12e0dbcc2cd31a4558c9aa8e319e51421c6aa758",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 643284,
+    "bytes": 467416,
     "visualPrimitives": 2,
-    "visualTriangles": 7469,
+    "visualTriangles": 8983,
     "collisionTriangles": 0,
     "materials": 1,
     "images": [
       {
-        "name": "p068-killer-whale-skin-normal",
+        "name": "p078-killer-whale-skin-normal",
         "width": 512,
         "height": 512,
         "mode": "KTX2-UASTC+zstd",
         "mipLevels": 10,
-        "encodedBytes": 324887
+        "encodedBytes": 148343
       },
       {
-        "name": "p068-killer-whale-skin-base",
+        "name": "p078-killer-whale-skin-base",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 14151
+        "encodedBytes": 27879
       },
       {
-        "name": "p068-killer-whale-skin-orm",
+        "name": "p078-killer-whale-skin-orm",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 72818
+        "encodedBytes": 9594
       }
     ],
-    "geometryAccessorBytes": 96624,
+    "geometryAccessorBytes": 108384,
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
@@ -2331,13 +2331,13 @@
   {
     "id": "polar-bear",
     "file": "assets/models/creatures/polar-bear.glb",
-    "sha256": "91558fd2e72d7f0f0a0c643d64ee11e18290cf3684fc92e6e25eb34f1df409e2",
+    "sha256": "d70ecbc4c00942e49b9c65d0cf81d616a6a9b080740cfe6190e0d343ae1d97b9",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 447000,
+    "bytes": 473504,
     "visualPrimitives": 2,
-    "visualTriangles": 8994,
+    "visualTriangles": 8998,
     "collisionTriangles": 0,
     "materials": 1,
     "images": [
@@ -2366,7 +2366,7 @@
         "encodedBytes": 5960
       }
     ],
-    "geometryAccessorBytes": 108432,
+    "geometryAccessorBytes": 109032,
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"

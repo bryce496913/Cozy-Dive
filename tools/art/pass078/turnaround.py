@@ -52,7 +52,7 @@ pts = [body.matrix_world @ Vector(c) for c in body.bound_box]
 lo = Vector((min(p.x for p in pts), min(p.y for p in pts), min(p.z for p in pts)))
 hi = Vector((max(p.x for p in pts), max(p.y for p in pts), max(p.z for p in pts)))
 centre, size = (lo + hi) / 2, (hi - lo)
-length = max(size.x, size.y, size.z)
+length = max(size.x, size.y, size.z * 1.45)
 cam = bpy.data.objects.new('Cam', bpy.data.cameras.new('Cam'))
 cam.data.lens = 60
 scene.collection.objects.link(cam)
