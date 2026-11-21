@@ -10,16 +10,16 @@ Cozy Diver is a calm, browser-based scuba exploration experience. The player beg
 
 "Implemented" means merged and reachable in the app. "Accepted" means the user played it on the MacBook Air and said so. Nothing has been released: there are no git tags or releases.
 
-| Milestone                           | Focus                                                                                     | Last candidate | Implemented | Automated tests | Accepted                    | Released |
-| ----------------------------------- | ----------------------------------------------------------------------------------------- | -------------- | ----------- | --------------- | --------------------------- | -------- |
-| **v0.1 — First Dive**               | Foundation, procedural aquarium, calm first-person swimming, boundaries, settings, tests. | Pass 003       | Yes         | Yes             | Not explicitly recorded     | No       |
-| **v0.2 — Living Aquarium**          | Tropical reef life, fish behaviour, plants, ornaments, audio, authored art.               | `0.2.0-rc.15`  | Yes         | Yes             | **Yes**                     | No       |
-| **v0.3 — Office & Dive Transition** | The office and a seamless dive into the aquarium.                                         | `0.3.0-rc.1`   | Yes         | Yes             | **Yes**                     | No       |
-| **v0.4 — First Passage**            | A hidden opening in the tank to a larger tropical reef, with big animals and sightings.   | `0.4.0-rc.3`   | Yes         | Yes             | Open: awaiting play-through | No       |
-| **v0.5 — Personalization**          | Seen items and baby animals added to the tank, with local saves.                          | `0.5.0-rc.1`   | Yes         | Yes             | Open: awaiting play-through | No       |
-| **v0.6 — Expanding Oceans**         | Kelp forest, sea cave and under the ice, with wildlife and rare encounters.               | `0.6.0-rc.10`  | Yes         | Partly¹         | Open: content still growing | No       |
-| **v0.7 — Polish** (proposed)        | See below.                                                                                | —              | —           | —               | —                           | —        |
-| **v0.8 — Beta** (proposed)          | See below.                                                                                | —              | —           | —               | —                           | —        |
+| Milestone                           | Focus                                                                                                  | Last candidate | Implemented | Automated tests | Accepted                               | Released |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------ | -------------- | ----------- | --------------- | -------------------------------------- | -------- |
+| **v0.1 — First Dive**               | Foundation, procedural aquarium, calm first-person swimming, boundaries, settings, tests.              | Pass 003       | Yes         | Yes             | Not explicitly recorded                | No       |
+| **v0.2 — Living Aquarium**          | Tropical reef life, fish behaviour, plants, ornaments, audio, authored art.                            | `0.2.0-rc.15`  | Yes         | Yes             | **Yes**                                | No       |
+| **v0.3 — Office & Dive Transition** | The office and a seamless dive into the aquarium.                                                      | `0.3.0-rc.1`   | Yes         | Yes             | **Yes**                                | No       |
+| **v0.4 — First Passage**            | A hidden opening in the tank to a larger tropical reef, with big animals and sightings.                | `0.4.0-rc.3`   | Yes         | Yes             | Open: awaiting play-through            | No       |
+| **v0.5 — Personalization**          | Seen items and baby animals added to the tank, with local saves.                                       | `0.5.0-rc.1`   | Yes         | Yes             | Open: awaiting play-through            | No       |
+| **v0.6 — Expanding Oceans**         | Kelp forest, sea cave and under the ice, with wildlife and rare encounters.                            | `0.6.0-rc.10`  | Yes         | Partly¹         | Open: content still growing            | No       |
+| **v0.7 — Crafted Stylized Realism** | Visual overhaul of every creature and environment (Passes 061–075); see [V07_RELEASE](V07_RELEASE.md). | Pass 075       | Yes         | Yes             | Open: awaiting MacBook Air playthrough | No       |
+| **v0.8 — Beta** (proposed)          | See below.                                                                                             | —              | —           | —               | —                                      | —        |
 
 ¹ v0.6 has unit tests throughout. The full browser regression was last run at `0.6.0-rc.1` (Pass 040). The under-ice harnesses and the long-session memory harness have not been run yet.
 
@@ -51,7 +51,7 @@ These need the user's decision. Nothing is removed until then (details in the au
 
 These are proposals, not commitments; they start only when agreed.
 
-**v0.7 — Polish (proposed).** No new worlds; make what exists feel finished.
+**v0.7 — Crafted Stylized Realism (implemented, Passes 061–075).** The user redirected v0.7 to a full visual overhaul (see [V07_RELEASE](V07_RELEASE.md) for changes, budgets and remaining limitations). The polish items below were not part of it and move to v0.8 or later unless agreed otherwise:
 
 - **Loading:** smooth the world-entry hitch (about 140–190 ms worst frame on SwiftShader), measured on the MacBook Air first.
 - **Sound:** give each world a gentle sound of its own (kelp surge, cave drip, ice creak), within the existing audio budget.
