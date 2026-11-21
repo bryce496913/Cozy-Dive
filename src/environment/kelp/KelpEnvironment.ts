@@ -380,12 +380,23 @@ export class KelpEnvironment {
     g.rotateX(-Math.PI / 2);
     g.translate(0, 0, KELP.tunnel.wallZ + 4 - d / 2);
     const pos = g.getAttribute('position'),
-      colors: number[] = [];
+      colors: number[] = [],
+      // V0.7 Pass 070: silt and grit gather round each boulder's foot, so rock and sand meet
+      // as one ground (colour only: the floor's height, and so navigation, is unchanged).
+      boulders = boulderLayout();
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i),
         z = pos.getZ(i);
       pos.setY(i, kelpSeabed(x, z));
-      colors.push(...sandColour(x, z));
+      const c = sandColour(x, z);
+      let contact = 0;
+      for (const b of boulders) {
+        const d = Math.hypot(x - b.x, z - b.z) / (b.size * 0.5);
+        if (d < 1.9)
+          contact = Math.max(contact, 1 - Math.max(0, (d - 0.85) / 1.05));
+      }
+      const k = 1 - 0.28 * contact;
+      colors.push(c[0] * k, c[1] * k * 0.98, c[2] * k * 0.95);
     }
     g.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
     g.computeVertexNormals();

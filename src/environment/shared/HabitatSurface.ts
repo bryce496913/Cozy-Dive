@@ -9,7 +9,8 @@ export class HabitatSurface {
   private readonly maps: THREE.DataTexture[] = [];
   private disposed = false;
   constructor(readonly kind: SurfaceKind) {
-    const n = 128,
+    // V0.7 Pass 070: 256 px, so the varied sediment field keeps its grain.
+    const n = 256,
       heights = new Float32Array(n * n),
       color = new Uint8Array(n * n * 4),
       normal = new Uint8Array(n * n * 4),
@@ -27,14 +28,41 @@ export class HabitatSurface {
         const vein = Math.exp(
           -Math.abs(Math.sin(u * 2 + v + 0.8 * Math.sin(v * 3))) * 32,
         );
+        // A repeatable per-texel hash (tiles exactly: it depends only on the texel).
+        const hash =
+          (((Math.sin(x * 127.1 + y * 311.7) * 43758.5453) % 1) + 1) % 1;
+        // V0.7 Pass 070: natural current ripples instead of 14 identical straight stripes per tile.
+        // Integer frequencies keep the tile seamless; within it the ripples wander, fork,
+        // vary in height and lean (a steeper lee side), with a faint cross-ripple and grain.
+        const phase =
+          v * 11 +
+          1.3 * Math.sin(u * 2 + 0.7 * Math.sin(v * 3)) +
+          0.9 * Math.sin(u * 3 - v * 2) +
+          0.6 * Math.sin(u + v * 5);
+        const crest =
+          0.6 + 0.4 * Math.sin(u * 3 + v * 2 + 1.1 * Math.sin(u * 5));
+        const ripple =
+          (Math.sin(phase) + 0.32 * Math.sin(2 * phase - 0.8)) * crest;
         const h =
           kind === 'sediment'
-            ? 0.24 * Math.sin(v * 14 + 0.8 * Math.sin(u * 2)) + grain * 0.06
+            ? 0.16 * ripple +
+              0.03 * Math.sin(u * 17 + v * 5) +
+              grain * 0.05 +
+              (hash - 0.5) * 0.05
             : kind === 'ice'
               ? vein * 0.6 + grain * 0.025
               : strata * 0.15 + grain * 0.14;
         heights[y * n + x] = h;
-        const k = kind === 'ice' ? 0.94 - vein * 0.18 : 0.87 + h * 0.18,
+        // Sediment: shell grit flecks (pale) and dark grains scattered through the sand.
+        const fleck =
+          kind === 'sediment'
+            ? hash > 0.985
+              ? 0.12
+              : hash < 0.02
+                ? -0.1
+                : 0
+            : 0;
+        const k = kind === 'ice' ? 0.94 - vein * 0.18 : 0.87 + h * 0.18 + fleck,
           i = (y * n + x) * 4;
         color[i] = Math.round(k * 255);
         color[i + 1] = Math.round(
@@ -89,7 +117,9 @@ export class HabitatSurface {
       normalMap: this.maps[1],
       roughnessMap: this.maps[2],
     });
-    source.normalScale.setScalar(this.kind === 'ice' ? 0.35 : 0.65);
+    source.normalScale.setScalar(
+      this.kind === 'ice' ? 0.35 : this.kind === 'sediment' ? 0.5 : 0.65,
+    );
     const result = triplanarMaterial(source, { scale, ao: 0.35 });
     source.dispose();
     return result;
