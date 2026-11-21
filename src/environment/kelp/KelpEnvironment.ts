@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { HabitatSurface } from '../shared/HabitatSurface';
 import { WATER_PROFILES } from '../../config/waterProfiles';
 import { addCaustics } from '../../rendering/atmosphere/Caustics';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -125,6 +126,7 @@ export class KelpEnvironment {
   readonly rock: THREE.MeshStandardMaterial;
   private readonly geometries: THREE.BufferGeometry[] = [];
   private readonly materials: THREE.Material[] = [];
+  private readonly sediment = new HabitatSurface('sediment');
   private disposed = false;
   constructor() {
     this.root.name = 'Kelp forest ground';
@@ -137,8 +139,10 @@ export class KelpEnvironment {
         roughness: 0.96,
       }),
     );
+    // V0.7 Pass 075: the shared sediment surface (wandering ripples, grain and grit, world-space
+    // triplanar), tinted by the seabed's vertex colours; it was a plain colour field.
     const sand = this.own(
-        new THREE.MeshStandardMaterial({
+        this.sediment.material({
           name: 'Kelp seabed',
           vertexColors: true,
           roughness: 1,
@@ -665,5 +669,6 @@ export class KelpEnvironment {
     this.root.clear();
     this.geometries.forEach((g) => g.dispose());
     this.materials.forEach((m) => m.dispose());
+    this.sediment.dispose();
   }
 }
