@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { organicTube, smoothed } from '../shared/organicGeometry';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { ICE } from '../../config/passage';
 import type { Vec3 } from '../../config/world';
@@ -31,10 +32,8 @@ function random(seed: number): () => number {
   };
 }
 function only(g: THREE.BufferGeometry): THREE.BufferGeometry {
-  const out = g.index ? g.toNonIndexed() : g;
-  if (out !== g) g.dispose();
-  for (const name of Object.keys(out.attributes))
-    if (name !== 'position' && name !== 'normal') out.deleteAttribute(name);
+  // V0.7 Pass 068: creased normals (smooth across gentle bends), kept through the merge.
+  const out = smoothed(g);
   return out;
 }
 /** A glass sponge: a lumpy vase with a flared rim, open at the top (unit height). */
@@ -69,9 +68,7 @@ export function spongeGeometry(): THREE.BufferGeometry {
       k = 1 + 0.08 * Math.sin(a * 5 + y * 6) + 0.05 * Math.sin(a * 11 - y * 9);
     p.setXYZ(i, x * k, y, z * k);
   }
-  const out = only(g);
-  out.computeVertexNormals();
-  return out;
+  return only(g);
 }
 /** A soft coral: a short trunk branching into lobes tipped with polyps (unit height). */
 export function softCoralGeometry(): THREE.BufferGeometry {
@@ -99,7 +96,6 @@ export function softCoralGeometry(): THREE.BufferGeometry {
   }
   const g = mergeGeometries(parts, false)!;
   parts.forEach((p) => p.dispose());
-  g.computeVertexNormals();
   return g;
 }
 /** A feather star: a small cup on short cirri, ten feathery arms held up and out (unit span). */
@@ -108,39 +104,55 @@ export function featherStarGeometry(): THREE.BufferGeometry {
   const cup = new THREE.SphereGeometry(0.06, 10, 6);
   cup.translate(0, 0.05, 0);
   parts.push(only(cup));
+  // V0.7 Pass 068: each arm is one continuous tube curling up and out (it was four stacked
+  // four-sided cylinders), fringed with rounded pinnules along both sides.
   for (let i = 0; i < 10; i++) {
-    const a = (i / 10) * Math.PI * 2;
-    // Each arm curves up and out in four segments, with pinnules along it.
+    const a = (i / 10) * Math.PI * 2,
+      pts: THREE.Vector3[] = [];
     let x = 0,
       y = 0.07,
       lift = 1.1;
+    pts.push(new THREE.Vector3(0, y, 0));
     for (let s = 0; s < 4; s++) {
-      const len = 0.12,
-        seg = new THREE.CylinderGeometry(0.008, 0.012, len, 4);
-      seg.translate(0, len / 2, 0);
-      seg.rotateZ(-lift);
-      seg.translate(x, y, 0);
-      seg.rotateY(a);
-      parts.push(only(seg));
+      x += Math.sin(lift) * 0.12;
+      y += Math.cos(lift) * 0.12;
+      lift -= 0.25;
+      pts.push(new THREE.Vector3(x, y, 0));
+    }
+    const arm = organicTube(pts, (u) => 0.012 - 0.007 * u, 10, 5);
+    arm.rotateY(a);
+    parts.push(only(arm));
+    const curve = new THREE.CatmullRomCurve3(pts);
+    for (let k = 1; k <= 7; k++) {
+      const u = k / 8,
+        at = curve.getPointAt(u),
+        tan = curve.getTangentAt(u);
       for (const side of [-1, 1]) {
-        const pin = new THREE.ConeGeometry(0.006, 0.06, 3);
-        pin.rotateX(side * 1.3);
-        pin.translate(
-          x + Math.sin(lift) * len * 0.5,
-          y + Math.cos(lift) * len * 0.5,
-          0,
+        const len = 0.055 * (1 - 0.5 * u),
+          tip = at
+            .clone()
+            .add(
+              new THREE.Vector3(tan.y * 0.3, -tan.x * 0.3, side)
+                .normalize()
+                .multiplyScalar(len),
+            ),
+          pin = new THREE.ConeGeometry(0.0045, len, 5, 1, true);
+        // Point the pinnule from the arm out along `tip`.
+        pin.translate(0, len / 2, 0);
+        pin.applyQuaternion(
+          new THREE.Quaternion().setFromUnitVectors(
+            new THREE.Vector3(0, 1, 0),
+            tip.clone().sub(at).normalize(),
+          ),
         );
+        pin.translate(at.x, at.y, at.z);
         pin.rotateY(a);
         parts.push(only(pin));
       }
-      x += Math.sin(lift) * len;
-      y += Math.cos(lift) * len;
-      lift -= 0.25;
     }
   }
   const g = mergeGeometries(parts, false)!;
   parts.forEach((p) => p.dispose());
-  g.computeVertexNormals();
   return g;
 }
 

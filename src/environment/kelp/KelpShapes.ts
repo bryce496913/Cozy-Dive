@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { smoothed } from '../shared/organicGeometry';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 /**
@@ -21,12 +22,8 @@ function shaded(
   tone: (p: THREE.Vector3) => number,
   base: RGB = WHITE,
 ): THREE.BufferGeometry {
-  // Every part needs the same attributes to merge: normals for those built without them.
-  if (!g.getAttribute('normal')) g.computeVertexNormals();
-  const out = g.index ? g.toNonIndexed() : g;
-  if (out !== g) g.dispose();
-  for (const name of Object.keys(out.attributes))
-    if (name !== 'position' && name !== 'normal') out.deleteAttribute(name);
+  // V0.7 Pass 068: creased normals (smooth across gentle bends), kept through the merge.
+  const out = smoothed(g);
   const p = out.getAttribute('position'),
     c = new Float32Array(p.count * 3),
     v = new THREE.Vector3();
@@ -44,7 +41,6 @@ function merge(parts: THREE.BufferGeometry[]): THREE.BufferGeometry {
   const m = mergeGeometries(parts, false);
   parts.forEach((g) => g.dispose());
   if (!m) throw Error('Kelp shape could not be built');
-  m.computeVertexNormals();
   return m;
 }
 
@@ -175,7 +171,7 @@ export function urchinShape(): THREE.BufferGeometry {
     if (d.y < -0.45) continue;
     const len = 0.07 + 0.05 * (1 - Math.abs(d.y)) + 0.015 * Math.sin(i * 7.1),
       // Open-ended: the base sits inside the test.
-      spine = new THREE.ConeGeometry(0.0045, len, 4, 1, true);
+      spine = new THREE.ConeGeometry(0.0045, len, 6, 1, true);
     spine.translate(0, len / 2 + 0.05, 0);
     q.setFromUnitVectors(up, d);
     spine.applyQuaternion(q);

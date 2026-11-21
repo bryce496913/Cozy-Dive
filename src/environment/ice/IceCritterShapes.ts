@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { organicTube, smoothed } from '../shared/organicGeometry';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 /**
@@ -14,15 +15,12 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
  */
 type RGB = readonly [number, number, number];
 function paint(g: THREE.BufferGeometry, c: RGB): THREE.BufferGeometry {
-  const out = g.index ? g.toNonIndexed() : g;
-  if (out !== g) g.dispose();
-  for (const name of Object.keys(out.attributes))
-    if (name !== 'position' && name !== 'normal') out.deleteAttribute(name);
+  // V0.7 Pass 068: creased normals (smooth across gentle bends), kept through the merge.
+  const out = smoothed(g);
   const n = out.getAttribute('position').count,
     col = new Float32Array(n * 3);
   for (let i = 0; i < n; i++) col.set(c, i * 3);
   out.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-  out.computeVertexNormals();
   return out;
 }
 function merge(parts: THREE.BufferGeometry[]): THREE.BufferGeometry {
@@ -110,32 +108,45 @@ export function krillShape(): THREE.BufferGeometry {
 /** A sea butterfly, about 1 cm, wings out to the sides (x). */
 export function seaButterflyShape(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
-  // A small coiled shell: a tapering spiral of beads.
-  for (let k = 0; k < 7; k++) {
-    const a = k * 0.9,
-      r = 0.0028 - k * 0.0003,
-      bead = new THREE.SphereGeometry(r, 6, 4);
-    bead.translate(
-      Math.cos(a) * 0.0018,
-      -0.001 - k * 0.0007,
-      Math.sin(a) * 0.0018,
+  // V0.7 Pass 068: a small coiled shell as one tapering spiral, not a string of beads.
+  const coil: THREE.Vector3[] = [];
+  for (let k = 0; k <= 8; k++) {
+    const a = k * 0.9;
+    coil.push(
+      v(
+        Math.cos(a) * 0.0018 * (1 - k * 0.06),
+        -0.001 - k * 0.0007,
+        Math.sin(a) * 0.0018 * (1 - k * 0.06),
+      ),
     );
-    parts.push(paint(bead, k ? [0.88, 0.9, 0.86] : [0.45, 0.25, 0.15]));
   }
-  // Two broad wing-lobes, held up and out, veined (a darker midrib).
+  parts.push(
+    paint(
+      organicTube(coil, (u) => 0.0029 * (1 - 0.7 * u), 28, 9),
+      [0.88, 0.9, 0.86],
+    ),
+  );
+  // Two broad wing-lobes, held up and out, cupped and frilled at the rim, with a darker midrib.
   for (const s of [-1, 1]) {
-    const wing = new THREE.CircleGeometry(0.0075, 12);
-    wing.scale(1, 0.62, 1);
-    wing.rotateY(Math.PI / 2);
+    // A thin fleshy lobe (both faces shade), tipped up and out, gently cupped.
+    const wing = new THREE.SphereGeometry(1, 16, 8),
+      wp = wing.getAttribute('position');
+    for (let i = 0; i < wp.count; i++) {
+      const x = wp.getX(i),
+        y = wp.getY(i),
+        z = wp.getZ(i);
+      wp.setXYZ(i, x * 0.0075, y * 0.0047, z * 0.0009 + 0.0015 * x * x);
+    }
     wing.rotateZ(s * 0.35);
-    wing.translate(s * 0.0065, 0.0035, 0);
+    wing.translate(s * 0.0072, 0.0035, 0);
     parts.push(paint(wing, [0.98, 0.62, 0.3]));
     parts.push(
       stick(
-        v(s * 0.001, 0.002, 0),
-        v(s * 0.012, 0.006, 0),
+        v(s * 0.001, 0.0035, 0),
+        v(s * 0.0085, 0.006, 0),
         0.0004,
         [0.85, 0.42, 0.18],
+        5,
       ),
     );
   }
