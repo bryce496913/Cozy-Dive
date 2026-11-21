@@ -6,6 +6,7 @@ import {
   mergeVertices,
 } from 'three/addons/utils/BufferGeometryUtils.js';
 import { rockCollider } from './rockCollider';
+import { BRANCHING_COLONIES } from '../config/coralColonies';
 import { createRockGeometry } from './RockGeometry';
 import { plantFootprintClear, substrateHeight } from './HabitatRegions';
 import { insideRock, type HabitatInterest } from '../fish/FishHabitat';
@@ -141,28 +142,7 @@ export class HardscapeSystem {
           if (g.index) g.dispose();
         };
         if (kind === 'branching') {
-          const segments = [
-            [
-              [0, 0, 0],
-              [0.04, 1.25, 0],
-            ],
-            [
-              [0, 0.45, 0],
-              [-0.58, 1.3, 0.14],
-            ],
-            [
-              [0.02, 0.7, 0],
-              [0.58, 1.65, -0.15],
-            ],
-            [
-              [-0.3, 0.95, 0.08],
-              [-0.42, 1.75, 0.25],
-            ],
-            [
-              [0.35, 1.25, -0.1],
-              [0.65, 1.5, 0.3],
-            ],
-          ];
+          const segments = BRANCHING_COLONIES[variant].primaries;
           for (const [a, b] of segments) {
             const start = new THREE.Vector3(...a),
               end = new THREE.Vector3(...b);

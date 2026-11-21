@@ -40,9 +40,10 @@ export const TANK_ITEMS = [
     sighting: 'coral:branching',
     label: 'Branching coral',
     node: 'Coral_Branching_0',
-    width: 0.95,
-    depth: 0.9,
-    height: 1.1,
+    // V0.7 Pass 077: the spreading thicket's own proportions (broader than tall).
+    width: 0.97,
+    depth: 0.93,
+    height: 0.75,
   },
   {
     kind: 'plate',
@@ -111,11 +112,12 @@ export const TANK_ITEMS = [
     kind: 'branching-tall',
     category: 'coral-plant',
     sighting: 'coral:branching',
-    label: 'Tall branching coral',
+    // V0.7 Pass 077: now a lopsided corymbose head (the id is kept for saved tanks).
+    label: 'Branching coral head',
     node: 'Coral_Branching_1',
-    width: 0.8,
-    depth: 0.4,
-    height: 1.2,
+    width: 0.96,
+    depth: 0.7,
+    height: 0.85,
   },
   {
     kind: 'plate-tiered',
