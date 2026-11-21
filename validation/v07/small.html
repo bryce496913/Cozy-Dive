@@ -134,15 +134,26 @@
         ['ice soft coral', () => [softCoralGeometry()], 0xe08060],
       ];
       const coralSet = query.get('set') === 'coral';
+      // V0.7 Pass 071: `?set=plants` shows the aquarium vegetation and a kelp stalk.
+      const PLANT_LIBRARY = [
+        'Turtle_Grass',
+        'Meadow_Blade',
+        'Caulerpa',
+        'Halimeda',
+        'Red_Algae',
+      ].flatMap((k) => [0, 1, 2].map((i) => ['reef', `${k}_${i}`]));
+      const plantSet = query.get('set') === 'plants';
       const only = query.get('only');
       const items = [
-        ...(coralSet ? CORAL_LIBRARY : LIBRARY).map(([asset, node]) => ({
-          kind: 'lib',
-          asset,
-          node,
-          label: node,
-        })),
-        ...(coralSet ? CORAL_CODE : CODE).map(
+        ...(plantSet ? PLANT_LIBRARY : coralSet ? CORAL_LIBRARY : LIBRARY).map(
+          ([asset, node]) => ({
+            kind: 'lib',
+            asset,
+            node,
+            label: node,
+          }),
+        ),
+        ...(plantSet ? [] : coralSet ? CORAL_CODE : CODE).map(
           ([label, build, tint, glass]) => ({
             kind: 'code',
             label,

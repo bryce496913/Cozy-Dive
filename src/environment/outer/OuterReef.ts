@@ -300,7 +300,7 @@ export class OuterReef {
       inject.call(this.plantSource, shader, renderer);
       shader.uniforms.plantTime = time;
     };
-    m.customProgramCacheKey = () => 'cozy-plants-authored-v1';
+    m.customProgramCacheKey = () => 'cozy-plants-authored-v2';
     return m;
   }
 

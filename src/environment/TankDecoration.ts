@@ -108,7 +108,7 @@ export class TankDecoration {
                 m.normalMap = material.normalMap;
               }
               m.onBeforeCompile = this.plants.onBeforeCompile;
-              m.customProgramCacheKey = () => 'cozy-plants-authored-v1';
+              m.customProgramCacheKey = () => 'cozy-plants-authored-v2';
               this.ownedMaterials.add(m);
               material = m;
             }

@@ -16,7 +16,8 @@ import {
  */
 export const STALKS = {
   /** Template heights (m); the canopy reaches the surface for the tallest. */
-  heights: [15.5, 18.5, KELP.surfaceY - 0.6],
+  // V0.7 Pass 071: five templates (was three), so neighbouring plants rarely repeat.
+  heights: [14.5, 16, 17.5, 19, KELP.surfaceY - 0.6],
   count: 110,
   seed: 32032,
   /** Sway at the top (m), and its slow periods (s). */
@@ -159,7 +160,7 @@ export function stalkTemplate(
       ]);
     parts.push(
       tone(
-        new THREE.TubeGeometry(curve, 5, 0.025 + rand() * 0.015, 4, false),
+        new THREE.TubeGeometry(curve, 6, 0.025 + rand() * 0.015, 5, false),
         0.3,
         0.22,
         0.1,
@@ -190,7 +191,7 @@ export function stalkTemplate(
           new THREE.CatmullRomCurve3(path),
           segments,
           0.04,
-          4,
+          6,
           false,
         ),
         0.42,
@@ -200,7 +201,7 @@ export function stalkTemplate(
     );
     // Blades every 30-45 cm, each hanging from the stipe on its own side, trailing up and out.
     // Each blade grows from a small gas bulb (a pneumatocyst) that holds it up in the water.
-    for (let y = 0.7; y < tall - 0.6; y += 0.3 + rand() * 0.15) {
+    for (let y = 0.7; y < tall - 0.6; y += 0.34 + rand() * 0.16) {
       const base = at(y),
         angle = rand() * Math.PI * 2,
         bulb = new THREE.IcosahedronGeometry(0.05 + rand() * 0.02, 0);
@@ -218,7 +219,7 @@ export function stalkTemplate(
             base,
             angle,
             1.1 + rand() * 0.7,
-            0.24 + rand() * 0.1,
+            0.27 + rand() * 0.1,
             0.2,
             rand,
           ),
@@ -250,10 +251,23 @@ export function stalkTemplate(
   }
   // Positions and colours only (normals are computed once, after merging), so every part has
   // the same layout.
+  // V0.7 Pass 071: smooth normals per part (computed while indexed and kept through the merge;
+  // recomputing after de-indexing shaded every facet flat), and a flex weight for the blade flutter
+  // (0 on holdfast, stipe and bulbs; rising along each blade).
   const flat = parts.map((p) => {
+    for (const name of Object.keys(p.attributes))
+      if (name !== 'position' && name !== 'color' && name !== 'kelpFlex')
+        p.deleteAttribute(name);
+    p.computeVertexNormals();
+    if (!p.getAttribute('kelpFlex'))
+      p.setAttribute(
+        'kelpFlex',
+        new THREE.Float32BufferAttribute(
+          new Float32Array(p.getAttribute('position').count),
+          1,
+        ),
+      );
     const g = p.index ? p.toNonIndexed() : p.clone();
-    for (const name of Object.keys(g.attributes))
-      if (name !== 'position' && name !== 'color') g.deleteAttribute(name);
     return g;
   });
   parts.forEach((p) => p.dispose());
@@ -273,7 +287,6 @@ export function stalkTemplate(
     colors[i * 3 + 2] = tones.getZ(i) * k * n;
   }
   merged.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-  merged.computeVertexNormals();
   merged.computeBoundingSphere();
   return merged;
 }
@@ -289,47 +302,66 @@ function blade(
   lift: number,
   rand: () => number,
 ): THREE.BufferGeometry {
+  // V0.7 Pass 071: three columns (edge, midrib, edge) so each blade has a raised midrib and a
+  // gentle V cross-section that catches the light, with a narrow stalk-like base (stipe) where it
+  // joins the bulb, ruffled edges, and a flex weight along its length for the flutter.
   const steps = 8,
     positions: number[] = [],
+    flex: number[] = [],
+    light: number[] = [],
     indices: number[] = [],
     dx = Math.cos(angle),
     dz = Math.sin(angle),
     rise = 0.55 + rand() * 0.3,
-    ripple = rand() * 6;
+    ripple = rand() * 6,
+    twist = (rand() - 0.5) * 0.6;
   for (let i = 0; i <= steps; i++) {
     const t = i / steps,
       r = t * length,
+      // A short narrow base (the blade's own stalk), widening, then tapering to a point.
       w =
         width *
         Math.sin(Math.PI * Math.min(1, t * 1.05 + 0.08)) *
+        Math.min(1, 0.25 + t * 4) *
         (1 + 0.15 * Math.sin(t * 9 + ripple)) *
-        // Ruffled edges, as giant kelp blades have.
         (1 + 0.08 * Math.sin(t * 31 + ripple * 2)),
-      up = r * rise * (1 - t * 0.6) + lift * t * t;
-    for (const side of [-1, 1])
+      up = r * rise * (1 - t * 0.6) + lift * t * t,
+      // The blade twists slowly along its length.
+      ca = Math.cos(twist * t),
+      sa = Math.sin(twist * t);
+    for (const side of [-1, 0, 1]) {
+      const across = w * side * 0.5,
+        ruffle =
+          side === 0
+            ? 0.035 * width
+            : side *
+                w *
+                (0.12 * Math.sin(t * 7 + ripple) + 0.05 * Math.sin(t * 23)) -
+              0.03 * width,
+        ox = -dz * across * ca,
+        oz = dx * across * ca,
+        oy = ruffle + across * sa * 0.4;
       positions.push(
-        base.x + dx * r * 0.75 - dz * w * side * 0.5,
-        base.y +
-          up +
-          side *
-            w *
-            (0.12 * Math.sin(t * 7 + ripple) + 0.05 * Math.sin(t * 23)),
-        base.z + dz * r * 0.75 + dx * w * side * 0.5,
+        base.x + dx * r * 0.75 + ox,
+        base.y + up + oy,
+        base.z + dz * r * 0.75 + oz,
       );
+      flex.push(t);
+      // Lightness (red channel; `tone` multiplies it in): darker at the base, paler toward the tip,
+      // the midrib a touch darker.
+      const k = (0.75 + 0.4 * t) * (side === 0 ? 0.9 : 1);
+      light.push(k, k, k);
+    }
   }
-  for (let i = 0; i < steps; i++) {
-    const a = i * 2;
-    indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
-  }
+  for (let i = 0; i < steps; i++)
+    for (let c = 0; c < 2; c++) {
+      const a = i * 3 + c;
+      indices.push(a, a + 1, a + 3, a + 1, a + 4, a + 3);
+    }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-  // Lightness (in the red channel; `tone` multiplies it in): darker at the base, paler at the tip.
-  const light: number[] = [];
-  for (let i = 0; i <= steps; i++) {
-    const k = 0.75 + 0.4 * (i / steps);
-    light.push(k, k, k, k, k, k);
-  }
   g.setAttribute('color', new THREE.Float32BufferAttribute(light, 3));
+  g.setAttribute('kelpFlex', new THREE.Float32BufferAttribute(flex, 1));
   g.setIndex(indices);
   return g;
 }
@@ -361,7 +393,7 @@ export function kelpPatchGeometry(): THREE.BufferGeometry {
       2,
     ),
   );
-  merged.computeVertexNormals();
+  merged.deleteAttribute('kelpFlex');
   merged.computeBoundingBox();
   merged.computeBoundingSphere();
   return merged;
@@ -373,9 +405,19 @@ const SWAY_VERTEX = /* glsl */ `
 {
   vec4 base = instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
   float phase = base.x * 0.21 + base.z * 0.13;
-  float reach = pow(clamp(position.y / kelpHeight, 0.0, 1.0), 1.4) * kelpSway;
-  transformed.x += sin(kelpTime * kelpRate.x + phase + position.y * 0.07) * reach;
-  transformed.z += cos(kelpTime * kelpRate.y + phase * 1.3) * reach * 0.6;
+  float h = clamp(position.y / kelpHeight, 0.0, 1.0);
+  // V0.7 Pass 071: continuous bending, not a rigid lean: the sway is a slow wave travelling up
+  // the stipe (each height lags the one below), so the plant curves through the water. Slow,
+  // uneven gusts (on each plant's own phase) keep the forest from swaying in step.
+  float gust = 0.72 + 0.28 * sin(kelpTime * 0.071 + phase * 0.37) * sin(kelpTime * 0.043 + phase);
+  float reach = pow(h, 1.4) * kelpSway * gust;
+  float lag = position.y * 0.11;
+  transformed.x += sin(kelpTime * kelpRate.x + phase - lag) * reach;
+  transformed.z += cos(kelpTime * kelpRate.y + phase * 1.3 - lag * 0.8) * reach * 0.6;
+  // Blades flutter along their length: small, quicker, and stronger toward their tips.
+  float flutter = kelpFlex * kelpFlex * 0.14 * (0.4 + 0.6 * h);
+  transformed.y += sin(kelpTime * 0.9 + phase * 3.0 + position.y * 1.3 + position.x * 2.1) * flutter;
+  transformed.x += sin(kelpTime * 0.7 + phase * 2.0 + position.y * 0.9) * flutter * 0.6;
   // Playtest: stalks lean aside as the swimmer passes through, most at the swimmer's height and
   // not at the holdfast, easing off over a couple of metres. (World offset into the instance's
   // frame: its rotation is yaw only and its scale uniform, so the inverse is the transpose / s².)
@@ -431,11 +473,11 @@ export class KelpStalks {
         ),
       };
       shader.vertexShader =
-        'uniform float kelpTime;\nuniform float kelpHeight;\nuniform float kelpSway;\nuniform vec2 kelpRate;\nuniform vec4 kelpSwimmer;\nuniform float kelpPushRadius;\n' +
+        'attribute float kelpFlex;\nuniform float kelpTime;\nuniform float kelpHeight;\nuniform float kelpSway;\nuniform vec2 kelpRate;\nuniform vec4 kelpSwimmer;\nuniform float kelpPushRadius;\n' +
         shader.vertexShader.replace('#include <begin_vertex>', SWAY_VERTEX);
     };
     // A stable key, so the program is compiled once and shared.
-    this.material.customProgramCacheKey = () => 'cozy-kelp-sway';
+    this.material.customProgramCacheKey = () => 'cozy-kelp-sway-2';
     const m = new THREE.Matrix4(),
       q = new THREE.Quaternion(),
       e = new THREE.Euler(),
