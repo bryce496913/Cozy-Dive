@@ -18,6 +18,21 @@ The standard in brief:
 
 Approved references: [`docs/art-reference/v07/`](art-reference/v07/) (scene views, turnarounds, material swatches) and the Pass 062 Crafted assets in `src/benchmark/style/assets/`.
 
+## V0.7 final standards (Pass 074)
+
+Standards established while bringing every environment onto the V0.7 style (Passes 064–073). They apply to all new and revised art:
+
+- **Shading:** organic surfaces use smooth, creased normals (smooth below about 75°, crisp above). Normals are computed while geometry is indexed and kept through merges; recomputing after de-indexing shades every facet flat. Use `src/environment/shared/organicGeometry.ts` (`smoothed`, `organicTube`, `polarSheet`).
+- **Continuity:** limbs, arms, branches and blades are continuous tapering surfaces, never chains of cylinders and joint spheres. Colonies and plants grow out of an encrusting foot or holdfast.
+- **Collision compatibility:** visual detail on structural geometry is carved inward only. The convex envelope stays the collider, carried with the geometry, and the rendered bounds are pinned to it so placement scaling never grows colliders. Routes may only become roomier.
+- **Creature contract:** a root, a single-material `Body` and `Body_LOD1`, and `Stroke_Left` / `Stroke_Right` morphs with rest weight 0. The atlas is painted in glTF orientation (row 0 = v 1), with the body band kept off the band edges and its UV seam split.
+- **Motion:** sway travels up stems and stipes (height lags the current), gusts vary per plant, and blades flutter along their length. Bases never move, and reduced motion freezes all of it.
+- **Seabeds:** sediment ripples wander, fork and vary, with grit; never identical stripes. Rock meets sand with contact shading.
+- **Palette by world:** each world keeps its Pass 064 water profile. The office is warm and lived-in (oak, walnut, cream, rust, oat) with the aquarium's cool aqua as its focal contrast.
+- **Budgets:** measure every pass in the fixed-view harnesses (`validation/v07/*.mjs`). Accept increases only where they change the silhouette (typically 2–15 % per world), and record them in the pass document.
+
+The integration audit and remaining-issues checklist are in [`V07_VISUAL_INTEGRATION.md`](V07_VISUAL_INTEGRATION.md).
+
 The sections below record earlier passes. They remain valid where V0.7 does not override them, for example the chromis anatomy notes and the fin-membrane rules.
 
 ## Earlier foundation (Passes 012–015)

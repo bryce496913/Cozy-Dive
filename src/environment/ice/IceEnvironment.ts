@@ -124,7 +124,8 @@ export class IceEnvironment {
         vertexColors: true,
         roughness: 0.22,
         metalness: 0.02,
-        flatShading: true,
+        // V0.7 Pass 074: shaded from each lump's own creased normals (crisp at fractures, smooth
+        // over worn faces) rather than forced flat: the big icebergs read low-poly when faceted.
         emissive: 0x0f3550,
         emissiveIntensity: 0.55,
       }),
@@ -354,6 +355,7 @@ export class IceEnvironment {
         open.push(si.getX(f), si.getX(f + 1), si.getX(f + 2));
     }
     sheet.setIndex(open);
+    sheet.computeVertexNormals();
     const flatSheet = sheet.toNonIndexed();
     sheet.dispose();
     flatSheet.deleteAttribute('uv');
@@ -383,6 +385,7 @@ export class IceEnvironment {
         true,
       );
       chimney.translate(h.x, top + 1.1, h.z);
+      chimney.computeVertexNormals();
       const flat = chimney.toNonIndexed();
       chimney.dispose();
       flat.deleteAttribute('uv');
@@ -431,7 +434,7 @@ export class IceEnvironment {
     const merged = mergeGeometries(blocks, false);
     blocks.forEach((g) => g.dispose());
     if (merged) {
-      merged.computeVertexNormals();
+      // Each part keeps its own normals (recomputing after the merge shaded every facet flat).
       this.add(merged, ice, 'Icebergs and sea ice');
     }
     // Dropstones: dark boulders carried out by the ice and dropped on the seabed.
@@ -461,7 +464,6 @@ export class IceEnvironment {
     const rocks = mergeGeometries(stones, false);
     stones.forEach((g) => g.dispose());
     if (rocks) {
-      rocks.computeVertexNormals();
       this.add(rocks, rock, 'Dropstones');
     }
   }
