@@ -31,8 +31,11 @@ import { IceCritters } from './IceCritters';
  * everything it creates.
  */
 const LENGTH = { icefish: 0.75, notothen: 0.42 } as const;
-/** The Weddell seal: the harbour seal's model, larger and darker. */
-const WEDDELL_LOOK = { scale: 1.75, tint: 0x6a7480 } as const;
+/**
+ * The Weddell seal. V0.7 Pass 078: its own sculpted model (charcoal with silver blotches, about
+ * 3 m), no longer the harbour seal scaled up and tinted nearly black.
+ */
+const WEDDELL_LOOK = { scale: 1, tint: undefined } as const;
 /** Her pup: under half her length, its coat paler and greyer. */
 const PUP_LOOK = { scale: 0.78, tint: 0x9aa2ac } as const;
 
@@ -161,7 +164,7 @@ export class IceLife {
       }, 'Adélie penguins'),
       this.part(async () => {
         await this.solo(
-          'harbourSeal',
+          'weddellSeal',
           this.seal.pose,
           'Weddell seal',
           WEDDELL_LOOK.scale,

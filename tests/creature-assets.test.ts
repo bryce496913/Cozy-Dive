@@ -14,11 +14,10 @@ const anchored = new ReefAsset(
 );
 const accepted = new ReefAsset('tools/art/pass015/anchored-life.pass013.glb');
 const slugs = new ReefAsset('public/assets/models/creatures/nudibranchs.glb');
-// The frogfish was re-authored from scratch after Pass 015 (see its own suite below), so only the
-// other creatures are held to the Pass 015 "relief and colour only" contract.
+// The frogfish was re-authored from scratch after Pass 015 (see its own suite below), and the
+// seahorse in V0.7 Pass 078 (its contract is checked below), so only the other creatures are held
+// to the Pass 015 "relief and colour only" contract.
 const SKINS = [
-  'HorseBody',
-  'HorseTail',
   'MorayBody',
   'MorayDorsal',
   'MorayHead',
@@ -57,6 +56,25 @@ describe('Pass 015 re-authored anchored creatures', () => {
       expect(b.min.distanceTo(a.min), name).toBeLessThan(0.012 * Math.sqrt(3));
       expect(b.max.distanceTo(a.max), name).toBeLessThan(0.012 * Math.sqrt(3));
     }
+  });
+  it('keeps the re-sculpted seahorse in its controller frames (V0.7 Pass 078)', () => {
+    // The body stays where the old one stood, and the tail (local to its pivot at y 0.33) still
+    // coils round the grip point the controller hangs it from (SEAHORSE_COIL: y 0.15, z 0.16).
+    for (const name of ['HorseBody', 'HorseTail']) {
+      const a = bounds(accepted.primitive(name).positions),
+        b = bounds(anchored.primitive(name).positions);
+      expect(b.min.distanceTo(a.min), name).toBeLessThan(0.12);
+      expect(b.max.distanceTo(a.max), name).toBeLessThan(0.12);
+    }
+    const tail = anchored.primitive('HorseTail').positions;
+    let near = Infinity;
+    for (let i = 0; i < tail.length; i += 3)
+      near = Math.min(
+        near,
+        Math.hypot(tail[i + 1] + 0.33 - 0.15, tail[i + 2] - 0.16),
+      );
+    // The coil's inner surface passes within a few centimetres of the grip centre.
+    expect(near).toBeLessThan(0.06);
   });
   it('preserves the moray centreline parameter in UV.v for GPU unfolding', () => {
     const body = anchored.primitive('MorayBody');

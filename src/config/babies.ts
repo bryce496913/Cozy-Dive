@@ -167,7 +167,7 @@ export const TANK_BABIES: readonly BabyDefinition[] = [
   littleAsset('swell-shark', 'Little swell shark', 'nurseShark', 0xb08a5c),
   littleAsset('emperor-penguin', 'Little emperor penguin', 'emperorPenguin'),
   littleAsset('adelie-penguin', 'Little Adélie penguin', 'adeliePenguin'),
-  littleAsset('weddell-seal', 'Little Weddell seal', 'harbourSeal', 0x79828a),
+  littleAsset('weddell-seal', 'Little Weddell seal', 'weddellSeal'),
   {
     ...littleAsset(
       'weddell-seal-pup',

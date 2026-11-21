@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { organicTube, polarSheet, smoothed } from '../shared/organicGeometry';
 import { articulated, limb, merged, podomere, tinted } from './CaveLobsters';
 
 /**
@@ -26,52 +27,80 @@ const SHELL: RGB = [0.5, 0.17, 0.09],
   EYE: RGB = [0.03, 0.03, 0.03];
 const v = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 
-/** A spine: a slim cone from `base` along `dir` (unit), `length` long. */
-function spine(
-  base: THREE.Vector3,
-  dir: THREE.Vector3,
-  length: number,
-  radius: number,
+/** Mix two colours. */
+const blend = (a: RGB, b: RGB, t: number): RGB => [
+  a[0] + (b[0] - a[0]) * t,
+  a[1] + (b[1] - a[1]) * t,
+  a[2] + (b[2] - a[2]) * t,
+];
+const scaled = (a: RGB, k: number): RGB => [a[0] * k, a[1] * k, a[2] * k];
+/** Scattered round pale spots on a 2-D field (1 in a spot, 0 between). */
+function spotAt(a: number, b: number): number {
+  const ca = Math.floor(a),
+    cb = Math.floor(b),
+    h = (Math.sin(ca * 127.1 + cb * 311.7) * 43758.5453) % 1,
+    ja = ca + 0.5 + 0.3 * Math.sin(h * 40),
+    jb = cb + 0.5 + 0.3 * Math.cos(h * 53),
+    d = Math.hypot(a - ja, b - jb);
+  return Math.abs(h) > 0.45 ? Math.max(0, Math.min(1, (0.28 - d) * 12)) : 0;
+}
+/** Smooth (creased) normals and a per-vertex colour from position, ready to merge. */
+function painted(
+  g: THREE.BufferGeometry,
+  colour: (x: number, y: number, z: number) => RGB,
 ): THREE.BufferGeometry {
-  return limb(
-    base,
-    base.clone().addScaledVector(dir, length),
-    radius,
-    radius * 0.08,
-    SPINE,
-  );
+  const out = smoothed(g),
+    p = out.getAttribute('position'),
+    c = new Float32Array(p.count * 3);
+  for (let i = 0; i < p.count; i++) {
+    const k = colour(p.getX(i), p.getY(i), p.getZ(i)),
+      speck = 0.94 + 0.06 * Math.sin(i * 12.9898);
+    c.set([k[0] * speck, k[1] * speck, k[2] * speck], i * 3);
+  }
+  out.setAttribute('color', new THREE.Float32BufferAttribute(c, 3));
+  return out;
 }
-/** A small pale spot, flush on the shell. */
-function spot(at: THREE.Vector3, r: number): THREE.BufferGeometry {
-  const g = new THREE.SphereGeometry(r, 6, 4);
-  g.scale(1, 0.35, 1);
-  g.translate(at.x, at.y, at.z);
-  return tinted(g, SPOT);
-}
-
 export function spinyLobsterBody(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
-  // The carapace: a squarish tube, tapering a little forward, with a groove a third of the way back.
-  const shell = new THREE.SphereGeometry(1, 28, 16),
+  // The carapace. V0.7 Pass 078: a squarish, tapering shell (finer than before) whose surface is
+  // covered in small tubercles and crossed by the cervical groove, painted per vertex: red-brown,
+  // darker in the groove and between tubercles, with pale cream spots (they were stuck-on balls).
+  const shell = new THREE.SphereGeometry(1, 44, 26),
     sp = shell.getAttribute('position');
   for (let i = 0; i < sp.count; i++) {
     const x = sp.getX(i),
       y = sp.getY(i),
       z = sp.getZ(i),
-      // Squarer cross-section (flattened sides and top), slimmer forward.
       sq = (a: number) => Math.sign(a) * Math.abs(a) ** 0.75,
       taper = 1 - 0.18 * Math.max(0, z),
-      groove = 1 - 0.07 * Math.exp(-(((z + 0.15) / 0.08) ** 2));
+      groove = 1 - 0.08 * Math.exp(-(((z + 0.15) / 0.07) ** 2)),
+      // Tubercles: a lattice of small bumps over the top and flanks.
+      bump =
+        1 +
+        0.035 *
+          Math.max(0, Math.sin(z * 34) * Math.sin(Math.atan2(y, x) * 14)) *
+          Math.max(0, y + 0.2);
     sp.setXYZ(
       i,
-      sq(x) * 0.058 * taper * groove,
-      sq(y) * 0.05 * taper * groove,
+      sq(x) * 0.058 * taper * groove * bump,
+      sq(y) * 0.05 * taper * groove * bump,
       z * 0.125,
     );
   }
   shell.translate(0, 0.068, 0.075);
-  parts.push(tinted(shell, SHELL));
-  // Rows of forward-raked spines along its top and upper flanks, and pale spots between them.
+  parts.push(
+    painted(shell, (x, y, z) => {
+      const groove = Math.exp(-(((z - 0.075 + 0.15 * 0.125) / 0.012) ** 2)),
+        spot = spotAt(x * 40, z * 40) * (y > 0.075 ? 1 : 0.4),
+        shade = 0.85 + 0.25 * Math.min(1, Math.max(0, (y - 0.03) / 0.08));
+      return blend(
+        scaled(SHELL, shade * (1 - 0.35 * groove)),
+        SPOT,
+        spot * 0.85,
+      );
+    }),
+  );
+  // Rows of forward-raked spines along its top and upper flanks (eight-sided, curving forward).
   for (const [row, side, height] of [
     [0, 0, 0.118],
     [1, -1, 0.106],
@@ -82,17 +111,21 @@ export function spinyLobsterBody(): THREE.BufferGeometry {
     for (let k = 0; k < 7; k++) {
       const z = -0.03 + k * 0.03,
         x = side * (row === 1 ? 0.035 : 0.053),
-        dir = v(side * 0.3, 0.85, 0.45).normalize();
+        dir = v(side * 0.3, 0.85, 0.45).normalize(),
+        base = v(x, height - Math.abs(z - 0.08) * 0.1, z);
       parts.push(
-        spine(
-          v(x, height - Math.abs(z - 0.08) * 0.1, z),
-          dir,
-          0.016 - row * 0.002,
-          0.004,
+        podomere(
+          base,
+          base.clone().addScaledVector(dir, 0.016 - row * 0.002),
+          0.0042,
+          0.0006,
+          SPINE,
+          SPINE,
+          SPINE,
+          6,
+          0.12,
         ),
       );
-      if (k % 2 && row > 0)
-        parts.push(spot(v(x * 0.85, height - 0.012, z + 0.012), 0.006));
     }
   }
   // The two big curved horns over the eyes, and the eyes on short stalks.
@@ -125,63 +158,108 @@ export function spinyLobsterBody(): THREE.BufferGeometry {
         limb(fork, v(side * 0.03, 0.1 + lift, 0.33), 0.0018, 0.0006, BAND),
       );
   }
-  // The abdomen: six overlapping tergites, each grooved, spotted, with pointed pleura.
-  for (let i = 0; i < 6; i++) {
-    const z = -0.065 - i * 0.04,
-      w = 0.056 - i * 0.004,
-      h = 0.034 - i * 0.002,
-      seg = new THREE.SphereGeometry(
-        1,
-        18,
-        8,
-        0,
-        Math.PI * 2,
-        0,
-        Math.PI * 0.62,
+  // The abdomen. V0.7 Pass 078: one continuous, gently arched tail (it was six loose half-balls):
+  // each of its six segments a domed tergite with a groove at its hinge and a pair of pale spots,
+  // overhanging curved pleural plates with rounded points down each side, flattened beneath.
+  const segs = 6,
+    tailFrom = -0.05,
+    tailTo = -0.3,
+    tail = organicTube(
+      [v(0, 0.045, tailFrom), v(0, 0.04, -0.15), v(0, 0.03, tailTo)],
+      (u) => {
+        const f = (u * segs) % 1,
+          dome = Math.sin(Math.PI * f) ** 0.5,
+          hinge =
+            Math.exp(-((f / 0.08) ** 2)) + Math.exp(-(((1 - f) / 0.08) ** 2));
+        return (0.05 - 0.018 * u) * (0.9 + 0.1 * dome - 0.06 * hinge);
+      },
+      120,
+      22,
+      0.62,
+    );
+  parts.push(
+    painted(tail, (x, y, z) => {
+      const u = (tailFrom - z) / (tailFrom - tailTo),
+        f = (u * segs) % 1,
+        hinge =
+          Math.exp(-((f / 0.06) ** 2)) + Math.exp(-(((1 - f) / 0.06) ** 2)),
+        spot =
+          Math.exp(-(((f - 0.5) / 0.18) ** 2)) *
+          Math.exp(-(((Math.abs(x) - 0.022) / 0.007) ** 2)),
+        top = y > 0.025 ? 1 : 0.6;
+      return blend(
+        scaled(
+          (u * segs) % 2 < 1 ? SHELL : SHELL_LIGHT,
+          top * (1 - 0.4 * hinge),
+        ),
+        SPOT,
+        spot * (y > 0.03 ? 0.9 : 0),
       );
-    seg.scale(w, h, 0.03);
-    seg.translate(0, 0.036 - i * 0.002, z);
-    parts.push(tinted(seg, i % 2 ? SHELL_LIGHT : SHELL));
-    // The groove across it.
-    const groove = new THREE.TorusGeometry(w * 0.92, 0.0025, 4, 18, Math.PI);
-    groove.translate(0, 0.036 - i * 0.002, z + 0.004);
-    parts.push(tinted(groove, SPINE));
+    }),
+  );
+  for (let i = 0; i < segs; i++)
     for (const side of [-1, 1]) {
-      parts.push(
-        spot(v(side * w * 0.45, 0.036 - i * 0.002 + h * 0.85, z), 0.007),
-      );
-      // A pleuron: a pointed plate curving down the side.
-      const pl = new THREE.ConeGeometry(0.014, 0.034, 4);
-      pl.scale(1, 1, 0.35);
-      pl.rotateZ(side * (Math.PI - 0.35));
-      pl.translate(side * (w + 0.004), 0.02 - i * 0.002, z);
-      parts.push(tinted(pl, SHELL));
+      const u0 = (i + 0.15) / segs,
+        u1 = (i + 0.95) / segs,
+        z0 = tailFrom + (tailTo - tailFrom) * u0,
+        z1 = tailFrom + (tailTo - tailFrom) * u1,
+        w = 0.048 - 0.016 * ((i + 0.5) / segs),
+        plate = polarSheet(
+          (r, a, out) => {
+            // A curved plate hanging from the tergite's edge, pointed and rounded at its tip.
+            const z = z0 + (z1 - z0) * a,
+              reach = 0.026 * (1 - 0.6 * Math.abs(a - 0.4) ** 1.4),
+              d = r * reach;
+            out.set(
+              side * (w * 0.92 + d * 0.35),
+              0.032 - i * 0.002 - d,
+              z - d * 0.35,
+            );
+          },
+          0,
+          1,
+          3,
+          8,
+        );
+      parts.push(painted(plate, () => scaled(SHELL, 0.85)));
     }
-  }
-  // The tail fan: a rounded telson between two pairs of paddles, banded at their tips.
+  // The tail fan: a rounded telson between two pairs of paddles, each finely ribbed, thin, and
+  // banded pale at its edge.
   const fan = (
     angle: number,
     length: number,
     width: number,
     centre: boolean,
   ) => {
-    const g = new THREE.SphereGeometry(1, 14, 6);
-    g.scale(width, 0.006, length);
-    g.translate(0, 0, -length * 0.9);
-    g.rotateY(angle);
-    g.translate(0, 0.028, -0.29);
-    parts.push(tinted(g, centre ? SHELL_LIGHT : SHELL));
-    const tip = new THREE.SphereGeometry(1, 12, 4);
-    tip.scale(width * 0.8, 0.005, length * 0.22);
-    tip.translate(0, 0.0015, -length * 1.65);
-    tip.rotateY(angle);
-    tip.translate(0, 0.028, -0.29);
-    parts.push(tinted(tip, SPOT));
+    const g = polarSheet(
+      (r, a, out) => {
+        const x = Math.sin(a) * width * r,
+          z = -Math.cos(a) * length * r,
+          rib = 0.0012 * Math.sin(a * 22),
+          lx = x * Math.cos(angle) + z * Math.sin(angle),
+          lz = -x * Math.sin(angle) + z * Math.cos(angle);
+        out.set(lx, 0.026 + rib - r * r * 0.006, tailTo + lz + 0.004);
+      },
+      -Math.PI / 2,
+      Math.PI / 2,
+      6,
+      18,
+    );
+    parts.push(
+      painted(g, (x, _y, z) => {
+        const r = Math.hypot(x, z - tailTo) / length;
+        return blend(
+          centre ? SHELL_LIGHT : SHELL,
+          SPOT,
+          Math.max(0, (r - 0.78) * 4),
+        );
+      }),
+    );
   };
-  fan(0, 0.04, 0.026, true);
+  fan(0, 0.045, 0.026, true);
   for (const side of [-1, 1]) {
-    fan(side * 0.4, 0.045, 0.024, false);
-    fan(side * 0.8, 0.042, 0.022, false);
+    fan(side * 0.42, 0.05, 0.024, false);
+    fan(side * 0.82, 0.046, 0.022, false);
   }
   // Five pairs of walking legs. V0.7 Pass 078: each four articulated podomeres (coxa, merus,
   // carpus-propodus, dactyl) that overlap at their joints, banded orange and cream, with a dark
