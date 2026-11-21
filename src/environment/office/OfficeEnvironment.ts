@@ -1,5 +1,14 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import {
+  backShell,
+  bentTube,
+  contouredCushion,
+  panelDoor,
+  taperedLeg,
+  taperedSpoke,
+  twinCaster,
+} from './OfficeFurniture';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
   contactShadowGeometry,
@@ -154,6 +163,104 @@ const CHAIR = {
  * at the origin on the floor), then turned by `yaw` about y and placed at (`x`, `z`).
  */
 function taskChair(b: Batcher, x: number, z: number, yaw: number): void {
+  const cos = Math.cos(yaw),
+    sin = Math.sin(yaw),
+    seat = hex(CHAIR.seat),
+    back = hex(CHAIR.back),
+    frame = hex(CHAIR.frame),
+    metal = hex(CHAIR.metal),
+    part = (
+      key: Key,
+      geometry: THREE.BufferGeometry,
+      [lx, y, lz]: readonly [number, number, number],
+      color: Color,
+      [rx, ry]: readonly [number, number] = [0, 0],
+    ) =>
+      b.add(
+        key,
+        geometry,
+        [x + lx * cos + lz * sin, y, z - lx * sin + lz * cos],
+        color,
+        [rx, yaw + ry, 0],
+      );
+  // V0.7 Pass 079: modelled forms (were boxes, balls and poles). A five-star base of tapered
+  // spokes on twin-wheel casters round a hub, a gas lift in a tapered shroud, a dished cushion
+  // with a waterfall front, a curved back shell with a lumbar swell on a curved spine, and
+  // T-arms with soft pads.
+  part('metal', cylinder(0.05, 0.06, 0.07, 20), [0, 0.085, 0], metal);
+  for (let i = 0; i < 5; i++) {
+    const a = (i / 5) * Math.PI * 2 + Math.PI / 2;
+    part('trim', taperedSpoke(0.3, 0.05, 0.035), [0, 0.095, 0], frame, [0, -a]);
+    for (const g of twinCaster(0.026))
+      part('trim', g, [Math.cos(a) * 0.29, 0, Math.sin(a) * 0.29], frame, [
+        0,
+        -a,
+      ]);
+  }
+  part('metal', cylinder(0.032, 0.042, 0.16, 16), [0, 0.19, 0], frame);
+  part('metal', cylinder(0.019, 0.019, 0.2, 14), [0, 0.35, 0], metal);
+  part('trim', rounded(0.2, 0.04, 0.22, 0.012), [0, 0.43, 0], frame);
+  part(
+    'fabric',
+    contouredCushion(0.5, 0.085, 0.48, 0.014, 0.024),
+    [0, 0.49, 0],
+    seat,
+  );
+  // The spine: one bent bar from under the seat up into the back shell.
+  part(
+    'trim',
+    bentTube(
+      [
+        new THREE.Vector3(0, 0.43, 0.08),
+        new THREE.Vector3(0, 0.43, 0.22),
+        new THREE.Vector3(0, 0.5, 0.29),
+        new THREE.Vector3(0, 0.72, 0.31),
+      ],
+      0.022,
+      24,
+      10,
+    ),
+    [0, 0, 0],
+    frame,
+  );
+  part(
+    'fabric',
+    backShell(0.48, 0.54, 0.055, 0.045, 0.014),
+    [0, 0.92, 0.33],
+    back,
+    [0.1, 0],
+  );
+  for (const s of [-1, 1]) {
+    part(
+      'trim',
+      bentTube(
+        [
+          new THREE.Vector3(s * 0.12, 0.44, 0.06),
+          new THREE.Vector3(s * 0.26, 0.45, 0.06),
+          new THREE.Vector3(s * 0.28, 0.52, 0.06),
+          new THREE.Vector3(s * 0.28, 0.66, 0.05),
+        ],
+        0.016,
+        20,
+        8,
+      ),
+      [0, 0, 0],
+      frame,
+    );
+    part(
+      'trim',
+      contouredCushion(0.075, 0.028, 0.26, 0.004, 0),
+      [s * 0.28, 0.69, 0.03],
+      frame,
+    );
+  }
+}
+
+/**
+ * The Pass 028 task chair, kept for the open-plan desks beyond the glass: seen only at a
+ * distance and repeated at every workstation, so it stays light (V0.7 Pass 079).
+ */
+function distantTaskChair(b: Batcher, x: number, z: number, yaw: number): void {
   const cos = Math.cos(yaw),
     sin = Math.sin(yaw),
     seat = hex(CHAIR.seat),
@@ -561,77 +668,137 @@ export class OfficeEnvironment {
       white,
     );
 
-    // --- The L-desk: dark wood tops on black square-tube legs, a pale modesty panel.
+    // --- The L-desk. V0.7 Pass 079: walnut tops with eased edges over a slim apron, tapered
+    // legs under the return, and a three-drawer pedestal carrying the main top's right end (was
+    // thin slabs on black square tubes); the pale modesty panel stays.
     const top = OFFICE.desk.size.y,
       dk = OFFICE.desk,
       ret = OFFICE.deskReturn;
     b.add(
       'darkWood',
-      rounded(dk.size.x, 0.032, dk.size.z, 0.004),
-      [dk.center.x, top - 0.016, dk.center.z],
+      rounded(dk.size.x, 0.036, dk.size.z, 0.012),
+      [dk.center.x, top - 0.018, dk.center.z],
       darkWood,
     );
     b.add(
       'darkWood',
-      rounded(ret.size.x, 0.032, ret.size.z, 0.004),
-      [ret.center.x, top - 0.016, ret.center.z],
+      rounded(ret.size.x, 0.036, ret.size.z, 0.012),
+      [ret.center.x, top - 0.018, ret.center.z],
       darkWood,
     );
-    const leg = (x: number, z: number) =>
-      b.add(
-        'trim',
-        new THREE.BoxGeometry(0.045, top - 0.032, 0.045),
-        [x, (top - 0.032) / 2, z],
-        black,
-      );
     const dx1 = dk.center.x + dk.size.x / 2 - 0.04,
-      dz0 = dk.center.z - dk.size.z / 2 + 0.05,
       dz1 = dk.center.z + dk.size.z / 2 - 0.05;
-    leg(dx1, dz0);
-    leg(dx1, dz1);
+    // Aprons under the tops' long edges.
     b.add(
-      'trim',
-      new THREE.BoxGeometry(0.04, 0.04, dk.size.z - 0.1),
-      [dx1, 0.03, dk.center.z],
-      black,
+      'darkWood',
+      rounded(dk.size.x - 0.5, 0.07, 0.02, 0.006),
+      [dk.center.x - 0.2, top - 0.07, dz1 + 0.03],
+      darkWood,
+    );
+    b.add(
+      'darkWood',
+      rounded(0.02, 0.07, ret.size.z - 0.1, 0.006),
+      [ret.center.x - ret.size.x / 2 + 0.04, top - 0.07, ret.center.z],
+      darkWood,
     );
     const rx = ret.center.x,
       rz0 = ret.center.z - ret.size.z / 2 + 0.05;
-    leg(rx - ret.size.x / 2 + 0.05, rz0);
-    leg(rx + ret.size.x / 2 - 0.05, rz0);
+    for (const lx of [rx - ret.size.x / 2 + 0.05, rx + ret.size.x / 2 - 0.05])
+      b.add(
+        'darkWood',
+        taperedLeg(top - 0.036, 0.05, 0.034),
+        [lx, 0, rz0],
+        darkWood,
+      );
+    // The pedestal: a walnut case with three drawers facing the chair, bar pulls and a toe kick.
+    const px = dx1 - 0.17,
+      pw = 0.38,
+      pd = dk.size.z - 0.08,
+      ph = top - 0.036;
     b.add(
-      'trim',
-      new THREE.BoxGeometry(ret.size.x - 0.1, 0.04, 0.04),
-      [rx, 0.03, rz0],
-      black,
+      'darkWood',
+      rounded(pw, ph - 0.05, pd, 0.008),
+      [px, 0.05 + (ph - 0.05) / 2, dk.center.z],
+      darkWood,
     );
     b.add(
+      'trim',
+      new THREE.BoxGeometry(pw - 0.04, 0.05, pd - 0.04),
+      [px, 0.025, dk.center.z],
+      black,
+    );
+    const drawerFace = dk.center.z - pd / 2 - 0.008,
+      drawerWood = hex(0x6b4a33);
+    [0.2, 0.2, 0.26].reduce((y0, dh) => {
+      b.add(
+        'darkWood',
+        rounded(pw - 0.03, dh - 0.012, 0.018, 0.005),
+        [px, y0 + dh / 2, drawerFace],
+        drawerWood,
+      );
+      b.add(
+        'metal',
+        rounded(0.13, 0.012, 0.014, 0.005),
+        [px, y0 + dh - 0.045, drawerFace - 0.016],
+        chrome,
+      );
+      for (const s of [-1, 1])
+        b.add(
+          'metal',
+          cylinder(0.005, 0.005, 0.012, 8),
+          [px + s * 0.055, y0 + dh - 0.045, drawerFace - 0.01],
+          chrome,
+          [Math.PI / 2, 0, 0],
+        );
+      return y0 + dh;
+    }, 0.06);
+    b.add(
       'paint',
-      new THREE.BoxGeometry(dk.size.x - 0.14, 0.42, 0.016),
-      [dk.center.x, top - 0.28, dz1 + 0.02],
+      new THREE.BoxGeometry(dk.size.x - 0.6, 0.42, 0.016),
+      [dk.center.x - 0.21, top - 0.28, dz1 + 0.02],
       hex(0xd8cdb8),
     );
     // Two monitors on arms, facing the desk chair (their screens glow softly; generic).
     const screens: THREE.BufferGeometry[] = [];
     for (const mx of [dk.center.x - 0.33, dk.center.x + 0.3]) {
       const mz = dk.center.z + 0.18;
+      // V0.7 Pass 079: a slim bezel with a tapered housing behind it, on a curved neck and an
+      // oval foot (was a slab on a pole and a plate).
       b.add(
         'trim',
-        rounded(0.56, 0.34, 0.025, 0.006),
+        rounded(0.56, 0.34, 0.012, 0.005),
         [mx, top + 0.33, mz],
         black,
       );
       b.add(
+        'trim',
+        rounded(0.36, 0.22, 0.03, 0.012),
+        [mx, top + 0.32, mz + 0.018],
+        black,
+      );
+      b.add(
         'metal',
-        cylinder(0.012, 0.012, 0.18, 10),
-        [mx, top + 0.1, mz + 0.03],
+        bentTube(
+          [
+            new THREE.Vector3(mx, top + 0.01, mz + 0.07),
+            new THREE.Vector3(mx, top + 0.12, mz + 0.075),
+            new THREE.Vector3(mx, top + 0.24, mz + 0.05),
+            new THREE.Vector3(mx, top + 0.3, mz + 0.032),
+          ],
+          0.013,
+          20,
+          10,
+        ),
+        [0, 0, 0],
         chrome,
       );
       b.add(
         'metal',
-        rounded(0.16, 0.012, 0.12, 0.004),
-        [mx, top + 0.006, mz + 0.03],
+        cylinder(0.08, 0.085, 0.012, 24),
+        [mx, top + 0.006, mz + 0.06],
         chrome,
+        [0, 0, 0],
+        [1, 1, 0.7],
       );
       const s = new THREE.PlaneGeometry(0.53, 0.31);
       s.rotateY(Math.PI);
@@ -710,42 +877,80 @@ export class OfficeEnvironment {
 
     // --- The desk chair, facing the desk (+z).
     taskChair(b, OFFICE.chair.center.x, OFFICE.chair.center.z, Math.PI);
-    // --- Guest chairs facing the desk: blue seats, pale grey backs, chrome legs.
+    // --- Guest chairs facing the desk. V0.7 Pass 079: a sled-base chair: each side one bent
+    // chrome tube (floor runner, front leg, seat rail, back upright) with an armrest loop, a cross
+    // brace, a dished rust cushion and a curved cream back shell (were a slab on four poles).
     for (const c of OFFICE.guestChairs) {
+      const v = (x: number, y: number, z: number) =>
+        new THREE.Vector3(c.x + x, y, c.z + z);
+      for (const sx of [-0.21, 0.21]) {
+        b.add(
+          'metal',
+          bentTube(
+            [
+              v(sx, 0.016, 0.19),
+              v(sx, 0.016, -0.12),
+              v(sx, 0.036, -0.2),
+              v(sx, 0.2, -0.205),
+              v(sx, 0.41, -0.19),
+              v(sx, 0.42, 0.12),
+              v(sx, 0.52, 0.21),
+              v(sx, 0.9, 0.25),
+            ],
+            0.011,
+            64,
+            10,
+          ),
+          [0, 0, 0],
+          chrome,
+        );
+        b.add(
+          'metal',
+          bentTube(
+            [
+              v(sx, 0.42, -0.12),
+              v(sx * 1.05, 0.6, -0.1),
+              v(sx * 1.08, 0.64, 0.05),
+              v(sx, 0.66, 0.2),
+            ],
+            0.009,
+            28,
+            8,
+          ),
+          [0, 0, 0],
+          chrome,
+        );
+        b.add(
+          'trim',
+          contouredCushion(0.05, 0.022, 0.2, 0.003, 0),
+          [c.x + sx * 1.08, 0.66, c.z + 0.05],
+          black,
+        );
+      }
+      b.add(
+        'metal',
+        bentTube(
+          [v(-0.21, 0.41, 0.05), v(0, 0.4, 0.05), v(0.21, 0.41, 0.05)],
+          0.008,
+          12,
+          8,
+        ),
+        [0, 0, 0],
+        chrome,
+      );
       b.add(
         'fabric',
-        rounded(0.46, 0.07, 0.44, 0.025),
+        contouredCushion(0.46, 0.07, 0.44, 0.012, 0.02),
         [c.x, 0.46, c.z],
         hex(0x9a5236),
       );
       b.add(
         'paint',
-        rounded(0.44, 0.3, 0.035, 0.03),
-        [c.x, 0.8, c.z + 0.22],
+        backShell(0.44, 0.3, 0.035, 0.03, 0.008),
+        [c.x, 0.8, c.z + 0.23],
         hex(0xd9ccb4),
         [0.12, 0, 0],
       );
-      for (const sx of [-0.2, 0.2]) {
-        for (const sz of [-0.18, 0.18])
-          b.add(
-            'metal',
-            cylinder(0.011, 0.011, 0.43, 8),
-            [c.x + sx, 0.215, c.z + sz],
-            chrome,
-          );
-        b.add(
-          'trim',
-          new THREE.BoxGeometry(0.03, 0.42, 0.03),
-          [c.x + sx * 1.08, 0.7, c.z + 0.2],
-          black,
-        );
-        b.add(
-          'trim',
-          rounded(0.05, 0.03, 0.22, 0.01),
-          [c.x + sx * 1.12, 0.64, c.z + 0.05],
-          black,
-        );
-      }
     }
     // V0.7 Pass 073: lived-in touches. A wool rug under the guest chairs (its top below the baked
     // contact shadows), a desk lamp with a warm glowing shade, a stack of books, and a floor plant
@@ -837,48 +1042,98 @@ export class OfficeEnvironment {
       );
     // --- Boxes in the back-right corner.
     const bx = OFFICE.boxes;
+    // V0.7 Pass 079: real cardboard boxes: softened edges, a tape strip over the seam, and the top
+    // box's flaps folded half open.
     b.add(
       'paper',
-      new THREE.BoxGeometry(0.48, 0.32, 0.4),
+      rounded(0.48, 0.32, 0.4, 0.008),
       [bx.center.x, 0.16, bx.center.z],
       hex(0xa8865c),
     );
     b.add(
       'paper',
-      new THREE.BoxGeometry(0.4, 0.26, 0.34),
-      [bx.center.x - 0.02, 0.45, bx.center.z + 0.01],
+      new THREE.BoxGeometry(0.06, 0.004, 0.402),
+      [bx.center.x, 0.321, bx.center.z],
+      hex(0xc9b48a),
+    );
+    b.add(
+      'paper',
+      new THREE.BoxGeometry(0.06, 0.12, 0.004),
+      [bx.center.x, 0.26, bx.center.z - 0.201],
+      hex(0xc9b48a),
+    );
+    b.add(
+      'paper',
+      rounded(0.4, 0.24, 0.34, 0.006),
+      [bx.center.x - 0.02, 0.44, bx.center.z + 0.01],
       hex(0xb39268),
+      [0, 0.12, 0],
+    );
+    // The front flap stands half open toward the room; the back one lies folded on the top.
+    b.add(
+      'paper',
+      new THREE.BoxGeometry(0.4, 0.004, 0.17),
+      [bx.center.x - 0.02, 0.6, bx.center.z + 0.25],
+      hex(0xb8986c),
+      [0.7, 0.12, 0],
+    );
+    b.add(
+      'paper',
+      new THREE.BoxGeometry(0.4, 0.004, 0.17),
+      [bx.center.x - 0.02, 0.565, bx.center.z - 0.07],
+      hex(0xb8986c),
       [0, 0.12, 0],
     );
 
     // --- Aquarium cabinet (V0.7 Pass 073: dark walnut, so it sits in the warm room) and the tank.
-    const st = OFFICE.stand;
+    // V0.7 Pass 079: a proper cabinet (was a box with a line and two handles): a walnut carcass
+    // under an overhanging top, a recessed toe kick, and two frame-and-panel doors with bar pulls.
+    const st = OFFICE.stand,
+      walnut = hex(0x4a3426),
+      doorWood = hex(0x553b2a);
     b.add(
       'darkWood',
-      rounded(st.size.x, st.size.y - 0.04, st.size.z, 0.01),
-      [st.center.x, (st.size.y - 0.04) / 2 + 0.04, st.center.z],
-      hex(0x4a3426),
+      rounded(st.size.x - 0.03, st.size.y - 0.12, st.size.z - 0.03, 0.008),
+      [st.center.x + 0.015, 0.08 + (st.size.y - 0.12) / 2, st.center.z],
+      walnut,
+    );
+    b.add(
+      'darkWood',
+      rounded(st.size.x, 0.04, st.size.z, 0.01),
+      [st.center.x, st.size.y - 0.02, st.center.z],
+      walnut,
     );
     b.add(
       'trim',
-      new THREE.BoxGeometry(st.size.x - 0.04, 0.04, st.size.z - 0.04),
-      [st.center.x, 0.02, st.center.z],
+      new THREE.BoxGeometry(st.size.x - 0.08, 0.08, st.size.z - 0.08),
+      [st.center.x + 0.02, 0.04, st.center.z],
       black,
     );
-    const face = st.center.x - st.size.x / 2 - 0.002;
-    b.add(
-      'trim',
-      new THREE.BoxGeometry(0.004, st.size.y - 0.14, 0.006),
-      [face, st.size.y / 2 + 0.02, st.center.z],
-      hex(0x111213),
-    );
-    for (const s of [-1, 1])
+    const face = st.center.x - st.size.x / 2 + 0.015,
+      doorH = st.size.y - 0.17,
+      doorW = (st.size.z - 0.05) / 2;
+    for (const s of [-1, 1]) {
+      const dz = st.center.z + s * (doorW / 2 + 0.006),
+        dy = 0.09 + doorH / 2,
+        door = panelDoor(doorW, doorH);
+      for (const g of door.frame)
+        b.add('darkWood', g, [face, dy, dz], doorWood);
+      b.add('darkWood', door.panel, [face, dy, dz], walnut);
       b.add(
         'metal',
-        rounded(0.014, 0.12, 0.014, 0.004),
-        [face - 0.01, st.size.y / 2 + 0.05, st.center.z + s * 0.05],
+        rounded(0.012, 0.16, 0.012, 0.005),
+        [face - 0.034, dy + 0.06, dz - s * (doorW / 2 - 0.05)],
         chrome,
       );
+      for (const k of [-1, 1])
+        b.add(
+          'metal',
+          cylinder(0.005, 0.005, 0.016, 8),
+          [face - 0.024, dy + 0.06 + k * 0.065, dz - s * (doorW / 2 - 0.05)],
+          chrome,
+          [0, 0, Math.PI / 2],
+        );
+    }
     this.buildTank(b);
 
     // --- Clock on the back wall, left of the window.
@@ -1175,7 +1430,7 @@ export class OfficeEnvironment {
         );
       }
       // The sitter faces the desk: -z at yaw 0, +z at yaw pi.
-      taskChair(b, x, z - toward * 0.62, toward > 0 ? Math.PI : 0);
+      distantTaskChair(b, x, z - toward * 0.62, toward > 0 ? Math.PI : 0);
     };
     for (const z of [4.4, 7.8])
       for (const x of [-3.2, -1.7, 1.7, 3.2]) {

@@ -30,11 +30,16 @@ export const WORLD_VIEWS = {
     ['cave-cavern', 'swimming', [0, 5, -14], [0, 3, -26]],
     ['cave-wall-close', 'close', [9, 3, -26], [13, 3.4, -28]],
     ['cave-sunbeam', 'medium', [-2, 4, -20], [3.5, 3, -27]],
+    // V0.7 Pass 079: distant boulder silhouettes, and the floor under the sunbeam.
+    ['cave-boulders-far', 'swimming', [10, 6, -14], [-12, 2, -30]],
+    ['cave-sunbeam-floor', 'medium', [0.5, 5, -21.5], [3.5, 0, -27.5]],
   ],
   ice: [
     ['ice-open-water', 'swimming', [0, 6, -16], [0, 4, -30]],
     ['ice-seabed-close', 'close', [-5, 2.5, -30], [-6, 0.6, -33]],
     ['ice-underside', 'medium', [2, 8, -32], [2, 15, -37]],
+    // V0.7 Pass 079: the seabed's composition at swimming distance.
+    ['ice-seabed-wide', 'swimming', [3, 4, -20], [-5, 0.5, -33]],
   ],
   wreck: [
     ['wreck-overview', 'swimming', [14, 9, -14], [0, 5, -30]],

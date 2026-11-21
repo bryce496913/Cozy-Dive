@@ -234,14 +234,39 @@ export class IceGarden {
       p = new THREE.Vector3(),
       s = new THREE.Vector3(),
       c = new THREE.Color();
-    const spot = (clear = 0) => {
+    // V0.7 Pass 079: three winding sand lanes run front to back between the gardens and stay
+    // open, so small crawlers and drifters show against bare seabed; growth gathers into clumps.
+    const inLane = (x: number, z: number) =>
+      [-12, 0.5, 12].some(
+        (base, k) =>
+          Math.abs(x - (base + 2.6 * Math.sin(z * 0.11 + k * 1.9))) < 1.7,
+      );
+    const spot = (clear = 0, lanes = true) => {
       for (let i = 0; i < 40; i++) {
         const x = (rand() * 2 - 1) * (w.x - 4),
           z = t.wallZ - 3 + rand() * (w.farZ - t.wallZ + 6);
         if (Math.abs(x) < 3.5 + clear && z > t.wallZ - 8) continue;
+        if (lanes && inLane(x, z)) continue;
         return { x, y: iceFloor(x, z), z };
       }
       return { x: 0, y: iceFloor(0, -30), z: -30 };
+    };
+    /** Garden clumps: shared centres for the sponges and the soft corals around them. */
+    const clumps: { x: number; z: number }[] = [];
+    /** A point around a clump centre, at `inner`..`outer` m, kept out of the lanes. */
+    const around = (
+      cl: { x: number; z: number },
+      inner: number,
+      outer: number,
+    ) => {
+      for (let i = 0; i < 12; i++) {
+        const a = rand() * Math.PI * 2,
+          d = inner + (outer - inner) * rand(),
+          x = cl.x + Math.cos(a) * d,
+          z = cl.z + Math.sin(a) * d;
+        if (!inLane(x, z) || i === 11) return { x, y: iceFloor(x, z), z };
+      }
+      return { x: cl.x, y: iceFloor(cl.x, cl.z), z: cl.z };
     };
     const kind = (
       geometry: THREE.BufferGeometry,
@@ -270,13 +295,21 @@ export class IceGarden {
       GARDEN.sponges,
       'Glass sponges',
     );
+    // V0.7 Pass 079: sponges stand in clumps of six with a clear hierarchy: one tall barrel at
+    // the heart, smaller vases round it (were loose groups of four of random height).
     let at = spot();
     for (let i = 0; i < GARDEN.sponges; i++) {
-      if (i % 4 === 0) at = spot();
-      const x = at.x + (rand() - 0.5) * 3,
-        z = at.z + (rand() - 0.5) * 3,
+      const rank = i % 6;
+      if (rank === 0) {
+        at = spot(1);
+        clumps.push({ x: at.x, z: at.z });
+      }
+      const o = rank === 0 ? at : around(at, 0.5, 1.6),
+        x = o.x,
+        z = o.z,
         y = iceFloor(x, z),
-        h = 0.5 + rand() * rand() * (i % 9 === 0 ? 2.6 : 1.3),
+        h =
+          rank === 0 ? 1.4 + rand() * 1.4 : 0.45 + rand() * (1.0 - rank * 0.09),
         r = h * (0.55 + rand() * 0.4);
       e.set((rand() - 0.5) * 0.15, rand() * Math.PI * 2, (rand() - 0.5) * 0.15);
       m.compose(p.set(x, y - 0.05, z), q.setFromEuler(e), s.set(r, h, r));
@@ -307,10 +340,11 @@ export class IceGarden {
       [0.95, 0.6, 0.66],
       [0.98, 0.55, 0.25],
     ];
+    // Soft corals ring the sponge clumps (the same gardens), leaving the sand between open.
     for (let i = 0; i < GARDEN.corals; i++) {
-      if (i % 5 === 0) at = spot();
-      const x = at.x + (rand() - 0.5) * 2.5,
-        z = at.z + (rand() - 0.5) * 2.5,
+      const o = around(clumps[i % clumps.length], 1.2, 2.6),
+        x = o.x,
+        z = o.z,
         y = iceFloor(x, z),
         h = 0.4 + rand() * 0.8;
       e.set(0, rand() * Math.PI * 2, 0);
@@ -349,7 +383,7 @@ export class IceGarden {
               y: st.y + st.size * 0.5,
               z: st.z + (rand() - 0.5) * st.size * 0.6,
             }
-          : spot(),
+          : around(clumps[(i * 5) % clumps.length], 1.8, 3),
         size = 1.4 + rand() * 1.6;
       e.set(0, rand() * Math.PI * 2, 0);
       m.compose(
@@ -382,9 +416,14 @@ export class IceGarden {
       GARDEN.stars,
       'Antarctic sea stars',
     );
+    // Sea stars: most at the gardens' edges, the rest scattered (lanes included; they are small
+    // animals themselves). The few giants are smaller, so they no longer dominate the floor.
     for (let i = 0; i < GARDEN.stars; i++) {
-      const pos = spot(),
-        size = (i % 8 === 0 ? 3.6 : 1.4) + rand() * 1.2;
+      const pos =
+          i % 10 < 7
+            ? around(clumps[(i * 7) % clumps.length], 2.2, 3.4)
+            : spot(0, false),
+        size = (i % 8 === 0 ? 2.6 : 1.3) + rand() * 1.0;
       e.set(0, rand() * Math.PI * 2, 0);
       m.compose(
         p.set(pos.x, pos.y + 0.01, pos.z),
