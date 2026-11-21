@@ -234,6 +234,42 @@ export function gardenTexture(): THREE.DataTexture {
 // --- v0.4 Pass 027: the glass office.
 
 /** Grey grasscloth wallcovering: fine horizontal fibres with slow tonal drift (1 m per repeat). */
+/**
+ * V0.7 Pass 073: a warm oak plank floor (replacing the cool porcelain tiles): planks of varied
+ * length and tone with soft seams, flowing grain and a few knots. Tiles every 1.2 m (u: across
+ * four planks; v: along them).
+ */
+export function plankFloorTexture(): THREE.DataTexture {
+  return texture(512, (u, v) => {
+    // Four planks across, each a full tile (1.2 m) long with its butt joint staggered.
+    const plank = Math.floor(u * 4),
+      across = (u * 4) % 1,
+      offset = (plank * 0.61) % 1,
+      run = (v + offset) % 1,
+      tone = 0.88 + 0.1 * (((plank * 7) % 5) / 4 - 0.5),
+      warp = fbm(u * 5, v * 1.5, 211 + plank) * 1.4,
+      grain = 0.5 + 0.5 * Math.sin((across * 7 + warp) * Math.PI * 2),
+      fine = fbm(u * 80, v * 6, 223, 2),
+      // A faint knot on alternate planks only.
+      knot =
+        plank % 2
+          ? 0
+          : Math.exp(
+              -(((across - 0.45) / 0.07) ** 2 + ((run - 0.55) / 0.04) ** 2),
+            ),
+      seam = Math.min(
+        1,
+        Math.min(across, 1 - across) * 70,
+        Math.min(run, 1 - run) * 160,
+      ),
+      k =
+        tone *
+        (0.88 + 0.07 * grain + 0.05 * (fine - 0.5)) *
+        (1 - 0.18 * knot) *
+        (0.78 + 0.22 * seam);
+    return [0.78 * k, 0.6 * k, 0.42 * k];
+  });
+}
 export function grassclothTexture(): THREE.DataTexture {
   return texture(256, (u, v) => {
     const fibre = fbm(u * 3, v * 90, 101, 3),

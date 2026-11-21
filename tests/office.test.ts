@@ -24,7 +24,8 @@ describe('Pass 020 office environment', () => {
       // 26 in Pass 020; Pass 022's contact shadows add exactly one merged mesh. Pass 027's glass
       // office keeps the same budget for the room itself; the open-plan office seen through the
       // glass adds 11 merged meshes of its own (measured).
-      expect(meshes.length).toBeLessThanOrEqual(27);
+      // V0.7 Pass 073: the floor plant in the front corner adds one merged mesh.
+      expect(meshes.length).toBeLessThanOrEqual(28);
       expect(beyond.length).toBeLessThanOrEqual(11);
       const room = new THREE.Box3(
         new THREE.Vector3(
