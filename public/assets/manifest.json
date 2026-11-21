@@ -1125,13 +1125,13 @@
   {
     "id": "sea-lion",
     "file": "assets/models/creatures/sea-lion.glb",
-    "sha256": "132e8663cd78436071f3425da69b1c82698964102b05bb2e9efc1b1b01c9edab",
+    "sha256": "ee398520cca74fd5fb7817cef9b079b24881fc51d4e9f19089613ec400c421e0",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 447888,
+    "bytes": 447312,
     "visualPrimitives": 2,
-    "visualTriangles": 9000,
+    "visualTriangles": 8998,
     "collisionTriangles": 0,
     "materials": 1,
     "images": [
@@ -1160,7 +1160,7 @@
         "encodedBytes": 9594
       }
     ],
-    "geometryAccessorBytes": 108096,
+    "geometryAccessorBytes": 108072,
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
@@ -2331,11 +2331,11 @@
   {
     "id": "polar-bear",
     "file": "assets/models/creatures/polar-bear.glb",
-    "sha256": "d70ecbc4c00942e49b9c65d0cf81d616a6a9b080740cfe6190e0d343ae1d97b9",
+    "sha256": "2b258fc35cdf7f0f6a21de35cbdc504496550012d6239dd4c58ae78cd98aec25",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 473504,
+    "bytes": 473184,
     "visualPrimitives": 2,
     "visualTriangles": 8998,
     "collisionTriangles": 0,
@@ -2366,7 +2366,7 @@
         "encodedBytes": 5960
       }
     ],
-    "geometryAccessorBytes": 109032,
+    "geometryAccessorBytes": 109080,
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"

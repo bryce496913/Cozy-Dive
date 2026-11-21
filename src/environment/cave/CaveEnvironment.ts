@@ -29,6 +29,13 @@ import { CAVE_LIFE } from './CaveLife';
 import { caveFloor, chamberDepth, wallLumps, wallPoint } from './CaveTerrain';
 
 /**
+ * V0.7 Pass 080: the stone of the rocks heaped round the cave's two tunnel mouths, matched to the
+ * cavern's limestone boulders (their vertex tone under the 'Cave limestone' tint). They used the
+ * ice world's dark basalt and read as a ring of blue-slate rubble in a pale cave.
+ */
+const CAVE_MOUTH_STONE = [0.44, 0.4, 0.31] as const;
+
+/**
  * v0.6 Pass 034: the sea cave's rock and sand. A tunnel from the grotto runs south into a dome of
  * pale limestone, lumpy and stained darker low down. Through a hole in its roof a shaft of sunlight
  * falls to a pool of light on the sand. Boulders lie around its edges, with lobsters' cracks at
@@ -191,6 +198,7 @@ export class CaveEnvironment {
         0,
         14,
         62010,
+        CAVE_MOUTH_STONE,
       ),
       tunnel,
       'Cave entrance eroded rim',
@@ -211,12 +219,20 @@ export class CaveEnvironment {
     // v0.6 Pass 052 (playtest: "the tunnel to the ice needs to be better designed"): boulders
     // heaped round its mouth (frosted a little), and icicles hanging in its colder half.
     this.add(
-      mouthCollar(backTube, backMouthZ() + 0.15, 1, 1.2, 0.16),
+      mouthCollar(backTube, backMouthZ() + 0.15, 1, 1.2, 0.34),
       tunnel,
       'Cave back tunnel collar',
     );
     this.add(
-      tunnelMouthRocks(backTube, backMouthZ() + 0.1, 1, 0.25, 12, 52110),
+      tunnelMouthRocks(
+        backTube,
+        backMouthZ() + 0.1,
+        1,
+        0.25,
+        12,
+        52110,
+        CAVE_MOUTH_STONE,
+      ),
       tunnel,
       'Cave back tunnel mouth',
     );

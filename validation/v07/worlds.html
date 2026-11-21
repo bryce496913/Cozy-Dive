@@ -145,6 +145,51 @@
         }
         return rows;
       };
+      /**
+       * V0.7 Pass 080: the material audit. Every distinct material in the open world, with its
+       * PBR response, maps and how much of the scene uses it, so roughness, normal strength and
+       * gloss can be compared across worlds against the template ranges.
+       */
+      window.materials = () => {
+        const rows = new Map();
+        scene.scene.traverse((o) => {
+          if (!o.isMesh || !o.visible) return;
+          const g = o.geometry,
+            count = o.isInstancedMesh ? o.count : 1,
+            t =
+              ((g.index ? g.index.count : g.getAttribute('position').count) /
+                3) *
+              count;
+          for (const m of [].concat(o.material)) {
+            const row = rows.get(m) || {
+              name: m.name || '',
+              mesh: o.name || o.parent?.name || '',
+              type: m.type,
+              roughness: m.roughness ?? null,
+              metalness: m.metalness ?? null,
+              normalScale: m.normalScale ? m.normalScale.x : null,
+              clearcoat: m.clearcoat ?? null,
+              transparent: m.transparent,
+              vertexColors: m.vertexColors,
+              maps: [
+                'map',
+                'normalMap',
+                'roughnessMap',
+                'aoMap',
+                'emissiveMap',
+                'alphaMap',
+              ].filter((k) => m[k]),
+              color: m.color ? '#' + m.color.getHexString() : null,
+              triangles: 0,
+              meshes: 0,
+            };
+            row.triangles += t;
+            row.meshes += count;
+            rows.set(m, row);
+          }
+        });
+        return [...rows.values()].sort((a, b) => b.triangles - a.triangles);
+      };
       window.ready = true;
     </script>
   </body>

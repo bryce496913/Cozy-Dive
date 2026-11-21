@@ -497,7 +497,10 @@ export const ASSET_REGISTRY = {
     requiredNodes: ['PolarBear_Root', 'Body', 'Body_LOD1'],
     minDimension: 1.8,
     // v0.6 Pass 052B: it measures 2.8 m loaded (its legs and LOD included), so it never loaded.
-    maxDimension: 3.1,
+    // V0.7 Pass 080: the Pass 078 sculpt (2.58 m at rest) paddles all four legs, and three.js
+    // adds each stroke's reach onto the box cumulatively, so it measures 3.57 m and was falling
+    // back to the procedural bear. Its runtime scale is fixed (1), so the envelope widens.
+    maxDimension: 3.6,
     requireMorphs: true,
   },
   toothfish: {

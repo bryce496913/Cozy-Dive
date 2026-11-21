@@ -815,11 +815,12 @@ export class IceExtras {
       new THREE.MeshStandardMaterial({
         name: 'Ice detail',
         vertexColors: true,
-        roughness: 0.18,
-        metalness: 0.02,
+        // V0.7 Pass 080: on the ice template (see the 'Ice' material): less glassy, half the glow.
+        roughness: 0.35,
+        metalness: 0,
         flatShading: true,
         emissive: 0x123c5a,
-        emissiveIntensity: 0.6,
+        emissiveIntensity: 0.3,
       }),
     );
     // Brinicles from the sea ice (their tops sunk into it), clear of the holes.

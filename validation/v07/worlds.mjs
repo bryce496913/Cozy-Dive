@@ -69,7 +69,7 @@ const browser = await chromium.launch({
     '--use-angle=swiftshader',
   ],
 });
-const report = { views: [], inventory: [], errors: [] };
+const report = { views: [], inventory: [], materials: {}, errors: [] };
 try {
   const page = await browser.newPage({ viewport: { width: 960, height: 600 } });
   page.setDefaultTimeout(900000);
@@ -115,6 +115,8 @@ try {
         `${name}: ${info.calls} draws, ${(info.triangles / 1e6).toFixed(2)} M tris, ${hash}`,
       );
     }
+    // V0.7 Pass 080: the world's materials, for the cross-world consistency audit.
+    report.materials[world] = await page.evaluate(() => window.materials());
   }
   if (process.env.COZY_INVENTORY !== '0') {
     const rows = await page.evaluate(() => window.inventory());
