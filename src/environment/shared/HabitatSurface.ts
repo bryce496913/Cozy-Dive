@@ -51,7 +51,17 @@ export class HabitatSurface {
               (hash - 0.5) * 0.05
             : kind === 'ice'
               ? vein * 0.6 + grain * 0.025
-              : strata * 0.15 + grain * 0.14;
+              : // V0.7 Pass 079 (playtest: a checker/moire pattern on the tunnel rock): the grain
+                // was a product of two straight sine waves, a regular lattice that shimmered into a
+                // checkerboard at a distance. Warped, irregular grain and pores instead (integer
+                // frequencies, so the tile stays seamless).
+                strata * 0.15 +
+                0.07 *
+                  Math.sin(u * 7 + 2.1 * Math.sin(v * 3 + u)) *
+                  Math.sin(v * 5 + 1.7 * Math.sin(u * 4 - v)) +
+                0.05 *
+                  Math.sin(u * 11 - v * 6 + 1.4 * Math.sin(v * 7 + u * 2)) +
+                0.04 * (hash - 0.5);
         heights[y * n + x] = h;
         // Sediment: shell grit flecks (pale) and dark grains scattered through the sand.
         const fleck =
@@ -102,6 +112,9 @@ export class HabitatSurface {
       t.generateMipmaps = true;
       t.minFilter = THREE.LinearMipmapLinearFilter;
       t.magFilter = THREE.LinearFilter;
+      // V0.7 Pass 079 (playtest: moire on tunnel rock at grazing angles): anisotropic filtering
+      // (three clamps it to what the device supports).
+      t.anisotropy = 8;
       t.needsUpdate = true;
       this.maps.push(t);
     }
