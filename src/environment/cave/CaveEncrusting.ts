@@ -1,6 +1,7 @@
 import { CAVE_SIGHTS, type Sight } from '../../discovery/sights';
 import type { SightCandidate } from '../../discovery/journal';
 import * as THREE from 'three';
+import { smoothed } from '../shared/organicGeometry';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { CAVE } from '../../config/passage';
 import { caveFloor, wallPoint } from './CaveTerrain';
@@ -46,10 +47,8 @@ function shaded(
   g: THREE.BufferGeometry,
   tone: (p: THREE.Vector3) => number,
 ): THREE.BufferGeometry {
-  const out = g.index ? g.toNonIndexed() : g;
-  if (out !== g) g.dispose();
-  for (const name of Object.keys(out.attributes))
-    if (name !== 'position' && name !== 'normal') out.deleteAttribute(name);
+  // V0.7 Pass 069: creased normals (smooth across gentle bends), kept through the merge.
+  const out = smoothed(g);
   const p = out.getAttribute('position'),
     c = new Float32Array(p.count * 3),
     v = new THREE.Vector3();
@@ -58,7 +57,6 @@ function shaded(
     c[i * 3] = c[i * 3 + 1] = c[i * 3 + 2] = k;
   }
   out.setAttribute('color', new THREE.Float32BufferAttribute(c, 3));
-  out.computeVertexNormals();
   return out;
 }
 function merge(parts: THREE.BufferGeometry[]): THREE.BufferGeometry {

@@ -9,9 +9,11 @@ import path from 'node:path';
 const { chromium } = await import(process.env.COZY_PLAYWRIGHT || 'playwright');
 const url = process.env.COZY_URL || 'http://127.0.0.1:5173';
 const output = process.env.COZY_OUTPUT || '/tmp/v07-small';
-const only = process.env.COZY_ONLY
-  ? `?only=${encodeURIComponent(process.env.COZY_ONLY)}`
-  : '';
+const params = new URLSearchParams();
+if (process.env.COZY_ONLY) params.set('only', process.env.COZY_ONLY);
+// COZY_SET=coral renders the corals and reef growth (Pass 069).
+if (process.env.COZY_SET) params.set('set', process.env.COZY_SET);
+const only = params.size ? `?${params}` : '';
 fs.mkdirSync(output, { recursive: true });
 const browser = await chromium.launch({
   args: [

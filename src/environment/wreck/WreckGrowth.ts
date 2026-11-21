@@ -225,15 +225,19 @@ export function softCoral(seed = 5): THREE.BufferGeometry {
   );
   // Pale, translucent-looking trunk; the colour gathers in the polyps.
   parts.push(taperedTube(trunk, 0.075, 0.045, 7, (t) => 0.72 + 0.08 * t));
+  // V0.7 Pass 069: polyp clusters are short, fleshy catkins continuing each twig (they were loose
+  // low-poly spheres floating at the tips).
   const bunch = (at: THREE.Vector3) => {
-    for (let i = 0; i < 4; i++) {
-      const s = new THREE.SphereGeometry(0.028 + rand() * 0.012, 5, 3);
-      s.translate(
-        at.x + (rand() - 0.5) * 0.06,
-        at.y + rand() * 0.04,
-        at.z + (rand() - 0.5) * 0.06,
-      );
-      parts.push(finish(s, () => 1));
+    for (let i = 0; i < 3; i++) {
+      const a = rand() * Math.PI * 2,
+        lobe = curve(
+          at,
+          new THREE.Vector3(Math.cos(a) * 0.5, 1, Math.sin(a) * 0.5),
+          0.05 + rand() * 0.03,
+          new THREE.Vector3(),
+          3,
+        );
+      parts.push(taperedTube(lobe, 0.026 + rand() * 0.006, 0.014, 8, () => 1));
     }
   };
   for (let b = 0; b < 6; b++) {
@@ -326,7 +330,7 @@ export function barrelSponge(): THREE.BufferGeometry {
     new THREE.Vector2(0.4, 0.7),
     new THREE.Vector2(0.36, 0.45),
   );
-  const g = new THREE.LatheGeometry(profile, 28),
+  const g = new THREE.LatheGeometry(profile, 44),
     p = g.getAttribute('position');
   for (let i = 0; i < p.count; i++) {
     const x = p.getX(i),
