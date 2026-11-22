@@ -1124,6 +1124,10 @@ export class ShipwreckModel {
       }),
       soft = new THREE.MeshStandardMaterial({
         vertexColors: true,
+        // V0.8 Pass 087 (consistency audit: the colonies' reef-bright instance colours read as
+        // stickers in the wreck's murk): a grey-green veil of silt over every colony, so they
+        // keep their hue but sit in the same light and value range as the steel they grow on.
+        color: 0xa9b5a8,
         roughness: 0.95,
         side: THREE.DoubleSide,
       });

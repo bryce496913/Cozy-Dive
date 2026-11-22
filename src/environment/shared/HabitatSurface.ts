@@ -50,7 +50,15 @@ export class HabitatSurface {
               grain * 0.05 +
               (hash - 0.5) * 0.05
             : kind === 'ice'
-              ? vein * 0.6 + grain * 0.025
+              ? // V0.8 Pass 087: shallow melt dimples (a warped, seamless cell-like ripple)
+                // under the veins, so ice surfaces scatter light like worn ice, not glass.
+                vein * 0.45 +
+                0.14 *
+                  Math.abs(
+                    Math.sin(u * 5 + 1.3 * Math.sin(v * 3)) *
+                      Math.sin(v * 4 + 1.1 * Math.sin(u * 2)),
+                  ) +
+                grain * 0.025
               : // V0.7 Pass 079 (playtest: a checker/moire pattern on the tunnel rock): the grain
                 // was a product of two straight sine waves, a regular lattice that shimmered into a
                 // checkerboard at a distance. Warped, irregular grain and pores instead (integer

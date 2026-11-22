@@ -24,7 +24,9 @@ import { shaftColliders, shaftLining } from '../shared/Shaft';
  * V0.7 Pass 080: the kelp rock's surface density (world-space repeats per metre). Finer than the
  * cave's broad walls: the boulders are seen close, among the stalks.
  */
-const KELP_ROCK_GRAIN = 1.1;
+// V0.8 Pass 087: a coarser grain (was 1.1 repeats per metre): at swimming distance under the
+// canopy the fine pores averaged out and the boulders read as smooth blobs.
+const KELP_ROCK_GRAIN = 0.6;
 
 /**
  * v0.6 Pass 032: the kelp forest's ground and walls. The tunnel from the cleft runs straight
@@ -155,7 +157,7 @@ export class KelpEnvironment {
     );
     // On dark rock the shared surface's default relief nearly vanishes: the limestone template's
     // full normal strength, so the grain and pores still read under the canopy's dim light.
-    this.rock.normalScale.setScalar(0.8);
+    this.rock.normalScale.setScalar(1);
     // V0.7 Pass 075: the shared sediment surface (wandering ripples, grain and grit, world-space
     // triplanar), tinted by the seabed's vertex colours; it was a plain colour field.
     const sand = this.own(
