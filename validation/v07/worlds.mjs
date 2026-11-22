@@ -25,6 +25,10 @@ export const WORLD_VIEWS = {
     ['kelp-forest', 'swimming', [0, 6, -22], [0, 5, -36]],
     ['kelp-rocks-close', 'close', [-10, 2.5, -30], [-12, 0.8, -32.5]],
     ['kelp-canopy', 'medium', [4, 10, -35], [4, 18, -42]],
+    // V0.8 Pass 085: blades and stalks close up, their holdfasts on the rock, the forest wide.
+    ['kelp-blades-close', 'close', [2, 7, -30], [4, 8, -33]],
+    ['kelp-holdfast-close', 'close', [-3, 1.8, -28], [-4.5, 0.4, -31]],
+    ['kelp-forest-wide', 'swimming', [10, 4, -18], [-6, 6, -40]],
   ],
   cave: [
     ['cave-cavern', 'swimming', [0, 5, -14], [0, 3, -26]],

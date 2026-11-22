@@ -133,8 +133,12 @@ describe('Pass 017/018 asset compression', () => {
       const images = json.images ?? [];
       // V0.8 Pass 082: the reef benchmark is vertex-coloured static scenery that takes the
       // shared reef maps at runtime, so it ships no images; every texture that exists is KTX2.
-      // V0.8 Pass 083: so is the reef habitat.
-      if (id !== 'reefBenchmark' && id !== 'reefHabitat') {
+      // V0.8 Pass 083/085: so are the reef habitat and the outer-reef variants.
+      if (
+        id !== 'reefBenchmark' &&
+        id !== 'reefHabitat' &&
+        id !== 'reefOuter'
+      ) {
         expect(json.extensionsUsed, id).toContain('KHR_texture_basisu');
         expect(images.length, id).toBeGreaterThan(0);
       }

@@ -2457,5 +2457,23 @@
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
+  },
+  {
+    "id": "reef-outer",
+    "file": "assets/models/reef/reef-outer.glb",
+    "sha256": "d12a141a6714df36a3472bf8777bb64b95c7b764b28dcfeb0044f418a384ef97",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 570452,
+    "visualPrimitives": 17,
+    "visualTriangles": 75607,
+    "collisionTriangles": 4356,
+    "materials": 5,
+    "images": [],
+    "geometryAccessorBytes": 0,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium hero asset"
   }
 ]

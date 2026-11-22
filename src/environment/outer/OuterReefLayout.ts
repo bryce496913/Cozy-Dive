@@ -234,14 +234,16 @@ export function outerReefLayout(seed = OUTER_REEF.seed): ReefLayout {
       if (!buildable(x, z, 0.4)) continue;
       if (heads.some((h) => Math.hypot(h.x - x, h.z - z) < 4)) continue;
       // Low rocks, each crowned with coral (two on the larger ones), so coral covers the reef.
-      const size = range(1.1, 2.2);
+      // V0.8 Pass 085: broader and flatter, so neighbouring rocks (3.8 m apart) meet and the reef
+      // top reads as one connected structure, not a field of separate lumps (same random draws).
+      const size = range(1.1, 2.2) * 1.2;
       outcrop(
         x,
         z,
         size,
-        size * range(0.4, 0.7),
+        size * range(0.4, 0.7) * 0.8,
         rand() * Math.PI * 2,
-        size > 2.1 ? 2 : 1,
+        size > 2.1 * 1.2 ? 2 : 1,
         0.35,
         0.7,
       );

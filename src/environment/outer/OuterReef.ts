@@ -157,6 +157,11 @@ export class OuterReef {
   private worms?: ChristmasTreeWorms;
   readonly sightings: SightCandidate[] = [];
   private lease?: AssetLease;
+  /**
+   * V0.8 Pass 085: the authored outer-reef variants (composed rocks, colonies that grow over the
+   * rock, arching seagrass). Absent if it cannot load: the library pieces stand in, as before.
+   */
+  private variants?: AssetLease;
   /** Placements with colonies seated on the rocks (once the rocks' hulls exist). */
   private seated: readonly ReefPlacement[];
   private readonly eye = new THREE.Vector3(Infinity, 0, 0);
@@ -220,6 +225,19 @@ export class OuterReef {
       return false;
     }
     try {
+      this.variants = await loader.acquire('reefOuter');
+      this.variants.model.updateMatrixWorld(true);
+    } catch (error) {
+      console.warn(
+        'Cozy Diver: outer reef variants unavailable; using the library pieces.',
+        error,
+      );
+    }
+    if (this.disposed) {
+      this.release();
+      return false;
+    }
+    try {
       this.lease.model.updateMatrixWorld(true);
       this.build();
       return true;
@@ -231,9 +249,18 @@ export class OuterReef {
     }
   }
 
+  /** A mesh of the variants asset, by name. */
+  private variant(name: string): THREE.Mesh {
+    const n = this.variants?.model.getObjectByName(name);
+    if (!(n instanceof THREE.Mesh)) throw Error(`Missing reef variant ${name}`);
+    return n;
+  }
   /** Hull geometries of a library piece, in its own space (built once per template). */
-  private hulls(root: string): THREE.BufferGeometry[] {
-    const node = this.lease!.model.getObjectByName(root),
+  private hulls(
+    root: string,
+    model = this.lease!.model,
+  ): THREE.BufferGeometry[] {
+    const node = model.getObjectByName(root),
       out: THREE.BufferGeometry[] = [];
     node?.traverse((o) => {
       if (!(o instanceof THREE.Mesh) || !isCollisionNode(o)) return;
@@ -315,7 +342,27 @@ export class OuterReef {
     );
     this.rock.vertexColors = true;
     this.rock.color.setHex(0xe4e6dc);
+    const v = this.variants?.model;
+    // V0.8 Pass 085: the composed variants' own families (as in the tank): limestone reading its
+    // painted weathering, colonies with relief maps of their kind and their painted colour.
+    const composed = v ? this.composedMaterials() : undefined;
     for (const [t, matrices] of this.groups('rock')) {
+      if (v && composed) {
+        this.add(
+          `Outer rock ${t}`,
+          [
+            {
+              geometry: this.variant(`OuterRock_${t}`).geometry,
+              until: D.drawn,
+            },
+            { geometry: null, until: Infinity },
+          ],
+          composed.rock,
+          matrices,
+        );
+        this.collide(this.hulls(`OuterRock_${t}_Root`, v), matrices);
+        continue;
+      }
       this.add(
         `Outer rock ${t}`,
         // One level at every distance (no detail popping as the swimmer comes close).
@@ -335,6 +382,23 @@ export class OuterReef {
     backdrop.customProgramCacheKey = this.rock.customProgramCacheKey;
     backdrop.color.setHex(0xc6ceca);
     for (const [t, matrices] of this.groups('backdrop')) {
+      if (v && composed) {
+        // Distant silhouettes: the same composed forms, a little cooler (one level, as before).
+        this.add(
+          `Outer backdrop ${t}`,
+          [
+            {
+              geometry: this.variant(`OuterRock_${t}`).geometry,
+              until: D.backdrop,
+            },
+            { geometry: null, until: Infinity },
+          ],
+          composed.backdrop,
+          matrices,
+        );
+        this.collide(this.hulls(`OuterRock_${t}_Root`, v), matrices);
+        continue;
+      }
       this.add(
         `Outer backdrop ${t}`,
         [
@@ -364,6 +428,24 @@ export class OuterReef {
     }[] = [];
     for (const family of ['branching', 'massive', 'plate'] as const)
       for (const [t, matrices] of this.groups(family)) {
+        if (v && composed) {
+          // V0.8 Pass 085: colonies that grow over the rock (encrusting fields with skirts that
+          // drape over its edges, thickets and bush clusters, tables on short stalks).
+          const name = `OuterCoral_${family}_${t}`,
+            geometry = this.variant(name).geometry;
+          if (family === 'massive') colonies.push({ geometry, matrices });
+          this.add(
+            `Outer coral ${name}`,
+            [
+              { geometry, until: D.drawn },
+              { geometry: null, until: Infinity },
+            ],
+            composed[family],
+            matrices,
+          );
+          this.collide(this.hulls(`${name}_Root`, v), matrices);
+          continue;
+        }
         const name = `${CORAL_NODES[family]}_${t}`;
         for (const suffix of ['', '_Tips']) {
           const near = this.node(name + suffix);
@@ -397,9 +479,14 @@ export class OuterReef {
       algae = this.plantMaterial('Caulerpa_0');
     for (const family of ['soft', 'fan', 'grass', 'blade'] as const)
       for (const [t, matrices] of this.groups(family)) {
+        // V0.8 Pass 085: arching turtle-grass tufts instead of the straight library blades.
+        const organic =
+          v && (family === 'grass' || family === 'blade')
+            ? this.variant(`OuterPlant_${family}`)
+            : undefined;
         const geometry = this.own(
           authoredPlantGeometry(
-            this.part(`${PLANT_NODES[family]}_${t}`).geometry,
+            (organic ?? this.part(`${PLANT_NODES[family]}_${t}`)).geometry,
             PLANT_MOTION[family]!,
           ),
         );
@@ -449,6 +536,78 @@ export class OuterReef {
     const caustics = WATER_PROFILES.outer.caustics;
     if (caustics) addCaustics(m, caustics);
     this.sand = m;
+  }
+
+  /**
+   * V0.8 Pass 085: the Pass 082B material families for the authored variants (shared shader
+   * programs with the tank's composed reef): rock reads its weathering from vertex alpha.
+   */
+  private composedMaterials(): Record<
+    'rock' | 'backdrop' | 'branching' | 'massive' | 'plate',
+    THREE.MeshStandardMaterial
+  > {
+    const relief = (name: string) => {
+      const m = this.own(this.standard(name).clone());
+      m.map = null;
+      return m;
+    };
+    const family = (
+      source: THREE.MeshStandardMaterial,
+      scale: number,
+      roughness: number,
+      surface = false,
+    ) => {
+      const m = this.own(
+        triplanarMaterial(source, { scale, ao: 0.4, surface }),
+      );
+      m.vertexColors = true;
+      m.roughness = roughness;
+      return m;
+    };
+    const rock = family(
+      this.standard('Rock_0'),
+      REEF_LAYOUT.rockTexelScale,
+      0.88,
+      true,
+    );
+    rock.normalScale.setScalar(0.85);
+    rock.color.setRGB(0.94, 0.97, 1.0);
+    const backdrop = family(
+      this.standard('Rock_0'),
+      REEF_LAYOUT.rockTexelScale * 1.3,
+      0.9,
+      true,
+    );
+    backdrop.color.setRGB(0.82, 0.86, 0.88);
+    const massive = family(
+      relief('Coral_Massive_2'),
+      REEF_LAYOUT.coralTexelScale * 1.4,
+      0.7,
+    );
+    massive.side = THREE.DoubleSide;
+    const plate = family(
+      relief('Coral_Massive_2'),
+      REEF_LAYOUT.coralTexelScale * 1.4,
+      0.65,
+    );
+    plate.side = THREE.DoubleSide;
+    return {
+      rock,
+      backdrop,
+      branching: family(
+        relief('Coral_Branching_0'),
+        REEF_LAYOUT.coralTexelScale * 2.2,
+        0.6,
+      ),
+      massive,
+      plate,
+    };
+  }
+  private release(): void {
+    this.lease?.release();
+    this.lease = undefined;
+    this.variants?.release();
+    this.variants = undefined;
   }
 
   /** If the library cannot load: plain rocks at the same places, so the reef is still solid. */
@@ -544,7 +703,6 @@ export class OuterReef {
     this.disposed = true;
     this.root.removeFromParent();
     this.clear();
-    this.lease?.release();
-    this.lease = undefined;
+    this.release();
   }
 }
