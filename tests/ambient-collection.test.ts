@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { GelatinousMaterial } from '../src/rendering/Gelatinous';
 import { describe, expect, it } from 'vitest';
 import { CAVE_SIGHTS, ICE_SIGHTS, OUTER_SIGHTS } from '../src/discovery/sights';
 import {
@@ -137,8 +138,11 @@ it('retains translucent native materials while collection entries fade', async (
     acquire: () => Promise.reject(Error('No asset needed')),
     evictUnused: () => {},
   };
+  // V0.7 Pass 078: sea squirts use the shared gelatinous material, whose translucency lives in
+  // its shader (a see-through core and opaque rim) at an opacity of 1, so a half fade is 0.5 and
+  // the material must still be gelatinous. The others keep a flat native opacity.
   for (const [id, alpha] of [
-    ['sea-squirt', 0.72],
+    ['sea-squirt', 1],
     ['sea-angel', 0.8],
     ['ice-algae', 0.6],
   ] as const) {
@@ -146,10 +150,15 @@ it('retains translucent native materials while collection entries fade', async (
       art = await acquireCollectionArt(d, loader);
     try {
       art.update(0.5, 0, 0);
-      const mesh = art.near as THREE.Mesh;
-      expect((mesh.material as THREE.Material).opacity).toBeCloseTo(
-        alpha * 0.5,
-      );
+      const mesh = art.near as THREE.Mesh,
+        material = mesh.material as THREE.Material;
+      expect(material.opacity).toBeCloseTo(alpha * 0.5);
+      if (id === 'sea-squirt') {
+        expect(material).toBeInstanceOf(GelatinousMaterial);
+        expect((material as GelatinousMaterial).gel.gelCore.value).toBeLessThan(
+          0.5,
+        );
+      }
     } finally {
       art.dispose();
     }

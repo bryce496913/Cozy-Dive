@@ -4,6 +4,10 @@ import { KelpEnvironment } from '../src/environment/kelp/KelpEnvironment';
 import { CaveEnvironment } from '../src/environment/cave/CaveEnvironment';
 import { mouthRocks } from '../src/environment/shared/RockTube';
 import { ShipwreckModel } from '../src/environment/wreck/ShipwreckModel';
+import { WreckEnvironment } from '../src/environment/wreck/WreckEnvironment';
+import { KelpDressing } from '../src/environment/kelp/KelpDressing';
+import { boulderLayout } from '../src/environment/kelp/KelpEnvironment';
+import { IceEnvironment } from '../src/environment/ice/IceEnvironment';
 
 /** V0.7 Pass 080: artistic consistency between the worlds' shared surfaces. */
 const meshNamed = (root: THREE.Object3D, name: string): THREE.Mesh => {
@@ -126,4 +130,80 @@ describe('V0.7 Pass 080 wreck growth', () => {
       model.dispose();
     }
   });
+});
+
+describe('V0.7 Pass 081 remaining plain surfaces', () => {
+  const mapped = (root: THREE.Object3D, name: string) => {
+    const found = root.getObjectByName(name);
+    if (!(found instanceof THREE.Mesh)) throw Error(`no mesh ${name}`);
+    const m = found.material;
+    if (!(m instanceof THREE.MeshStandardMaterial)) throw Error(name);
+    expect(m.normalMap, name).toBeTruthy();
+    expect(m.roughnessMap, name).toBeTruthy();
+  };
+
+  it('maps the wreck cavern sand, walls, roof and its carved fallen rocks', () => {
+    const wreck = new WreckEnvironment();
+    try {
+      for (const name of [
+        'Wreck sand',
+        'Wreck far wall',
+        'Wreck roof',
+        'Wreck rocks 1',
+        'Wreck rocks 2',
+        'Wreck rocks 3',
+      ])
+        mapped(wreck.root, name);
+      // The 26 fallen rocks are all still placed, across the three carved forms.
+      let rocks = 0;
+      for (const k of [1, 2, 3]) {
+        const mesh = wreck.root.getObjectByName(`Wreck rocks ${k}`);
+        if (mesh instanceof THREE.InstancedMesh) rocks += mesh.count;
+      }
+      expect(rocks).toBe(26);
+    } finally {
+      wreck.dispose();
+    }
+  });
+
+  it('maps the kelp cobbles like the boulders beside them', () => {
+    const dressing = new KelpDressing(boulderLayout());
+    try {
+      mapped(dressing.root, 'Cobbles');
+    } finally {
+      dressing.dispose();
+    }
+  });
+
+  it('grades the ice darker and bluer toward its foot', () => {
+    const ice = new IceEnvironment();
+    try {
+      const mesh = ice.root.getObjectByName('Icebergs and sea ice');
+      if (!(mesh instanceof THREE.Mesh)) throw Error('no ice');
+      const p = mesh.geometry.getAttribute('position'),
+        c = mesh.geometry.getAttribute('color');
+      let low = 0,
+        lowN = 0,
+        high = 0,
+        highN = 0,
+        lowBlue = 0;
+      for (let i = 0; i < p.count; i++) {
+        const v = (c.getX(i) + c.getY(i) + c.getZ(i)) / 3;
+        if (p.getY(i) < 2) {
+          low += v;
+          lowBlue += c.getZ(i) - c.getX(i);
+          lowN++;
+        } else if (p.getY(i) > 8) {
+          high += v;
+          highN++;
+        }
+      }
+      expect(lowN).toBeGreaterThan(100);
+      expect(highN).toBeGreaterThan(100);
+      expect(low / lowN).toBeLessThan((high / highN) * 0.9);
+      expect(lowBlue / lowN).toBeGreaterThan(0.1);
+    } finally {
+      ice.dispose();
+    }
+  }, 30000);
 });

@@ -4,6 +4,8 @@ import type { ConvexCollider } from '../../player/collision';
 import { boxCollider } from '../passage/Crevice';
 import { shaftColliders, shaftLining } from '../shared/Shaft';
 import { ShipwreckModel } from './ShipwreckModel';
+import { HabitatSurface } from '../shared/HabitatSurface';
+import { limestoneGeometry } from '../shared/LimestoneGeometry';
 import {
   SHIP,
   hullHalfWidth,
@@ -45,21 +47,31 @@ export class WreckEnvironment {
   readonly ship = new ShipwreckModel();
   private readonly geometries: THREE.BufferGeometry[] = [];
   private readonly materials: THREE.Material[] = [];
+  private readonly stone = new HabitatSurface('limestone');
+  private readonly sediment = new HabitatSurface('sediment');
 
   constructor() {
     this.root.name = 'Wreck cavern';
-    const rock = new THREE.MeshStandardMaterial({
+    // V0.7 Pass 081: the cavern's sand, walls, roof and fallen rock were plain vertex colour, the
+    // last unmapped rock and seabed in the game (Pass 080 rule: every rock wears a mapped
+    // surface). They now use the shared world-space surfaces, under the same murky tints.
+    const rock = this.stone.material({
+        name: 'Wreck rock',
         vertexColors: true,
-        roughness: 0.95,
-        metalness: 0,
+        roughness: 0.9,
       }),
-      inside = new THREE.MeshStandardMaterial({
+      inside = this.stone.material({
+        name: 'Wreck shaft rock',
         vertexColors: true,
-        roughness: 0.95,
-        metalness: 0,
+        roughness: 0.9,
         side: THREE.BackSide,
+      }),
+      sand = this.sediment.material({
+        name: 'Wreck sand',
+        vertexColors: true,
+        roughness: 1,
       });
-    this.materials.push(rock, inside);
+    this.materials.push(rock, inside, sand);
     const add = (g: THREE.BufferGeometry, m: THREE.Material, name: string) => {
       this.geometries.push(g);
       const mesh = new THREE.Mesh(g, m);
@@ -90,7 +102,7 @@ export class WreckEnvironment {
       return [k * 0.95, k * 0.88, k * 0.74];
     });
     floor.computeVertexNormals();
-    add(floor, rock, 'Wreck sand');
+    add(floor, sand, 'Wreck sand');
 
     // The roof: rumpled rock seen from below, open at the shaft.
     const roof = new THREE.PlaneGeometry(width, depth, 100, 110);
@@ -186,31 +198,36 @@ export class WreckEnvironment {
     colourBy(cap, () => [0.01, 0.01, 0.01]);
     add(cap, rock, 'Wreck shaft top');
 
-    // Rocks fallen from the roof, and debris off the wreck.
+    // Rocks fallen from the roof, and debris off the wreck. V0.7 Pass 081: three carved limestone
+    // forms (the Pass 079 cave family, fractured and pitted inside their hulls) replace one lumpy
+    // twelve-sided lump, which read as low-poly beside the wreck's plated hull. Each is fitted to
+    // the old lump's unit size and flattening, so placements and colliders are unchanged.
     const rand = random(7331),
-      lump = new THREE.DodecahedronGeometry(1, 1),
-      lp = lump.getAttribute('position');
-    for (let i = 0; i < lp.count; i++) {
-      const x = lp.getX(i),
-        y = lp.getY(i),
-        z = lp.getZ(i),
-        k = 1 + 0.18 * Math.sin(x * 4 + y * 3) * Math.sin(z * 5);
-      lp.setXYZ(i, x * k, y * k * 0.7, z * k);
-    }
-    colourBy(lump, (_x, y) => {
-      const k = 0.28 + 0.05 * y;
-      return [k, k * 0.95, k * 0.88];
-    });
-    lump.computeVertexNormals();
-    this.geometries.push(lump);
-    const rocks = new THREE.InstancedMesh(lump, rock, 26),
-      m = new THREE.Matrix4(),
+      FORMS = 3,
+      forms = Array.from({ length: FORMS }, (_, k) => {
+        const g = limestoneGeometry(73310 + k * 17, k, true);
+        g.computeBoundingBox();
+        const box = g.boundingBox!,
+          size = box.getSize(new THREE.Vector3()),
+          centre = box.getCenter(new THREE.Vector3());
+        g.translate(-centre.x, -centre.y, -centre.z);
+        g.scale(2.2 / size.x, (2.2 * 0.7) / size.y, 2.2 / size.z);
+        // The cavern's dark rock, from the carving's own light-to-shadow tone.
+        const c = g.getAttribute('color');
+        for (let i = 0; i < c.count; i++)
+          c.setXYZ(i, c.getX(i) * 0.36, c.getY(i) * 0.35, c.getZ(i) * 0.34);
+        this.geometries.push(g);
+        const mesh = new THREE.InstancedMesh(g, rock, 26);
+        mesh.name = `Wreck rocks ${k + 1}`;
+        mesh.count = 0;
+        return mesh;
+      });
+    const m = new THREE.Matrix4(),
       q = new THREE.Quaternion(),
       e = new THREE.Euler(),
       sc = new THREE.Vector3(),
       at = new THREE.Vector3(),
       rockColliders: ConvexCollider[] = [];
-    rocks.name = 'Wreck rocks';
     for (let i = 0; i < 26; i++) {
       let x = 0,
         z = 0;
@@ -227,7 +244,11 @@ export class WreckEnvironment {
       e.set(rand() * 0.4, rand() * Math.PI * 2, rand() * 0.4);
       q.setFromEuler(e);
       at.set(x, wreckFloor(x, z) + size * 0.25, z);
-      rocks.setMatrixAt(i, m.compose(at, q, sc.set(size, size, size)));
+      const form = forms[i % FORMS];
+      form.setMatrixAt(
+        form.count++,
+        m.compose(at, q, sc.set(size, size, size)),
+      );
       if (size > 0.8)
         rockColliders.push(
           boxCollider(
@@ -236,8 +257,8 @@ export class WreckEnvironment {
           ),
         );
     }
-    rocks.instanceMatrix.needsUpdate = true;
-    this.root.add(rocks, this.ship.root);
+    for (const form of forms) form.instanceMatrix.needsUpdate = true;
+    this.root.add(...forms, this.ship.root);
 
     // Solid: the ship, the roof (open at the shaft), the shaft's rock, and its cap.
     const R = SHAFT_RADIUS + 0.2,
@@ -267,5 +288,7 @@ export class WreckEnvironment {
     this.root.clear();
     this.geometries.forEach((g) => g.dispose());
     this.materials.forEach((m) => m.dispose());
+    this.stone.dispose();
+    this.sediment.dispose();
   }
 }
