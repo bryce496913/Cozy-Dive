@@ -35,7 +35,7 @@ export const MOUTH_ARCH = {
   lipDeep: 0.7,
   /** How far behind the face the outer edge sinks (m). */
   sink: 0.55,
-  } as const;
+} as const;
 
 interface Mass {
   readonly angle: number;
@@ -209,7 +209,8 @@ export function mouthArch(
         h = Math.max(h, -A.sink);
       }
       // The lip curls back into the tube, hiding where the tube meets the face.
-      if (rr < 0) h = h * (1 + rr / A.lipIn) - A.lipDeep * (-rr / A.lipIn) ** 0.7;
+      if (rr < 0)
+        h = h * (1 + rr / A.lipIn) - A.lipDeep * (-rr / A.lipIn) ** 0.7;
       const fz = face(x, y);
       pos[k * 3] = x;
       pos[k * 3 + 1] = y;
@@ -257,21 +258,33 @@ export function mouthArch(
         ir = Math.min(A.rings, i + 1) * cols + j,
         cavity = Math.max(
           -1,
-          Math.min(1, (lift[k] - (lift[jl] + lift[jr] + lift[il] + lift[ir]) / 4) * 9),
+          Math.min(
+            1,
+            (lift[k] - (lift[jl] + lift[jr] + lift[il] + lift[ir]) / 4) * 9,
+          ),
         ),
         band = layer[k] % 2 === 0 ? 1.04 : 0.95,
         x = pos[k * 3],
         y = pos[k * 3 + 1],
-        mottle = 0.92 + 0.12 * Math.sin(x * 2.3 + y * 1.7) * Math.sin(y * 3.1 - x * 0.9),
+        mottle =
+          0.92 +
+          0.12 * Math.sin(x * 2.3 + y * 1.7) * Math.sin(y * 3.1 - x * 0.9),
         lip = 0.35 + 0.65 * smooth(-0.05, 0.55, rrs[k]),
         sunk = 0.75 + 0.25 * smooth(-A.sink, 0, lift[k]),
         shade =
-          band * mottle * lip * sunk * (1 + 0.22 * cavity) * (1 - 0.35 * joint[k]),
+          band *
+          mottle *
+          lip *
+          sunk *
+          (1 + 0.22 * cavity) *
+          (1 - 0.35 * joint[k]),
         up = Math.max(0, n.getY(k)),
-        settle = smooth(0.45, 0.85, up) * smooth(0, 0.1, lift[k] + A.sink * 0.5),
+        settle =
+          smooth(0.45, 0.85, up) * smooth(0, 0.1, lift[k] + A.sink * 0.5),
         fr = frost * settle,
         st = silt * settle * (0.6 + 0.4 * Math.sin(x * 1.3 + y * 2.9));
-      col[k * 3] = stone[0] * shade * (1 - 0.15 * st) * (1 - 0.1 * fr) + 0.38 * fr;
+      col[k * 3] =
+        stone[0] * shade * (1 - 0.15 * st) * (1 - 0.1 * fr) + 0.38 * fr;
       col[k * 3 + 1] = stone[1] * shade * (1 + 0.08 * st) + 0.42 * fr;
       col[k * 3 + 2] = stone[2] * shade * (1 - 0.25 * st) + 0.55 * fr;
     }

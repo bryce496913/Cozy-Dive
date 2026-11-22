@@ -56,14 +56,16 @@ describe('V0.7 Pass 080 rock surfaces', () => {
     const cave = new CaveEnvironment();
     try {
       for (const name of [
-        'Cave entrance eroded rim',
-        'Cave back tunnel mouth',
+        'Cave entrance arch',
+        'Cave back tunnel arch',
       ]) {
         const [r, g, b] = meanColour(meshNamed(cave.root, name).geometry);
-        // Warm (red over blue) and well above the basalt's 0.22 tone.
-        expect(r, name).toBeGreaterThan(0.36);
+        // Warm (red over blue) and well above the basalt's 0.22 tone. V0.8 Pass 086: the
+        // sculpted arches shade their lip into the tunnel's dark and their edge where it sinks
+        // into the wall, which lowers the mean (Pass 080's boulders measured above 0.36).
+        expect(r, name).toBeGreaterThan(0.28);
         expect(r, name).toBeGreaterThan(b);
-        expect(g, name).toBeGreaterThan(0.3);
+        expect(g, name).toBeGreaterThan(0.26);
       }
     } finally {
       cave.dispose();

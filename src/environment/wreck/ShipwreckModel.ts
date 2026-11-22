@@ -41,10 +41,14 @@ function random(seed: number): () => number {
     return s / 4294967296;
   };
 }
-/** Non-indexed, positions and normals only, coloured by `colour(position)`. */
+/**
+ * Non-indexed, positions and normals only, coloured by `colour(position, up)`, where `up` is
+ * the surface normal's vertical component. V0.8 Pass 086: normals come first so the colour can
+ * follow the surface's facing: silt settles on what faces up, grime gathers under overhangs.
+ */
 function painted(
   g: THREE.BufferGeometry,
-  colour: (x: number, y: number, z: number) => RGB,
+  colour: (x: number, y: number, z: number, up: number) => RGB,
   smoothNormals = false,
 ): THREE.BufferGeometry {
   if (smoothNormals) g.computeVertexNormals();
@@ -52,13 +56,98 @@ function painted(
   if (out !== g) g.dispose();
   for (const name of Object.keys(out.attributes))
     if (name !== 'position' && name !== 'normal') out.deleteAttribute(name);
+  if (!smoothNormals) out.computeVertexNormals();
   const p = out.getAttribute('position'),
+    n = out.getAttribute('normal'),
     col = new Float32Array(p.count * 3);
   for (let i = 0; i < p.count; i++)
-    col.set(colour(p.getX(i), p.getY(i), p.getZ(i)), i * 3);
+    col.set(colour(p.getX(i), p.getY(i), p.getZ(i), n.getY(i)), i * 3);
   out.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-  if (!smoothNormals) out.computeVertexNormals();
   return out;
+}
+/**
+ * V0.8 Pass 086: what a surface's facing does to its colour on the seabed: a pale silt over
+ * whatever faces up (patchy, thickest on level surfaces), dark grime under whatever faces down.
+ */
+const SILT: RGB = [0.5, 0.46, 0.36];
+function settled(c: RGB, x: number, z: number, up: number): RGB {
+  const patchy =
+      0.65 + 0.35 * Math.sin(x * 1.7 + z * 0.9) * Math.sin(z * 2.3 - x * 1.3),
+    silt = Math.max(0, Math.min(1, (up - 0.55) / 0.4)) * 0.5 * patchy,
+    under = up < -0.4 ? 0.62 : 1;
+  return scale(mix(c, SILT, silt), under);
+}
+/**
+ * V0.8 Pass 086: where colonies have settled on the wreck, fixed for the whole build (hull paint,
+ * decks and the growth all use them), so the colonies stand on the encrusting mats they grew
+ * from instead of on bare plate. Each is on a side of the hull (band: 0 low, 1 at the rail) or
+ * on the deck (x: -1..1 across it), with its radius (m).
+ */
+export interface GrowthSite {
+  readonly side: -1 | 0 | 1;
+  readonly z: number;
+  readonly band: number;
+  readonly x: number;
+  readonly radius: number;
+}
+export const GROWTH_SITES: readonly GrowthSite[] = (() => {
+  const rand = random(86200),
+    sites: GrowthSite[] = [],
+    zFrom = SHIP.bowZ + 1.5,
+    zSpan = SHIP.sternZ - SHIP.bowZ - 2.5;
+  // Spread along the whole ship (one per stretch, jittered within it), so no end is left bare.
+  const count = 30;
+  for (let i = 0; i < count; i++) {
+    const r = rand(),
+      side: -1 | 0 | 1 = r < 0.3 ? 0 : r < 0.65 ? -1 : 1;
+    sites.push({
+      side,
+      z: zFrom + ((i + 0.15 + rand() * 0.7) / count) * zSpan,
+      // Growth crowds toward the rail, where the current runs over the edge.
+      band: 0.35 + 0.65 * Math.sqrt(rand()),
+      x: rand() * 2 - 1,
+      radius: 1.1 + rand() * 1.1,
+    });
+  }
+  return sites;
+})();
+/** The encrusting mats' cover at a point on a hull side (0..1). */
+function hullCrust(x: number, y: number, z: number): number {
+  let k = 0;
+  for (const s of GROWTH_SITES) {
+    if (s.side === 0 || Math.sign(x) !== s.side) continue;
+    const sy = 1.2 + s.band * (railAt(s.z) - 1.6),
+      d = Math.hypot(z - s.z, (y - sy) * 1.3) / s.radius;
+    if (d < 1.6) k += Math.exp(-d * d * 1.4);
+  }
+  // A ragged edge to each mat, not a soft blob.
+  const edge =
+    0.75 + 0.45 * Math.sin(z * 5.3 + y * 4.1) * Math.sin(y * 6.7 - z * 2.9);
+  return Math.min(1, Math.max(0, k * edge * 1.2 - 0.15));
+}
+/** The encrusting mats' cover at a point on a deck (0..1). */
+function deckCrust(x: number, z: number): number {
+  let k = 0;
+  for (const s of GROWTH_SITES) {
+    if (s.side !== 0) continue;
+    const sx = s.x * (hullX(s.z, DECK_TOP) - 0.5),
+      d = Math.hypot(x - sx, z - s.z) / s.radius;
+    if (d < 1.6) k += Math.exp(-d * d * 1.4);
+  }
+  const edge =
+    0.75 + 0.45 * Math.sin(x * 5.3 + z * 4.1) * Math.sin(z * 6.7 - x * 2.9);
+  return Math.min(1, Math.max(0, k * edge * 1.2 - 0.15));
+}
+/** Encrusting mats: coralline pinks and ochres mottled with green-brown turf. */
+const CORALLINE: RGB = [0.56, 0.33, 0.36],
+  TURF: RGB = [0.3, 0.34, 0.2],
+  OCHRE: RGB = [0.58, 0.44, 0.24];
+function crustColour(c: RGB, k: number, x: number, y: number, z: number): RGB {
+  if (k <= 0) return c;
+  const a = 0.5 + 0.5 * Math.sin(x * 3.1 + z * 2.3 + y * 1.7),
+    b = 0.5 + 0.5 * Math.sin(z * 4.7 - y * 3.3 + x * 2.1),
+    tint = mix(mix(CORALLINE, OCHRE, b * 0.6), TURF, a * a * 0.7);
+  return mix(c, tint, Math.min(0.85, k));
 }
 const scale = (c: RGB, k: number): RGB => [c[0] * k, c[1] * k, c[2] * k];
 const mix = (a: RGB, b: RGB, t: number): RGB => [
@@ -71,8 +160,8 @@ const mix = (a: RGB, b: RGB, t: number): RGB => [
  * world-space grid (dark lines, rust bleeding below them) and a patchy growth film, so decks,
  * the hold and the superstructure read as the same plated steel as the hull.
  */
-function weathered(base: RGB) {
-  return (x: number, y: number, z: number): RGB => {
+function weathered(base: RGB, box?: THREE.Box3) {
+  return (x: number, y: number, z: number, up = 0): RGB => {
     const mottle =
         0.8 +
         0.12 *
@@ -93,13 +182,35 @@ function weathered(base: RGB) {
           0,
           Math.sin(x * 0.9 + z * 0.7) * Math.sin(z * 1.7 - x * 1.1 + y) - 0.2,
         ) * 0.5;
-    return scale(
-      mix(
-        mix(base, RUST, Math.min(1, rust * 1.6 + bleed * 0.5)),
-        GROWTH_FILM,
-        film,
+    // V0.8 Pass 086: a box's edges and corners worn through the paint to rust, and rust
+    // running down from its top edges in streaks.
+    let worn = 0;
+    if (box) {
+      const ex = Math.min(x - box.min.x, box.max.x - x),
+        ey = Math.min(y - box.min.y, box.max.y - y),
+        ez = Math.min(z - box.min.z, box.max.z - z),
+        sorted = [ex, ey, ez].sort((a, b) => a - b),
+        // Near an edge: the second-smallest distance to a face is small.
+        edge = Math.max(0, 1 - sorted[1] / 0.09),
+        below = box.max.y - y,
+        run =
+          below < 1.2
+            ? Math.max(0, Math.sin(x * 5.1 + z * 4.3)) ** 8 * (1 - below / 1.2)
+            : 0;
+      worn = Math.min(1, edge * 0.75 + run * 0.6);
+    }
+    return settled(
+      scale(
+        mix(
+          mix(base, RUST, Math.min(1, rust * 1.6 + bleed * 0.5 + worn)),
+          GROWTH_FILM,
+          film,
+        ),
+        mottle * (onSeam ? 0.6 : 1),
       ),
-      mottle * (onSeam ? 0.6 : 1),
+      x,
+      z,
+      up,
     );
   };
 }
@@ -192,7 +303,13 @@ function hullColour(x: number, y: number, z: number): RGB {
       0.86 +
       0.1 * Math.sin(z * 3.3 + y * 2.1) * Math.sin(z * 0.7 - y * 1.9 + x);
   return scale(
-    mix(mix(base, RUST, rust), GROWTH_FILM, Math.min(0.55, film)),
+    crustColour(
+      mix(mix(base, RUST, rust), GROWTH_FILM, Math.min(0.55, film)),
+      hullCrust(x, y, z),
+      x,
+      y,
+      z,
+    ),
     plate * seam * butt * sand * mottle,
   );
 }
@@ -217,7 +334,11 @@ function block(
     seg(z1 - z0),
   );
   g.translate((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
-  return painted(g, weathered(c));
+  const box = new THREE.Box3(
+    new THREE.Vector3(Math.min(x0, x1), Math.min(y0, y1), Math.min(z0, z1)),
+    new THREE.Vector3(Math.max(x0, x1), Math.max(y0, y1), Math.max(z0, z1)),
+  );
+  return painted(g, weathered(c, box));
 }
 /** A tube from a to b. */
 function rod(
@@ -381,7 +502,7 @@ function deckSurface(
       g.rotateX(underside ? Math.PI / 2 : -Math.PI / 2);
       g.translate((x0 + x1) / 2, underside ? y - SHIP.plate : y, (z + zb) / 2);
       parts.push(
-        painted(g, (x, _y, zz) => {
+        painted(g, (x, y, zz) => {
           // Planking worn to the steel beneath, silt and a green-brown film of algae.
           const plank =
               0.85 +
@@ -390,10 +511,14 @@ function deckSurface(
             film =
               0.5 +
               0.5 * Math.sin(x * 0.9 + zz * 0.45) * Math.sin(zz * 0.31 - x);
-          return scale(
+          const worn = scale(
             mix(DECK, [0.3, 0.33, 0.22], film * 0.6),
             plank * (underside ? 0.5 : 1),
           );
+          // V0.8 Pass 086: silt drifted over the planking, and the mats colonies grew from.
+          return underside
+            ? worn
+            : crustColour(settled(worn, x, zz, 1), deckCrust(x, zz), x, y, zz);
         }),
       );
     }
@@ -1064,23 +1189,30 @@ export class ShipwreckModel {
       const zFrom = SHIP.bowZ + 1.5,
         zSpan = SHIP.sternZ - SHIP.bowZ - 2.5,
         gauss = () => rand() + rand() + rand() - 1.5,
-        patches = Array.from(
-          { length: Math.max(3, Math.round(count / 14)) },
-          () => ({
-            side: rand() < 0.5 ? -1 : 1,
-            z: zFrom + rand() * zSpan,
-            y: 0.3 + 0.7 * rand(),
-            x: rand() * 2 - 1,
-          }),
-        );
+        // V0.8 Pass 086: every kind settles round the shared sites (on the mats painted
+        // there), each on its own share of them, so colonies of different kinds mix in the
+        // same patches, as on a real wreck, instead of each kind scattering on its own.
+        crust = mode === 'crust',
+        mine = GROWTH_SITES.filter(() => crust || rand() < 0.6),
+        patches = (mine.length >= 3 ? mine : GROWTH_SITES).map((p) => ({
+          side: p.side === 0 ? (rand() < 0.5 ? -1 : 1) : p.side,
+          z: p.z,
+          y: p.band,
+          x: p.x,
+          spread: p.radius * (crust ? 0.75 : 1),
+          deck: p.side === 0,
+        }));
       let placed = 0;
       for (let tries = 0; placed < count && tries < count * 20; tries++) {
         const patch = patches[Math.floor(rand() * patches.length)],
-          loose = rand() < 0.15,
+          loose = rand() < (crust ? 0.04 : 0.2),
           z = loose
             ? zFrom + rand() * zSpan
-            : Math.min(zFrom + zSpan, Math.max(zFrom, patch.z + gauss() * 2.2));
-        if (rand() < onDeck) {
+            : Math.min(
+                zFrom + zSpan,
+                Math.max(zFrom, patch.z + gauss() * patch.spread * 1.3),
+              );
+        if (loose ? rand() < onDeck : patch.deck) {
           const y = deckTopAt(z),
             x =
               (loose
@@ -1103,7 +1235,10 @@ export class ShipwreckModel {
               ? 0.88 + 0.12 * rand()
               : loose
                 ? Math.sqrt(rand())
-                : Math.max(0, Math.min(1, patch.y + gauss() * 0.35)),
+                : Math.max(
+                    0,
+                    Math.min(1, patch.y + (gauss() * patch.spread) / 3.2),
+                  ),
             y = 1.2 + band * (railAt(z) - 1.6),
             // V0.7 Pass 076: set into the plating (it sits inside the design surface by its inset).
             x = side * (hullX(z, y) - hullInset(y, z) - 0.01);
@@ -1111,7 +1246,12 @@ export class ShipwreckModel {
           at.set(x, y, z);
           // Leaning out and up from the plating (fans stand up into the current); plates stand
           // out from it as shelves, near level, their foot against the plating.
-          n.set(side, fan ? 1.6 : shelf ? 4 : 0.15, 0).normalize();
+          // Mats lie flush on the plate.
+          n.set(
+            side,
+            fan ? 1.6 : shelf ? 4 : crust ? 0.02 : 0.15,
+            0,
+          ).normalize();
         }
         q.setFromUnitVectors(up, n);
         // Fans stand across the current (along the hull); others turn any way.

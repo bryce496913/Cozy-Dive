@@ -1,4 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import { rockCollider } from '../src/environment/rockCollider';
+import * as THREE from 'three';
+import { SHIP } from '../src/environment/wreck/WreckLayout';
+import {
+  GROWTH_SITES,
+  ShipwreckModel,
+} from '../src/environment/wreck/ShipwreckModel';
+import { WRECK_GROWTH } from '../src/environment/wreck/WreckGrowth';
 import { MOUTH_ARCH, mouthArch } from '../src/environment/shared/MouthArch';
 import { ICE_DETAIL, iceForm } from '../src/environment/ice/IceForms';
 
@@ -75,6 +83,67 @@ describe('V0.8 Pass 086 sculpted ice', () => {
       expect(p.count / 3).toBeLessThanOrEqual(20 * (ICE_DETAIL[kind] + 1) ** 2);
       for (let i = 0; i < p.array.length; i++)
         expect(Number.isFinite(p.array[i])).toBe(true);
+      g.dispose();
+    }
+  });
+});
+
+describe('V0.8 Pass 086 wreck growth', () => {
+  it('settles colonies of every kind on encrusting mats round shared sites', () => {
+    expect(WRECK_GROWTH[0].mode).toBe('crust');
+    for (const s of GROWTH_SITES) {
+      expect(s.z).toBeGreaterThan(SHIP.bowZ);
+      expect(s.z).toBeLessThan(SHIP.sternZ);
+    }
+    const model = new ShipwreckModel();
+    try {
+      const mats = model.root.getObjectByName('Wreck encrusting mats');
+      expect(mats).toBeInstanceOf(THREE.InstancedMesh);
+      expect((mats as THREE.InstancedMesh).count).toBeGreaterThan(150);
+      // Colonies cluster: most sponges lie within reach of a site (in the ship's frame).
+      const sponges = model.root.getObjectByName(
+          'Wreck barrel sponges',
+        ) as THREE.InstancedMesh,
+        m = new THREE.Matrix4(),
+        p = new THREE.Vector3();
+      let near = 0;
+      for (let i = 0; i < sponges.count; i++) {
+        sponges.getMatrixAt(i, m);
+        p.setFromMatrixPosition(m);
+        if (GROWTH_SITES.some((s) => Math.abs(p.z - s.z) < s.radius * 2.6))
+          near++;
+      }
+      expect(near / sponges.count).toBeGreaterThan(0.8);
+    } finally {
+      model.dispose();
+    }
+  });
+});
+
+describe('V0.8 Pass 086 ice collision', () => {
+  it('gives solid forms a collision hull that holds the rendered ice', () => {
+    for (const kind of ['berg', 'column', 'shard'] as const) {
+      const g = iceForm({
+        kind,
+        size: [5, 6, 4.5],
+        at: [-18, -1.2, -19],
+        yaw: 1.1,
+        seed: 79310,
+        deep: 0.5,
+        ground: 0,
+        solid: true,
+      });
+      const c = rockCollider(g, new THREE.Matrix4()),
+        p = g.getAttribute('position');
+      let worst = -Infinity;
+      for (let i = 0; i < p.count; i++)
+        for (const pl of c.planes)
+          worst = Math.max(
+            worst,
+            pl.x * p.getX(i) + pl.y * p.getY(i) + pl.z * p.getZ(i) - pl.offset,
+          );
+      // Nothing rendered stands more than a few centimetres outside the hull.
+      expect(worst, kind).toBeLessThan(0.05);
       g.dispose();
     }
   });

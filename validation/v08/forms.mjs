@@ -15,19 +15,28 @@ const FORMS = (
 const VIEWS = ['front', 'three-quarter', 'side', 'close'];
 fs.mkdirSync(output, { recursive: true });
 const browser = await chromium.launch({
-  args: ['--no-sandbox', '--enable-unsafe-swiftshader', '--use-angle=swiftshader'],
+  args: [
+    '--no-sandbox',
+    '--enable-unsafe-swiftshader',
+    '--use-angle=swiftshader',
+  ],
 });
 const errors = [],
   report = {};
 try {
   for (const form of FORMS) {
-    const page = await browser.newPage({ viewport: { width: 800, height: 520 } });
+    const page = await browser.newPage({
+      viewport: { width: 800, height: 520 },
+    });
     page.on('pageerror', (e) => errors.push(`${form}: ${e.message}`));
     page.setDefaultTimeout(300000);
     await page.goto(`${url}/validation/v08/forms.html?form=${form}`);
     await page.waitForFunction(() => window.ready);
     for (const view of VIEWS) {
-      report[`${form}-${view}`] = await page.evaluate((v) => window.shot(v), view);
+      report[`${form}-${view}`] = await page.evaluate(
+        (v) => window.shot(v),
+        view,
+      );
       await page.screenshot({ path: path.join(output, `${form}-${view}.png`) });
     }
     console.log(form, JSON.stringify(report[`${form}-front`]));
@@ -35,6 +44,9 @@ try {
   }
 } finally {
   await browser.close();
-  fs.writeFileSync(path.join(output, 'forms.json'), JSON.stringify(report, null, 2));
+  fs.writeFileSync(
+    path.join(output, 'forms.json'),
+    JSON.stringify(report, null, 2),
+  );
   console.log(JSON.stringify({ ok: errors.length === 0, errors }));
 }

@@ -45,7 +45,12 @@
       scene.background = new THREE.Color(p.water);
       scene.fog = new THREE.FogExp2(p.water, 0.02);
       scene.add(...createLightRig(p).lights);
-      const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.05, 300);
+      const camera = new THREE.PerspectiveCamera(
+        40,
+        innerWidth / innerHeight,
+        0.05,
+        300,
+      );
       let mesh;
       if (form.startsWith('arch')) {
         const material = new HabitatSurface('limestone').material({
@@ -54,7 +59,8 @@
           side: THREE.DoubleSide,
         });
         const g = mouthArch({ x: 0, y: 0, radius: 1.45 }, 0, 1, {
-          stone: form === 'arch-cave' ? [0.44, 0.4, 0.31] : [0.22, 0.22, 0.2244],
+          stone:
+            form === 'arch-cave' ? [0.44, 0.4, 0.31] : [0.22, 0.22, 0.2244],
           frost: form === 'arch-cave' ? 0 : 0.85,
           silt: form === 'arch-cave' ? 0.3 : 0,
           seed: 86010,
@@ -100,15 +106,23 @@
           }),
           material,
         );
-        const sand = new THREE.PlaneGeometry(60, 60).rotateX(-Math.PI / 2).translate(0, 0.8, 0);
+        const sand = new THREE.PlaneGeometry(60, 60)
+          .rotateX(-Math.PI / 2)
+          .translate(0, 0.8, 0);
         sand.setAttribute(
           'color',
-          new THREE.Float32BufferAttribute(new Float32Array(4 * 3).fill(0.55), 3),
+          new THREE.Float32BufferAttribute(
+            new Float32Array(4 * 3).fill(0.55),
+            3,
+          ),
         );
         scene.add(
           new THREE.Mesh(
             sand,
-            new HabitatSurface('sediment').material({ vertexColors: true, roughness: 0.95 }),
+            new HabitatSurface('sediment').material({
+              vertexColors: true,
+              roughness: 0.95,
+            }),
           ),
         );
       }
@@ -128,7 +142,12 @@
                 ? new THREE.Vector3(0.5, 0.25, 0.8)
                 : new THREE.Vector3(0.75, 0.3, 0.9);
         const dist = view === 'close' ? L * 0.55 : L * 1.25;
-        const at = view === 'close' ? centre.clone().add(new THREE.Vector3(size.x * 0.2, size.y * 0.15, 0)) : centre;
+        const at =
+          view === 'close'
+            ? centre
+                .clone()
+                .add(new THREE.Vector3(size.x * 0.2, size.y * 0.15, 0))
+            : centre;
         camera.position.copy(at).addScaledVector(dir.normalize(), dist);
         camera.lookAt(at);
         renderer.render(scene, camera);

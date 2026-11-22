@@ -196,14 +196,19 @@ export class CaveEnvironment {
     // V0.8 Pass 086: one sculpted arch of bedded limestone round each tunnel mouth, growing out of
     // the dome's own wall (Pass 052's heaped boulders read as an assembled ring).
     this.add(
-      mouthArch({ x: 0, y: CAVE.tunnel.y, radius: CAVE.tunnel.radius }, mouthZ, -1, {
-        face: faceByBisection(inCaveRock, mouthZ - 3, mouthZ + 3),
-        stone: CAVE_MOUTH_STONE,
-        silt: 0.3,
-        reach: 2.4,
-        proud: 0.75,
-        seed: 86010,
-      }),
+      mouthArch(
+        { x: 0, y: CAVE.tunnel.y, radius: CAVE.tunnel.radius },
+        mouthZ,
+        -1,
+        {
+          face: faceByBisection(inCaveRock, mouthZ - 3, mouthZ + 3),
+          stone: CAVE_MOUTH_STONE,
+          silt: 0.3,
+          reach: 2.4,
+          proud: 0.75,
+          seed: 86010,
+        },
+      ),
       tunnel,
       'Cave entrance arch',
     );

@@ -232,7 +232,10 @@ export class IceEnvironment {
     for (let i = 0; i < wp.count; i++) {
       const x = wp.getX(i),
         y = wp.getY(i),
-        k = Math.min(1, Math.max(0, (Math.hypot(x, y - t.y) - t.radius - 0.2) / 1.2));
+        k = Math.min(
+          1,
+          Math.max(0, (Math.hypot(x, y - t.y) - t.radius - 0.2) / 1.2),
+        );
       wp.setZ(i, iceWallFace(x, y));
       const tone =
           0.2 +
@@ -546,6 +549,7 @@ export class IceEnvironment {
         seed: 79310 + k * 13,
         deep,
         ground: kind === 'column' ? undefined : iceFloor(x, z),
+        solid: true,
       });
       this.colliders.push(rockCollider(g, new THREE.Matrix4()));
       out.push(g);
