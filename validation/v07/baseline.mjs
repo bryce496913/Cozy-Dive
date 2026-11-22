@@ -50,6 +50,8 @@ export const BENCH_VIEWS = [
   ['bench-close-coral', 'close', [-4.2, 2.6, -1.2], [-5.6, 2.0, -0.1]],
   ['bench-close-rock', 'close', [-2.9, 1.3, 1.5], [-4.6, 0.8, 0.4]],
   ['bench-close-bommie', 'close', [-3.8, 1.9, -6.8], [-5.6, 1.0, -5.4]],
+  // V0.8 Pass 082B: the ridge top (anemone, massive heads, sponges, table coral).
+  ['bench-close-ridge-top', 'close', [-5.9, 3.4, 3.4], [-7.5, 1.9, 1.6]],
 ];
 export const OUTER_VIEWS = [
   ['outer-reef-top', 'swimming', [0, 5, -36], [0, 3.5, -46]],

@@ -118,15 +118,35 @@ class Element:
         colonies, so every mass carries a few knobbly lobes of its own (deterministic)."""
         rng = np.random.default_rng(1000 + self.seed)
         out = []
-        n = int(3 + 2 * self.h[0] * self.h[2])
-        for k in range(min(n, 9)):
+        n = int(2 + 1.5 * self.h[0] * self.h[2])
+        for k in range(min(n, 6)):
             a = rng.random() * math.tau
             rim = 0.55 + 0.4 * rng.random()
             lp = np.array([math.cos(a) * self.h[0] * rim, self.h[1] * (0.45 + 0.5 * rng.random()),
                            math.sin(a) * self.h[2] * rim])
             r = self.h.min() * (0.55 + 0.5 * rng.random()) + 0.08
-            out.append((self.c + self.R @ lp, np.array([r * 1.25, r * 0.8, r * 1.1])))
+            # V0.8 Pass 082B: flattened into the rim, so they read as worn fossil heads, not spheres.
+            out.append((self.c + self.R @ lp, np.array([r * 1.3, r * 0.5, r * 1.15])))
         return out
+
+    def facets(self):
+        """Fracture planes (V0.8 Pass 082B): flat, crisp-edged broken faces of fresh mineral cut
+        across each mass, so the rock reads as fractured limestone and not as soft clay."""
+        rng = np.random.default_rng(2000 + self.seed)
+        out = []
+        for _ in range(4):
+            a = rng.uniform(0, math.tau)
+            d = np.array([math.cos(a), rng.uniform(-0.15, 0.75), math.sin(a)])
+            d /= np.linalg.norm(d)
+            n = self.R @ d
+            # How far the mass reaches along this normal, and a cut a little inside that.
+            reach = np.abs((self.R.T @ n)) @ self.h
+            out.append((n, n @ self.c + reach * rng.uniform(0.68, 0.86)))
+        return out
+
+    def facet_distance(self, p):
+        """Distance to the nearest fracture plane (small on a fractured face)."""
+        return np.min([np.abs(p @ n - o) for n, o in self.facets()], 0)
 
     def sdf(self, p):
         # Lobed, irregular outlines: the element's frame is warped at the scale of the element,
@@ -146,7 +166,10 @@ class Element:
         a = np.sort(np.abs(u), axis=1)[:, 1]
         d += 0.05 * self.chip * smooth(0.6, 0.98, a) * (0.5 + 0.5 * noise3(p, 3.0, 840 + self.seed))
         lobes = [ellipsoid(p, c, r) + 0.03 * noise3(p, 4.0, 860 + self.seed) for c, r in self.lobes()]
-        return smin([d, *lobes], 0.12)
+        d = smin([d, *lobes], 0.07)
+        for n, o in self.facets():
+            d = smax(d, p @ n - o, 0.012)
+        return d
 
     def corners(self):
         s = np.array([[i, j, k] for i in (-1, 1) for j in (-1, 1) for k in (-1, 1)], float)
@@ -212,10 +235,13 @@ class Formation:
 
     def mesh(self, voxel=0.03):
         field, axes = self.field(voxel)
-        field = gaussian_filter(field, 0.5)
+        field = gaussian_filter(field, 0.28)
         v, f, _, _ = marching_cubes(field, 0.0, spacing=(voxel,) * 3)
         v += np.array([a[0] for a in axes])
         return v, f[:, ::-1].copy()
+
+    def facet_distance(self, p):
+        return np.min([e.facet_distance(p) for e in self.elements], 0)
 
     def colliders(self):
         return {e.name: e.corners() for e in self.elements}
@@ -260,21 +286,62 @@ RIDGE_FORMATION = Formation(RIDGE_ELEMENTS, ridge_details)
 BOMMIE_FORMATION = Formation(BOMMIE_ELEMENTS, bommie_details)
 
 
-def paint(v, n, depth):
-    """Restrained reef-rock colour: warm limestone, shadowed recesses, a turf of algae on the tops,
-    coralline crusts on shaded vertical faces, pale fresh fractures and a sand-dusted foot."""
+def curvature(v, f, n):
+    """Mean-curvature proxy per vertex: neighbours' mean offset along the normal (+ concave)."""
+    acc = np.zeros_like(v)
+    cnt = np.zeros(len(v))
+    for a, b in ((0, 1), (1, 2), (2, 0)):
+        np.add.at(acc, f[:, a], v[f[:, b]])
+        np.add.at(cnt, f[:, a], 1)
+        np.add.at(acc, f[:, b], v[f[:, a]])
+        np.add.at(cnt, f[:, b], 1)
+    lap = acc / np.maximum(cnt, 1)[:, None] - v
+    return (lap * n).sum(1)
+
+
+def paint(v, n, depth, curv, facet):
+    """Reef-rock colour and weathering (RGBA; alpha 0 = fresh fracture, 1 = eroded or living),
+    driven by the form so every difference means something:
+
+    * **fresh fracture faces** (on a fracture plane): pale, cool mineral, crisp (less relief);
+    * **weathered surfaces**: cool grey-tan limestone with a slow tonal drift;
+    * **convex edges**: worn a little paler; **cavities and recesses**: dark, silted, warm;
+    * **sediment** settled on upward, concave ledges;
+    * restrained **biology**: turf algae on exposed tops, crisp-edged coralline crusts on shaded
+      faces, and dark vertical stains on steep faces.
+    """
     ys = v[:, 1] - SAND(v[:, [0, 2]])
-    stone = np.array([0.66, 0.62, 0.55])
-    col = np.tile(stone, (len(v), 1)) * (1 + 0.06 * noise3(v, 1.1, 901))[:, None]
-    # Recesses (where the designed carving went deep) hold shadow and silt.
-    col *= (1 - 0.45 * smooth(0.04, 0.35, depth))[:, None]
-    # Turf algae on upward faces, patchy.
-    turf = smooth(0.35, 0.8, n[:, 1]) * smooth(-0.2, 0.45, noise3(v, 1.4, 902))
-    col = col * (1 - turf[:, None] * 0.55) + np.array([0.40, 0.40, 0.27]) * turf[:, None] * 0.55
-    # Coralline algae crusts: muted pink-lilac on steep, shaded faces, in blotches.
-    crust = smooth(0.6, 0.15, np.abs(n[:, 1])) * smooth(0.48, 0.3, worley(v, 0.35, 903)) * smooth(0.25, 0.9, ys)
-    col = col * (1 - crust[:, None] * 0.5) + np.array([0.70, 0.50, 0.56]) * crust[:, None] * 0.5
+    up = n[:, 1]
+    stone = np.array([0.6, 0.58, 0.53])
+    col = np.tile(stone, (len(v), 1)) * (1 + 0.08 * noise3(v, 0.6, 901) + 0.03 * noise3(v, 3.0, 905))[:, None]
+    wear = np.full(len(v), 0.62)
+    # Fresh fractures.
+    fresh = smooth(0.03, 0.008, facet) * smooth(-0.004, 0.006, -depth + 0.006)
+    col = col * (1 - fresh[:, None] * 0.7) + np.array([0.74, 0.73, 0.69]) * fresh[:, None] * 0.7
+    wear = wear * (1 - fresh) + 0.12 * fresh
+    # Convex edges worn paler; concave recesses darker.
+    convex = smooth(0.0, -0.012, curv)
+    col *= (1 + 0.08 * convex)[:, None]
+    hollow = np.maximum(smooth(0.03, 0.3, depth), smooth(0.002, 0.02, curv))
+    col = col * (1 - hollow[:, None] * 0.5) + np.array([0.3, 0.26, 0.2]) * hollow[:, None] * 0.5
+    wear = np.maximum(wear, hollow)
+    # Sediment on upward, concave ledges.
+    silt = smooth(0.7, 0.92, up) * smooth(-0.002, 0.01, curv) * smooth(0.3, 1.2, ys)
+    col = col * (1 - silt[:, None] * 0.75) + np.array([0.78, 0.72, 0.6]) * silt[:, None] * 0.75
+    wear = np.maximum(wear, silt)
+    # Turf algae on exposed tops, in patches.
+    turf = smooth(0.5, 0.85, up) * smooth(0.0, 0.5, noise3(v, 1.2, 902)) * (1 - silt) * (1 - fresh)
+    col = col * (1 - turf[:, None] * 0.55) + np.array([0.36, 0.38, 0.24]) * turf[:, None] * 0.55
+    wear = np.maximum(wear, turf)
+    # Coralline algae: crisp-edged crusts on shaded, steep faces.
+    crust = smooth(0.5, 0.2, np.abs(up)) * smooth(0.27, 0.24, worley(v, 0.32, 903)) * smooth(0.3, 0.9, ys)
+    col = col * (1 - crust[:, None] * 0.7) + np.array([0.64, 0.42, 0.5]) * crust[:, None] * 0.7
+    wear = np.maximum(wear, crust)
+    # Dark vertical stains on steep faces (streaks stretched downward), sparse.
+    streak = smooth(0.35, 0.75, noise3(v * np.array([3.0, 0.5, 3.0]), 1.0, 904)) * smooth(0.35, 0.1, np.abs(up))
+    col *= (1 - 0.35 * streak)[:, None]
     # A sand-dusted foot blending into the seabed.
-    dust = smooth(0.45, 0.0, ys)
-    col = col * (1 - dust[:, None] * 0.6) + np.array([0.80, 0.74, 0.62]) * dust[:, None] * 0.6
-    return np.clip(col, 0, 1)
+    dust = smooth(0.4, 0.0, ys)
+    col = col * (1 - dust[:, None] * 0.6) + np.array([0.8, 0.74, 0.62]) * dust[:, None] * 0.6
+    wear = np.maximum(wear, dust)
+    return np.concatenate([np.clip(col, 0, 1), np.clip(wear, 0, 1)[:, None]], 1)

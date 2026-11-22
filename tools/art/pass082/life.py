@@ -131,7 +131,7 @@ def thicket_skeleton(base, rng, scale=1.0, primaries=15):
         el = math.radians(rng.uniform(14, 34) if k % 3 else rng.uniform(40, 62))
         d = np.array([math.cos(az) * math.cos(el), math.sin(el), math.sin(az) * math.cos(el)])
         start = base + np.array([math.cos(az), 0, math.sin(az)]) * rng.uniform(0.02, 0.22) * scale
-        grow(start + d * 0.04 * scale, d, rng.uniform(0.032, 0.042) * max(scale, 0.7), rng.uniform(0.42, 0.62) * scale, 0)
+        grow(start + d * 0.04 * scale, d, rng.uniform(0.026, 0.034) * max(scale, 0.7), rng.uniform(0.42, 0.62) * scale, 0)
     return segs
 
 
@@ -161,10 +161,13 @@ def thicket(rng):
     _, idx = cKDTree(mids).query(v)
     t = tipness[idx]
     t = np.where(np.linalg.norm(v - base, axis=1) < 0.35, t * 0.3, t)
-    base_c, body_c, tip_c = np.array([0.36, 0.3, 0.24]), np.array([0.5, 0.42, 0.42]), np.array([0.78, 0.72, 0.76])
-    col = np.where((t < 0.5)[:, None], base_c + (body_c - base_c) * (t / 0.5)[:, None],
-                   body_c + (tip_c - body_c) * ((t - 0.5) / 0.5)[:, None] ** 1.5)
-    col *= (1 + 0.05 * noise3(v, 8, 5))[:, None]
+    # V0.8 Pass 082B: living tissue, not a bleached skeleton. Golden-brown zooxanthellate tissue
+    # darkening to the base, with pale growing tips only at the last few centimetres.
+    base_c, body_c, tip_c = np.array([0.33, 0.24, 0.15]), np.array([0.6, 0.45, 0.26]), np.array([0.84, 0.78, 0.6])
+    col = base_c + (body_c - base_c) * smooth(0.0, 0.5, t)[:, None]
+    col = col + (tip_c - col) * smooth(0.93, 1.0, t)[:, None]
+    # Slight branch-to-branch variation in tone (warmer and greener colonies of tissue).
+    col *= np.stack([1 + 0.06 * noise3(v, 2.5, 5), 1 + 0.05 * noise3(v, 2.5, 6), 1 + 0.03 * noise3(v, 2.5, 7)], 1)
     hull = v[(v[:, 1] < base[1] + 0.35) & (np.hypot(v[:, 0] - base[0], v[:, 2] - base[2]) < 0.55)]
     return v, f, np.clip(col, 0, 1), hull
 
@@ -182,8 +185,8 @@ def bush(p, n, scale, seed, tip_c):
         if m.any():
             g.d[m] = smin([g.d[m], round_cone(g.p[m], a, b, ra, rb_)], 0.01)
     v, f = g.mesh(2800, blur=0.45)
-    t = smooth(p[1], p[1] + scale * 0.7, v[:, 1])
-    col = np.array([0.5, 0.44, 0.34]) * (1 - t[:, None]) + np.array(tip_c) * t[:, None]
+    t = smooth(p[1] + scale * 0.35, p[1] + scale * 0.75, v[:, 1])
+    col = np.array([0.46, 0.38, 0.26]) * (1 - t[:, None]) + np.array(tip_c) * t[:, None]
     return v, f, col
 
 
@@ -237,9 +240,10 @@ def massive_head(p, n, r, seed, tint):
     for _ in range(14):
         a, rad = rng.uniform(0, math.tau), r * math.sqrt(rng.random()) * 0.95
         o = (u * math.cos(a) + w * math.sin(a)) * rad
-        h = r * (0.55 - 0.4 * rad / r) * rng.uniform(0.6, 1.1)
+        h = r * (0.36 - 0.28 * rad / r) * rng.uniform(0.6, 1.1)
         s_ = r * rng.uniform(0.28, 0.45)
-        lobes.append(ellipsoid(g.p, p + o + n * h * 0.5, (s_, s_ * 0.85, s_)))
+        # Low and spreading: an encrusting field of hummocks, never a ball on the rock.
+        lobes.append(ellipsoid(g.p, p + o + n * h * 0.5, (s_, s_ * 0.6, s_)))
     d = smin(lobes, r * 0.12)
     # Flattened against the rock: nothing below the attachment plane.
     d = np.maximum(d, -((g.p - p) @ n) - r * 0.05)
@@ -274,7 +278,9 @@ def plates(p, n, size, seed, tint):
     g.d = d
     v, f = g.mesh(1900, blur=0.4)
     rr = np.linalg.norm(v - p, axis=1) / size
-    col = tint * (0.75 + 0.35 * smooth(0.3, 1.0, rr))[:, None] * np.ones((len(v), 1))
+    # Growth rings and a pale growing margin, as plating Montipora shows.
+    band = 0.5 + 0.5 * np.sin(rr * 26 + noise3(v, 6, seed))
+    col = tint * (0.68 + 0.14 * band + 0.3 * smooth(0.55, 1.0, rr))[:, None] * np.ones((len(v), 1))
     return v, f, col
 
 
@@ -292,29 +298,57 @@ def leather(p, n, size, seed):
     g.d = smin([stalk, cap], size * 0.12)
     v, f = g.mesh(2200, blur=0.45)
     top = smooth(c[1] - 0.05, c[1] + 0.1, v[:, 1])
-    col = np.array([0.66, 0.62, 0.46]) * (1 - top[:, None]) + np.array([0.82, 0.78, 0.6]) * top[:, None]
+    col = np.array([0.6, 0.56, 0.4]) * (1 - top[:, None]) + np.array([0.78, 0.74, 0.54]) * top[:, None]
     col *= (1 + 0.05 * noise3(v, 30, seed))[:, None]
     return v, f, col
 
 
 def tube_sponges(p, n, size, seed, tint):
+    """Tube sponges: a few thick-walled tubes with flared lips and dark, open interiors; velvety
+    and matte (their material is the roughest on the reef)."""
     rng = np.random.default_rng(seed)
-    g = Grid(p - size * 1.2, p + size * 1.2 + np.array([0, size * 1.8, 0]), 0.012)
+    g = Grid(p - size * 1.2, p + size * 1.2 + np.array([0, size * 2.0, 0]), 0.01)
     d = np.full(len(g.p), 9.0)
-    tops = []
-    for k in range(4):
-        b = p + rng.normal(0, size * 0.25, 3) * (1, 0, 1)
-        lean = rng.normal(0, 0.2, 3) * (1, 0, 1) + np.array([0, 1, 0])
+    axes = []
+    for k in range(3):
+        b = p + rng.normal(0, size * 0.22, 3) * (1, 0, 1)
+        lean = rng.normal(0, 0.22, 3) * (1, 0, 1) + np.array([0, 1, 0])
         lean /= np.linalg.norm(lean)
-        t = b + lean * size * rng.uniform(1.0, 1.7)
-        r = size * rng.uniform(0.16, 0.22)
-        outer = round_cone(g.p, b, t, r * 1.1, r)
-        inner = round_cone(g.p, b + lean * size * 0.3, t + lean * r, r * 0.6, r * 0.7)
-        d = np.minimum(d, smax(outer, -inner, 0.01))
-        tops.append(t)
-    g.d = d + 0.003 * noise3(g.p, 45, seed)
-    v, f = g.mesh(2000, blur=0.45)
-    col = np.tile(tint, (len(v), 1)) * (0.8 + 0.25 * smooth(p[1], p[1] + size * 1.5, v[:, 1]))[:, None]
+        t = b + lean * size * rng.uniform(1.1, 1.8)
+        r = size * rng.uniform(0.18, 0.24)
+        outer = smin([round_cone(g.p, b, t, r * 1.05, r),
+                      round_cone(g.p, t - lean * r * 0.6, t, r, r * 1.22)], r * 0.25)
+        inner = round_cone(g.p, b + lean * size * 0.35, t + lean * r * 1.5, r * 0.5, r * 0.62)
+        d = np.minimum(d, smax(outer, -inner, 0.008))
+        axes.append((b, t, r))
+    g.d = d + 0.003 * noise3(g.p, 50, seed)
+    v, f = g.mesh(2000, blur=0.4)
+    col = np.tile(tint, (len(v), 1)) * (0.82 + 0.2 * smooth(p[1], p[1] + size * 1.5, v[:, 1]))[:, None]
+    for b, t, r in axes:
+        ab = t - b
+        h = np.clip(((v - b) @ ab) / (ab @ ab), 0, 1)
+        dist = np.linalg.norm(v - (b + np.outer(h, ab)), axis=1)
+        inside = (dist < r * 0.75) & (h > 0.3)
+        col[inside] *= 0.35
+    return v, f, col
+
+
+def crust(p, n, size, seed, tint):
+    """Encrusting sponge: a lumpy patch moulded over the rock, with raised oscula (the chimney
+    openings that tell a sponge from a coral or an alga)."""
+    g = Grid(p - size * 1.2, p + size * 1.2, 0.01)
+    r = rock_sdf(g.p)
+    rng = np.random.default_rng(seed)
+    blob = np.min([ellipsoid(g.p, p + rng.normal(0, size * 0.35, 3), (size * 0.5,) * 3) for _ in range(5)], 0)
+    d = np.maximum(np.abs(r - 0.014) - 0.016, blob) + 0.004 * noise3(g.p, 30, seed)
+    for _ in range(4):
+        c = p + rng.normal(0, size * 0.3, 3)
+        c = c - n * ((c - p) @ n)
+        cone = round_cone(g.p, c, c + n * 0.05, 0.026, 0.017)
+        d = smax(np.minimum(d, cone), -round_cone(g.p, c + n * 0.015, c + n * 0.07, 0.008, 0.01), 0.004)
+    g.d = d
+    v, f = g.mesh(1100, blur=0.35)
+    col = np.tile(tint, (len(v), 1)) * (1 + 0.1 * noise3(v, 20, seed))[:, None]
     return v, f, col
 
 
@@ -424,27 +458,28 @@ def pick(v, n, mask, count, spacing, taken, rng, weight=None):
 
 def build(preview=False, rocks=None):
     rng = np.random.default_rng(RNG_SEED)
-    coral, soft, colliders = [], [], {}
+    # V0.8 Pass 082B: four material families, each with its own roughness and relief maps.
+    branching, coral, soft, sponge, colliders = [], [], [], [], {}
     v, f, c, hull = thicket(rng)
-    coral.append((v, f, c))
+    branching.append((v, f, c))
     colliders['thicket'] = hull
     v, f, c, hull = brain(rng)
     coral.append((v, f, c))
     colliders['brain'] = hull
     # The table coral crowns the terrace knob, the reef's horizontal accent behind the anemone.
     tp, _ = site((-8.05, 4.0, 1.65), (-8.05, 1.0, 1.65))
-    coral.append(table(tp, 0.55, 451))
+    branching.append(table(tp, 0.55, 451))
     sv, sn, sy = surface_sites(rocks, rng)
     # Keep clear of the living seats and the hand-placed heroes.
     taken = [(rb.ANEMONE, 0.85), (rb.BRANCHING, 1.0), (rb.MASSIVE, 0.9), (tp, 0.8)]
     focal = np.exp(-np.sum((sv - rb.BRANCHING) ** 2, axis=1) / 6.0)
     exposed = np.clip(0.8 * sn[:, 0] - 0.4 * sn[:, 2], 0, 1)
-    heads = pick(sv, sn, (sn[:, 1] > 0.5) & (sy > 0.3), 18, 0.55, taken, rng, focal)
-    # Muted massive-coral colours: yellow-brown, brown, purple-brown, olive-grey, cream, rust.
-    tints = [(0.66, 0.56, 0.36), (0.5, 0.42, 0.3), (0.52, 0.4, 0.44), (0.56, 0.56, 0.44),
-             (0.72, 0.66, 0.5), (0.62, 0.46, 0.36)]
+    heads = pick(sv, sn, (sn[:, 1] > 0.5) & (sy > 0.3), 12, 0.75, taken, rng, focal)
+    # Massive-coral colours: yellow-brown, brown, olive, purple-brown, green-grey, cream.
+    tints = [(0.62, 0.52, 0.32), (0.46, 0.38, 0.26), (0.44, 0.46, 0.32), (0.5, 0.36, 0.38),
+             (0.42, 0.46, 0.42), (0.68, 0.6, 0.44)]
     for k, i in enumerate(heads):
-        r = 0.18 + 0.3 * rng.random() ** 1.3
+        r = 0.24 + 0.3 * rng.random() ** 1.3
         coral.append(massive_head(sv[i], sn[i], r, 300 + k, np.array(tints[k % len(tints)])))
     plates_i = pick(sv, sn, (np.abs(sn[:, 1]) < 0.35) & (sy > 0.4) & (sy < 2.2), 11, 0.75, taken, rng,
                     exposed + focal)
@@ -458,18 +493,18 @@ def build(preview=False, rocks=None):
     for k, i in enumerate(finger_i):
         soft.append(fingers(sv[i] - sn[i] * 0.02, sn[i], 0.22 + 0.1 * rng.random(), 550 + k))
     bush_i = pick(sv, sn, (sn[:, 1] > 0.6) & (sy > 0.5), 5, 0.8, taken, rng, focal)
-    bush_tips = [(0.86, 0.8, 0.62), (0.74, 0.82, 0.86), (0.84, 0.72, 0.78), (0.8, 0.84, 0.7)]
+    bush_tips = [(0.84, 0.78, 0.6), (0.58, 0.7, 0.82), (0.72, 0.56, 0.7), (0.74, 0.8, 0.56)]
     for k, i in enumerate(bush_i):
-        coral.append(bush(sv[i] - sn[i] * 0.02, sn[i], 0.3 + 0.12 * rng.random(), 800 + k, bush_tips[k % 4]))
+        branching.append(bush(sv[i] - sn[i] * 0.02, sn[i], 0.3 + 0.12 * rng.random(), 800 + k, bush_tips[k % 4]))
     sponge_i = pick(sv, sn, (sn[:, 1] > 0.5) & (sy > 0.3) & (sy < 1.6), 4, 1.1, taken, rng)
-    sponge_tints = [(0.56, 0.44, 0.66), (0.82, 0.6, 0.3), (0.7, 0.4, 0.45), (0.5, 0.52, 0.68)]
+    sponge_tints = [(0.5, 0.3, 0.62), (0.86, 0.62, 0.22), (0.66, 0.3, 0.38), (0.4, 0.36, 0.62)]
     for k, i in enumerate(sponge_i):
-        soft.append(tube_sponges(sv[i] - sn[i] * 0.03, sn[i], 0.14 + 0.08 * rng.random(), 600 + k,
+        sponge.append(tube_sponges(sv[i] - sn[i] * 0.03, sn[i], 0.14 + 0.08 * rng.random(), 600 + k,
                                  np.array(sponge_tints[k % 4])))
     crust_i = pick(sv, sn, (sn[:, 1] < 0.15) & (sy > 0.25), 8, 0.7, taken, rng)
-    crust_tints = [(0.74, 0.46, 0.3), (0.7, 0.5, 0.36), (0.66, 0.4, 0.36), (0.56, 0.44, 0.58)]
+    crust_tints = [(0.84, 0.4, 0.18), (0.88, 0.64, 0.2), (0.7, 0.26, 0.24), (0.52, 0.34, 0.56)]
     for k, i in enumerate(crust_i):
-        soft.append(crust(sv[i], sn[i], 0.16 + 0.12 * rng.random(), 700 + k, np.array(crust_tints[k % 4])))
+        sponge.append(crust(sv[i], sn[i], 0.16 + 0.12 * rng.random(), 700 + k, np.array(crust_tints[k % 4])))
 
     def merge(items):
         vs, fs, cs, off = [], [], [], 0
@@ -480,9 +515,10 @@ def build(preview=False, rocks=None):
             off += len(v)
         return np.vstack(vs), np.vstack(fs), np.clip(np.vstack(cs), 0, 1)
 
-    v, f, c = merge(coral)
-    out = {'Reef_Coral': (v, f, c, 0.62)}
-    v, f, c = merge(soft)
-    out['Reef_Soft'] = (v, f, c, 0.78)
+    out = {}
+    for name, items, rough in (('Reef_Branching', branching, 0.6), ('Reef_Massive', coral, 0.7),
+                               ('Reef_Soft', soft, 0.5), ('Reef_Sponge', sponge, 0.92)):
+        v, f, c = merge(items)
+        out[name] = (v, f, c, rough)
     build.colliders = colliders
     return out

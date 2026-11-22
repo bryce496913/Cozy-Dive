@@ -82,6 +82,11 @@ float roughnessFactor = roughness;
 #ifdef USE_ROUGHNESSMAP
   roughnessFactor *= triSample(roughnessMap, triP, triW).g;
 #endif
+#if defined(TRI_SURFACE) && defined(USE_COLOR_ALPHA)
+  // V0.8 Pass 082B: authored weathering in vertex alpha (0 fresh fracture, 1 eroded or living):
+  // fresh mineral faces are a little smoother, eroded and overgrown surfaces rougher.
+  roughnessFactor *= 0.74 + 0.4 * vColor.a;
+#endif
 `;
 const NORMAL = `
 #ifdef USE_NORMALMAP
@@ -103,6 +108,10 @@ const NORMAL = `
     triWorldNormal *= gl_FrontFacing ? 1.0 : -1.0;
   #endif
   normal = normalize((viewMatrix * vec4(triWorldNormal, 0.0)).xyz);
+  #if defined(TRI_SURFACE) && defined(USE_COLOR_ALPHA)
+    // Fresh fracture faces keep crisper, flatter relief; weathered surfaces take the full map.
+    normal = normalize(mix(nonPerturbedNormal, normal, 0.35 + 0.65 * vColor.a));
+  #endif
 #endif
 #ifdef TRI_RIDGES
   // Bump the ridges into the lighting (screen-space derivatives, as three.js's bump map does), so
@@ -129,6 +138,11 @@ export interface TriplanarOptions {
   readonly ridges?: { readonly frequency: number; readonly depth: number };
   /** V0.7 Pass 079: large-scale variation on upward faces, to hide a floor texture's tiling. */
   readonly breakup?: boolean;
+  /**
+   * V0.8 Pass 082B: vertex alpha carries authored weathering (0 fresh fracture, 1 eroded or
+   * living), scaling roughness and relief so mineral, eroded and overgrown surfaces differ.
+   */
+  readonly surface?: boolean;
 }
 
 /** Returns a material clone whose authored maps are sampled triplanarly in world space. */
@@ -147,6 +161,8 @@ export function triplanarMaterial(
     material.defines = { ...material.defines, TRI_RIDGES: '' };
   if (options.breakup)
     material.defines = { ...material.defines, TRI_BREAKUP: '' };
+  if (options.surface)
+    material.defines = { ...material.defines, TRI_SURFACE: '' };
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader
@@ -167,7 +183,9 @@ export function triplanarMaterial(
       ? 'cozy-triplanar-ridged-v1'
       : options.breakup
         ? 'cozy-triplanar-breakup-v1'
-        : 'cozy-triplanar-v2';
+        : options.surface
+          ? 'cozy-triplanar-surface-v1'
+          : 'cozy-triplanar-v2';
   return material;
 }
 

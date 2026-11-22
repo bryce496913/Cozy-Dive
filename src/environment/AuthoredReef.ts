@@ -625,40 +625,69 @@ export class AuthoredReef {
         throw Error(`Missing benchmark ${name}`);
       return found;
     };
-    const rock = this.own(
-        triplanarMaterial(this.standard('Rock_0'), {
-          scale: REEF_LAYOUT.rockTexelScale,
-          ao: 0.45,
-        }),
-      ),
-      coral = this.own(
-        triplanarMaterial(this.relief('Coral_Massive_0'), {
-          scale: REEF_LAYOUT.coralTexelScale * 1.4,
-          ao: 0.4,
-        }),
-      ),
-      soft = this.own(
-        triplanarMaterial(this.relief('Coral_Massive_2'), {
-          scale: REEF_LAYOUT.coralTexelScale,
-          ao: 0.4,
-        }),
+    // V0.8 Pass 082B: each family its own material identity. The rock reads its authored
+    // weathering from vertex alpha; the living families take relief maps of their own kind
+    // (branching corallites, massive and plating colonies, fleshy soft tissue, porous sponge)
+    // and their own roughness, but their colour from their painting.
+    const family = (
+      source: THREE.MeshStandardMaterial,
+      name: string,
+      scale: number,
+      roughness: number,
+      surface = false,
+    ): THREE.MeshStandardMaterial => {
+      const m = this.own(
+        triplanarMaterial(source, { scale, ao: 0.4, surface }),
       );
-    rock.vertexColors = coral.vertexColors = soft.vertexColors = true;
-    rock.roughness = 0.86;
-    coral.roughness = 0.68;
-    // Under the tank's bright aqua key the pale growing tips read near white; a slight grey
-    // keeps them as a highlight, not a glare.
-    coral.color.setRGB(0.86, 0.83, 0.85);
-    soft.roughness = 0.74;
+      m.vertexColors = true;
+      m.roughness = roughness;
+      m.name = name;
+      return m;
+    };
+    const rock = family(
+        this.standard('Rock_0'),
+        'Reef benchmark rock',
+        REEF_LAYOUT.rockTexelScale,
+        0.88,
+        true,
+      ),
+      branching = family(
+        this.relief('Coral_Branching_0'),
+        'Reef benchmark branching coral',
+        REEF_LAYOUT.coralTexelScale * 2.2,
+        0.6,
+      ),
+      massive = family(
+        this.relief('Coral_Massive_2'),
+        'Reef benchmark massive coral',
+        REEF_LAYOUT.coralTexelScale * 1.4,
+        0.7,
+      ),
+      soft = family(
+        this.relief('Soft_Coral_0'),
+        'Reef benchmark soft coral',
+        REEF_LAYOUT.coralTexelScale * 1.6,
+        0.5,
+      ),
+      sponge = family(
+        this.relief('Rock_0'),
+        'Reef benchmark sponge',
+        REEF_LAYOUT.rockTexelScale * 3.2,
+        0.92,
+      );
     rock.normalScale.setScalar(0.85);
-    rock.name = 'Reef benchmark rock';
-    coral.name = 'Reef benchmark coral';
-    soft.name = 'Reef benchmark soft coral';
+    // The shared rock map is olive; a slightly cooler tint keeps limestone from reading beige.
+    rock.color.setRGB(0.94, 0.97, 1.0);
+    soft.normalScale.setScalar(0.45);
+    // Plating colonies are thin shells: both faces must shade.
+    massive.side = THREE.DoubleSide;
     for (const [name, material] of [
       ['Reef_Ridge', rock],
       ['Reef_Bommie', rock],
-      ['Reef_Coral', coral],
+      ['Reef_Branching', branching],
+      ['Reef_Massive', massive],
       ['Reef_Soft', soft],
+      ['Reef_Sponge', sponge],
     ] as const) {
       const near = node(name),
         far = node(`${name}_LOD1`);

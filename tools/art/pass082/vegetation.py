@@ -149,7 +149,8 @@ def placements(rocks):
     pts = np.stack([xs.ravel(), np.zeros(xs.size), zs.ravel()], 1)
     pts[:, 1] = rb.SAND(pts[:, [0, 2]]) + 0.02
     dist = np.minimum(form.envelope(pts), bom.envelope(pts))
-    margin = (dist > 0.12) & (dist < 0.75) & (np.abs(pts[:, 0]) > 2.7)
+    # Tucked against the rock's foot: plants root where sand gathers at the reef's base.
+    margin = (dist > 0.05) & (dist < 0.5) & (np.abs(pts[:, 0]) > 2.7)
     # Clear of every other accepted rock and coral in the tank.
     others = [r for r in rb.SECTION['all'] if r['name'] not in rb.RIDGE + rb.BOMMIE]
     for r in others:
@@ -166,22 +167,29 @@ def placements(rocks):
         kind = 'Grass' if k % 3 != 2 else ('Halimeda' if k % 2 else 'RedAlga')
         count = rng.integers(7, 12) if kind == 'Grass' else rng.integers(4, 7)
         for _ in range(count):
-            q = c + np.array([rng.normal(0, 0.32), 0, rng.normal(0, 0.32)])
+            q = c + np.array([rng.normal(0, 0.26), 0, rng.normal(0, 0.26)])
             q[1] = rb.SAND(q[None, [0, 2]])[0] - 0.01
-            if min(form.envelope(q[None])[0], bom.envelope(q[None])[0]) < 0.06:
+            if min(form.envelope(q[None])[0], bom.envelope(q[None])[0]) < 0.03:
                 continue
             h = {'Grass': rng.uniform(0.7, 1.25), 'Halimeda': rng.uniform(0.3, 0.48),
                  'RedAlga': rng.uniform(0.35, 0.6)}[kind]
             out.append((kind, q, rng.uniform(0, math.tau), h))
     # A few algal tufts on the ledges (flat, upward rock away from the colonies).
+    # Algae root in crevices: upward, concave pockets on the rock (V0.8 Pass 082B).
     v, f = rocks['Reef_Ridge'][0], rocks['Reef_Ridge'][1]
     fn = np.cross(v[f[:, 1]] - v[f[:, 0]], v[f[:, 2]] - v[f[:, 0]])
+    vn = np.zeros_like(v)
+    for k in range(3):
+        np.add.at(vn, f[:, k], fn)
+    vn /= np.linalg.norm(vn, axis=1, keepdims=True) + 1e-12
+    concave = rb.curvature(v, f, vn)
     up = fn[:, 1] / (np.linalg.norm(fn, axis=1) + 1e-12)
     centre = v[f].mean(1)
-    ok = np.flatnonzero((up > 0.9) & (centre[:, 1] > 0.6))
+    pocket = concave[f].mean(1)
+    ok = np.flatnonzero((up > 0.6) & (centre[:, 1] > 0.6) & (pocket > 0.004))
     taken = [rb.ANEMONE, rb.BRANCHING]
     for i in rng.permutation(ok):
-        if len([o for o in out if o[1][1] > 0.5]) >= 8:
+        if len([o for o in out if o[1][1] > 0.5]) >= 10:
             break
         p = centre[i]
         if all(np.linalg.norm(p - t) > 0.8 for t in taken):
