@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Cozy Diver — Environment Form Studio</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #1a4550;
+      }
+      canvas {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="c"></canvas>
+    <script type="module">
+      // V0.8 Pass 086: one procedural environment source at a time (a tunnel-mouth arch or a
+      // sculpted ice form), through the game's own materials, in its world's water and light.
+      // `?form=arch-cave|arch-ice|wall|berg|column|shard|chunk`; `window.shot(view)` renders
+      // 'front', 'three-quarter', 'side' or 'close'. Dev server only.
+      import * as THREE from 'three';
+      import { installDeepFog } from '/src/rendering/deepFog.ts';
+      import { WATER_PROFILES } from '/src/config/waterProfiles.ts';
+      import { TANK_LIGHTING } from '/src/config/tankLighting.ts';
+      import { createLightRig } from '/src/rendering/atmosphere/lightRig.ts';
+      import { HabitatSurface } from '/src/environment/shared/HabitatSurface.ts';
+      import { mouthArch } from '/src/environment/shared/MouthArch.ts';
+      import { iceForm } from '/src/environment/ice/IceForms.ts';
+      installDeepFog();
+      const query = new URLSearchParams(location.search);
+      const form = query.get('form') ?? 'arch-cave';
+      const water = form === 'arch-cave' ? 'cave' : 'ice';
+      const canvas = document.getElementById('c');
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+      renderer.setPixelRatio(1);
+      renderer.setSize(innerWidth, innerHeight, false);
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = TANK_LIGHTING.exposure;
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      const scene = new THREE.Scene();
+      const p = WATER_PROFILES[water];
+      scene.background = new THREE.Color(p.water);
+      scene.fog = new THREE.FogExp2(p.water, 0.02);
+      scene.add(...createLightRig(p).lights);
+      const camera = new THREE.PerspectiveCamera(
+        40,
+        innerWidth / innerHeight,
+        0.05,
+        300,
+      );
+      let mesh;
+      if (form.startsWith('arch')) {
+        const material = new HabitatSurface('limestone').material({
+          vertexColors: true,
+          roughness: 0.95,
+          side: THREE.DoubleSide,
+        });
+        const g = mouthArch({ x: 0, y: 0, radius: 1.45 }, 0, 1, {
+          stone:
+            form === 'arch-cave' ? [0.44, 0.4, 0.31] : [0.22, 0.22, 0.2244],
+          frost: form === 'arch-cave' ? 0 : 0.85,
+          silt: form === 'arch-cave' ? 0.3 : 0,
+          seed: 86010,
+        });
+        // The face it grows from (a lumpy plane with the hole cut), as in the game.
+        const face = new THREE.RingGeometry(1.45, 9, 96, 8);
+        face.setAttribute(
+          'color',
+          new THREE.Float32BufferAttribute(
+            new Float32Array(face.getAttribute('position').count * 3).fill(
+              form === 'arch-cave' ? 0.38 : 0.2,
+            ),
+            3,
+          ),
+        );
+        face.translate(0, 0, -0.3);
+        scene.add(new THREE.Mesh(face, material));
+        mesh = new THREE.Mesh(g, material);
+      } else {
+        const material = new HabitatSurface('ice').material({
+          vertexColors: true,
+          roughness: 0.38,
+          metalness: 0,
+          emissive: 0x0f3550,
+          emissiveIntensity: 0.28,
+        });
+        const size = {
+          wall: [9, 20, 9],
+          berg: [5, 6, 4.5],
+          column: [3, 10, 3],
+          shard: [2.2, 3.2, 1.8],
+          chunk: [2, 1.4, 1.8],
+        }[form];
+        mesh = new THREE.Mesh(
+          iceForm({
+            kind: form,
+            size,
+            at: [0, form === 'wall' ? -3 : 0, 0],
+            yaw: 0.4,
+            seed: 86100,
+            deep: 0.55,
+            ground: form === 'wall' || form === 'berg' ? 0.8 : undefined,
+          }),
+          material,
+        );
+        const sand = new THREE.PlaneGeometry(60, 60)
+          .rotateX(-Math.PI / 2)
+          .translate(0, 0.8, 0);
+        sand.setAttribute(
+          'color',
+          new THREE.Float32BufferAttribute(
+            new Float32Array(4 * 3).fill(0.55),
+            3,
+          ),
+        );
+        scene.add(
+          new THREE.Mesh(
+            sand,
+            new HabitatSurface('sediment').material({
+              vertexColors: true,
+              roughness: 0.95,
+            }),
+          ),
+        );
+      }
+      scene.add(mesh);
+      const box = new THREE.Box3().setFromObject(mesh),
+        size = box.getSize(new THREE.Vector3()),
+        centre = box.getCenter(new THREE.Vector3());
+      window.ready = true;
+      window.shot = (view) => {
+        const L = Math.max(size.x, size.y, size.z);
+        const dir =
+          view === 'front'
+            ? new THREE.Vector3(0.02, 0.06, 1)
+            : view === 'side'
+              ? new THREE.Vector3(1, 0.15, 0.25)
+              : view === 'close'
+                ? new THREE.Vector3(0.5, 0.25, 0.8)
+                : new THREE.Vector3(0.75, 0.3, 0.9);
+        const dist = view === 'close' ? L * 0.55 : L * 1.25;
+        const at =
+          view === 'close'
+            ? centre
+                .clone()
+                .add(new THREE.Vector3(size.x * 0.2, size.y * 0.15, 0))
+            : centre;
+        camera.position.copy(at).addScaledVector(dir.normalize(), dist);
+        camera.lookAt(at);
+        renderer.render(scene, camera);
+        return { triangles: renderer.info.render.triangles };
+      };
+    </script>
+  </body>
+</html>

@@ -361,6 +361,47 @@ export function cushionSponge(): THREE.BufferGeometry {
   return finish(g, (v) => 0.75 + 0.5 * v.y);
 }
 
+/**
+ * V0.8 Pass 086: an encrusting mat: a thin, irregular, lobed crust of coralline algae, sponge and
+ * turf, a few centimetres proud, nodular on top and feathered at its rim. Colonies stand on these
+ * so they grow out of the steel rather than sitting on bare plate.
+ */
+export function encrustingMat(): THREE.BufferGeometry {
+  const rings = 6,
+    sides = 28,
+    pos: number[] = [],
+    idx: number[] = [];
+  pos.push(0, 0.05, 0);
+  for (let i = 1; i <= rings; i++) {
+    const d = i / rings;
+    for (let j = 0; j < sides; j++) {
+      const a = (j / sides) * Math.PI * 2,
+        lobe = 1 + 0.16 * Math.sin(a * 3 + 0.7) + 0.08 * Math.sin(a * 7 + 2.1),
+        r = 0.5 * d * lobe,
+        x = Math.cos(a) * r,
+        z = Math.sin(a) * r,
+        nodules =
+          0.012 * Math.max(0, Math.sin(x * 31 + 1.3) * Math.sin(z * 29)),
+        y = 0.05 * (1 - d * d) + nodules * (1 - d) - 0.02 * d * d;
+      pos.push(x, y, z);
+    }
+  }
+  for (let j = 0; j < sides; j++) idx.push(0, 1 + ((j + 1) % sides), 1 + j);
+  for (let i = 1; i < rings; i++)
+    for (let j = 0; j < sides; j++) {
+      const a = 1 + (i - 1) * sides + j,
+        b = 1 + (i - 1) * sides + ((j + 1) % sides),
+        c = a + sides,
+        d = b + sides;
+      idx.push(a, b, d, a, d, c);
+    }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  // Darkening toward the rim, where it thins into the plate.
+  return finish(g, (v) => 0.62 + 5 * Math.max(0, v.y));
+}
+
 /** A plate coral: a broad, thin, slightly cupped plate in two tiers, ridged out from its middle. */
 export function plateCoral(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
@@ -493,7 +534,7 @@ export function hydroid(seed = 13): THREE.BufferGeometry {
 }
 
 /** How a kind of growth sits: upright, standing out across the current (fans), or as a shelf. */
-export type GrowthMode = 'up' | 'fan' | 'shelf';
+export type GrowthMode = 'up' | 'fan' | 'shelf' | 'crust';
 export interface GrowthKind {
   readonly name: string;
   readonly build: () => THREE.BufferGeometry;
@@ -506,6 +547,24 @@ export interface GrowthKind {
 }
 /** Everything growing on the wreck, as on the Yongala: hardly a bare plate left. */
 export const WRECK_GROWTH: readonly GrowthKind[] = [
+  {
+    // V0.8 Pass 086: the mats the colonies grow from (laid first, under everything else).
+    name: 'Wreck encrusting mats',
+    build: encrustingMat,
+    count: 170,
+    onDeck: 0.35,
+    size: [0.3, 0.75],
+    // Close to the plating's own film and rust, a little warmer: mats read as part of the
+    // steel's crust, not as cut-out shapes laid on it.
+    palette: [
+      [0.46, 0.34, 0.33],
+      [0.48, 0.4, 0.28],
+      [0.36, 0.38, 0.26],
+      [0.42, 0.32, 0.36],
+      [0.5, 0.44, 0.34],
+    ],
+    mode: 'crust',
+  },
   {
     name: 'Wreck encrusting sponges',
     build: cushionSponge,

@@ -19,12 +19,13 @@ import {
   icicles,
   tunnelThroat,
   mouthCollar,
-  mouthRocks,
   rockTubeColliders,
   rockTubeGeometry,
   type Tube,
 } from '../shared/RockTube';
 import { iceFloor, iceUndersideAt } from './IceTerrain';
+import { type IceKind, iceForm } from './IceForms';
+import { mouthArch } from '../shared/MouthArch';
 
 /**
  * v0.6 Pass 046: the waters under the ice, built in code. A tunnel through a dark rock wall opens
@@ -45,6 +46,19 @@ export const ICE_LAYOUT = {
   wall: 0.6,
 } as const;
 
+/**
+ * The rock wall's face (z) at (x, y): bulging rock, smoothed into a clean round mouth at the
+ * tunnel's hole (V0.8 Pass 086: shared with the mouth's arch, which grows out of it).
+ */
+function iceWallFace(x: number, y: number): number {
+  const t = ICE.tunnel,
+    r = Math.hypot(x, y - t.y),
+    bulge =
+      0.6 * Math.sin(x * 0.7 + y * 0.4) * Math.sin(y * 0.9 - x * 0.3) +
+      0.25 * Math.sin(x * 2.1 + y * 1.7),
+    k = Math.min(1, Math.max(0, (r - t.radius - 0.2) / 1.2));
+  return t.wallZ - bulge * k - 0.4 * k;
+}
 function random(seed: number): () => number {
   let s = seed >>> 0;
   return () => {
@@ -218,13 +232,11 @@ export class IceEnvironment {
     for (let i = 0; i < wp.count; i++) {
       const x = wp.getX(i),
         y = wp.getY(i),
-        r = Math.hypot(x, y - t.y),
-        // Bulging rock, smoothed into a clean round mouth at the hole.
-        bulge =
-          0.6 * Math.sin(x * 0.7 + y * 0.4) * Math.sin(y * 0.9 - x * 0.3) +
-          0.25 * Math.sin(x * 2.1 + y * 1.7),
-        k = Math.min(1, Math.max(0, (r - t.radius - 0.2) / 1.2));
-      wp.setZ(i, t.wallZ - bulge * k - 0.4 * k);
+        k = Math.min(
+          1,
+          Math.max(0, (Math.hypot(x, y - t.y) - t.radius - 0.2) / 1.2),
+        );
+      wp.setZ(i, iceWallFace(x, y));
       const tone =
           0.2 +
           0.06 * Math.sin(x * 1.3 + y * 2.1) +
@@ -278,10 +290,19 @@ export class IceEnvironment {
       rock,
       'Ice tunnel collar',
     );
+    // V0.8 Pass 086: one sculpted arch of frosted basalt growing out of the wall round the mouth
+    // (Pass 052's heaped boulders read as an assembled ring).
     this.add(
-      mouthRocks(tube, t.wallZ - 0.2, -1, 0.85, 14, 52130),
+      mouthArch(tube, t.wallZ, -1, {
+        face: iceWallFace,
+        stone: [0.22, 0.22, 0.2244],
+        frost: 0.5,
+        reach: 2.5,
+        proud: 0.8,
+        seed: 86030,
+      }),
       rock,
-      'Ice tunnel mouth',
+      'Ice tunnel arch',
     );
     this.add(
       icicles(tube, ICE_FRAME.origin.z - 2, t.wallZ - 0.1, 34, 52140),
@@ -324,14 +345,20 @@ export class IceEnvironment {
     // and rising up through the sea ice.
     const blocks: THREE.BufferGeometry[] = [];
     const block = (x: number, z: number, sx: number, sz: number, k: number) => {
-      // v0.6 Pass 052: more facets (detail 2, was 1).
-      const g = lump(46100 + (k % 12) * 17, k % 4, 2),
-        h = top + 6 + rand() * 4;
-      g.scale(sx, h, sz);
-      g.rotateY((rand() - 0.5) * 0.5);
-      g.translate(x, h / 2 - 3, z);
-      iceColours(g, 0.4 + rand() * 0.4);
-      blocks.push(g);
+      // V0.8 Pass 086: each wall sculpted at its own size (calving faces, scallops, beds and
+      // flutes), not one carved lump stretched to fit.
+      const h = top + 6 + rand() * 4;
+      blocks.push(
+        iceForm({
+          kind: 'wall',
+          size: [sx, h, sz],
+          at: [x, -3, z],
+          yaw: (rand() - 0.5) * 0.5,
+          seed: 46100 + k * 17,
+          deep: 0.4 + rand() * 0.4,
+          ground: iceFloor(x, z),
+        }),
+      );
     };
     // Each block's inner face lies on or beyond the wall's line (they are rotated a little, so a
     // margin), so none juts into the tank.
@@ -383,13 +410,18 @@ export class IceEnvironment {
       if (ICE.holes.some((h) => Math.hypot(x - h.x, z - h.z) < h.r + 1.5))
         continue;
       const s = 0.6 + rand() * rand() * 2.6,
-        g = lump(46300 + (i % 8) * 7, i % 4, 1);
-      g.scale(s * (1 + rand()), s * 0.7, s * (1 + rand()));
-      g.rotateY(rand() * Math.PI);
+        sy = s * 0.7;
       // Set well up into the sheet (which dips by up to 0.6 m), so none seems to float.
-      g.translate(x, top - s * 0.12 + 0.3, z);
-      iceColours(g, 0.35);
-      blocks.push(g);
+      blocks.push(
+        iceForm({
+          kind: 'chunk',
+          size: [s * (1 + rand()), sy, s * (1 + rand())],
+          at: [x, top - s * 0.12 + 0.3 - sy / 2, z],
+          yaw: rand() * Math.PI,
+          seed: 46300 + i * 7,
+          deep: 0.35,
+        }),
+      );
     }
     for (const h of ICE.holes) {
       const chimney = new THREE.CylinderGeometry(
@@ -506,12 +538,19 @@ export class IceEnvironment {
       sz: number,
       k: number,
       deep: number,
+      kind: IceKind = 'berg',
     ) => {
-      const g = lump(79310 + k * 13, k % 4, 2);
-      g.scale(sx, h, sz);
-      g.rotateY(rand() * Math.PI);
-      g.translate(x, y0 + h / 2, z);
-      iceColours(g, deep);
+      // V0.8 Pass 086: sculpted at its own size (was one carved lump stretched to fit).
+      const g = iceForm({
+        kind,
+        size: [sx, h, sz],
+        at: [x, y0, z],
+        yaw: rand() * Math.PI,
+        seed: 79310 + k * 13,
+        deep,
+        ground: kind === 'column' ? undefined : iceFloor(x, z),
+        solid: true,
+      });
       this.colliders.push(rockCollider(g, new THREE.Matrix4()));
       out.push(g);
     };
@@ -546,6 +585,7 @@ export class IceEnvironment {
         sz * 0.4,
         i + 20,
         0.5,
+        'shard',
       );
     });
     // Columns: wide feet, a narrower waist, and a broad head merging into the sea ice.
@@ -555,7 +595,7 @@ export class IceEnvironment {
     ] as const) {
       const floor = iceFloor(x, z);
       piece(x, floor - 1, z, 5, 5.5, 4.5, 40, 0.5);
-      piece(x, floor + 3.5, z, 2.8, top - floor - 6, 2.6, 41, 0.6);
+      piece(x, floor + 3.5, z, 2.8, top - floor - 6, 2.6, 41, 0.6, 'column');
       piece(x, top - 4.5, z, 5.5, 5.5, 5, 42, 0.4);
     }
     return out;
