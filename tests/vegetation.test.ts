@@ -10,14 +10,15 @@ import { PLANT_VERTEX_GLSL } from '../src/environment/PlantAnimation';
 
 /** V0.7 Pass 071: smoother, more varied kelp and plants that bend through the water. */
 describe('V0.7 Pass 071 kelp', () => {
-  it('has five templates, so neighbouring plants rarely repeat', () => {
-    expect(STALKS.heights).toHaveLength(5);
-    expect(new Set(STALKS.heights).size).toBe(5);
+  it('has seven templates (V0.8 Pass 085), so neighbouring plants rarely repeat', () => {
+    expect(STALKS.heights).toHaveLength(7);
+    expect(new Set(STALKS.heights).size).toBe(7);
+    expect(STALKS.stipes).toHaveLength(7);
   });
   it.each(STALKS.heights.map((h, i) => [h, i]))(
     'template of %f m shades smoothly, with blade flex rising from zero at the base',
     (height, i) => {
-      const g = stalkTemplate(height, 101 + i * 37),
+      const g = stalkTemplate(height, 101 + i * 37, STALKS.stipes[i]),
         p = g.getAttribute('position'),
         n = g.getAttribute('normal'),
         flex = g.getAttribute('kelpFlex');

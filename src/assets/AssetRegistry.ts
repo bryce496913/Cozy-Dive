@@ -155,6 +155,26 @@ export const ASSET_REGISTRY = {
     maxDimension: 40,
     requireMorphs: false,
   },
+  /**
+   * V0.8 Pass 085: the outer reef's authored variants (six composed rocks, colonies that grow over
+   * the rock, arching seagrass), each in its own local space; instanced over the seeded layout.
+   */
+  reefOuter: {
+    path: 'assets/models/reef/reef-outer.glb',
+    requiredNodes: [
+      'ReefOuter_Root',
+      'OuterRock_0',
+      'OuterRock_5',
+      'OuterCoral_massive_0',
+      'OuterCoral_branching_0',
+      'OuterCoral_plate_0',
+      'OuterPlant_grass',
+      'OuterPlant_blade',
+    ],
+    minDimension: 1.2,
+    maxDimension: 4,
+    requireMorphs: false,
+  },
   cardinalfish: {
     path: 'assets/models/fish/cardinalfish.glb',
     requiredNodes: [

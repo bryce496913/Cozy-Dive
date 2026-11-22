@@ -215,11 +215,14 @@ export function outerInterests(layout: ReefLayout): HabitatInterest[] {
     out: HabitatInterest[] = [];
   for (const p of layout.placements) {
     if (p.family === 'rock')
+      // V0.8 Pass 085: on the rock's face, low enough to lie within every rock variant (the
+      // composed variants include low mounds and tables; half the height stood above those, in
+      // open water, and turned into a crowded spawn shelter for the reef's shelter fish).
       out.push({
         kind: 'reef-face',
         position: {
           x: p.position.x,
-          y: p.position.y + 0.5 * p.scale.y,
+          y: p.position.y + 0.15 * p.scale.y,
           z: p.position.z,
         },
         normal: up,

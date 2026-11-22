@@ -78,6 +78,12 @@ export const OUTER_VIEWS = [
   ['outer-reef-top', 'swimming', [0, 5, -36], [0, 3.5, -46]],
   ['outer-coral-close', 'close', [-0.2, 2.6, -38.6], [1.4, 1.2, -41.2]],
   ['outer-wall-lip', 'medium', [4, 3, -55], [4, 0, -62]],
+  // V0.8 Pass 085: the reef's composition at swimming distance, a close look at rock and coral,
+  // and the lip over the blue.
+  ['outer-reef-wide', 'swimming', [12, 6, -34], [-6, 1.5, -47]],
+  ['outer-reef-west', 'swimming', [-4, 5, -40], [-20, 1.5, -48]],
+  ['outer-rock-close', 'close', [3, 2.2, -43], [5.5, 0.9, -45.5]],
+  ['outer-lip-blue', 'medium', [-2, 4, -51], [-2, -3, -68]],
 ];
 
 const browser = await chromium.launch({
@@ -277,11 +283,15 @@ try {
         console.log(`fish-${tag}-${distance}`);
       }
   }
-  for (const [name, distance, eye, target] of process.env.COZY_AQUA === '1'
-    ? AQUA_VIEWS
-    : process.env.COZY_BENCH === '1'
-      ? BENCH_VIEWS
-      : TANK_VIEWS)
+  // V0.8 Pass 085: COZY_OUTER_ONLY=1 skips the tank views (the outer views still swim there).
+  for (const [name, distance, eye, target] of process.env.COZY_OUTER_ONLY ===
+  '1'
+    ? []
+    : process.env.COZY_AQUA === '1'
+      ? AQUA_VIEWS
+      : process.env.COZY_BENCH === '1'
+        ? BENCH_VIEWS
+        : TANK_VIEWS)
     await capture('aquarium', name, distance, eye, target);
   if (process.env.COZY_OUTER === '1') {
     await place([6.4, 1.6, -12.1], [3, 1.6, -12.1]);
