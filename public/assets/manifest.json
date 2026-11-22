@@ -2421,5 +2421,23 @@
     "animations": ["SwimPreview"],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
+  },
+  {
+    "id": "reef-benchmark",
+    "file": "assets/models/reef/reef-benchmark.glb",
+    "sha256": "3a08cf2371a991d92ab3c072f2b3ea4cca5ec52137ef26f3b1c7b209468b9abd",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 1682580,
+    "visualPrimitives": 11,
+    "visualTriangles": 263571,
+    "collisionTriangles": 6796,
+    "materials": 5,
+    "images": [],
+    "geometryAccessorBytes": 0,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium hero asset"
   }
 ]

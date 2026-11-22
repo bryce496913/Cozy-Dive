@@ -105,6 +105,27 @@ export const ASSET_REGISTRY = {
     maxDimension: 90,
     requireMorphs: false,
   },
+  /**
+   * V0.8 Pass 082: the reef benchmark section (the composed ridge and bommie, their colonies,
+   * soft corals, sponges and plant clusters), authored in aquarium space; about 8 x 12 m.
+   */
+  reefBenchmark: {
+    path: 'assets/models/reef/reef-benchmark.glb',
+    requiredNodes: [
+      'ReefBenchmark_Root',
+      'Reef_Ridge',
+      'Reef_Ridge_LOD1',
+      'Reef_Bommie',
+      'Reef_Coral',
+      'Reef_Soft',
+      'Reef_Plant_Grass',
+      'Reef_Plant_Halimeda',
+      'Reef_Plant_RedAlga',
+    ],
+    minDimension: 6,
+    maxDimension: 16,
+    requireMorphs: false,
+  },
   cardinalfish: {
     path: 'assets/models/fish/cardinalfish.glb',
     requiredNodes: [

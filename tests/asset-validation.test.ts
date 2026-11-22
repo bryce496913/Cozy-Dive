@@ -28,7 +28,9 @@ it.each(Object.entries(ASSET_REGISTRY))(
       doc: {
         nodes: { name: string }[];
         buffers: { uri?: string }[];
-        images: { uri?: string; bufferView: number }[];
+        // Optional: a static scenery asset may carry vertex colour only (V0.8 Pass 082's reef
+        // benchmark takes the shared reef maps at runtime).
+        images?: { uri?: string; bufferView: number }[];
         meshes: {
           primitives: {
             attributes: Record<string, number>;
@@ -40,7 +42,7 @@ it.each(Object.entries(ASSET_REGISTRY))(
       expect(doc.nodes.some((n) => n.name === name)).toBe(true);
     expect(doc.buffers.every((b) => !b.uri)).toBe(true);
     expect(
-      doc.images.every((i) => !i.uri && Number.isInteger(i.bufferView)),
+      (doc.images ?? []).every((i) => !i.uri && Number.isInteger(i.bufferView)),
     ).toBe(true);
     expect(row.images.every((i) => i.width === 512 && i.height === 512)).toBe(
       true,

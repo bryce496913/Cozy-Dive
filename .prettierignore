@@ -4,3 +4,4 @@ package-lock.json
 dist-benchmark
 public/assets/draco
 public/assets/basis
+tools/art/pass082/section.json

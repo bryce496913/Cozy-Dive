@@ -8,7 +8,7 @@ import { PlantSystem } from './PlantSystem';
 import type { HabitatInterest } from '../fish/FishHabitat';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
 import * as THREE from 'three';
-import { AQUARIUM } from '../config/world';
+import { AQUARIUM, type Vec3 } from '../config/world';
 import { WATER_PROFILES } from '../config/waterProfiles';
 import { beamGeometry, beamMaterial } from './shared/LightBeam';
 import { CollisionWorld, type ConvexCollider } from '../player/collision';
@@ -37,6 +37,11 @@ export class Aquarium {
   readonly root = new THREE.Group();
   readonly collision: CollisionWorld;
   private readonly solidColliders: ConvexCollider[];
+  /** The fish habitat's interest points (shared with the fish simulation by reference). */
+  private readonly interestPoints: HabitatInterest[];
+  /** V0.8 Pass 082: interest points withheld while a presentation override covers them. */
+  private suspendedInterests: { interest: HabitatInterest; index: number }[] =
+    [];
   readonly rockColliders: readonly ConvexCollider[];
   readonly rocks: readonly RockPlacement[];
   readonly sand: THREE.Mesh;
@@ -55,6 +60,7 @@ export class Aquarium {
     const colliders: ConvexCollider[] = [];
     this.solidColliders = colliders;
     const interests: HabitatInterest[] = [];
+    this.interestPoints = interests;
     const sandGeometry = new THREE.PlaneGeometry(36, 28, 90, 70);
     sandGeometry.rotateX(-Math.PI / 2);
     const positions = sandGeometry.attributes.position;
@@ -383,6 +389,26 @@ export class Aquarium {
       0,
       ...next.filter((c) => !this.solidColliders.includes(c)),
     );
+  }
+  /**
+   * V0.8 Pass 082: withhold the interest points a presentation override has covered with solid
+   * rock, so no fish is sent into it. `restoreInterests` puts them back in their places.
+   */
+  suspendInterests(covered: (p: Readonly<Vec3>) => boolean): void {
+    this.restoreInterests();
+    for (let i = this.interestPoints.length - 1; i >= 0; i--) {
+      const interest = this.interestPoints[i];
+      if (!covered(interest.position)) continue;
+      this.suspendedInterests.push({ interest, index: i });
+      this.interestPoints.splice(i, 1);
+    }
+  }
+  restoreInterests(): void {
+    for (let k = this.suspendedInterests.length - 1; k >= 0; k--) {
+      const { interest, index } = this.suspendedInterests[k];
+      this.interestPoints.splice(index, 0, interest);
+    }
+    this.suspendedInterests = [];
   }
   update(
     time: number,

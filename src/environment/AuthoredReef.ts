@@ -17,6 +17,13 @@ import {
   REEF_LAYOUT,
   scatterDebris,
 } from './ReefLayout';
+import {
+  REEF_BENCHMARK,
+  insideAny,
+  isBenchmarkCoral,
+  isBenchmarkRock,
+  type BenchmarkPlant,
+} from './ReefBenchmark';
 
 /** Library node prefixes for each procedural plant species template family. */
 export const PLANT_TEMPLATE_NODES: Readonly<
@@ -138,6 +145,16 @@ export class AuthoredReef {
     authored: readonly ConvexCollider[];
   }[] = [];
   private sandMaterial?: THREE.Material;
+  /** V0.8 Pass 082: the reef benchmark section (absent when `useBenchmark` is off or it fails). */
+  private benchLease?: AssetLease;
+  private readonly benchOriginals: ConvexCollider[] = [];
+  private readonly benchSolids: ConvexCollider[] = [];
+  /** Plant, rubble and understory instances inside the benchmark rock, withheld while it shows. */
+  private readonly benchWithheld: {
+    mesh: THREE.InstancedMesh;
+    index: number;
+    matrix: THREE.Matrix4;
+  }[] = [];
   /** Pass 019: shaded seabed sand draped over sand drifted into the wreck, and what it replaced. */
   private drifted?: THREE.MeshStandardMaterial;
   private readonly draped: {
@@ -150,6 +167,7 @@ export class AuthoredReef {
   constructor(
     private readonly q: Aquarium,
     private readonly loader = new AssetLoader(),
+    private readonly useBenchmark = false,
   ) {
     this.root.name = 'Authored reef environment';
     this.root.visible = false;
@@ -197,11 +215,27 @@ export class AuthoredReef {
     }
     try {
       this.lease.model.updateMatrixWorld(true);
+      if (this.useBenchmark) {
+        try {
+          this.benchLease = await this.loader.acquire('reefBenchmark');
+          this.benchLease.model.updateMatrixWorld(true);
+        } catch (error) {
+          console.warn(
+            'Cozy Diver: reef benchmark unavailable; keeping the accepted section.',
+            error,
+          );
+        }
+        if (this.disposed) {
+          this.cleanup();
+          return false;
+        }
+      }
       this.buildRocks();
       this.buildCorals();
       this.buildVegetation();
       this.buildSubstrate();
       this.buildBackdrop();
+      if (this.benchLease) this.buildBenchmark();
       this.q.root.add(this.root);
       this.state = 'ready';
       this.setEnabled(true);
@@ -234,6 +268,12 @@ export class AuthoredReef {
       den = this.q.anchoredLife.moray.den;
     this.rockSurfaces.length = 0;
     majors.forEach((rock, i) => {
+      // V0.8 Pass 082: the benchmark section replaces these rocks (their hulls swap as a group).
+      if (this.benchLease && isBenchmarkRock(rock.mesh.name)) {
+        this.hidden.push(rock.mesh);
+        this.benchOriginals.push(rock.collider!);
+        return;
+      }
       const lod = new THREE.LOD();
       lod.name = `Authored rock ${i} (${rock.mesh.name})`;
       const material = materials[(i * 7 + rock.template) % materials.length];
@@ -321,6 +361,11 @@ export class AuthoredReef {
     boulder.vertexColors = true;
     for (const formation of this.q.hardscape.formations) {
       const variant = (seen[formation.kind] = (seen[formation.kind] ?? -1) + 1);
+      if (this.benchLease && isBenchmarkCoral(formation.position)) {
+        this.hidden.push(formation.mesh);
+        this.benchOriginals.push(...formation.colliders);
+        continue;
+      }
       const name = `${CORAL_NODES[formation.kind]}_${variant}`;
       const group = new THREE.Group();
       group.name = `Authored coral ${name}`;
@@ -566,6 +611,143 @@ export class AuthoredReef {
     this.ray.far = maxDistance;
     return this.ray.intersectObjects(this.rockSurfaces, false)[0]?.distance;
   }
+  /**
+   * V0.8 Pass 082: the composed benchmark section. Its rock, coral and soft-coral meshes go in
+   * at full detail near the swimmer and their distance level beyond; its plants use the shared
+   * current-driven sway; its convex parts become the section's colliders for the swimmer and
+   * the fish alike (the accepted hulls come back with the accepted art).
+   */
+  private buildBenchmark(): void {
+    const model = this.benchLease!.model;
+    const node = (name: string): THREE.Mesh => {
+      const found = model.getObjectByName(name);
+      if (!(found instanceof THREE.Mesh))
+        throw Error(`Missing benchmark ${name}`);
+      return found;
+    };
+    const rock = this.own(
+        triplanarMaterial(this.standard('Rock_0'), {
+          scale: REEF_LAYOUT.rockTexelScale,
+          ao: 0.45,
+        }),
+      ),
+      coral = this.own(
+        triplanarMaterial(this.relief('Coral_Massive_0'), {
+          scale: REEF_LAYOUT.coralTexelScale * 1.4,
+          ao: 0.4,
+        }),
+      ),
+      soft = this.own(
+        triplanarMaterial(this.relief('Coral_Massive_2'), {
+          scale: REEF_LAYOUT.coralTexelScale,
+          ao: 0.4,
+        }),
+      );
+    rock.vertexColors = coral.vertexColors = soft.vertexColors = true;
+    rock.roughness = 0.86;
+    coral.roughness = 0.68;
+    // Under the tank's bright aqua key the pale growing tips read near white; a slight grey
+    // keeps them as a highlight, not a glare.
+    coral.color.setRGB(0.86, 0.83, 0.85);
+    soft.roughness = 0.74;
+    rock.normalScale.setScalar(0.85);
+    rock.name = 'Reef benchmark rock';
+    coral.name = 'Reef benchmark coral';
+    soft.name = 'Reef benchmark soft coral';
+    for (const [name, material] of [
+      ['Reef_Ridge', rock],
+      ['Reef_Bommie', rock],
+      ['Reef_Coral', coral],
+      ['Reef_Soft', soft],
+    ] as const) {
+      const near = node(name),
+        far = node(`${name}_LOD1`);
+      near.geometry.computeBoundingSphere();
+      const centre = near.geometry.boundingSphere!.center.clone();
+      const lod = new THREE.LOD();
+      lod.name = `Reef benchmark ${name}`;
+      lod.position.copy(centre);
+      for (const [mesh, distance] of [
+        [near, 0],
+        [far, REEF_BENCHMARK.lodDistance],
+      ] as const) {
+        const m = new THREE.Mesh(mesh.geometry, material);
+        m.name = mesh.name;
+        m.position.copy(centre).negate();
+        lod.addLevel(m, distance);
+        if (distance === 0 && material === rock) this.rockSurfaces.push(m);
+      }
+      this.root.add(lod);
+    }
+    const algae = this.plantMaterial(this.standard('Caulerpa_0'));
+    for (const kind of Object.keys(
+      REEF_BENCHMARK.plantMotion,
+    ) as BenchmarkPlant[]) {
+      const geometry = this.own(
+        authoredPlantGeometry(
+          node(`Reef_Plant_${kind}`).geometry,
+          REEF_BENCHMARK.plantMotion[kind],
+        ),
+      );
+      const spots: THREE.Object3D[] = [];
+      model.traverse((o) => {
+        if (o.name.startsWith(`Reef_PlantSpot_${kind}_`)) spots.push(o);
+      });
+      const mesh = new THREE.InstancedMesh(geometry, algae, spots.length);
+      mesh.name = `Reef benchmark ${kind}`;
+      spots.forEach((o, i) => mesh.setMatrixAt(i, o.matrixWorld));
+      mesh.computeBoundingSphere();
+      if (mesh.boundingSphere) mesh.boundingSphere.radius += 1.5;
+      this.instanced.push(mesh);
+      this.root.add(mesh);
+    }
+    this.benchSolids.push(...reefColliders(model, new THREE.Matrix4()));
+    if (!this.benchSolids.length)
+      throw Error('Reef benchmark lost its structural parts');
+    this.hulls.push({
+      original: this.benchOriginals.slice(),
+      authored: this.benchSolids.slice(),
+    });
+    // Plants, rubble and understory from the accepted layout that the new rock now covers.
+    const m = new THREE.Matrix4(),
+      p = new THREE.Vector3();
+    const benchMeshes = new Set(
+      this.root.children.filter((c) => c.name.startsWith('Reef benchmark')),
+    );
+    for (const mesh of [
+      ...this.instanced.filter((i) => !benchMeshes.has(i)),
+      ...this.q.plants.batches.map((b) => b.mesh),
+      ...this.q.grass.batches,
+    ])
+      for (let i = 0; i < mesh.count; i++) {
+        mesh.getMatrixAt(i, m);
+        p.setFromMatrixPosition(m);
+        if (insideAny(p, this.benchSolids, REEF_BENCHMARK.clearance))
+          this.benchWithheld.push({ mesh, index: i, matrix: m.clone() });
+      }
+  }
+  /**
+   * A reef material's relief and roughness maps without its colour map: the benchmark's
+   * colonies carry their own painted colour, which a brain coral's colour map would tint.
+   */
+  private relief(name: string): THREE.MeshStandardMaterial {
+    const m = this.standard(name).clone();
+    m.map = null;
+    this.materials.add(m);
+    return m;
+  }
+  private applyBenchmark(value: boolean): void {
+    const zero = new THREE.Matrix4().makeScale(0, 0, 0);
+    for (const w of this.benchWithheld) {
+      w.mesh.setMatrixAt(w.index, value ? zero : w.matrix);
+      w.mesh.instanceMatrix.needsUpdate = true;
+    }
+    if (value && this.benchSolids.length)
+      this.q.suspendInterests((p) =>
+        insideAny(p, this.benchSolids, REEF_BENCHMARK.clearance),
+      );
+    else this.q.restoreInterests();
+  }
   setEnabled(value: boolean): void {
     if (
       (value && (this.disposed || this.state !== 'ready')) ||
@@ -589,6 +771,7 @@ export class AuthoredReef {
         value ? h.original : h.authored,
         value ? h.authored : h.original,
       );
+    this.applyBenchmark(value);
   }
   private cleanup(): void {
     this.undrape();
@@ -610,6 +793,11 @@ export class AuthoredReef {
     this.originalSandMaterial = undefined;
     this.lease?.release();
     this.lease = undefined;
+    this.benchLease?.release();
+    this.benchLease = undefined;
+    this.benchOriginals.length = 0;
+    this.benchSolids.length = 0;
+    this.benchWithheld.length = 0;
     this.loader.dispose();
   }
   dispose(): void {
