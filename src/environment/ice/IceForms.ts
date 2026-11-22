@@ -47,7 +47,7 @@ export interface IceFormSpec {
 
 /** Subdivision of each kind's icosphere (three's is linear: 20 x (detail + 1)^2 triangles). */
 export const ICE_DETAIL: Readonly<Record<IceKind, number>> = {
-  wall: 21,
+  wall: 15,
   berg: 18,
   column: 16,
   shard: 9,
@@ -66,7 +66,7 @@ const SCULPT = {
   scallopCell: 1.5,
   scallopDepth: 0.4,
   bed: [1.1, 2.1] as const,
-  bedStep: 0.2,
+  bedStep: 0.12,
   fluteDepth: 0.1,
   lobe: 0.09,
   /** How far the form leans over its height (fraction of its width). */
@@ -219,9 +219,16 @@ export function iceForm(spec: IceFormSpec): THREE.BufferGeometry {
       ),
       dish = (1 - Math.min(1, cell)) ** 2 * (1 - 0.8 * calved);
     // Beds: each recedes upward and steps out at its base; flutes run down the sides.
-    const beds = wy / bed + bedPhase + 0.05 * Math.sin(x * 0.21 + z * 0.17),
+    // Uneven beds (thick and thin), each stepped by its own amount, a few hardly at all: an
+    // even stack of equal ledges read as a tiered cake.
+    const beds =
+        wy / bed +
+        bedPhase +
+        0.35 * Math.sin(wy * 0.55 + phase[2]) +
+        0.05 * Math.sin(x * 0.21 + z * 0.17),
       f = beds - Math.floor(beds),
-      step = smooth(0.05, 0.97, f) ** 1.5 * side,
+      strength = hash(Math.floor(beds), 7, 3, seed) ** 1.5,
+      step = smooth(0.05, 0.97, f) ** 1.5 * side * strength,
       angle = Math.atan2(oz, ox),
       flute =
         Math.max(

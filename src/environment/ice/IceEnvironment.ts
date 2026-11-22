@@ -296,7 +296,7 @@ export class IceEnvironment {
       mouthArch(tube, t.wallZ, -1, {
         face: iceWallFace,
         stone: [0.22, 0.22, 0.2244],
-        frost: 0.85,
+        frost: 0.5,
         reach: 2.5,
         proud: 0.8,
         seed: 86030,
