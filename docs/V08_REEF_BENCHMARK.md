@@ -230,3 +230,140 @@ tank views) load with 0 errors. No long stress testing was run.
 **Approval gate.** No other section is converted. If this direction is approved, the same method
 (composed masses, rule- and hand-placed life, an overlay with rollback) would extend to the rest
 of the tank, one area at a time.
+
+## 8. Pass 082B: artistic refinement
+
+The review of Pass 082 kept the new silhouettes, ledges, cavities, branching hierarchy and integrated vegetation, but found three problems:
+
+- the surfaces read as soft clay;
+- living and non-living materials were not distinct;
+- the palette washed toward beige and pastel.
+
+Pass 082B refines materials, organism identity and palette. The primary formation and arrangement are unchanged.
+
+### Limestone identity
+
+**Fracture planes.** Every composed mass now carries four fracture planes: flat, crisp-edged broken faces of fresh mineral (`Element.facets`). The rock reads as fractured limestone with eroded parts, not as modelled clay.
+
+**Less blob, less clay:**
+
+- the rim lobes are flattened into the rock and blended tighter, so none reads as an embedded sphere;
+- the field is smoothed far less (blur 0.5 → 0.28);
+- it is sampled finer (0.035 → 0.03 m voxels), for crisper edges at the same 64 k-triangle budget.
+
+**Surface identity, driven by the form** (`paint`, with mesh curvature and fracture-plane distance):
+
+| Surface             | Look                                            | Weathering (vertex alpha)   |
+| ------------------- | ----------------------------------------------- | --------------------------- |
+| Fresh fracture face | Pale, cool mineral                              | 0.1: smoother, crisp relief |
+| Weathered surface   | Cool grey-tan limestone with a slow tonal drift | 0.6                         |
+| Convex edge         | Worn a little paler                             | 0.6                         |
+| Cavity and recess   | Dark, warm silt                                 | 1: roughest                 |
+| Sediment            | Sand on upward, concave ledges                  | 1                           |
+| Turf algae          | Olive, on exposed tops, in patches              | 1                           |
+| Coralline crust     | Crisp-edged mauve-pink, on shaded steep faces   | 1                           |
+| Biological stain    | Dark vertical streaks on steep faces, sparse    | as surface                  |
+
+**Roughness and relief follow it.** A new opt-in triplanar option (`surface: true`, define `TRI_SURFACE`) reads that weathering from vertex alpha:
+
+- roughness is scaled by 0.74 to 1.14;
+- normal-map relief blends from 35 % on fresh fractures to 100 % on eroded and overgrown rock.
+
+Only the benchmark rock uses it. Every other triplanar material compiles exactly as before.
+
+### Living coral
+
+**Staghorn.** It now reads as living tissue rather than bleached skeleton:
+
+- golden-brown zooxanthellate tissue, darker toward the base, with branch-to-branch tonal variation;
+- pale growing tips only at the last few centimetres;
+- branches about 20 % slimmer;
+- corallite relief from the reef library's branching-coral maps (axial and radial cups), in place of the brain map.
+
+**Massive heads.** Low, spreading encrusting fields of hummocks in Porites browns, olives and purple-browns, with plating-coral relief. They are fewer and larger, and no longer smooth balls.
+
+**Plating colonies.** Growth rings and a pale growing margin. The material is double-sided, since the plates are thin shells.
+
+### Organism separation
+
+Each family has its own material: its own roughness, its own relief maps from the reef library, and its colour from its painting.
+
+| Family                              | Roughness              | Relief                     | Character                                                                               |
+| ----------------------------------- | ---------------------- | -------------------------- | --------------------------------------------------------------------------------------- |
+| Branching (staghorn, bushes, table) | 0.6                    | branching corallites       | Living tissue with pale tips; blue, lilac and cream tips on the bushes                  |
+| Massive (brain, heads, plates)      | 0.7                    | massive and plating relief | Meanders, hummocks, growth rings                                                        |
+| Soft corals (leather, fingers)      | 0.5                    | soft tissue, gentle        | Fleshy, slight sheen, folded caps                                                       |
+| Sponges (tube, encrusting)          | 0.92                   | porous rock relief, fine   | Matte and velvety. Tubes have flared lips and dark interiors; crusts have raised oscula |
+| Rock                                | 0.65–1.0 by weathering | limestone                  | As above                                                                                |
+
+The palette is warmer and richer in the living colours (golden-brown, olive, purple-brown, orange and purple sponges) against cooler limestone neutrals. It is no longer one beige-pastel field.
+
+### Vegetation
+
+- **Grass:** clusters are tucked against the rock's foot (0.05–0.5 m from it, was 0.12–0.75 m), so they root where sand gathers.
+- **Algae:** tufts on the rock grow from concave pockets (crevices), not from flat tops.
+
+The channel and swimming paths are unchanged.
+
+### Three-way comparison
+
+All in `docs/screenshots/v08-pass082b/`. Each image shows, left to right:
+
+- the original section (pre-082, via `?reef=original`);
+- Pass 082;
+- Pass 082B.
+
+All three share one camera, scale, lighting and renderer settings, from the real game, with `validation/v07/baseline.mjs` and `COZY_BENCH=1`.
+
+| View                                 | Distance | What to judge                                                                                      |
+| ------------------------------------ | -------- | -------------------------------------------------------------------------------------------------- |
+| `bench-close-coral`                  | close    | Branching coral: living golden-brown tissue and corallites, against 082's bleached blue-white      |
+| `bench-close-rock`                   | close    | Limestone (fracture faces, silted recesses), attached growth, crevice-rooted vegetation            |
+| `bench-close-bommie`                 | close    | Massive coral: the brain coral, its rock, and an encrusting sponge with oscula                     |
+| `bench-close-ridge-top`              | close    | Attached growth: encrusting massive fields (no balls), tube sponge, bushes, leather coral, anemone |
+| `bench-medium`, `bench-medium-ridge` | medium   | Material separation and palette over the whole formation                                           |
+| `bench-swim`, `bench-swim-channel`   | swimming | Overall read and composition                                                                       |
+
+**Why 082B is more natural than 082:**
+
+1. **The rock stops reading as clay.**
+   - _082:_ uniform soft lobes in one warm brown.
+   - _082B:_ fractured planes, worn edges, dark silted hollows and settled sediment give it the vocabulary of eroded limestone, while the large masses read as before.
+2. **Living and non-living separate at a glance.** The rock is cool, matte and mineral; the living families are warm, coloured, and differ in sheen:
+   - golden staghorn;
+   - olive and purple-brown massive fields;
+   - orange and purple sponges;
+   - blue-tipped bushes;
+   - fleshy cream leather corals.
+3. **The branching coral looks alive.** It has tissue colour rather than skeleton white, slimmer branches, pale tips only where it grows, and corallite relief of its own kind.
+4. **No decorative spheres.** The egg-like heads and the plush finger blob are gone. Each organism reads by silhouette, surface and attachment:
+   - encrusting fields hug the rock;
+   - sponges show oscula and open tubes;
+   - plates show growth rings.
+
+### Cost (SwiftShader)
+
+| Measure                          | Pass 082 → 082B                                                |
+| -------------------------------- | -------------------------------------------------------------- |
+| Section triangles at full detail | 211 k → 203 k                                                  |
+| Distance level beyond 14 m       | 53 k → 51 k                                                    |
+| Benchmark views, draws           | +2 (the life split into four material families instead of two) |
+| Benchmark views, frame triangles | Within ±1 %                                                    |
+| Asset                            | 1.68 → 1.72 MB                                                 |
+| New shader programs              | One: the rock's triplanar surface variant                      |
+
+### Validation (082B)
+
+- **Passing:** typecheck, lint and build.
+- **Targeted tests passing:** reef benchmark, asset validation and loading, compression, collision, authored collision, reef lifecycle, reef environment, art consistency and lifecycle disposal.
+- **Browser:** one short aquarium benchmark render (eight views) with 0 errors.
+- **Not run:** no full playthrough or long tests.
+
+### Remaining concerns (082B)
+
+1. **Plating colonies seen edge-on** read as dark slivers at the shelf (now double-sided, still thin). Thicker margins, or fewer plates on that face, would settle it.
+2. **The rock now sits a little dark** under the tank's key in the wide views. Lifting the weathered tone by about 8 % is a one-line change if wanted.
+3. **The staghorn's pale tips** cover each terminal branch: the whole final segment, not just its last centimetres.
+4. **The rule-placed colonies** are not hand-tuned one by one.
+
+**Approval gate:** this stops for your visual approval before Pass 083. The benchmark stays confined to this section.

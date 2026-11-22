@@ -41,9 +41,10 @@ def formation(name, form, voxel):
     v, f = decimate(v, f, BUDGET[name])
     f = clean(v, f)
     n = normals(v, f)
-    # How deep the designed carving went at each vertex (for recess shading).
-    depth = np.clip(-form.envelope(v), 0, None)
-    return v, f, rb.paint(v, n, depth)
+    # How deep the porosity and caves went at each vertex (for recess shading), how concave the
+    # surface is there (positive in hollows), and how close it lies to a fracture plane.
+    depth = np.clip(-form.envelope(v) - 0.0, 0, None)
+    return v, f, rb.paint(v, n, depth, rb.curvature(v, f, n), form.facet_distance(v))
 
 
 def build_meshes(preview=False):
@@ -58,8 +59,13 @@ def build_meshes(preview=False):
         parts, colliders = pickle.loads(Path(cache).read_bytes())
         life.build.colliders = colliders
         rocks = {k: parts[k] for k in ('Reef_Ridge', 'Reef_Bommie')}
+        # PASS082_LIFE=1 keeps the cached rock and rebuilds only the life on it.
+        if os.environ.get('PASS082_LIFE') == '1':
+            parts = dict(rocks)
+            parts.update(life.build(preview, rocks))
+            Path(cache).write_bytes(pickle.dumps((parts, life.build.colliders)))
     else:
-        voxel = 0.05 if preview else 0.035
+        voxel = 0.05 if preview else 0.03
         parts = {}
         v, f, c = formation('Reef_Ridge', rb.RIDGE_FORMATION, voxel)
         parts['Reef_Ridge'] = (v, f, c, 0.88)
@@ -103,10 +109,12 @@ def export():
         bsdf.inputs['Metallic'].default_value = 0.0
         return m
 
-    mats = {'Reef_Ridge': material('Reef_Benchmark_Rock', 0.88),
-            'Reef_Bommie': material('Reef_Benchmark_Rock', 0.88),
-            'Reef_Coral': material('Reef_Benchmark_Coral', 0.62),
-            'Reef_Soft': material('Reef_Benchmark_Soft', 0.78)}
+    rock = material('Reef_Benchmark_Rock', 0.88)
+    mats = {'Reef_Ridge': rock, 'Reef_Bommie': rock,
+            'Reef_Branching': material('Reef_Benchmark_Branching', 0.6),
+            'Reef_Massive': material('Reef_Benchmark_Massive', 0.7),
+            'Reef_Soft': material('Reef_Benchmark_Soft', 0.5),
+            'Reef_Sponge': material('Reef_Benchmark_Sponge', 0.92)}
     stats = {}
     import bmesh  # noqa: PLC0415
     for name, (v, f, c, _r) in parts.items():
@@ -153,8 +161,13 @@ def export():
         ca.collider_from_points(f'COLLIDER_Coral_{name.title()}', pts, root)
     ca.save_blend(HERE / 'reef-benchmark.blend')
     raw = ca.export_glb(HERE / 'out' / 'reef-benchmark.glb')
+    import os  # noqa: PLC0415
     out = ROOT / 'public/assets/models/reef/reef-benchmark.glb'
-    out.write_bytes(raw.read_bytes())
+    # PASS082_PUBLISH=0 keeps the result in tools/art/pass082/out (e.g. while captures run).
+    if os.environ.get('PASS082_PUBLISH', '1') != '0':
+        out.write_bytes(raw.read_bytes())
+    else:
+        out = raw
     print('exported', out, out.stat().st_size, stats, len(places), 'plants')
 
 
