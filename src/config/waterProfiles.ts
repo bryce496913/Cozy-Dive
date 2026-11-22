@@ -90,11 +90,8 @@ export const WATER_PROFILES: Readonly<Record<WaterWorldId, WaterProfile>> = {
     label: 'Outer reef',
     water: 0x1d5d76,
     fogDensity: OUTER.fog,
-    // V0.8 Pass 087 (consistency audit: midground rock and coral flattened into blue cut-outs):
-    // less flat ambient (was 1.25) and a stronger key (was 2.4) model the reef's forms through
-    // the murk, as the tank's Pass 064 rig does. The murk itself (`OUTER.fog`) is unchanged.
-    hemisphere: { sky: 0x9fd6e0, ground: 0x3d5a4e, intensity: 1.0 },
-    sun: { color: 0xfff1d2, intensity: 2.8, position: [-20, 60, -40] },
+    hemisphere: { sky: 0x9fd6e0, ground: 0x3d5a4e, intensity: 1.25 },
+    sun: { color: 0xfff1d2, intensity: 2.4, position: [-20, 60, -40] },
     fill: { color: 0x75ced0, intensity: 0.5, position: [30, 20, 40] },
     shafts: { intensity: 0.012, tint: [0.82, 1, 0.92] },
     caustics: {
