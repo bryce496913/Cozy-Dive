@@ -6,7 +6,8 @@
  * model and records its geometry, materials, textures and file size.
  *
  *   COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/v07-worlds node validation/v07/worlds.mjs
- * Env: COZY_PLAYWRIGHT, COZY_CHROMIUM, COZY_WORLDS (comma list, default all), COZY_INVENTORY=0 to skip.
+ * Env: COZY_PLAYWRIGHT, COZY_CHROMIUM, COZY_WORLDS (comma list, default all), COZY_INVENTORY=0 to skip,
+ * COZY_VIEWS (comma list of view names; default all).
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -92,7 +93,10 @@ try {
     const begun = Date.now();
     await page.evaluate((w) => window.openWorld(w), world);
     const buildMs = Date.now() - begun;
+    // V0.8 Pass 087: COZY_VIEWS=<name,...> captures only the named views.
+    const only = process.env.COZY_VIEWS?.split(',');
     for (const [name, distance, eye, target] of WORLD_VIEWS[world]) {
+      if (only && !only.includes(name)) continue;
       const info = await page.evaluate(
         ([e, t]) => window.view(e, t),
         [eye, target],
