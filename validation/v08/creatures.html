@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Cozy Diver — Large Creature Studio</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #1f5a6e;
+      }
+      canvas {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="c"></canvas>
+    <script type="module">
+      // V0.8 Pass 084: one large animal at a time, from its shipped GLB through the game's
+      // AssetLoader, in the tank's water and light rig (the game's materials, fog and tone
+      // mapping). `?animal=<registry id>`; `window.shot(view)` renders 'side', 'three-quarter',
+      // 'head' (a close-up of the head end), 'top' or 'stroke' (Stroke_Left at full weight).
+      // Dev server only; runs on older checkouts too, for "before" views.
+      import * as THREE from 'three';
+      import { AssetLoader } from '/src/assets/AssetLoader.ts';
+      import { installDeepFog } from '/src/rendering/deepFog.ts';
+      import { WATER_PROFILES } from '/src/config/waterProfiles.ts';
+      import { TANK_LIGHTING } from '/src/config/tankLighting.ts';
+      import { createLightRig } from '/src/rendering/atmosphere/lightRig.ts';
+      installDeepFog();
+      const query = new URLSearchParams(location.search);
+      const id = query.get('animal');
+      // `&water=outer|kelp|ice`: that world's water and light instead of the tank's.
+      const water = query.get('water') ?? 'tank';
+      const canvas = document.getElementById('c');
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+      renderer.setPixelRatio(1);
+      renderer.setSize(innerWidth, innerHeight, false);
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = TANK_LIGHTING.exposure;
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      const scene = new THREE.Scene();
+      const p = WATER_PROFILES[water] ?? WATER_PROFILES.tank;
+      scene.background = new THREE.Color(p.water);
+      scene.fog = new THREE.FogExp2(p.water, water === 'tank' ? 0.004 : 0.03);
+      scene.add(...createLightRig(p).lights);
+      const camera = new THREE.PerspectiveCamera(
+        32,
+        innerWidth / innerHeight,
+        0.01,
+        200,
+      );
+      const loader = new AssetLoader(undefined, undefined, renderer);
+      let model,
+        size,
+        morphs = [];
+      window.ready = (async () => {
+        const lease = await loader.acquire(id);
+        model = lease.model;
+        model.traverse((o) => {
+          if (o.name.includes('_LOD')) o.visible = false;
+          if (o.isMesh && o.morphTargetDictionary) morphs.push(o);
+        });
+        const box = new THREE.Box3().setFromObject(model);
+        size = box.getSize(new THREE.Vector3());
+        model.position.sub(box.getCenter(new THREE.Vector3()));
+        scene.add(model);
+      })();
+      const pose = (w) => {
+        for (const m of morphs) {
+          const k = m.morphTargetDictionary.Stroke_Left;
+          if (k !== undefined) m.morphTargetInfluences[k] = w;
+        }
+      };
+      window.shot = (view) => {
+        const L = Math.max(size.x, size.z * 0.8, size.y);
+        pose(view === 'stroke' ? 1 : 0);
+        const at = new THREE.Vector3();
+        let dir,
+          dist = L * 1.45;
+        if (view === 'side') dir = new THREE.Vector3(0, 0.08, 1);
+        else if (view === 'top') dir = new THREE.Vector3(0.05, 1, 0.12);
+        else if (view === 'head') {
+          // The head end is +X in game space.
+          at.set(size.x * 0.36, 0, 0);
+          dir = new THREE.Vector3(0.85, 0.32, 0.75);
+          dist = Math.max(size.x * 0.75, size.z * 0.6);
+        } else dir = new THREE.Vector3(0.75, 0.3, 0.9);
+        camera.position.copy(at).addScaledVector(dir.normalize(), dist);
+        camera.lookAt(at);
+        renderer.render(scene, camera);
+        return {
+          triangles: renderer.info.render.triangles,
+          size: size.toArray().map((v) => +v.toFixed(2)),
+        };
+      };
+    </script>
+  </body>
+</html>
