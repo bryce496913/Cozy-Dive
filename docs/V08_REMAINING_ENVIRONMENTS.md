@@ -91,13 +91,13 @@ The hold, breach, routes, bridge, torch, life and every collider are unchanged.
 All procedural; no new runtime assets or downloads. Measured in the fixed views
 (`validation/v07/worlds.mjs`, SwiftShader, 1280x800):
 
-| World     | Draw calls (view range) | Triangles in view, before → after    | Build time (Node, one run) |
-| --------- | ----------------------- | ------------------------------------ | -------------------------- |
-| Shipwreck | +1 (the mats), 51-80    | 1.31-1.54 M → 1.36-1.59 M (+~0.05 M) | unchanged in practice      |
-| Sea cave  | unchanged, 35-61        | 1.37-1.70 M → 1.37-1.71 M            | unchanged in practice      |
-| Under ice | unchanged, 50-101       | ICE_TRIS                             | 1.13 s → ICE_BUILD s       |
+| World     | Draw calls (view range) | Triangles in view, before → after        | Build time (Node, one run) |
+| --------- | ----------------------- | ---------------------------------------- | -------------------------- |
+| Shipwreck | +1 (the mats), 51-80    | 1.31-1.54 M → 1.36-1.59 M (+~0.05 M)     | unchanged in practice      |
+| Sea cave  | unchanged, 35-61        | 1.37-1.70 M → 1.37-1.71 M                | unchanged in practice      |
+| Under ice | unchanged, 50-101       | 2.26-2.99 M → 2.49-3.22 M (+0.22 M, ~8%) | 1.13 s → 1.11-1.24 s       |
 
-- **Per-piece cost:** an arch is 11.1k triangles. The ice kinds are 5.1k (wall), 7.2k (berg),
+- **Per-piece cost:** an arch is 11.1k triangles. The ice kinds are 5.1k (wall, reduced from 9.7k after the first after-capture showed +0.35 M), 7.2k (berg),
   5.8k (column), 2.0k (shard) and 0.7k (chunk), all merged into the world's existing single ice
   mesh.
 - **Build time:** the first wiring doubled the ice world's build time (3.2 s while a capture was
@@ -108,7 +108,7 @@ All procedural; no new runtime assets or downloads. Measured in the fixed views
 ## 6. Validation
 
 - **Checks:** typecheck, lint and build pass.
-- **Full test suite:** 104 files, 1,065 tests pass, including:
+- **Full test suite:** 104 files, 1,062 tests pass, including:
   - the cave and ice swim-through-the-tunnel tests;
   - the wreck, cave and ice suites;
   - lifecycle dispose;
@@ -125,6 +125,8 @@ All procedural; no new runtime assets or downloads. Measured in the fixed views
 
 - **Back-tunnel collar:** with the boulders gone, Pass 079's flat rock collar shows as a darker
   ring inside the cave's back-tunnel arch.
+- **Ice-mouth arch:** its frosted beds read as dark and pale horizontal bands, more striped than
+  natural basalt at the tunnel's approach.
 - **Ice materials:** the forms are better modelled than lit. The ice material is unchanged
   (roughness 0.38 with a blue glow), so the near bergs still read somewhat smooth; the scallops
   show mainly at close range.
