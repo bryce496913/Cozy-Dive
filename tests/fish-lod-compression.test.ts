@@ -129,10 +129,14 @@ describe('Pass 017/018 asset compression', () => {
       const path = `public/${ASSET_REGISTRY[id].path}`;
       const json = glbJson(path);
       expect(json.extensionsUsed, id).toContain('KHR_draco_mesh_compression');
-      expect(json.extensionsUsed, id).toContain('KHR_texture_basisu');
       expect(json.extensionsUsed, id).not.toContain('EXT_texture_webp');
       const images = json.images ?? [];
-      expect(images.length, id).toBeGreaterThan(0);
+      // V0.8 Pass 082: the reef benchmark is vertex-coloured static scenery that takes the
+      // shared reef maps at runtime, so it ships no images; every texture that exists is KTX2.
+      if (id !== 'reefBenchmark') {
+        expect(json.extensionsUsed, id).toContain('KHR_texture_basisu');
+        expect(images.length, id).toBeGreaterThan(0);
+      }
       const b = readFileSync(path);
       const bin = 20 + b.readUInt32LE(12) + 8;
       for (const image of images) {

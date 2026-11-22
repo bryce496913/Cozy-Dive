@@ -37,6 +37,20 @@ export const TANK_VIEWS = [
   ['tank-arch-moray-close', 'close', [-4.8, 1.9, -5.6], [-7.6, 1.1, -8.0]],
   ['tank-chromis-school', 'medium', [-1.0, 6.4, 0.6], [-1.8, 6.9, -4.0]],
 ];
+/**
+ * V0.8 Pass 082: the reef benchmark section (the left channel bank: ridge of rocks 7, 11, 13, 19
+ * and 31, the bommie of rock 17) at close, medium and normal swimming distance.
+ * `COZY_BENCH=1` captures only these; `COZY_QUERY` appends a query string (e.g. `reef=original`).
+ */
+export const BENCH_VIEWS = [
+  ['bench-swim', 'swimming', [-1.0, 3.0, -7.5], [-6.5, 1.2, 0.8]],
+  ['bench-swim-channel', 'swimming', [1.2, 3.4, 5.2], [-6.2, 1.4, 0.2]],
+  ['bench-medium', 'medium', [-2.4, 2.6, -2.6], [-6.3, 1.4, 0.6]],
+  ['bench-medium-ridge', 'medium', [-3.2, 3.6, 4.6], [-7.6, 1.6, 1.4]],
+  ['bench-close-coral', 'close', [-4.2, 2.6, -1.2], [-5.6, 2.0, -0.1]],
+  ['bench-close-rock', 'close', [-2.9, 1.3, 1.5], [-4.6, 0.8, 0.4]],
+  ['bench-close-bommie', 'close', [-3.8, 1.9, -6.8], [-5.6, 1.0, -5.4]],
+];
 export const OUTER_VIEWS = [
   ['outer-reef-top', 'swimming', [0, 5, -36], [0, 3.5, -46]],
   ['outer-coral-close', 'close', [-0.2, 2.6, -38.6], [1.4, 1.2, -41.2]],
@@ -80,7 +94,9 @@ try {
         '\nwindow.__cozy=app;cancelAnimationFrame(app.frame);',
     });
   });
-  await page.goto(report.url);
+  await page.goto(
+    report.url + (process.env.COZY_QUERY ? `?${process.env.COZY_QUERY}` : ''),
+  );
   await page.waitForFunction(() => window.__cozy?.tankEditor);
   await page.evaluate(() =>
     Promise.all([window.__cozy.world.prepared, window.__cozy.office.prepared]),
@@ -238,7 +254,9 @@ try {
         console.log(`fish-${tag}-${distance}`);
       }
   }
-  for (const [name, distance, eye, target] of TANK_VIEWS)
+  for (const [name, distance, eye, target] of process.env.COZY_BENCH === '1'
+    ? BENCH_VIEWS
+    : TANK_VIEWS)
     await capture('aquarium', name, distance, eye, target);
   if (process.env.COZY_OUTER === '1') {
     await place([6.4, 1.6, -12.1], [3, 1.6, -12.1]);

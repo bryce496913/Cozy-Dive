@@ -2,6 +2,7 @@ import type { TankFish } from '../environment/TankFish';
 import type { TankBabies } from '../environment/TankBabies';
 import type { TankDecoration } from '../environment/TankDecoration';
 import { AuthoredAquarium } from '../environment/AuthoredAquarium';
+import { benchmarkRequested } from '../environment/ReefBenchmark';
 import { AuthoredReef } from '../environment/AuthoredReef';
 import { TankOutlook } from './TankOutlook';
 import { warmUpScene } from './warmUp';
@@ -129,7 +130,12 @@ export class UnderwaterScene implements WaterWorld {
     // KTX2 textures need the renderer to choose a GPU-compressed transcode target.
     this.authored = new AuthoredAquarium(this.aquarium, this.renderer);
     this.reefLoader = new AssetLoader(undefined, undefined, this.renderer);
-    this.reef = new AuthoredReef(this.aquarium, this.reefLoader);
+    // V0.8 Pass 082: the reef benchmark section, unless `?reef=original` asks for the accepted one.
+    this.reef = new AuthoredReef(
+      this.aquarium,
+      this.reefLoader,
+      benchmarkRequested(globalThis.location?.search ?? ''),
+    );
     // Each library falls back independently; the status stays until both have settled and
     // their shader programs are compiled, so the first swimming frame does not hitch.
     this.prepared = Promise.all([this.authored.ready, this.reef.ready]).then(
