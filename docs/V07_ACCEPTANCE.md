@@ -1,5 +1,12 @@
 # V0.7 acceptance preparation (Pass 081)
 
+> **Update, Pass 088 (final review):** the current, measured review of V0.7 against the Pass 061
+> baseline and the Pass 082 benchmark is in [`V07_FINAL_REVIEW.md`](V07_FINAL_REVIEW.md), with
+> galleries in `docs/screenshots/v08-pass088/`. It supersedes the costs, checklist and
+> recommendation below. V0.7 is still **not accepted**: the outer reef reads worse at swimming
+> distance than at Pass 061, and kelp, cave and wreck only partly meet the benchmark. See its
+> section 9 for the decisions the user needs to make.
+
 This pass evaluates V0.7 (Passes 061–080) against the approved **Crafted Stylized Realism** benchmark ([`V07_STYLE_BENCHMARK.md`](V07_STYLE_BENCHMARK.md), treatment B). It also prepares the game for the user's MacBook Air playthrough.
 
 **V0.7 is not accepted.** Acceptance is the user's decision, after the playthrough.
