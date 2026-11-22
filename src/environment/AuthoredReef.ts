@@ -11,6 +11,7 @@ import type { ConvexCollider } from '../player/collision';
 import type { Aquarium } from './Aquarium';
 import type { PlantSpecies, PlantSpeciesId } from './PlantSpecies';
 import { rockCollider } from './rockCollider';
+import { substrateHeight } from './HabitatRegions';
 import {
   backdropRocks,
   meadowUnderstory,
@@ -24,6 +25,14 @@ import {
   isBenchmarkRock,
   type BenchmarkPlant,
 } from './ReefBenchmark';
+import {
+  REEF_HABITAT,
+  isHabitatCoral,
+  isHabitatRock,
+  strayScatter,
+  type HabitatPlant,
+  type ReefPresentation,
+} from './ReefHabitat';
 
 /** Library node prefixes for each procedural plant species template family. */
 export const PLANT_TEMPLATE_NODES: Readonly<
@@ -145,12 +154,29 @@ export class AuthoredReef {
     authored: readonly ConvexCollider[];
   }[] = [];
   private sandMaterial?: THREE.Material;
-  /** V0.8 Pass 082: the reef benchmark section (absent when `useBenchmark` is off or it fails). */
+  /** V0.8 Pass 082: the reef benchmark section (absent under `?reef=original` or if it fails). */
   private benchLease?: AssetLease;
-  private readonly benchOriginals: ConvexCollider[] = [];
-  private readonly benchSolids: ConvexCollider[] = [];
-  /** Plant, rubble and understory instances inside the benchmark rock, withheld while it shows. */
-  private readonly benchWithheld: {
+  /** V0.8 Pass 083: the whole-tank habitat (absent unless asked for, or if it fails). */
+  private habitatLease?: AssetLease;
+  /** Accepted hulls the composed sections replace, and the sections' own convex parts. */
+  private readonly sectionOriginals: ConvexCollider[] = [];
+  private readonly sectionSolids: ConvexCollider[] = [];
+  /** Shared composed-reef materials (both sections draw with the same families). */
+  private sectionMaterials?: Record<
+    'rock' | 'branching' | 'massive' | 'soft' | 'sponge' | 'algae',
+    THREE.MeshStandardMaterial
+  >;
+  /**
+   * Plant, rubble and understory instances inside the composed rock, and (with the habitat) loose
+   * pebbles and shells out on open sand, withheld while the sections show.
+   */
+  private readonly reseated: {
+    mesh: THREE.InstancedMesh;
+    index: number;
+    original: THREE.Matrix4;
+    moved: THREE.Matrix4;
+  }[] = [];
+  private readonly withheld: {
     mesh: THREE.InstancedMesh;
     index: number;
     matrix: THREE.Matrix4;
@@ -167,7 +193,7 @@ export class AuthoredReef {
   constructor(
     private readonly q: Aquarium,
     private readonly loader = new AssetLoader(),
-    private readonly useBenchmark = false,
+    private readonly presentation: ReefPresentation | boolean = 'original',
   ) {
     this.root.name = 'Authored reef environment';
     this.root.visible = false;
@@ -215,7 +241,14 @@ export class AuthoredReef {
     }
     try {
       this.lease.model.updateMatrixWorld(true);
-      if (this.useBenchmark) {
+      // `true` (the Pass 082 signature) asks for the benchmark section alone.
+      const mode =
+        this.presentation === true
+          ? 'benchmark'
+          : this.presentation === false
+            ? 'original'
+            : this.presentation;
+      if (mode !== 'original') {
         try {
           this.benchLease = await this.loader.acquire('reefBenchmark');
           this.benchLease.model.updateMatrixWorld(true);
@@ -230,12 +263,29 @@ export class AuthoredReef {
           return false;
         }
       }
+      if (mode === 'habitat') {
+        try {
+          this.habitatLease = await this.loader.acquire('reefHabitat');
+          this.habitatLease.model.updateMatrixWorld(true);
+        } catch (error) {
+          console.warn(
+            'Cozy Diver: reef habitat unavailable; keeping the accepted tank.',
+            error,
+          );
+        }
+        if (this.disposed) {
+          this.cleanup();
+          return false;
+        }
+      }
       this.buildRocks();
       this.buildCorals();
       this.buildVegetation();
       this.buildSubstrate();
       this.buildBackdrop();
       if (this.benchLease) this.buildBenchmark();
+      if (this.habitatLease) this.buildHabitat();
+      this.withholdCovered();
       this.q.root.add(this.root);
       this.state = 'ready';
       this.setEnabled(true);
@@ -269,9 +319,13 @@ export class AuthoredReef {
     this.rockSurfaces.length = 0;
     majors.forEach((rock, i) => {
       // V0.8 Pass 082: the benchmark section replaces these rocks (their hulls swap as a group).
-      if (this.benchLease && isBenchmarkRock(rock.mesh.name)) {
+      // V0.8 Pass 083: and the habitat formations replace every other reef rock.
+      if (
+        (this.benchLease && isBenchmarkRock(rock.mesh.name)) ||
+        (this.habitatLease && isHabitatRock(rock.mesh.name))
+      ) {
         this.hidden.push(rock.mesh);
-        this.benchOriginals.push(rock.collider!);
+        this.sectionOriginals.push(rock.collider!);
         return;
       }
       const lod = new THREE.LOD();
@@ -361,9 +415,12 @@ export class AuthoredReef {
     boulder.vertexColors = true;
     for (const formation of this.q.hardscape.formations) {
       const variant = (seen[formation.kind] = (seen[formation.kind] ?? -1) + 1);
-      if (this.benchLease && isBenchmarkCoral(formation.position)) {
+      if (
+        (this.benchLease && isBenchmarkCoral(formation.position)) ||
+        (this.habitatLease && isHabitatCoral(formation.position))
+      ) {
         this.hidden.push(formation.mesh);
-        this.benchOriginals.push(...formation.colliders);
+        this.sectionOriginals.push(...formation.colliders);
         continue;
       }
       const name = `${CORAL_NODES[formation.kind]}_${variant}`;
@@ -420,11 +477,24 @@ export class AuthoredReef {
     const templates = new Map<string, THREE.BufferGeometry>();
     for (const batch of this.q.plants.batches) {
       if (batch.species.id === 'turtle-grass-meadow') continue;
-      const node = `${PLANT_TEMPLATE_NODES[batch.species.id]}_${batch.template}`;
+      // V0.8 Pass 083: the habitat redraws the algae and seagrass sprigs as organic, clustered
+      // plants (placements, species and fish interests stay the accepted ones).
+      const organic = this.habitatLease
+        ? REEF_HABITAT.speciesTemplates[batch.species.id]
+        : undefined;
+      const node = organic
+        ? `Habitat_Plant_${organic}`
+        : `${PLANT_TEMPLATE_NODES[batch.species.id]}_${batch.template}`;
       let geometry = templates.get(node);
       if (!geometry) {
+        const source = organic
+          ? this.habitatNode(node).geometry
+          : this.part(node).geometry;
         geometry = this.own(
-          authoredPlantGeometry(this.part(node).geometry, batch.species),
+          authoredPlantGeometry(
+            source,
+            organic ? REEF_HABITAT.plantMotion[organic] : batch.species,
+          ),
         );
         templates.set(node, geometry);
       }
@@ -433,6 +503,11 @@ export class AuthoredReef {
         geometry,
         batch.species.category === 'coral' ? tissue : algae,
       );
+    }
+    // V0.8 Pass 083: the habitat replaces the needle-blade meadows with beds of whole tufts.
+    if (this.habitatLease) {
+      this.hidden.push(...this.q.grass.batches);
+      return;
     }
     const meadowSpecies = { sway: 0.075, frequency: 0.65 };
     const blades = this.q.grass.batches.map((mesh, template) => {
@@ -625,10 +700,91 @@ export class AuthoredReef {
         throw Error(`Missing benchmark ${name}`);
       return found;
     };
-    // V0.8 Pass 082B: each family its own material identity. The rock reads its authored
-    // weathering from vertex alpha; the living families take relief maps of their own kind
-    // (branching corallites, massive and plating colonies, fleshy soft tissue, porous sponge)
-    // and their own roughness, but their colour from their painting.
+    const m = this.composedMaterials();
+    const meshes = (
+      [
+        ['Reef_Ridge', m.rock],
+        ['Reef_Bommie', m.rock],
+        ['Reef_Branching', m.branching],
+        ['Reef_Massive', m.massive],
+        ['Reef_Soft', m.soft],
+        ['Reef_Sponge', m.sponge],
+      ] as const
+    ).map(([name, material]) => ({
+      levels: [node(name), node(`${name}_LOD1`)],
+      material,
+    }));
+    this.addSection(
+      'Reef benchmark',
+      meshes,
+      [0, REEF_BENCHMARK.lodDistance],
+      model,
+    );
+    for (const kind of Object.keys(
+      REEF_BENCHMARK.plantMotion,
+    ) as BenchmarkPlant[])
+      this.addPlants(
+        `Reef benchmark ${kind}`,
+        node(`Reef_Plant_${kind}`).geometry,
+        REEF_BENCHMARK.plantMotion[kind],
+        model,
+        `Reef_PlantSpot_${kind}_`,
+      );
+  }
+  /** A mesh of the habitat asset, by name. */
+  private habitatNode(name: string): THREE.Mesh {
+    const found = this.habitatLease?.model.getObjectByName(name);
+    if (!(found instanceof THREE.Mesh)) throw Error(`Missing habitat ${name}`);
+    return found;
+  }
+  /**
+   * V0.8 Pass 083: the habitat formations. Every formation's rock and its four families of life
+   * come in three detail levels; the organic plants use the shared current-driven sway.
+   */
+  private buildHabitat(): void {
+    const model = this.habitatLease!.model;
+    const m = this.composedMaterials();
+    const families = {
+      Rock: m.rock,
+      Branching: m.branching,
+      Massive: m.massive,
+      Soft: m.soft,
+      Sponge: m.sponge,
+    } as const;
+    const meshes: { levels: THREE.Mesh[]; material: THREE.Material }[] = [];
+    model.traverse((o) => {
+      const match =
+        /^Habitat_(Rock|Branching|Massive|Soft|Sponge)_[A-Za-z]+$/.exec(o.name);
+      if (!match || !(o instanceof THREE.Mesh)) return;
+      meshes.push({
+        levels: [
+          o,
+          this.habitatNode(`${o.name}_LOD1`),
+          this.habitatNode(`${o.name}_LOD2`),
+        ],
+        material: families[match[1] as keyof typeof families],
+      });
+    });
+    if (!meshes.some((x) => x.material === m.rock))
+      throw Error('Reef habitat lost its formations');
+    this.addSection('Reef habitat', meshes, REEF_HABITAT.lodDistances, model);
+    for (const kind of Object.keys(REEF_HABITAT.plantMotion) as HabitatPlant[])
+      this.addPlants(
+        `Reef habitat ${kind}`,
+        this.habitatNode(`Habitat_Plant_${kind}`).geometry,
+        REEF_HABITAT.plantMotion[kind],
+        model,
+        `Habitat_PlantSpot_${kind}_`,
+      );
+  }
+  /**
+   * V0.8 Pass 082B: each family its own material identity, shared by every composed section. The
+   * rock reads its authored weathering from vertex alpha; the living families take relief maps of
+   * their own kind (branching corallites, massive and plating colonies, fleshy soft tissue, porous
+   * sponge) and their own roughness, but their colour from their painting.
+   */
+  private composedMaterials(): NonNullable<AuthoredReef['sectionMaterials']> {
+    if (this.sectionMaterials) return this.sectionMaterials;
     const family = (
       source: THREE.MeshStandardMaterial,
       name: string,
@@ -681,78 +837,152 @@ export class AuthoredReef {
     soft.normalScale.setScalar(0.45);
     // Plating colonies are thin shells: both faces must shade.
     massive.side = THREE.DoubleSide;
-    for (const [name, material] of [
-      ['Reef_Ridge', rock],
-      ['Reef_Bommie', rock],
-      ['Reef_Branching', branching],
-      ['Reef_Massive', massive],
-      ['Reef_Soft', soft],
-      ['Reef_Sponge', sponge],
-    ] as const) {
-      const near = node(name),
-        far = node(`${name}_LOD1`);
+    this.sectionMaterials = {
+      rock,
+      branching,
+      massive,
+      soft,
+      sponge,
+      algae: this.plantMaterial(this.standard('Caulerpa_0')),
+    };
+    return this.sectionMaterials;
+  }
+  /**
+   * Add a composed section's meshes (each at full detail near the swimmer and its lower levels
+   * beyond `distances`), and its convex parts as the section's colliders for the swimmer and the
+   * fish alike (the accepted hulls come back with the accepted art).
+   */
+  private addSection(
+    label: string,
+    meshes: readonly {
+      levels: readonly THREE.Mesh[];
+      material: THREE.Material;
+    }[],
+    distances: readonly number[],
+    model: THREE.Object3D,
+  ): void {
+    const rock = this.composedMaterials().rock;
+    for (const { levels, material } of meshes) {
+      const near = levels[0];
       near.geometry.computeBoundingSphere();
       const centre = near.geometry.boundingSphere!.center.clone();
       const lod = new THREE.LOD();
-      lod.name = `Reef benchmark ${name}`;
+      lod.name = `${label} ${near.name}`;
       lod.position.copy(centre);
-      for (const [mesh, distance] of [
-        [near, 0],
-        [far, REEF_BENCHMARK.lodDistance],
-      ] as const) {
+      levels.forEach((mesh, level) => {
         const m = new THREE.Mesh(mesh.geometry, material);
         m.name = mesh.name;
         m.position.copy(centre).negate();
-        lod.addLevel(m, distance);
-        if (distance === 0 && material === rock) this.rockSurfaces.push(m);
-      }
+        lod.addLevel(m, distances[level]);
+        if (level === 0 && material === rock) this.rockSurfaces.push(m);
+      });
       this.root.add(lod);
     }
-    const algae = this.plantMaterial(this.standard('Caulerpa_0'));
-    for (const kind of Object.keys(
-      REEF_BENCHMARK.plantMotion,
-    ) as BenchmarkPlant[]) {
-      const geometry = this.own(
-        authoredPlantGeometry(
-          node(`Reef_Plant_${kind}`).geometry,
-          REEF_BENCHMARK.plantMotion[kind],
-        ),
-      );
-      const spots: THREE.Object3D[] = [];
-      model.traverse((o) => {
-        if (o.name.startsWith(`Reef_PlantSpot_${kind}_`)) spots.push(o);
-      });
-      const mesh = new THREE.InstancedMesh(geometry, algae, spots.length);
-      mesh.name = `Reef benchmark ${kind}`;
-      spots.forEach((o, i) => mesh.setMatrixAt(i, o.matrixWorld));
-      mesh.computeBoundingSphere();
-      if (mesh.boundingSphere) mesh.boundingSphere.radius += 1.5;
-      this.instanced.push(mesh);
-      this.root.add(mesh);
-    }
-    this.benchSolids.push(...reefColliders(model, new THREE.Matrix4()));
-    if (!this.benchSolids.length)
-      throw Error('Reef benchmark lost its structural parts');
-    this.hulls.push({
-      original: this.benchOriginals.slice(),
-      authored: this.benchSolids.slice(),
+    const solids = reefColliders(model, new THREE.Matrix4());
+    if (!solids.length) throw Error(`${label} lost its structural parts`);
+    this.sectionSolids.push(...solids);
+  }
+  /** Instanced plants of one template at the asset's spots (empties named `<prefix><n>`). */
+  private addPlants(
+    name: string,
+    template: THREE.BufferGeometry,
+    motion: { readonly sway: number; readonly frequency: number },
+    model: THREE.Object3D,
+    prefix: string,
+  ): void {
+    const geometry = this.own(authoredPlantGeometry(template, motion));
+    const spots: THREE.Object3D[] = [];
+    model.traverse((o) => {
+      if (o.name.startsWith(prefix)) spots.push(o);
     });
-    // Plants, rubble and understory from the accepted layout that the new rock now covers.
+    const mesh = new THREE.InstancedMesh(
+      geometry,
+      this.composedMaterials().algae,
+      spots.length,
+    );
+    mesh.name = name;
+    spots.forEach((o, i) => mesh.setMatrixAt(i, o.matrixWorld));
+    mesh.computeBoundingSphere();
+    if (mesh.boundingSphere) mesh.boundingSphere.radius += 1.5;
+    this.instanced.push(mesh);
+    this.root.add(mesh);
+  }
+  /**
+   * Once every section is built: one hull swap for all of them, and the accepted instances they
+   * cover (plants, understory, rubble inside the new rock; with the habitat, loose pebbles and
+   * shells out on open sand, so the small scatter gathers where reef meets sand).
+   */
+  private withholdCovered(): void {
+    if (!this.sectionSolids.length) return;
+    this.hulls.push({
+      original: this.sectionOriginals.slice(),
+      authored: this.sectionSolids.slice(),
+    });
     const m = new THREE.Matrix4(),
       p = new THREE.Vector3();
-    const benchMeshes = new Set(
-      this.root.children.filter((c) => c.name.startsWith('Reef benchmark')),
+    const composed = new Set(
+      this.root.children.filter((c) =>
+        /^Reef (benchmark|habitat)/.test(c.name),
+      ),
     );
+    const reef = [
+      ...this.sectionSolids,
+      ...this.q.crevice.colliders,
+      ...this.q.ornaments.colliders,
+    ];
+    this.reseatPlants();
     for (const mesh of [
-      ...this.instanced.filter((i) => !benchMeshes.has(i)),
+      ...this.instanced.filter((i) => !composed.has(i)),
       ...this.q.plants.batches.map((b) => b.mesh),
       ...this.q.grass.batches,
-    ])
+    ]) {
+      const scatter =
+        !!this.habitatLease && mesh.name.startsWith('Reef debris');
       for (let i = 0; i < mesh.count; i++) {
         mesh.getMatrixAt(i, m);
         p.setFromMatrixPosition(m);
-        if (insideAny(p, this.benchSolids, REEF_BENCHMARK.clearance))
-          this.benchWithheld.push({ mesh, index: i, matrix: m.clone() });
+        if (
+          insideAny(p, this.sectionSolids, REEF_BENCHMARK.clearance) ||
+          (scatter && strayScatter(p, reef))
+        )
+          this.withheld.push({ mesh, index: i, matrix: m.clone() });
+      }
+    }
+  }
+  /**
+   * V0.8 Pass 083: accepted plants and soft corals that grew on a replaced rock or colony are moved
+   * down (or up) onto the composed rock beneath them, so none is left floating where an accepted
+   * crown used to be; one with no rock beneath it is withheld. The seahorse's sea fan keeps its
+   * place (its grip is computed from that placement).
+   */
+  private reseatPlants(): void {
+    if (!this.sectionOriginals.length || !this.rockSurfaces.length) return;
+    this.root.updateMatrixWorld(true);
+    const seahorse = this.q.anchoredLife.hidden.seahorse.vegetation.position;
+    const m = new THREE.Matrix4(),
+      p = new THREE.Vector3(),
+      down = new THREE.Vector3(0, -1, 0),
+      origin = new THREE.Vector3(),
+      zero = new THREE.Matrix4().makeScale(0, 0, 0);
+    for (const { mesh } of this.q.plants.batches)
+      for (let i = 0; i < mesh.count; i++) {
+        mesh.getMatrixAt(i, m);
+        p.setFromMatrixPosition(m);
+        if (
+          Math.hypot(p.x - seahorse.x, p.y - seahorse.y, p.z - seahorse.z) <
+            0.05 ||
+          p.y < substrateHeight(p.x, p.z) + 0.15 ||
+          !insideAny(p, this.sectionOriginals, 0.3)
+        )
+          continue;
+        this.ray.set(origin.set(p.x, p.y + 1.2, p.z), down);
+        this.ray.far = 4;
+        const hit = this.ray.intersectObjects(this.rockSurfaces, false)[0];
+        const moved = m.clone();
+        if (hit && hit.point.y > substrateHeight(p.x, p.z) + 0.1)
+          moved.setPosition(p.x, hit.point.y - 0.02, p.z);
+        else moved.copy(zero);
+        this.reseated.push({ mesh, index: i, original: m.clone(), moved });
       }
   }
   /**
@@ -765,15 +995,19 @@ export class AuthoredReef {
     this.materials.add(m);
     return m;
   }
-  private applyBenchmark(value: boolean): void {
+  private applySections(value: boolean): void {
     const zero = new THREE.Matrix4().makeScale(0, 0, 0);
-    for (const w of this.benchWithheld) {
+    for (const r of this.reseated) {
+      r.mesh.setMatrixAt(r.index, value ? r.moved : r.original);
+      r.mesh.instanceMatrix.needsUpdate = true;
+    }
+    for (const w of this.withheld) {
       w.mesh.setMatrixAt(w.index, value ? zero : w.matrix);
       w.mesh.instanceMatrix.needsUpdate = true;
     }
-    if (value && this.benchSolids.length)
+    if (value && this.sectionSolids.length)
       this.q.suspendInterests((p) =>
-        insideAny(p, this.benchSolids, REEF_BENCHMARK.clearance),
+        insideAny(p, this.sectionSolids, REEF_BENCHMARK.clearance),
       );
     else this.q.restoreInterests();
   }
@@ -800,7 +1034,7 @@ export class AuthoredReef {
         value ? h.original : h.authored,
         value ? h.authored : h.original,
       );
-    this.applyBenchmark(value);
+    this.applySections(value);
   }
   private cleanup(): void {
     this.undrape();
@@ -824,9 +1058,13 @@ export class AuthoredReef {
     this.lease = undefined;
     this.benchLease?.release();
     this.benchLease = undefined;
-    this.benchOriginals.length = 0;
-    this.benchSolids.length = 0;
-    this.benchWithheld.length = 0;
+    this.habitatLease?.release();
+    this.habitatLease = undefined;
+    this.sectionMaterials = undefined;
+    this.sectionOriginals.length = 0;
+    this.sectionSolids.length = 0;
+    this.withheld.length = 0;
+    this.reseated.length = 0;
     this.loader.dispose();
   }
   dispose(): void {

@@ -133,7 +133,8 @@ describe('Pass 017/018 asset compression', () => {
       const images = json.images ?? [];
       // V0.8 Pass 082: the reef benchmark is vertex-coloured static scenery that takes the
       // shared reef maps at runtime, so it ships no images; every texture that exists is KTX2.
-      if (id !== 'reefBenchmark') {
+      // V0.8 Pass 083: so is the reef habitat.
+      if (id !== 'reefBenchmark' && id !== 'reefHabitat') {
         expect(json.extensionsUsed, id).toContain('KHR_texture_basisu');
         expect(images.length, id).toBeGreaterThan(0);
       }
@@ -178,7 +179,9 @@ describe('Pass 017/018 asset compression', () => {
     // ORM maps (they had shared tints); each area's animals still load only on entering it.
     // V0.7 Pass 068: 38 MB. The ice animals were generated in code and now ship as authored models
     // (loaded only under the ice); the kelp mammals and gull carry their own maps.
-    expect(bytes).toBeLessThan(38 * 1024 * 1024);
+    // V0.8 Pass 083: 44 MB. The tank's habitat (seven composed reef formations, their colonies and
+    // vegetation, three detail levels each) is static vertex-coloured scenery with no textures.
+    expect(bytes).toBeLessThan(44 * 1024 * 1024);
     // Source maps are authoring inputs only and no longer ship in public/.
     expect(existsSync('public/assets/textures')).toBe(false);
   });
