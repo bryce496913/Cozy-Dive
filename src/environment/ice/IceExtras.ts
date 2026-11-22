@@ -816,11 +816,12 @@ export class IceExtras {
         name: 'Ice detail',
         vertexColors: true,
         // V0.7 Pass 080: on the ice template (see the 'Ice' material): less glassy, half the glow.
-        roughness: 0.35,
+        // V0.8 Pass 087: matched to the 'Ice' material's new values (matte, fainter glow).
+        roughness: 0.5,
         metalness: 0,
         flatShading: true,
         emissive: 0x123c5a,
-        emissiveIntensity: 0.3,
+        emissiveIntensity: 0.2,
       }),
     );
     // Brinicles from the sea ice (their tops sunk into it), clear of the holes.

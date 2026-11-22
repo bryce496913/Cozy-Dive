@@ -157,14 +157,20 @@ export class IceEnvironment {
         // shadowed sides to the lit ones, so the masses had no light and shade and the far walls
         // matched the near ones in value. Worn, wet ice (0.38, the new ice template) with half
         // the glow keeps its cold translucence but lets the key light model the forms.
-        roughness: 0.38,
+        // V0.8 Pass 087 (consistency audit: the ice was the last glossy, plastic-blue surface
+        // beside the benchmark's matte, relieved materials): weathered, frosted ice scatters
+        // more (0.5), with a fainter blue self-glow, so the key light and the surface relief
+        // carry its form instead of the sheen.
+        roughness: 0.5,
         metalness: 0,
         // V0.7 Pass 074: shaded from each lump's own creased normals (crisp at fractures, smooth
         // over worn faces) rather than forced flat: the big icebergs read low-poly when faceted.
         emissive: 0x0f3550,
-        emissiveIntensity: 0.28,
+        emissiveIntensity: 0.18,
       }),
     );
+    // The ice relief (melt dimples and veins, see `HabitatSurface`) at a readable strength.
+    ice.normalScale.setScalar(0.6);
     const rock = this.own(
       this.rockSurface.material({
         name: 'Ice rock',
@@ -176,6 +182,9 @@ export class IceEnvironment {
       this.sandSurface.material({
         name: 'Ice seabed',
         vertexColors: true,
+        // V0.8 Pass 087: the seabed shared the ice's near-white value range, so the bergs had
+        // nothing to stand out against; a cool grey-blue silt a step darker separates them.
+        color: 0xc6ced6,
         roughness: 0.95,
       }),
     );

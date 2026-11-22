@@ -14,7 +14,7 @@
  *   COZY_URL=http://127.0.0.1:5173 COZY_OUTPUT=/tmp/v07-baseline node validation/v07/baseline.mjs
  *
  * Env: COZY_PLAYWRIGHT (module path), COZY_CHROMIUM, COZY_DPR (default 1), COZY_OUTER=1, COZY_OFFICE=1, COZY_FISH=1, COZY_SIZE
- * (WxH, default 960x600). Writes <output>/*.png and <output>/baseline.json.
+ * (WxH, default 960x600), COZY_VIEWS (comma list of view names to capture; default all). Writes <output>/*.png and <output>/baseline.json.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -197,7 +197,10 @@ try {
       },
       [eye, target],
     );
+  // V0.8 Pass 087: COZY_VIEWS=<name,...> captures only the named views.
+  const only = process.env.COZY_VIEWS?.split(',');
   const capture = async (world, name, distance, eye, target) => {
+    if (only && !only.includes(name)) return;
     await place(eye, target);
     await step(15);
     const info = await page.evaluate(() => {
