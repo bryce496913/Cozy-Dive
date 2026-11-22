@@ -102,8 +102,12 @@ function iceColours(g: THREE.BufferGeometry, deep = 0.5): void {
       blue = Math.min(1, deep * (0.35 + 0.65 * n) + 0.45 * layer),
       r = 0.86 - 0.32 * blue + 0.06 * flute - 0.35 * dirt + 0.1 * rime,
       g = 0.93 - 0.18 * blue + 0.04 * flute - 0.38 * dirt + 0.06 * rime,
-      b = 0.98 - 0.04 * blue + 0.02 * flute - 0.42 * dirt + 0.02 * rime;
-    c.setXYZ(i, r, g, b);
+      b = 0.98 - 0.04 * blue + 0.02 * flute - 0.42 * dirt + 0.02 * rime,
+      // V0.7 Pass 081 (Pass 080 P1: the ice shared one pale value range with the seabed): ice
+      // deepens in value and turns bluer toward its foot, where less daylight reaches it, so
+      // the masses rise dark-to-light out of the pale seabed instead of melting into it.
+      lit = 0.68 + 0.32 * Math.min(1, Math.max(0, y / ICE.ceiling));
+    c.setXYZ(i, r * lit, g * lit ** 0.8, b * lit ** 0.45);
   }
   c.needsUpdate = true;
 }

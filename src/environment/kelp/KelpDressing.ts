@@ -3,6 +3,7 @@ import { seaStarShape, urchinShape } from './KelpShapes';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { KELP } from '../../config/passage';
 import { createRockGeometry } from '../RockGeometry';
+import { HabitatSurface } from '../shared/HabitatSurface';
 import type { Boulder } from './KelpEnvironment';
 import {
   inGrottoClear,
@@ -134,6 +135,7 @@ export class KelpDressing {
   readonly urchinSpots: { x: number; y: number; z: number }[] = [];
   private readonly geometries: THREE.BufferGeometry[] = [];
   private readonly materials: THREE.Material[] = [];
+  private readonly stone = new HabitatSurface('limestone');
   private readonly crowns: THREE.InstancedMesh;
   private readonly crownBase: THREE.Matrix4[] = [];
   private readonly sway = new THREE.Matrix4();
@@ -297,13 +299,18 @@ export class KelpDressing {
     rock.scale(1 / size.x, 1 / size.y, 1 / size.z);
     const cobbles = this.instanced(
       rock,
+      // V0.7 Pass 081: on the shared world-space rock surface like the boulders beside them (the
+      // triplanar shader includes the instance matrix); they were the last plain rock (Pass 080).
       this.own(
-        new THREE.MeshStandardMaterial({
-          name: 'Kelp cobbles',
-          color: 0x8a7a6c,
-          vertexColors: true,
-          roughness: 0.95,
-        }),
+        this.stone.material(
+          {
+            name: 'Kelp cobbles',
+            color: 0x8a7a6c,
+            vertexColors: true,
+            roughness: 0.9,
+          },
+          1.6,
+        ),
       ),
       DRESSING.cobbles,
       'Cobbles',
@@ -376,6 +383,7 @@ export class KelpDressing {
     this.root.clear();
     this.geometries.forEach((g) => g.dispose());
     this.materials.forEach((m) => m.dispose());
+    this.stone.dispose();
   }
 }
 const euler = new THREE.Euler();

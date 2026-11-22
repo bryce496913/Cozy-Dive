@@ -1,29 +1,37 @@
-# V0.7 — Crafted Stylized Realism: final report (Pass 075)
+# V0.7 — Crafted Stylized Realism: final report (Passes 075–081)
 
 V0.7 brought every existing creature and environment onto the approved **Crafted Stylized Realism** standard, chosen in Pass 062. It added no new worlds, species or gameplay.
 
 **Status: implemented and awaiting the user's acceptance on the MacBook Air.** V0.7 is not marked accepted until then.
 
+**Latest: Pass 081 acceptance preparation:** [`V07_ACCEPTANCE.md`](V07_ACCEPTANCE.md). It holds the final before/after and hero-animal galleries, the art-quality checklist against the Pass 062 benchmark, performance and asset costs from Pass 061 to now, functional verification, the MacBook Air playtest checklist, and three open decisions for the user. Where this document and Pass 081 differ, Pass 081 is current.
+
 ## What changed (Passes 061–075)
 
-| Pass | Area                   | Result                                                                                | Doc                                                 |
-| ---- | ---------------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| 061  | Baseline               | Fixed-view harnesses and measurements                                                 | [V07_VISUAL_BASELINE](V07_VISUAL_BASELINE.md)       |
-| 062  | Style benchmark        | The user chose treatment B, Crafted Stylized Realism                                  | [V07_STYLE_BENCHMARK](V07_STYLE_BENCHMARK.md)       |
-| 063  | Art bible and pipeline | Standards, Blender helpers, production checks                                         | [V07_ART_PRODUCTION](V07_ART_PRODUCTION.md)         |
-| 064  | Atmosphere             | Per-world spectral fog, beams, caustics, retuned tank                                 | [V07_ATMOSPHERE](V07_ATMOSPHERE.md)                 |
-| 065  | Hero fish              | Chromis, clownfish and gramma rebuilt from anatomy                                    | [V07_HERO_FISH](V07_HERO_FISH.md)                   |
-| 066  | Fish roster            | The other 15 fish                                                                     | [V07_FISH_ROSTER](V07_FISH_ROSTER.md)               |
-| 067  | Large creatures        | 13 sharks, rays, turtle, sunfish, humpback (plus atlas, seam and centring fixes)      | [V07_LARGE_CREATURES](V07_LARGE_CREATURES.md)       |
-| 068  | Mammals and birds      | 10 animals authored in Blender; the ice world's code-built stand-ins removed          | [V07_MAMMALS_BIRDS](V07_MAMMALS_BIRDS.md)           |
-| 068s | Small life             | Smooth shading everywhere; continuous limbs, arms and shells                          | [V07_SMALL_LIFE](V07_SMALL_LIFE.md)                 |
-| 069  | Coral                  | Grown massive colonies, encrusting feet, polyp clubs                                  | [V07_CORAL](V07_CORAL.md)                           |
-| 070  | Rocks and seabeds      | Inward-carved rocks inside unchanged colliders; natural ripples                       | [V07_TERRAIN](V07_TERRAIN.md)                       |
-| 071  | Vegetation             | Midrib kelp, five templates, curving sway and gusts                                   | [V07_VEGETATION](V07_VEGETATION.md)                 |
-| 072  | Ornaments              | Chest, filter, arch and statue polish                                                 | [V07_ORNAMENTS](V07_ORNAMENTS.md)                   |
-| 073  | Office                 | A warm, lived-in palette and light; rug, lamp, plant                                  | [V07_OFFICE](V07_OFFICE.md)                         |
-| 074  | Integration            | Gallery, audit, checklist, final standards; ice shading fix                           | [V07_VISUAL_INTEGRATION](V07_VISUAL_INTEGRATION.md) |
-| 075  | Final                  | Kelp sand on the shared sediment surface; asset and performance report; this document | —                                                   |
+| Pass | Area                   | Result                                                                                | Doc                                                         |
+| ---- | ---------------------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| 061  | Baseline               | Fixed-view harnesses and measurements                                                 | [V07_VISUAL_BASELINE](V07_VISUAL_BASELINE.md)               |
+| 062  | Style benchmark        | The user chose treatment B, Crafted Stylized Realism                                  | [V07_STYLE_BENCHMARK](V07_STYLE_BENCHMARK.md)               |
+| 063  | Art bible and pipeline | Standards, Blender helpers, production checks                                         | [V07_ART_PRODUCTION](V07_ART_PRODUCTION.md)                 |
+| 064  | Atmosphere             | Per-world spectral fog, beams, caustics, retuned tank                                 | [V07_ATMOSPHERE](V07_ATMOSPHERE.md)                         |
+| 065  | Hero fish              | Chromis, clownfish and gramma rebuilt from anatomy                                    | [V07_HERO_FISH](V07_HERO_FISH.md)                           |
+| 066  | Fish roster            | The other 15 fish                                                                     | [V07_FISH_ROSTER](V07_FISH_ROSTER.md)                       |
+| 067  | Large creatures        | 13 sharks, rays, turtle, sunfish, humpback (plus atlas, seam and centring fixes)      | [V07_LARGE_CREATURES](V07_LARGE_CREATURES.md)               |
+| 068  | Mammals and birds      | 10 animals authored in Blender; the ice world's code-built stand-ins removed          | [V07_MAMMALS_BIRDS](V07_MAMMALS_BIRDS.md)                   |
+| 068s | Small life             | Smooth shading everywhere; continuous limbs, arms and shells                          | [V07_SMALL_LIFE](V07_SMALL_LIFE.md)                         |
+| 069  | Coral                  | Grown massive colonies, encrusting feet, polyp clubs                                  | [V07_CORAL](V07_CORAL.md)                                   |
+| 070  | Rocks and seabeds      | Inward-carved rocks inside unchanged colliders; natural ripples                       | [V07_TERRAIN](V07_TERRAIN.md)                               |
+| 071  | Vegetation             | Midrib kelp, five templates, curving sway and gusts                                   | [V07_VEGETATION](V07_VEGETATION.md)                         |
+| 072  | Ornaments              | Chest, filter, arch and statue polish                                                 | [V07_ORNAMENTS](V07_ORNAMENTS.md)                           |
+| 073  | Office                 | A warm, lived-in palette and light; rug, lamp, plant                                  | [V07_OFFICE](V07_OFFICE.md)                                 |
+| 074  | Integration            | Gallery, audit, checklist, final standards; ice shading fix                           | [V07_VISUAL_INTEGRATION](V07_VISUAL_INTEGRATION.md)         |
+| 075  | Final                  | Kelp sand on the shared sediment surface; asset and performance report; this document | —                                                           |
+| 076  | Shipwreck              | Rebuilt wreck with interior hold, bridge and growth                                   | [V07_SHIPWRECK](V07_SHIPWRECK.md)                           |
+| 077  | Coral colonies         | Grown branching thickets with matching colliders                                      | [V07_CORAL_COLONIES](V07_CORAL_COLONIES.md)                 |
+| 078  | Creatures              | Seahorse, jellies, lobsters; seals, polar bear; nine large animals re-sculpted        | [V07_LARGE_CREATURES](V07_LARGE_CREATURES.md)               |
+| 079  | Secondary environments | Office furniture, cave and ice formations, large life, tunnel walls                   | [V07_ENVIRONMENT_REFINEMENT](V07_ENVIRONMENT_REFINEMENT.md) |
+| 080  | Consistency            | Cross-world material audit; sea lion and polar bear load fix                          | [V07_ART_CONSISTENCY](V07_ART_CONSISTENCY.md)               |
+| 081  | Acceptance preparation | Last plain surfaces mapped, ice value grading, galleries, checklist, recommendation   | [V07_ACCEPTANCE](V07_ACCEPTANCE.md)                         |
 
 **Fixed in Pass 075**
 
@@ -142,6 +150,10 @@ Use the default settings, then repeat the motion items with reduced motion on.
 - [ ] **Reduced motion:** sway and flutter stop, and kelp still leans away from you.
 
 ## Recommendation
+
+**Superseded by Pass 081** ([`V07_ACCEPTANCE.md`](V07_ACCEPTANCE.md), section 7): ready for the user's acceptance playthrough, not accepted. Three decisions are open: the cave pillars, the harbour seal and minke whale, and the wreck hold's darkness.
+
+### Pass 075 recommendation (historical)
 
 **Ready for the user's acceptance playthrough.**
 
