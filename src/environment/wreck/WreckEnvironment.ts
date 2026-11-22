@@ -5,6 +5,7 @@ import { boxCollider } from '../passage/Crevice';
 import { shaftColliders, shaftLining } from '../shared/Shaft';
 import { ShipwreckModel } from './ShipwreckModel';
 import { HabitatSurface } from '../shared/HabitatSurface';
+import { PassageGlow } from '../shared/PassageGlow';
 import { limestoneGeometry } from '../shared/LimestoneGeometry';
 import {
   SHIP,
@@ -43,6 +44,11 @@ function colourBy(
 
 export class WreckEnvironment {
   readonly root = new THREE.Group();
+  /**
+   * V0.8 Pass 089: faint daylight from the kelp forest far above, seeping down the shaft: the way
+   * home stays findable through the shared dense murk, where the dark hole in the roof is lost.
+   */
+  private readonly homeGlow: PassageGlow;
   readonly colliders: ConvexCollider[];
   readonly ship = new ShipwreckModel();
   private readonly geometries: THREE.BufferGeometry[] = [];
@@ -197,6 +203,15 @@ export class WreckEnvironment {
     cap.translate(s.x, s.top, s.z);
     colourBy(cap, () => [0.01, 0.01, 0.01]);
     add(cap, rock, 'Wreck shaft top');
+    this.homeGlow = new PassageGlow({
+      name: 'Wreck shaft glow',
+      at: { x: s.x, y: wreckRoof(s.x, s.z) + 2.5, z: s.z },
+      facing: { x: 0, y: -1, z: 0 },
+      radius: SHAFT_RADIUS * 0.95,
+      tint: [0.42, 0.66, 0.56],
+      peak: 0.5,
+    });
+    this.root.add(this.homeGlow.mesh);
 
     // Rocks fallen from the roof, and debris off the wreck. V0.7 Pass 081: three carved limestone
     // forms (the Pass 079 cave family, fractured and pitted inside their hulls) replace one lumpy
@@ -279,8 +294,13 @@ export class WreckEnvironment {
       boxCollider([s.x - 3, s.top, s.z - 3], [s.x + 3, s.top + 1, s.z + 3]),
     ];
   }
+  /** Fade the shaft's glow with the eye's distance (every frame, any motion setting). */
+  updatePassages(eye: THREE.Vector3Like): void {
+    this.homeGlow.update(eye);
+  }
   dispose(): void {
     this.root.removeFromParent();
+    this.homeGlow.dispose();
     this.ship.dispose();
     this.root.traverse((o) => {
       if (o instanceof THREE.InstancedMesh) o.dispose();

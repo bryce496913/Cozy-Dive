@@ -339,6 +339,7 @@ export class SeaCaveScene implements WaterWorld {
       this.camera.updateProjectionMatrix();
     }
     this.environment.update(dt, active, reducedMotion);
+    this.environment.updatePassages(this.camera.position);
     this.dressing.update(dt, active, reducedMotion);
     this.snow.update(dt, active, reducedMotion, this.camera.position);
     this.lobsters.update(dt, active, reducedMotion, player);

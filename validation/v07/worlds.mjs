@@ -41,6 +41,8 @@ export const WORLD_VIEWS = {
     ['cave-back-tunnel', 'medium', [-3, 3.4, -29], [-3, 3.2, -42]],
     ['cave-back-tunnel-inside', 'close', [-3, 3.2, -37.5], [-3, 3.1, -44]],
     ['cave-pillar', 'swimming', [-4, 5, -17], [-15, 5, -24]],
+    // V0.8 Pass 089: from mid-cavern back toward the entrance tunnel (the way home).
+    ['cave-return-tunnel', 'swimming', [0, 4, -22], [0, 3, -9]],
   ],
   ice: [
     ['ice-open-water', 'swimming', [0, 6, -16], [0, 4, -30]],
@@ -63,6 +65,8 @@ export const WORLD_VIEWS = {
     ['wreck-broadside', 'swimming', [17, 4.2, -31], [0, 3.6, -31]],
     ['wreck-hold', 'close', [0.6, 3, -26.5], [0, 1.6, -38]],
     ['wreck-bridge', 'medium', [6, 11, -12.5], [0, 8.6, -19.5]],
+    // V0.8 Pass 089: from beside the deckhouse up toward the shaft in the roof (the way home).
+    ['wreck-return-shaft', 'medium', [8, 10, -16], [0, 22, -26.5]],
   ],
 };
 const browser = await chromium.launch({
