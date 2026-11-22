@@ -55,10 +55,7 @@ describe('V0.7 Pass 080 rock surfaces', () => {
   it('builds the cave tunnel mouths from its pale limestone, not the ice world basalt', () => {
     const cave = new CaveEnvironment();
     try {
-      for (const name of [
-        'Cave entrance arch',
-        'Cave back tunnel arch',
-      ]) {
+      for (const name of ['Cave entrance arch', 'Cave back tunnel arch']) {
         const [r, g, b] = meanColour(meshNamed(cave.root, name).geometry);
         // Warm (red over blue) and well above the basalt's 0.22 tone. V0.8 Pass 086: the
         // sculpted arches shade their lip into the tunnel's dark and their edge where it sinks
