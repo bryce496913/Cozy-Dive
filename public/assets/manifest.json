@@ -2439,5 +2439,23 @@
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
+  },
+  {
+    "id": "reef-habitat",
+    "file": "assets/models/reef/reef-habitat.glb",
+    "sha256": "79b3b3f9a2cca41f637c3241cc9e6976abe48af262c72415b92b24665fa3fa02",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 5531532,
+    "visualPrimitives": 107,
+    "visualTriangles": 775161,
+    "collisionTriangles": 19768,
+    "materials": 6,
+    "images": [],
+    "geometryAccessorBytes": 0,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium hero asset"
   }
 ]

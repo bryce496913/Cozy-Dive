@@ -53,6 +53,27 @@ export const BENCH_VIEWS = [
   // V0.8 Pass 082B: the ridge top (anemone, massive heads, sponges, table coral).
   ['bench-close-ridge-top', 'close', [-5.9, 3.4, 3.4], [-7.5, 1.9, 1.6]],
 ];
+/**
+ * V0.8 Pass 083: the whole personal aquarium (habitat and vegetation overhaul), from fixed views
+ * that cover both banks, the back corners, the meadows and a rock/coral attachment close-up.
+ * `COZY_AQUA=1` captures only these.
+ */
+export const AQUA_VIEWS = [
+  ['aqua-overview', 'swimming', [0, 6.5, 12.5], [0, 1.2, -4]],
+  ['aqua-high', 'swimming', [0, 12.6, 12.8], [0, 0, -3]],
+  ['aqua-left-bank', 'swimming', [1.5, 4.5, 6.5], [-11, 1.2, -5]],
+  ['aqua-right-bank', 'swimming', [-1.5, 4.5, 6.5], [10.5, 1.2, -5]],
+  ['aqua-back-left', 'medium', [-5.5, 3.6, -1.5], [-13, 1.2, -9.5]],
+  ['aqua-back-right', 'medium', [3.2, 4.2, 0.5], [11, 1.5, -8.5]],
+  ['aqua-front-left', 'medium', [-3.5, 3.0, 1.5], [-13.5, 0.8, 6.5]],
+  ['aqua-front-right', 'medium', [1.5, 3.0, -1.0], [11, 0.9, 4.5]],
+  ['aqua-meadow-close', 'close', [8.4, 1.3, 7.0], [11, 0.3, 9.8]],
+  ['aqua-attach-close', 'close', [5.4, 2.6, -1.8], [7.6, 1.9, -4.4]],
+  ['aqua-attach-table', 'close', [6.5, 3.1, -3.0], [7.9, 2.4, -4.5]],
+  ['aqua-attach-brain', 'close', [-13.0, 2.9, -6.0], [-14.9, 1.9, -7.6]],
+  ['aqua-moray-den', 'close', [-5.6, 1.7, -7.4], [-7.9, 1.1, -8.3]],
+  ['aqua-frogfish', 'close', [3.9, 2.6, 2.5], [5.4, 1.6, 1.0]],
+];
 export const OUTER_VIEWS = [
   ['outer-reef-top', 'swimming', [0, 5, -36], [0, 3.5, -46]],
   ['outer-coral-close', 'close', [-0.2, 2.6, -38.6], [1.4, 1.2, -41.2]],
@@ -256,9 +277,11 @@ try {
         console.log(`fish-${tag}-${distance}`);
       }
   }
-  for (const [name, distance, eye, target] of process.env.COZY_BENCH === '1'
-    ? BENCH_VIEWS
-    : TANK_VIEWS)
+  for (const [name, distance, eye, target] of process.env.COZY_AQUA === '1'
+    ? AQUA_VIEWS
+    : process.env.COZY_BENCH === '1'
+      ? BENCH_VIEWS
+      : TANK_VIEWS)
     await capture('aquarium', name, distance, eye, target);
   if (process.env.COZY_OUTER === '1') {
     await place([6.4, 1.6, -12.1], [3, 1.6, -12.1]);

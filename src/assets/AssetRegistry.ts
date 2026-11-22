@@ -128,6 +128,33 @@ export const ASSET_REGISTRY = {
     maxDimension: 16,
     requireMorphs: false,
   },
+  /**
+   * V0.8 Pass 083: the personal aquarium's habitat (seven composed formations replacing every other
+   * reef rock, their colonies and the organic vegetation), authored in aquarium space; the tank.
+   */
+  reefHabitat: {
+    path: 'assets/models/reef/reef-habitat.glb',
+    requiredNodes: [
+      'ReefHabitat_Root',
+      'Habitat_Rock_WestMassif',
+      'Habitat_Rock_WestMassif_LOD1',
+      'Habitat_Rock_WestMassif_LOD2',
+      'Habitat_Rock_EastMassif',
+      'Habitat_Rock_WestTerraces',
+      'Habitat_Rock_EastTerraces',
+      'Habitat_Rock_EastChannel',
+      'Habitat_Rock_WestOutcrops',
+      'Habitat_Rock_EastOutcrops',
+      'Habitat_Plant_Grass',
+      'Habitat_Plant_GrassShort',
+      'Habitat_Plant_Caulerpa',
+      'Habitat_Plant_Halimeda',
+      'Habitat_Plant_RedAlga',
+    ],
+    minDimension: 20,
+    maxDimension: 40,
+    requireMorphs: false,
+  },
   cardinalfish: {
     path: 'assets/models/fish/cardinalfish.glb',
     requiredNodes: [
