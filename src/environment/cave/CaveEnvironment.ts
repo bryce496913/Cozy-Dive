@@ -13,12 +13,12 @@ import {
   icicles,
   tunnelThroat,
   mouthCollar,
-  mouthRocks as tunnelMouthRocks,
   rockTubeColliders,
   rockTubeGeometry,
 } from '../shared/RockTube';
 import { createRockGeometry, rockShape } from '../RockGeometry';
 import { rockCollider } from '../rockCollider';
+import { faceByBisection, mouthArch } from '../shared/MouthArch';
 import { seaFan } from '../wreck/WreckGrowth';
 import {
   strapAlgaGeometry,
@@ -34,6 +34,9 @@ import { caveFloor, chamberDepth, wallLumps, wallPoint } from './CaveTerrain';
  * ice world's dark basalt and read as a ring of blue-slate rubble in a pale cave.
  */
 const CAVE_MOUTH_STONE = [0.44, 0.4, 0.31] as const;
+/** V0.8 Pass 086: whether a point is beyond the dome's wall (in the rock). */
+const inCaveRock = (x: number, y: number, z: number): boolean =>
+  chamberDepth({ x, y, z }) >= 1;
 
 /**
  * v0.6 Pass 034: the sea cave's rock and sand. A tunnel from the grotto runs south into a dome of
@@ -190,18 +193,19 @@ export class CaveEnvironment {
     this.add(this.shellMesh(), wall, 'Cave wall');
     this.add(this.floorMesh(), sand, 'Cave sand');
     this.add(this.tunnelMesh(mouthZ), tunnel, 'Cave tunnel');
+    // V0.8 Pass 086: one sculpted arch of bedded limestone round each tunnel mouth, growing out of
+    // the dome's own wall (Pass 052's heaped boulders read as an assembled ring).
     this.add(
-      tunnelMouthRocks(
-        { x: 0, y: CAVE.tunnel.y, radius: CAVE.tunnel.radius },
-        mouthZ - 0.1,
-        1,
-        0,
-        14,
-        62010,
-        CAVE_MOUTH_STONE,
-      ),
+      mouthArch({ x: 0, y: CAVE.tunnel.y, radius: CAVE.tunnel.radius }, mouthZ, -1, {
+        face: faceByBisection(inCaveRock, mouthZ - 3, mouthZ + 3),
+        stone: CAVE_MOUTH_STONE,
+        silt: 0.3,
+        reach: 2.4,
+        proud: 0.75,
+        seed: 86010,
+      }),
       tunnel,
-      'Cave entrance eroded rim',
+      'Cave entrance arch',
     );
     // v0.6 Pass 046: the back tunnel, from the back wall to its threshold (and a little beyond).
     const back = CAVE.backTunnel,
@@ -224,17 +228,18 @@ export class CaveEnvironment {
       'Cave back tunnel collar',
     );
     this.add(
-      tunnelMouthRocks(
-        backTube,
-        backMouthZ() + 0.1,
-        1,
-        0.25,
-        12,
-        52110,
-        CAVE_MOUTH_STONE,
-      ),
+      mouthArch(backTube, backMouthZ(), 1, {
+        face: faceByBisection(inCaveRock, backMouthZ() + 3, backMouthZ() - 3),
+        stone: CAVE_MOUTH_STONE,
+        // The cold from the ice: a little frost on its up-facing ledges.
+        frost: 0.25,
+        silt: 0.15,
+        reach: 2.6,
+        proud: 0.85,
+        seed: 86020,
+      }),
       tunnel,
-      'Cave back tunnel mouth',
+      'Cave back tunnel arch',
     );
     this.add(
       icicles(backTube, (backMouthZ() + back.endZ) / 2, back.endZ + 0.4, 30),
@@ -309,32 +314,6 @@ export class CaveEnvironment {
         yaw: a,
       });
     });
-    // Rocks around the tunnel's mouth hide where its tube meets the dome.
-    const mouthRocks = 10;
-    for (let i = 0; i < mouthRocks; i++) {
-      const a = (i / mouthRocks) * Math.PI * 2 + 0.3,
-        g = rockShape(34300 + (i % 8) * 7, i % 4, 2);
-      g.computeBoundingBox();
-      const box = g.boundingBox!,
-        size = box.getSize(new THREE.Vector3()),
-        centre = box.getCenter(new THREE.Vector3()),
-        ring = CAVE.tunnel.radius + 0.6,
-        d = 1.7 + 0.35 * Math.sin(i * 2.3);
-      e.set(i * 0.7, i * 1.3, 0);
-      q.setFromEuler(e);
-      m.compose(
-        new THREE.Vector3(
-          Math.cos(a) * ring,
-          CAVE.tunnel.y + Math.sin(a) * ring,
-          mouthZ - 0.2,
-        ),
-        q,
-        new THREE.Vector3(d / size.x, d / size.y, (d * 0.8) / size.z),
-      ).multiply(
-        new THREE.Matrix4().makeTranslation(-centre.x, -centre.y, -centre.z),
-      );
-      rocks.push(g.applyMatrix4(m));
-    }
     rocks.push(...this.skylightRubble(), ...this.pillars(colliders));
     const merged = mergeGeometries(rocks, false);
     rocks.forEach((g) => g.dispose());
