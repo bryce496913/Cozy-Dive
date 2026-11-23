@@ -1,3 +1,4 @@
+import { testGeology } from '../validation/geologyModel';
 import { describe, expect, it } from 'vitest';
 import {
   SINKHOLE,
@@ -123,7 +124,7 @@ describe('the sinkhole passage', () => {
     );
   });
   it('can be swum into from its open side, under the ledge', () => {
-    const kelp = new KelpEnvironment(),
+    const kelp = new KelpEnvironment(testGeology()),
       ground = new TerrainCollisionWorld(
         new ColliderGrid(kelp.colliders),
         KELP_SWIM_BOUNDS,

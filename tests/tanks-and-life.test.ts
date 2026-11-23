@@ -1,3 +1,4 @@
+import { testGeology } from '../validation/geologyModel';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { CAVE, KELP, OUTER } from '../src/config/passage';
@@ -147,7 +148,7 @@ describe('v0.6 Passes 036–038: the outer reef is a tank', () => {
 });
 
 describe('v0.6 Pass 036: the kelp forest is walled in', () => {
-  const env = new KelpEnvironment(),
+  const env = new KelpEnvironment(testGeology()),
     world = new TerrainCollisionWorld(
       new ColliderGrid(env.colliders),
       KELP.bounds,

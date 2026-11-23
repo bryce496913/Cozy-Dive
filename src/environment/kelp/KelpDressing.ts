@@ -5,6 +5,7 @@ import { KELP } from '../../config/passage';
 import { createRockGeometry } from '../RockGeometry';
 import { HabitatSurface } from '../shared/HabitatSurface';
 import type { Boulder } from './KelpEnvironment';
+import type { Seat } from './BoulderSurface';
 import {
   inGrottoClear,
   kelpFloor,
@@ -99,17 +100,14 @@ export function anemoneCrown(): THREE.BufferGeometry {
   return merge(parts);
 }
 
-export interface Seat {
-  readonly x: number;
-  readonly y: number;
-  readonly z: number;
-  /** Surface normal there (unit). */
-  readonly nx: number;
-  readonly ny: number;
-  readonly nz: number;
-}
-/** A point on a boulder's upper surface (its rounded box, sunk a fifth into the sand). */
+export type { Seat } from './BoulderSurface';
+/**
+ * A point on a boulder's upper surface (its rounded box, sunk a fifth into the sand); V0.8 Pass 091:
+ * on an authored rock, the point of its surface in that direction.
+ */
 export function onBoulder(b: Boulder, a: number, e: number): Seat {
+  // V0.8 Pass 091: the authored rock's real surface, where it has one.
+  if (b.surface) return b.surface.seat(a, e);
   const rx = b.size * 0.46,
     ry = b.height * 0.5,
     cy = b.y + b.height * 0.2,

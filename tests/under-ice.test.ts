@@ -1,3 +1,4 @@
+import { testGeology } from '../validation/geologyModel';
 import { describe, expect, it } from 'vitest';
 import { CAVE, ICE, ICE_FRAME, ICE_GATE_FRAME } from '../src/config/passage';
 import type { Vec3 } from '../src/config/world';
@@ -148,7 +149,7 @@ describe('v0.6 Pass 046: swimming into the back tunnel', () => {
       await import('../src/environment/cave/CaveEnvironment');
     const { caveFloor, easeInCave } =
       await import('../src/environment/cave/CaveTerrain');
-    const cave = new CaveEnvironment(),
+    const cave = new CaveEnvironment(testGeology()),
       world = new TerrainCollisionWorld(
         new ColliderGrid(cave.colliders),
         CAVE.bounds,

@@ -1,3 +1,4 @@
+import { testGeology } from '../validation/geologyModel';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { limestoneGeometry } from '../src/environment/shared/LimestoneGeometry';
@@ -219,7 +220,7 @@ describe('V0.7 Pass 079 follow-up: large life, formations and tunnels', () => {
   it('makes the cave pillars solid from sand to roof', async () => {
     const { CaveEnvironment } =
       await import('../src/environment/cave/CaveEnvironment');
-    const env = new CaveEnvironment();
+    const env = new CaveEnvironment(testGeology());
     try {
       for (const [x, z] of [
         [-15.3, -22.6],

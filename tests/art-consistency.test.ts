@@ -1,3 +1,4 @@
+import { testGeology } from '../validation/geologyModel';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { KelpEnvironment } from '../src/environment/kelp/KelpEnvironment';
@@ -28,8 +29,8 @@ const meanColour = (g: THREE.BufferGeometry): number[] => {
 
 describe('V0.7 Pass 080 rock surfaces', () => {
   it('gives the kelp boulders, walls and tunnel the shared rock surface the cave uses', () => {
-    const kelp = new KelpEnvironment(),
-      cave = new CaveEnvironment();
+    const kelp = new KelpEnvironment(testGeology()),
+      cave = new CaveEnvironment(testGeology());
     try {
       for (const name of ['Kelp boulders', 'Kelp wall', 'Kelp tunnel']) {
         const m = meshNamed(kelp.root, name).material;
@@ -53,7 +54,7 @@ describe('V0.7 Pass 080 rock surfaces', () => {
   });
 
   it('builds the cave tunnel mouths from its pale limestone, not the ice world basalt', () => {
-    const cave = new CaveEnvironment();
+    const cave = new CaveEnvironment(testGeology());
     try {
       for (const name of ['Cave entrance arch', 'Cave back tunnel arch']) {
         const [r, g, b] = meanColour(meshNamed(cave.root, name).geometry);

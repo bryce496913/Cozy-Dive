@@ -1,3 +1,4 @@
+import { testGeology } from '../validation/geologyModel';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { ICE, KELP, OUTER } from '../src/config/passage';
@@ -183,7 +184,7 @@ describe('Pass 052B: the walled worlds let the swimmer reach their walls', () =>
     const fast = v(1, 0, 0);
     easeInKelp(v(KELP.walls.x - 3.5, 5, -35), fast);
     expect(fast.x).toBe(1);
-    const env = new KelpEnvironment();
+    const env = new KelpEnvironment(testGeology());
     const inner = KELP.walls.x - KELP_WALL_FACE;
     expect(env.colliders.some((c) => Math.abs(c.min.x - inner) < 1e-6)).toBe(
       true,

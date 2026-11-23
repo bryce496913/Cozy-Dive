@@ -144,9 +144,16 @@ export function wallStalkPlacements(
   // (inX, inZ): the way into the forest from this wall. V0.8 Pass 091: a stalk that would grow out
   // of a wall rock steps out in front of it, so it grips the sand at the rock's foot.
   const add = (x: number, z: number, inX: number, inZ: number) => {
-    for (let step = 0; step < 16 && inRock(x, z, rocks); step++) {
+    for (let step = 0; step < 10 && inRock(x, z, rocks); step++) {
       x += inX * 0.3;
       z += inZ * 0.3;
+    }
+    // Still in rock 3 m out (a stretch of overlapping rocks): the rocks stand bare there.
+    if (inRock(x, z, rocks)) {
+      rand();
+      rand();
+      rand();
+      return;
     }
     out.push({
       x,

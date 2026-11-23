@@ -8,6 +8,7 @@ import type { ConvexCollider } from '../../player/collision';
 import { boxCollider } from '../passage/Crevice';
 import { rockShape } from '../RockGeometry';
 import { type Geology, placeGeology } from '../shared/Geology';
+import { BoulderSurface } from './BoulderSurface';
 import { rockCollider } from '../rockCollider';
 import { STALKS } from './KelpStalks';
 import {
@@ -50,6 +51,8 @@ export interface Boulder {
   readonly size: number;
   readonly height: number;
   readonly yaw: number;
+  /** V0.8 Pass 091: the authored rock's surface, for seating life on it (absent on code rock). */
+  readonly surface?: BoulderSurface;
 }
 function random(seed: number): () => number {
   let s = seed >>> 0;
@@ -250,7 +253,6 @@ export class KelpEnvironment {
       ),
       'Kelp sinkhole floor',
     );
-    this.boulders = boulderLayout();
     const colliders: ConvexCollider[] = [
       ...this.tunnelColliders(),
       ...this.wallColliders(),
@@ -267,26 +269,37 @@ export class KelpEnvironment {
     // V0.8 Pass 091: an authored coastal rock variant in the same box as the code rock it replaces.
     const authored = (name: string, b: Boulder, sink: number) => {
       const piece = geology?.piece(name);
-      if (!piece) return false;
-      rocks.push(
-        placeGeology(
-          piece,
-          {
-            x: b.x,
-            y: b.y + b.height * sink,
-            z: b.z,
-            w: b.size,
-            h: b.height,
-            d: b.size,
-            yaw: b.yaw,
-          },
-          colliders,
-        ),
+      if (!piece) return undefined;
+      const g = placeGeology(
+        piece,
+        {
+          x: b.x,
+          y: b.y + b.height * sink,
+          z: b.z,
+          w: b.size,
+          h: b.height,
+          d: b.size,
+          yaw: b.yaw,
+        },
+        colliders,
       );
-      return true;
+      rocks.push(g);
+      return g;
     };
-    this.boulders.forEach((b, i) => {
-      if (authored(`KelpRock_${(i * 5 + 1) % 6}`, b, 0.2)) return;
+    this.boulders = boulderLayout().map((b, i) => {
+      const placed = authored(`KelpRock_${(i * 5 + 1) % 6}`, b, 0.2);
+      if (placed)
+        // Its surface on the same ellipsoid frame the code rock's seats use (see onBoulder).
+        return {
+          ...b,
+          surface: new BoulderSurface(placed, {
+            x: b.x,
+            cy: b.y + b.height * 0.2,
+            z: b.z,
+            rx: b.size * 0.46,
+            ry: b.height * 0.5,
+          }),
+        };
       const g = rockShape(32100 + (i % 12) * 17, i % 4, 3);
       g.computeBoundingBox();
       const box = g.boundingBox!,
@@ -309,6 +322,7 @@ export class KelpEnvironment {
       );
       colliders.push(rockCollider(g, m));
       rocks.push(g.applyMatrix4(m));
+      return b;
     });
     // v0.6 Pass 036: big rocks piled along the foot of the tank's walls.
     this.wallRocks = wallRockLayout();
