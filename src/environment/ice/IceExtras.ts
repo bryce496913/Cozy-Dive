@@ -148,30 +148,89 @@ function brinicleGeometry(): THREE.BufferGeometry {
   }
   return merge(parts);
 }
-/** A dropstone: a rounded, worn boulder (unit size), sitting on y 0. */
+/**
+ * A dropstone: a worn cobble (unit size), bedded in the mud at y 0. V0.8 Pass 093: subangular
+ * (a few flat fracture faces worn round at their edges) over a lumpy body, in the dark basalt of
+ * the seabed's erratics (was a pale, evenly lumpy icosahedron, a second rock family beside them).
+ */
 function dropstoneGeometry(): THREE.BufferGeometry {
-  const g = new THREE.IcosahedronGeometry(0.5, 2),
-    p = g.getAttribute('position');
+  const g = new THREE.IcosahedronGeometry(0.5, 3),
+    p = g.getAttribute('position'),
+    cuts = [
+      [0.8, 0.35, 0.2, 0.34],
+      [-0.5, 0.2, 0.8, 0.36],
+      [0.1, 0.9, -0.4, 0.33],
+      [-0.6, 0.3, -0.7, 0.38],
+    ] as const;
   for (let i = 0; i < p.count; i++) {
-    const x = p.getX(i),
-      y = p.getY(i),
-      z = p.getZ(i),
-      k = 1 + 0.12 * Math.sin(x * 7 + z * 5) + 0.08 * Math.sin(y * 9);
-    p.setXYZ(i, x * k, Math.max(-0.1, y * k * 0.75) + 0.3, z * k);
+    const v = new THREE.Vector3(p.getX(i), p.getY(i), p.getZ(i)),
+      k =
+        1 +
+        0.1 * Math.sin(v.x * 6 + v.z * 4) +
+        0.06 * Math.sin(v.y * 9 + v.x * 3) +
+        0.03 * Math.sin(v.z * 17 - v.y * 11);
+    v.multiplyScalar(k);
+    // Fracture faces: pull each point back to the plane, softly, so the edges stay worn.
+    for (const [nx, ny, nz, d] of cuts) {
+      const n = new THREE.Vector3(nx, ny, nz).normalize(),
+        over = v.dot(n) - d;
+      if (over > 0) v.addScaledVector(n, -over * 0.85);
+    }
+    p.setXYZ(i, v.x * 1.15, Math.max(-0.12, v.y * 0.72) + 0.24, v.z);
   }
-  return coloured(g, [0.36, 0.36, 0.38], 0.25);
+  return coloured(g, [0.27, 0.27, 0.28], 0.2);
 }
 /** Anchor ice: a clump of white crystal blades on the bottom (unit size). */
 function anchorIceGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [],
     rand = random(77);
+  // V0.8 Pass 093: thin, tapering crystal plates with ragged tips (were rectangular boxes).
   for (let k = 0; k < 14; k++) {
-    const blade = new THREE.BoxGeometry(
-      0.02,
-      0.18 + rand() * 0.3,
-      0.12 + rand() * 0.12,
+    const h = 0.18 + rand() * 0.3,
+      w = 0.12 + rand() * 0.12,
+      blade = new THREE.BufferGeometry(),
+      tip = (rand() - 0.5) * w * 0.4;
+    blade.setAttribute(
+      'position',
+      new THREE.Float32BufferAttribute(
+        [
+          // A thin plate: wide at its foot, narrowing to an off-centre point, both faces.
+          0,
+          0,
+          -w / 2,
+          0,
+          0,
+          w / 2,
+          0,
+          h * 0.7,
+          w * 0.3,
+          0,
+          h,
+          tip,
+          0,
+          h * 0.75,
+          -w * 0.25,
+          0.01,
+          0,
+          -w / 2,
+          0.01,
+          0,
+          w / 2,
+          0.01,
+          h * 0.7,
+          w * 0.3,
+          0.01,
+          h,
+          tip,
+          0.01,
+          h * 0.75,
+          -w * 0.25,
+        ],
+        3,
+      ),
     );
-    blade.translate(0, 0.12, 0);
+    blade.setIndex([0, 1, 2, 0, 2, 4, 4, 2, 3, 5, 7, 6, 5, 9, 7, 9, 8, 7]);
+    blade.translate(0, -0.02, 0);
     blade.rotateZ((rand() - 0.5) * 1.6);
     blade.rotateY(rand() * Math.PI);
     blade.translate((rand() - 0.5) * 0.4, 0, (rand() - 0.5) * 0.4);
@@ -721,10 +780,29 @@ export function jellyArmsGeometry(): THREE.BufferGeometry {
   }
   return merge(parts);
 }
-/** A flat, hexagonal platelet of ice (about 8 cm across). */
+/**
+ * A platelet of ice (about 8 cm across). V0.8 Pass 093: an irregular, thin, faintly bowed flake
+ * with a broken outline (was a hexagonal disc, which read as a cream starburst in mass).
+ */
 function plateletGeometry(): THREE.BufferGeometry {
-  const g = new THREE.CylinderGeometry(0.05, 0.05, 0.004, 6);
-  return coloured(g, [0.85, 0.95, 1], 0.1);
+  const n = 9,
+    pos: number[] = [0, 0.002, 0],
+    idx: number[] = [];
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2 + 0.25 * Math.sin(i * 2.3),
+      r = 0.05 * (0.6 + 0.45 * Math.abs(Math.sin(i * 1.9 + 0.7))),
+      x = Math.cos(a) * r * 1.25,
+      z = Math.sin(a) * r * 0.8;
+    // Bowed: the rim curls a few millimetres up.
+    pos.push(x, (0.004 * (x * x + z * z)) / 0.0025, z);
+  }
+  // Both faces (the material is one-sided, and platelets are seen from below as often as above).
+  for (let i = 0; i < n; i++)
+    idx.push(0, 1 + ((i + 1) % n), 1 + i, 0, 1 + i, 1 + ((i + 1) % n));
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  return coloured(g, [0.82, 0.92, 0.98], 0.08);
 }
 
 // ------------------------------------------------------------------ the collection

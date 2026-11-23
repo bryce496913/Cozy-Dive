@@ -190,7 +190,11 @@ describe('v0.6 Pass 046 review: scenes let go while their life is still loading'
         built(
           await (
             await import('../src/rendering/UnderIceScene')
-          ).UnderIceScene.build(renderer, { fish: l, soundSpots: 2 }, noWait),
+          ).UnderIceScene.build(
+            renderer,
+            { fish: l, soundSpots: 2, geologyWaitMs: 0 },
+            noWait,
+          ),
         ),
     ],
   ];
@@ -222,7 +226,7 @@ describe('v0.6 Pass 046 review: building a world a piece per frame', () => {
     const { UnderIceScene } = await import('../src/rendering/UnderIceScene');
     const scene = await UnderIceScene.build(
       renderer,
-      { fish: loader, soundSpots: 2 },
+      { fish: loader, soundSpots: 2, geologyWaitMs: 0 },
       counted,
     );
     expect(scene).toBeDefined();
@@ -242,7 +246,7 @@ describe('v0.6 Pass 046 review: building a world a piece per frame', () => {
     let pieces = 0;
     const stop = await UnderIceScene.build(
       renderer,
-      { fish: loader, soundSpots: 2 },
+      { fish: loader, soundSpots: 2, geologyWaitMs: 0 },
       noWait,
       () => pieces++ < 1,
     );
