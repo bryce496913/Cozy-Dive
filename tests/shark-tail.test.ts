@@ -108,7 +108,6 @@ describe('V0.8 Pass 097 resting whitetip tails', () => {
     for (let round = 0; round < 4; round++) {
       // Wait out its calm, then come close where it now lies.
       let moving = 0,
-        range = 0,
         min = Infinity,
         max = -Infinity;
       for (let i = 0; i < 30 * 40; i++) {
@@ -122,7 +121,7 @@ describe('V0.8 Pass 097 resting whitetip tails', () => {
         }
         if (moving && rig.bolt.resting) break;
       }
-      range = max - min;
+      const range = max - min;
       expect(moving, `round ${round}`).toBeGreaterThan(30);
       expect(range, `round ${round}`).toBeGreaterThan(2.5);
     }
