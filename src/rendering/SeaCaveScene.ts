@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { Geology, acquireGeology } from '../environment/shared/Geology';
 import { WATER_PROFILES } from '../config/waterProfiles';
 import { createLightRig } from './atmosphere/lightRig';
 import type { AssetLoader } from '../assets/AssetLoader';
@@ -59,6 +60,8 @@ export interface CaveLibraries {
   readonly fish: AssetLoader;
   /** How many sound locations the soundscape uses (the cave supplies as many). */
   readonly soundSpots: number;
+  /** V0.8 Pass 091: how long the build waits for the authored rock (ms; default GEOLOGY_WAIT_MS). */
+  readonly geologyWaitMs?: number;
 }
 
 export class SeaCaveScene implements WaterWorld {
@@ -111,10 +114,18 @@ export class SeaCaveScene implements WaterWorld {
     wanted: () => boolean = () => true,
   ): Promise<SeaCaveScene | undefined> {
     const stage = new Staging(frame, wanted);
+    // V0.8 Pass 091: the authored limestone, held only while the cave is built.
+    const geology = await acquireGeology(
+      libraries.fish,
+      libraries.geologyWaitMs,
+    );
     try {
       const environment = await stage.step(
           'environment',
-          () => new CaveEnvironment(),
+          () =>
+            new CaveEnvironment(
+              geology ? new Geology(geology.model) : undefined,
+            ),
         ),
         lobsters = await stage.step(
           'lobsters',
@@ -147,6 +158,8 @@ export class SeaCaveScene implements WaterWorld {
     } catch (error) {
       if (error === Staging.cancelled) return undefined;
       throw error;
+    } finally {
+      geology?.release();
     }
   }
   constructor(

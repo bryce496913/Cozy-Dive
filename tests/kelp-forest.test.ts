@@ -1,3 +1,4 @@
+import { testGeology } from '../validation/geologyModel';
 import * as THREE from 'three';
 import { describe, expect, it, vi } from 'vitest';
 import { unlockedItems } from '../src/catalog/catalog';
@@ -53,7 +54,7 @@ const tuning: SwimTuning = {
 const v = (x: number, y: number, z: number): Vec3 => ({ x, y, z });
 
 describe('Pass 032 kelp forest: the way in', () => {
-  const env = new KelpEnvironment(),
+  const env = new KelpEnvironment(testGeology()),
     world = new TerrainCollisionWorld(
       new ColliderGrid(env.colliders),
       KELP.bounds,
@@ -119,7 +120,7 @@ describe('Pass 032 kelp forest: the way in', () => {
     }
   });
   it('disposes everything it created exactly once', () => {
-    const e = new KelpEnvironment(),
+    const e = new KelpEnvironment(testGeology()),
       geometries = new Set<THREE.BufferGeometry>(),
       materials = new Set<THREE.Material>();
     e.root.traverse((o) => {

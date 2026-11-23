@@ -7,6 +7,8 @@ import { KELP, KELP_FRAME, PASSAGE } from '../../config/passage';
 import type { ConvexCollider } from '../../player/collision';
 import { boxCollider } from '../passage/Crevice';
 import { rockShape } from '../RockGeometry';
+import { type Geology, placeGeology } from '../shared/Geology';
+import { BoulderSurface } from './BoulderSurface';
 import { rockCollider } from '../rockCollider';
 import { STALKS } from './KelpStalks';
 import {
@@ -49,6 +51,8 @@ export interface Boulder {
   readonly size: number;
   readonly height: number;
   readonly yaw: number;
+  /** V0.8 Pass 091: the authored rock's surface, for seating life on it (absent on code rock). */
+  readonly surface?: BoulderSurface;
 }
 function random(seed: number): () => number {
   let s = seed >>> 0;
@@ -130,6 +134,8 @@ export class KelpEnvironment {
   readonly root = new THREE.Group();
   readonly colliders: readonly ConvexCollider[];
   readonly boulders: readonly Boulder[];
+  /** v0.6 Pass 036: the big rocks along the walls' foot (V0.8 Pass 091: exposed for the kelp). */
+  readonly wallRocks: readonly Boulder[];
   /** The rock surfaces (wall, tunnel, boulders). */
   readonly rock: THREE.MeshStandardMaterial;
   private readonly geometries: THREE.BufferGeometry[] = [];
@@ -137,7 +143,11 @@ export class KelpEnvironment {
   private readonly sediment = new HabitatSurface('sediment');
   private readonly stone = new HabitatSurface('limestone');
   private disposed = false;
-  constructor() {
+  /**
+   * @param geology V0.8 Pass 091: the authored coastal rock; without it the boulders and wall rocks
+   *   are the code-built rock.
+   */
+  constructor(geology?: Geology) {
     this.root.name = 'Kelp forest ground';
     // V0.7 Pass 080: the kelp boulders and walls were the only rock in the game with no surface
     // maps, so they read as smooth, plastic blobs beside the cave's and reef's carved stone. They
@@ -243,7 +253,6 @@ export class KelpEnvironment {
       ),
       'Kelp sinkhole floor',
     );
-    this.boulders = boulderLayout();
     const colliders: ConvexCollider[] = [
       ...this.tunnelColliders(),
       ...this.wallColliders(),
@@ -257,7 +266,40 @@ export class KelpEnvironment {
       m = new THREE.Matrix4(),
       q = new THREE.Quaternion(),
       e = new THREE.Euler();
-    this.boulders.forEach((b, i) => {
+    // V0.8 Pass 091: an authored coastal rock variant in the same box as the code rock it replaces.
+    const authored = (name: string, b: Boulder, sink: number) => {
+      const piece = geology?.piece(name);
+      if (!piece) return undefined;
+      const g = placeGeology(
+        piece,
+        {
+          x: b.x,
+          y: b.y + b.height * sink,
+          z: b.z,
+          w: b.size,
+          h: b.height,
+          d: b.size,
+          yaw: b.yaw,
+        },
+        colliders,
+      );
+      rocks.push(g);
+      return g;
+    };
+    this.boulders = boulderLayout().map((b, i) => {
+      const placed = authored(`KelpRock_${(i * 5 + 1) % 6}`, b, 0.2);
+      if (placed)
+        // Its surface on the same ellipsoid frame the code rock's seats use (see onBoulder).
+        return {
+          ...b,
+          surface: new BoulderSurface(placed, {
+            x: b.x,
+            cy: b.y + b.height * 0.2,
+            z: b.z,
+            rx: b.size * 0.46,
+            ry: b.height * 0.5,
+          }),
+        };
       const g = rockShape(32100 + (i % 12) * 17, i % 4, 3);
       g.computeBoundingBox();
       const box = g.boundingBox!,
@@ -280,9 +322,12 @@ export class KelpEnvironment {
       );
       colliders.push(rockCollider(g, m));
       rocks.push(g.applyMatrix4(m));
+      return b;
     });
     // v0.6 Pass 036: big rocks piled along the foot of the tank's walls.
-    wallRockLayout().forEach((b, i) => {
+    this.wallRocks = wallRockLayout();
+    this.wallRocks.forEach((b, i) => {
+      if (authored(`KelpRock_${(i * 7 + 4) % 6}`, b, 0.25)) return;
       const g = rockShape(36100 + (i % 12) * 7, i % 4, 2);
       g.computeBoundingBox();
       const box = g.boundingBox!,

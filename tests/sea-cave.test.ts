@@ -1,3 +1,4 @@
+import { testGeology } from '../validation/geologyModel';
 import { describe, expect, it } from 'vitest';
 import { unlockedItems } from '../src/catalog/catalog';
 import {
@@ -48,7 +49,7 @@ const grottoAt = (dx: number, dy = 0, dz = 0): Vec3 =>
 const ready = { outer: true, kelp: true, cave: true };
 
 describe('Pass 034 the sea cave', () => {
-  const env = new CaveEnvironment(),
+  const env = new CaveEnvironment(testGeology()),
     world = new TerrainCollisionWorld(
       new ColliderGrid(env.colliders),
       CAVE.bounds,
@@ -134,7 +135,7 @@ describe('the way home from the sea cave (playtest fix)', () => {
       await import('../src/player/terrainCollision');
     const { CAVE } = await import('../src/config/passage');
     const { easeInCave } = await import('../src/environment/cave/CaveTerrain');
-    const env = new CaveEnvironment(),
+    const env = new CaveEnvironment(testGeology()),
       world = new TerrainCollisionWorld(
         new ColliderGrid(env.colliders),
         CAVE.bounds,

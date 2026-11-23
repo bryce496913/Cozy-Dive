@@ -2475,5 +2475,23 @@
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
+  },
+  {
+    "id": "geology",
+    "file": "assets/models/reef/geology.glb",
+    "sha256": "f1420f15fba0a3a69780baef4bdaa4be78694597338b29975540d0fe5da497cd",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 391344,
+    "visualPrimitives": 14,
+    "visualTriangles": 40800,
+    "collisionTriangles": 9082,
+    "materials": 2,
+    "images": [],
+    "geometryAccessorBytes": 0,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium hero asset"
   }
 ]

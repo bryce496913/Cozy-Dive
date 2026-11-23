@@ -162,7 +162,13 @@ describe('v0.6 Pass 046 review: scenes let go while their life is still loading'
         built(
           await (
             await import('../src/rendering/KelpForestScene')
-          ).KelpForestScene.build(renderer, { fish: l, soundSpots: 2 }, noWait),
+          ).KelpForestScene.build(
+            renderer,
+            // The geology too is still loading: the forest builds with code rock, and the late
+            // geology lease is released.
+            { fish: l, soundSpots: 2, geologyWaitMs: 0 },
+            noWait,
+          ),
         ),
     ],
     [
@@ -171,7 +177,11 @@ describe('v0.6 Pass 046 review: scenes let go while their life is still loading'
         built(
           await (
             await import('../src/rendering/SeaCaveScene')
-          ).SeaCaveScene.build(renderer, { fish: l, soundSpots: 2 }, noWait),
+          ).SeaCaveScene.build(
+            renderer,
+            { fish: l, soundSpots: 2, geologyWaitMs: 0 },
+            noWait,
+          ),
         ),
     ],
     [

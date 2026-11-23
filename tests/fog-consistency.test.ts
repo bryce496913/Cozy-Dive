@@ -1,3 +1,4 @@
+import { testGeology } from '../validation/geologyModel';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { DENSE_WATER_FOG } from '../src/config/waterVisibility';
@@ -87,7 +88,7 @@ describe('V0.8 Pass 089 passage glows', () => {
   });
 
   it('marks both cave tunnels, and keeps the sunbeam clear of the murk', () => {
-    const cave = new CaveEnvironment();
+    const cave = new CaveEnvironment(testGeology());
     try {
       for (const name of ['Cave entrance glow', 'Cave back tunnel glow'])
         expect(cave.root.getObjectByName(name), name).toBeDefined();

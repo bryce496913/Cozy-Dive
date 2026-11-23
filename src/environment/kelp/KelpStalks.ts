@@ -59,10 +59,38 @@ function random(seed: number): () => number {
 export function downstream(u: number): number {
   return STALKS.current + (u - 0.5) * 2 * STALKS.currentSpread;
 }
-/** Where the kelp grows (pure, deterministic): in loose groves over the rock, off the lane and exit. */
+/** A rock's footprint on the seabed: centre and across (m). */
+export interface RockFootprint {
+  readonly x: number;
+  readonly z: number;
+  readonly size: number;
+}
+/**
+ * V0.8 Pass 091: how far from a rock's centre, as a share of its across, a holdfast may grip the
+ * sand, plus a margin for the holdfast itself (m): closer than this the stalk would grow out of the
+ * rock, so it grows at the rock's foot instead.
+ */
+export const ROCK_HOLDFAST = { share: 0.5, margin: 0.3 } as const;
+/** True if a holdfast at (x, z) would be inside one of `rocks`. */
+export function inRock(
+  x: number,
+  z: number,
+  rocks: readonly RockFootprint[],
+): boolean {
+  return rocks.some(
+    (r) =>
+      Math.hypot(r.x - x, r.z - z) <
+      r.size * ROCK_HOLDFAST.share + ROCK_HOLDFAST.margin,
+  );
+}
+/**
+ * Where the kelp grows (pure, deterministic): in loose groves over the rock, off the lane and exit,
+ * and (V0.8 Pass 091) never out of a boulder: holdfasts grip the seabed round the rocks' feet.
+ */
 export function stalkPlacements(
   count: number = STALKS.count,
   seed: number = STALKS.seed,
+  rocks: readonly RockFootprint[] = [],
 ): StalkPlacement[] {
   const f = KELP.forest,
     rand = random(seed),
@@ -93,7 +121,8 @@ export function stalkPlacements(
       overSinkhole(x, z, 0.4) ||
       (Math.abs(x) < STALKS.exitClear.halfWidth &&
         z > KELP.tunnel.wallZ - STALKS.exitClear.depth) ||
-      out.some((s) => Math.hypot(s.x - x, s.z - z) < 1.4)
+      out.some((s) => Math.hypot(s.x - x, s.z - z) < 1.4) ||
+      inRock(x, z, rocks)
     )
       continue;
     out.push({ x, z, y: kelpFloor(x, z) - 0.15, template, yaw, scale });
@@ -105,11 +134,27 @@ export function stalkPlacements(
  * v0.6 Pass 036: the dense band of kelp in front of the forest's rock walls (sides and far end),
  * so the walls read as a thicket of kelp over rock: two staggered rows, close together (pure).
  */
-export function wallStalkPlacements(seed = 36011): StalkPlacement[] {
+export function wallStalkPlacements(
+  seed = 36011,
+  rocks: readonly RockFootprint[] = [],
+): StalkPlacement[] {
   const rand = random(seed),
     w = KELP.walls,
     out: StalkPlacement[] = [];
-  const add = (x: number, z: number) =>
+  // (inX, inZ): the way into the forest from this wall. V0.8 Pass 091: a stalk that would grow out
+  // of a wall rock steps out in front of it, so it grips the sand at the rock's foot.
+  const add = (x: number, z: number, inX: number, inZ: number) => {
+    for (let step = 0; step < 10 && inRock(x, z, rocks); step++) {
+      x += inX * 0.3;
+      z += inZ * 0.3;
+    }
+    // Still in rock 3 m out (a stretch of overlapping rocks): the rocks stand bare there.
+    if (inRock(x, z, rocks)) {
+      rand();
+      rand();
+      rand();
+      return;
+    }
     out.push({
       x,
       z,
@@ -118,6 +163,7 @@ export function wallStalkPlacements(seed = 36011): StalkPlacement[] {
       yaw: downstream(rand()),
       scale: 0.95 + rand() * 0.2,
     });
+  };
   for (const [inset, step, offset] of [
     [1.2, 2.2, 0],
     [3, 3.2, 1.1],
@@ -129,10 +175,15 @@ export function wallStalkPlacements(seed = 36011): StalkPlacement[] {
         z > w.farZ + inset;
         z -= step
       )
-        add(side * (w.x - inset - rand() * 0.6), z + (rand() - 0.5) * 0.8);
+        add(
+          side * (w.x - inset - rand() * 0.6),
+          z + (rand() - 0.5) * 0.8,
+          -side,
+          0,
+        );
     // The far wall.
     for (let x = -w.x + inset + offset; x < w.x - inset; x += step)
-      add(x + (rand() - 0.5) * 0.8, w.farZ + inset + rand() * 0.6);
+      add(x + (rand() - 0.5) * 0.8, w.farZ + inset + rand() * 0.6, 0, 1);
   }
   return out;
 }
@@ -523,10 +574,14 @@ export class KelpStalks {
   private readonly swimmer = { value: new THREE.Vector4(0, -1000, 0, 0) };
   private readonly geometries: THREE.BufferGeometry[] = [];
   private disposed = false;
-  constructor() {
+  /** @param rocks V0.8 Pass 091: the forest's boulders and wall rocks, which the kelp grows round. */
+  constructor(rocks: readonly RockFootprint[] = []) {
     this.root.name = 'Giant kelp';
     // v0.6 Pass 036: the forest, and the dense kelp along its walls.
-    this.placements = [...stalkPlacements(), ...wallStalkPlacements()];
+    this.placements = [
+      ...stalkPlacements(STALKS.count, STALKS.seed, rocks),
+      ...wallStalkPlacements(undefined, rocks),
+    ];
     const time = this.time,
       tallest = Math.max(...STALKS.heights);
     this.material = new THREE.MeshStandardMaterial({

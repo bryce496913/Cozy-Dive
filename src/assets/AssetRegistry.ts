@@ -175,6 +175,22 @@ export const ASSET_REGISTRY = {
     maxDimension: 4,
     requireMorphs: false,
   },
+  // V0.8 Pass 091: kelp coastal rock, cave limestone and cave pillar variants (tools/art/pass091).
+  geology: {
+    path: 'assets/models/reef/geology.glb',
+    requiredNodes: [
+      'Geology_Root',
+      'KelpRock_0',
+      'KelpRock_5',
+      'CaveRock_0',
+      'CaveRock_5',
+      'CavePillar_0',
+      'CavePillar_1',
+    ],
+    minDimension: 1.2,
+    maxDimension: 4,
+    requireMorphs: false,
+  },
   cardinalfish: {
     path: 'assets/models/fish/cardinalfish.glb',
     requiredNodes: [
