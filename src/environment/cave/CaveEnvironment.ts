@@ -261,7 +261,7 @@ export class CaveEnvironment {
         facing: { x: 0, y: 0, z: -1 },
         radius: CAVE.tunnel.radius * 0.95,
         tint: [0.5, 0.78, 0.62],
-        peak: 0.55,
+        peak: 0.35,
       }),
       new PassageGlow({
         name: 'Cave back tunnel glow',
@@ -269,7 +269,7 @@ export class CaveEnvironment {
         facing: { x: 0, y: 0, z: 1 },
         radius: back.radius * 0.95,
         tint: [0.55, 0.72, 0.95],
-        peak: 0.5,
+        peak: 0.32,
       }),
     );
     for (const p of this.passages) this.root.add(p.mesh);

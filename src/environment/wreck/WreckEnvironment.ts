@@ -6,6 +6,7 @@ import { shaftColliders, shaftLining } from '../shared/Shaft';
 import { ShipwreckModel } from './ShipwreckModel';
 import { HabitatSurface } from '../shared/HabitatSurface';
 import { PassageGlow } from '../shared/PassageGlow';
+import { beamGeometry, beamMaterial } from '../shared/LightBeam';
 import { limestoneGeometry } from '../shared/LimestoneGeometry';
 import {
   SHIP,
@@ -21,6 +22,11 @@ import {
  * is in `colliders`. Owns its GPU objects.
  */
 const SHAFT_RADIUS = 1.6;
+/**
+ * V0.8 Pass 089: the faint column of kelp-forest light falling from the shaft (m, and its
+ * brightness at the top): the way home, visible through the shared dense murk.
+ */
+const HOME_BEAM = { length: 10, spread: 3.2, intensity: 0.05 } as const;
 /** The roof's collision lies flat just above its lowest bulge. */
 const ROOF_SOLID = WRECK.ceiling - 0.7;
 
@@ -205,13 +211,32 @@ export class WreckEnvironment {
     add(cap, rock, 'Wreck shaft top');
     this.homeGlow = new PassageGlow({
       name: 'Wreck shaft glow',
-      at: { x: s.x, y: wreckRoof(s.x, s.z) + 2.5, z: s.z },
+      // In the hole's mouth, so it shows at an angle from across the deck, not only from below.
+      at: { x: s.x, y: wreckRoof(s.x, s.z) + 0.3, z: s.z },
       facing: { x: 0, y: -1, z: 0 },
-      radius: SHAFT_RADIUS * 0.95,
+      radius: SHAFT_RADIUS,
       tint: [0.42, 0.66, 0.56],
-      peak: 0.5,
+      peak: 0.35,
     });
     this.root.add(this.homeGlow.mesh);
+    // And a faint column of that light falling from the hole towards the deck: from anywhere
+    // around the ship it points up to the way home (unfogged, like the cave's sunbeam).
+    const roofAtShaft = wreckRoof(s.x, s.z),
+      fall = HOME_BEAM.length,
+      beam = beamGeometry({
+        length: fall,
+        topRadius: SHAFT_RADIUS * 0.9,
+        bottomRadius: HOME_BEAM.spread,
+        intensity: HOME_BEAM.intensity,
+        tint: [0.55, 0.85, 0.75],
+        topFade: 0.05,
+      });
+    beam.translate(s.x, roofAtShaft + 0.2, s.z);
+    const beamLight = beamMaterial('Wreck shaft light');
+    this.materials.push(beamLight);
+    add(beam, beamLight, 'Wreck shaft light');
+    (this.root.getObjectByName('Wreck shaft light') as THREE.Mesh).renderOrder =
+      2;
 
     // Rocks fallen from the roof, and debris off the wreck. V0.7 Pass 081: three carved limestone
     // forms (the Pass 079 cave family, fractured and pitted inside their hulls) replace one lumpy
