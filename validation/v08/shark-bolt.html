@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Cozy Diver — Shark Bolt Probe</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #000;
+      }
+      canvas {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="c"></canvas>
+    <script type="module">
+      // V0.8 Pass 097: the sea cave on its own, its resting whitetips exposed, so a startle can be
+      // stepped frame by frame (an active swimmer beside a shark), logging its mood, speed, tail
+      // effort and morph weights, and rendering frames. Dev server only.
+      import * as THREE from 'three';
+      import { AssetLoader } from '/src/assets/AssetLoader.ts';
+      import { SeaCaveScene } from '/src/rendering/SeaCaveScene.ts';
+      const canvas = document.getElementById('c');
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+      renderer.setPixelRatio(1);
+      renderer.setSize(innerWidth, innerHeight, false);
+      const fish = new AssetLoader(undefined, undefined, renderer);
+      const player = {
+        active: false,
+        position: { x: 0, y: 0, z: 0 },
+        velocity: { x: 0, y: 0, z: 0 },
+      };
+      let scene,
+        time = 0;
+      window.ready = (async () => {
+        scene = await SeaCaveScene.build(renderer, { fish, soundSpots: 0 });
+        await scene.prepared;
+        await scene.resting?.ready;
+        window.cave = scene;
+        return true;
+      })();
+      /** Step `n` frames of `dt` s with the swimmer at `p` (active), or away (null). */
+      window.step = (n, dt, p, reduced = false) => {
+        const out = [];
+        for (let i = 0; i < n; i++) {
+          time += dt;
+          player.active = !!p;
+          if (p) player.position = { ...p };
+          scene.render(time, reduced, dt, true, player);
+          const rigs = scene.resting.rigs;
+          out.push(
+            rigs.map((r) => ({
+              mood: r.bolt.mood,
+              speed: +r.bolt.speed.toFixed(3),
+              effort: +r.bolt.effort.toFixed(3),
+              w: Array.from(r.near.morphTargetInfluences).map(
+                (v) => +v.toFixed(3),
+              ),
+              far: r.far.visible,
+              x: +r.root.position.x.toFixed(2),
+              z: +r.root.position.z.toFixed(2),
+            })),
+          );
+        }
+        return out;
+      };
+      /** Render shark `k` from straight above (its tail's sideways beat shows plainly). */
+      window.topView = (k, height = 2.4) => {
+        const r = scene.resting.rigs[k].root.position,
+          cam = scene.camera;
+        cam.position.set(r.x, r.y + height, r.z);
+        cam.up.set(0, 0, -1);
+        cam.lookAt(r.x, r.y, r.z);
+        scene.render(time, false, 1e-6, true, { ...player, active: false });
+        cam.up.set(0, 1, 0);
+      };
+      /** Render a view of shark `k` from beside it. */
+      window.look = (k, distance = 3.2) => {
+        const r = scene.resting.rigs[k].root.position,
+          cam = scene.camera;
+        cam.position.set(r.x + distance, r.y + 1.2, r.z + distance * 0.6);
+        cam.lookAt(r.x, r.y, r.z);
+        scene.render(time, false, 1e-6, true, { ...player, active: false });
+      };
+    </script>
+  </body>
+</html>

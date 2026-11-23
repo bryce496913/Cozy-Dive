@@ -174,7 +174,7 @@ export class RestingSharks {
       }
       b.update(step, this.world, reducedMotion, eye);
       r.root.position.set(b.position.x, b.position.y, b.position.z);
-      r.root.rotation.set(b.bank, b.yaw, b.pitch);
+      r.root.rotation.set(b.bank, b.yaw + b.sway, b.pitch);
       r.yaw = b.yaw;
       creatureStroke(r.near, r, b.effort);
       if (b.resting) {

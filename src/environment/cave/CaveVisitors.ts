@@ -1021,7 +1021,8 @@ export class CaveVisitors {
     pose.position.x = b.position.x;
     pose.position.y = b.position.y;
     pose.position.z = b.position.z;
-    pose.yaw = b.yaw;
+    // V0.8 Pass 097: its body sways against the tail as it swims (zero at rest).
+    pose.yaw = b.yaw + b.sway;
   }
   /** The cave as the nurse shark sees it while it swims. */
   private readonly nurseWorld: BoltWorld = {
