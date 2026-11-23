@@ -35,7 +35,8 @@ try {
     page.on('requestfinished', (request) => {
       pending.push(
         request.sizes().then(({ responseBodySize }) => {
-          const url = request.url();
+          // V0.8 Pass 094: match on the path; models carry a `?v=` cache-busting query.
+          const url = new URL(request.url()).pathname;
           bytes.total += responseBodySize;
           if (url.endsWith('.glb')) bytes.models += responseBodySize;
           else if (url.includes('/draco/') || url.includes('/basis/'))

@@ -49,8 +49,9 @@ try {
       ),
   );
   // Pass 013 libraries + Pass 014 reef + Pass 015 nudibranchs + Pass 016 fish (chromis and four species)
-  assert.equal(modelResponses.size, 10);
-  assert.deepEqual([...modelResponses.values()], Array(10).fill(200));
+  // + Pass 082 reef benchmark + Pass 083 reef habitat (V0.8 Pass 094: the count was still Pass 016's).
+  assert.equal(modelResponses.size, 12);
+  assert.deepEqual([...modelResponses.values()], Array(12).fill(200));
   assert.equal(
     await page
       .getByText('Some aquarium details could not load.', { exact: false })
