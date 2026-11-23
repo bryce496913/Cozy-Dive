@@ -101,6 +101,8 @@ gaps open in motion (see the mid-stroke views).
 - **Edges:** species edge colours are kept.
 - **Heroes:** the chromis, clownfish and gramma's own fin colours, which lived in the Pass 065 fin
   painter, are carried over.
+- **Chromis back:** its countershading is deepened (back 0.16 0.42 0.52, was 0.28 0.58 0.66). Without
+  the old bump grid's shading the school washed out against the tank water.
 
 ## 4. Performance
 
@@ -135,7 +137,36 @@ textures carry the fine detail.
 
 ## 6. Species-quality assessment
 
-FISH_ASSESSMENT
+Judged from the galleries (`roster/`, `compare/`, `species/`) against reference proportions:
+
+- **Strong:** clearly the species, at swimming distance and up close.
+- **Good:** recognisably distinct, with minor simplifications.
+- **Fair:** improved, but still close to a generic body.
+
+| Species              | Verdict | Notes                                                                                                                                                                                               |
+| -------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Butterflyfish        | Strong  | Tall disc, protruding pointed snout, tiny mouth                                                                                                                                                     |
+| Moorish idol         | Strong  | Deep triangle, long tubular snout, falcate pectorals, banner dorsal                                                                                                                                 |
+| Bannerfish           | Strong  | Tall back and steep forehead distinguish it from the butterflyfish                                                                                                                                  |
+| Trevally             | Strong  | Deep belly, steep forehead, hair-thin peduncle, crescent tail, sickle pectorals                                                                                                                     |
+| Giant sea bass       | Strong  | Heavy wedge head with a huge underslung jaw                                                                                                                                                         |
+| Antarctic icefish    | Strong  | Flat duck-bill snout, scaleless pale skin                                                                                                                                                           |
+| Parrotfish           | Good    | Blunt head and protruding pale beak, coarse inked scales; the beak is a shaped tip, not tooth plates                                                                                                |
+| Humphead wrasse      | Good    | Hump and thick lips read clearly; its markings are unchanged from Pass 066                                                                                                                          |
+| California sheephead | Good    | Forward hump and strong jaw; distinct from the wrasse                                                                                                                                               |
+| Blue tang            | Good    | Steep forehead, small low mouth, slim peduncle, fine scales; no modelled spine                                                                                                                      |
+| Patagonian toothfish | Good    | Long wedge head and protruding jaw                                                                                                                                                                  |
+| Notothen             | Good    | Broad blunt head and big rounded pectorals                                                                                                                                                          |
+| Pajama cardinalfish  | Good    | Very deep, huge eye, big oblique gape                                                                                                                                                               |
+| Assessor             | Good    | Now slimmer than the cardinalfish, with an oblique mouth and long pelvic fins                                                                                                                       |
+| Clownfish            | Good    | Stout, rounded paddle pectorals, fine scales; it was already distinct                                                                                                                               |
+| Royal gramma         | Good    | Pointed elongate oval and oblique mouth; dorsal spot still missing                                                                                                                                  |
+| Firefish             | Fair    | Upturned mouth now visible, but the slender body was already distinct and changed least                                                                                                             |
+| Blue-green chromis   | Good    | Unchanged silhouette (the approved hero). The back's countershading is deepened, because without the old bump grid the school read washed out at swimming distance (`in-water/tank-chromis-school`) |
+
+All 18 lose the fabric weave; their scales read as scales or fine skin up close (`species/*`, flank
+and eye columns). No eye, fin or tail gaps appear at rest or mid-stroke (the tail and stroke
+columns).
 
 ## 7. Known limitations
 

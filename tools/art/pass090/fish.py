@@ -162,7 +162,9 @@ def hero_colour(name, S, T, x, y, yn, an, broad):
     """The three Pass 065 heroes' pigmentation (their painters lived inside the old texture)."""
     spec = an.spec
     if name == 'chromis':
-        back, flank, belly = np.array([.28, .58, .66]), np.array([.50, .84, .74]), np.array([.86, .95, .9])
+        # A deeper blue-green back than Pass 065 (.28 .58 .66): the old bump grid darkened the back
+        # by shading; with natural scales the countershading itself carries the school's contrast.
+        back, flank, belly = np.array([.16, .42, .52]), np.array([.42, .76, .7]), np.array([.86, .95, .9])
         col = flank + (back - flank) * smooth(0.15, 0.85, yn)[..., None] + (belly - flank) * smooth(-0.1, -0.85, yn)[..., None]
         return col * (1 + broad * 0.025)[..., None]
     if name == 'clownfish':

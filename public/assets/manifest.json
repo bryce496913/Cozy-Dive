@@ -2,11 +2,11 @@
   {
     "id": "chromis",
     "file": "assets/models/fish/chromis.glb",
-    "sha256": "4935fee39a58b4b79503325cef48501074636c266a32f960dd650ea2ffa869d0",
+    "sha256": "7152dd94fb084a0c541e33bef5ec29ea69c9571546c68c01411c2a09db706c01",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 727536,
+    "bytes": 725584,
     "visualPrimitives": 12,
     "visualTriangles": 13160,
     "collisionTriangles": 0,
@@ -26,7 +26,7 @@
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 49622
+        "encodedBytes": 47667
       },
       {
         "name": "p090-chromis-skin-orm",
