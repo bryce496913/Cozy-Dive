@@ -615,7 +615,9 @@ export class IceEnvironment {
         // dome and block variants), in the same box; they carry their own collision.
         authored = this.authoredRock(
           DROPSTONE_ROCKS[i % DROPSTONE_ROCKS.length],
-          { x, y: y + s * 0.25, z, w: s * 1.2, h: s * 0.8, d: s, yaw },
+          // Bedded a third into the mud: the authored forms narrow toward their feet, so at
+          // the lumps' depth (a quarter) some seemed to hover.
+          { x, y: y + s * 0.1, z, w: s * 1.2, h: s * 0.8, d: s, yaw },
           i,
         );
       this.stones.push({ x, y, z, size: s });
