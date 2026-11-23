@@ -331,7 +331,7 @@
       "trianglesByFamily": {
         "Rock": 161280,
         "Pebble": 960,
-        "Coral": 407420,
+        "Coral": 372254,
         "Soft": 32007,
         "Sea": 22281,
         "Turtle": 2064,
@@ -347,14 +347,14 @@
     },
     "id": "reef-environment",
     "file": "assets/models/reef/reef-environment.glb",
-    "sha256": "188c5e9804b70e8514ff187fe99e4273939dde82828ec71f42c40a2ce399acff",
+    "sha256": "ad84a0c997b234d60a92f9f1453d8748672ac9de2a045afc3c218d78c13f75d6",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 5904528,
+    "bytes": 5869100,
     "visualPrimitives": 66,
-    "visualTriangles": 655307,
-    "collisionTriangles": 9102,
+    "visualTriangles": 620141,
+    "collisionTriangles": 11104,
     "materials": 8,
     "images": [
       {

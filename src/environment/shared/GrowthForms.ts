@@ -413,7 +413,11 @@ export function foliosePlate(spec: PlateSpec): THREE.BufferGeometry {
       const ang = heading + s * span * (0.75 + 0.25 * d),
         edge =
           reach * (1 + 0.12 * n1(Math.cos(ang) * 2.5, L, Math.sin(ang) * 2.5)),
-        r = root + d * (edge - root),
+        // A petal in plan: its reach falls away toward the lamina's ends, so they curve in
+        // (straight radial ends read as cut blades).
+        r =
+          root +
+          d * (edge * (0.3 + 0.7 * Math.sqrt(Math.max(0, 1 - s * s))) - root),
         lens =
           Math.sqrt(Math.max(0, 1 - s * s)) *
           Math.sqrt(Math.max(0, 1 - d ** 6)),
