@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
   GELATINOUS_PRESETS,
   gelatinousMaterial,
@@ -56,6 +57,158 @@ function painted(
   out.setAttribute('color', new THREE.Float32BufferAttribute(c, 3));
   return out;
 }
+/**
+ * V0.8 Pass 096: the sea spider and ribbon worm as shared factories, so the aquarium shows these
+ * same animals (it had its own, different builds). Body units are metres at size 1.
+ */
+export function seaSpiderBodyGeometry(): THREE.BufferGeometry {
+  const body = new THREE.SphereGeometry(0.05, 10, 8);
+  body.scale(0.7, 0.5, 1.4);
+  return painted(body, [0.75, 0.6, 0.45]);
+}
+/** One leg segment: a unit cylinder up +y (stretched from joint to joint). */
+export function seaSpiderLegGeometry(): THREE.BufferGeometry {
+  const seg = new THREE.CylinderGeometry(0.008, 0.012, 1, 6);
+  seg.translate(0, 0.5, 0);
+  return painted(seg, [0.82, 0.68, 0.5]);
+}
+export interface SpiderJoints {
+  readonly hip: THREE.Vector3;
+  readonly knee: THREE.Vector3;
+  /** Its y is above the seabed under the foot (the caller adds the ground height). */
+  readonly foot: THREE.Vector3;
+}
+/**
+ * Leg `l` of a sea spider of size `s` heading `heading`, stepping at `phase`: hip, knee and foot
+ * relative to the point under its body. The body stands high on its legs; each leg rises to a
+ * knee and steps down to a foot planted on the seabed, in a slow wave. No allocation.
+ */
+export function seaSpiderLeg(
+  l: number,
+  heading: number,
+  s: number,
+  phase: number,
+  out: SpiderJoints,
+): SpiderJoints {
+  const side = l < 4 ? 1 : -1,
+    along = ((l % 4) - 1.5) * 0.45,
+    dir = heading + side * (Math.PI / 2) + along,
+    step = Math.sin(phase + l * 1.3) * 0.12 * s,
+    hipX = Math.sin(heading) * along * 0.04 * s,
+    hipZ = Math.cos(heading) * along * 0.04 * s,
+    footX = hipX + Math.sin(dir) * 0.42 * s + Math.sin(heading) * step,
+    footZ = hipZ + Math.cos(dir) * 0.42 * s + Math.cos(heading) * step,
+    lift = Math.max(0, Math.sin(phase + l * 1.3 + Math.PI / 2)) * 0.05 * s,
+    bodyY = SPIDER_BODY_HEIGHT * s;
+  out.hip.set(hipX, bodyY, hipZ);
+  out.knee.set((hipX + footX) / 2, bodyY + 0.16 * s + lift, (hipZ + footZ) / 2);
+  out.foot.set(footX, lift * 0.5, footZ);
+  return out;
+}
+/** How high a sea spider's body stands (per unit size). */
+export const SPIDER_BODY_HEIGHT = 0.18;
+/** The whole sea spider standing at rest on flat ground (body and legs merged). */
+export function seaSpiderRestGeometry(): THREE.BufferGeometry {
+  const parts = [seaSpiderBodyGeometry()],
+    j: SpiderJoints = {
+      hip: new THREE.Vector3(),
+      knee: new THREE.Vector3(),
+      foot: new THREE.Vector3(),
+    },
+    up = new THREE.Vector3(0, 1, 0),
+    d = new THREE.Vector3(),
+    q = new THREE.Quaternion(),
+    m = new THREE.Matrix4();
+  parts[0].translate(0, SPIDER_BODY_HEIGHT, 0);
+  const segment = (from: THREE.Vector3, to: THREE.Vector3) => {
+    const g = seaSpiderLegGeometry(),
+      len = from.distanceTo(to);
+    q.setFromUnitVectors(up, d.subVectors(to, from).normalize());
+    g.applyMatrix4(m.compose(from, q, new THREE.Vector3(1, len, 1)));
+    parts.push(g);
+  };
+  for (let l = 0; l < LEGS; l++) {
+    seaSpiderLeg(l, 0, 1, 0, j);
+    segment(j.hip, j.knee);
+    segment(j.knee, j.foot);
+  }
+  const merged = mergeGeometries(parts, false);
+  parts.forEach((g) => g.dispose());
+  if (!merged) throw Error('Sea spider could not be built');
+  return merged;
+}
+/** The ribbon worm's colour (wild and aquarium). */
+export const RIBBON_WORM_COLOUR = 0xf27a1a;
+/** A ribbon worm's tube mesh; its positions and normals are written by `poseRibbonWorm`. */
+export function ribbonWormGeometry(): {
+  readonly geometry: THREE.BufferGeometry;
+  readonly positions: Float32Array;
+  readonly normals: Float32Array;
+} {
+  const verts = (WORM_SEGMENTS + 1) * WORM_SIDES,
+    positions = new Float32Array(verts * 3),
+    normals = new Float32Array(verts * 3),
+    index: number[] = [];
+  for (let j = 0; j < WORM_SEGMENTS; j++)
+    for (let s = 0; s < WORM_SIDES; s++) {
+      const a0 = j * WORM_SIDES + s,
+        b0 = j * WORM_SIDES + ((s + 1) % WORM_SIDES);
+      index.push(a0, a0 + WORM_SIDES, b0, b0, a0 + WORM_SIDES, b0 + WORM_SIDES);
+    }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute(
+    'position',
+    new THREE.BufferAttribute(positions, 3).setUsage(THREE.DynamicDrawUsage),
+  );
+  geometry.setAttribute(
+    'normal',
+    new THREE.BufferAttribute(normals, 3).setUsage(THREE.DynamicDrawUsage),
+  );
+  geometry.setIndex(index);
+  return { geometry, positions, normals };
+}
+/** Lay a ribbon worm from `at` back along `heading`, in a slow travelling wave over `ground`. */
+export function poseRibbonWorm(
+  positions: Float32Array,
+  normals: Float32Array,
+  at: Readonly<Vec3>,
+  heading: number,
+  phase: number,
+  ground: (x: number, z: number) => number,
+): void {
+  const len = 1.8,
+    cos = Math.cos(heading),
+    sin = Math.sin(heading);
+  for (let j = 0; j <= WORM_SEGMENTS; j++) {
+    const u = j / WORM_SEGMENTS,
+      back = u * len,
+      wave = 0.12 * Math.sin(phase - u * 9) * (0.3 + u),
+      cx = at.x - sin * back + cos * wave,
+      cz = at.z - cos * back - sin * wave,
+      cy = ground(cx, cz) + 0.02,
+      r = 0.018 * (1 - 0.6 * u) + 0.006;
+    for (let s = 0; s < WORM_SIDES; s++) {
+      const ang = (s / WORM_SIDES) * Math.PI * 2,
+        nx = Math.cos(ang) * cos,
+        ny = Math.sin(ang),
+        nz = -Math.cos(ang) * sin,
+        v = (j * WORM_SIDES + s) * 3;
+      positions[v] = cx + nx * r * 1.6;
+      positions[v + 1] = cy + ny * r * 0.6;
+      positions[v + 2] = cz + nz * r * 1.6;
+      normals[v] = nx;
+      normals[v + 1] = ny;
+      normals[v + 2] = nz;
+    }
+  }
+}
+/** A ribbon worm lying at rest on flat ground (its own geometry, centred on its length). */
+export function ribbonWormRestGeometry(): THREE.BufferGeometry {
+  const w = ribbonWormGeometry();
+  poseRibbonWorm(w.positions, w.normals, { x: 0, y: 0, z: 0.9 }, 0, 0, () => 0);
+  return w.geometry;
+}
+
 interface Spider {
   at: Vec3;
   heading: number;
@@ -82,6 +235,11 @@ export class IceCritters {
   private readonly jellies: THREE.InstancedMesh;
   private readonly legs: THREE.InstancedMesh;
   private readonly spiderBodies: THREE.InstancedMesh;
+  private readonly joints: SpiderJoints = {
+    hip: new THREE.Vector3(),
+    knee: new THREE.Vector3(),
+    foot: new THREE.Vector3(),
+  };
   private readonly bubblePoints: THREE.Points;
   private readonly bubbleAge = new Float32Array(CRITTERS.bubbles);
   private bubbleNext = 0;
@@ -158,18 +316,14 @@ export class IceCritters {
       'Comb jellies',
     );
     // Sea spiders: a small body and eight long legs (two segments each, one instanced draw).
-    const body = new THREE.SphereGeometry(0.05, 10, 8);
-    body.scale(0.7, 0.5, 1.4);
     this.spiderBodies = instanced(
-      painted(body, [0.75, 0.6, 0.45]),
+      seaSpiderBodyGeometry(),
       lit,
       CRITTERS.spiders,
       'Sea spider bodies',
     );
-    const seg = new THREE.CylinderGeometry(0.008, 0.012, 1, 6);
-    seg.translate(0, 0.5, 0);
     this.legs = instanced(
-      painted(seg, [0.82, 0.68, 0.5]),
+      seaSpiderLegGeometry(),
       lit,
       CRITTERS.spiders * LEGS * 2,
       'Sea spider legs',
@@ -194,40 +348,12 @@ export class IceCritters {
     const wormMaterial = this.own(
       new THREE.MeshStandardMaterial({
         name: 'Ribbon worms',
-        color: 0xf27a1a,
+        color: RIBBON_WORM_COLOUR,
         roughness: 0.45,
       }),
     );
     for (let w = 0; w < CRITTERS.worms; w++) {
-      const verts = (WORM_SEGMENTS + 1) * WORM_SIDES,
-        positions = new Float32Array(verts * 3),
-        normals = new Float32Array(verts * 3),
-        index: number[] = [];
-      for (let j = 0; j < WORM_SEGMENTS; j++)
-        for (let s = 0; s < WORM_SIDES; s++) {
-          const a0 = j * WORM_SIDES + s,
-            b0 = j * WORM_SIDES + ((s + 1) % WORM_SIDES);
-          index.push(
-            a0,
-            a0 + WORM_SIDES,
-            b0,
-            b0,
-            a0 + WORM_SIDES,
-            b0 + WORM_SIDES,
-          );
-        }
-      const g = new THREE.BufferGeometry();
-      g.setAttribute(
-        'position',
-        new THREE.BufferAttribute(positions, 3).setUsage(
-          THREE.DynamicDrawUsage,
-        ),
-      );
-      g.setAttribute(
-        'normal',
-        new THREE.BufferAttribute(normals, 3).setUsage(THREE.DynamicDrawUsage),
-      );
-      g.setIndex(index);
+      const { geometry: g, positions, normals } = ribbonWormGeometry();
       this.geometries.push(g);
       const mesh = new THREE.Mesh(g, wormMaterial);
       mesh.name = 'Ribbon worm';
@@ -459,22 +585,14 @@ export class IceCritters {
       );
       this.spiderBodies.setMatrixAt(k, this.m);
       for (let l = 0; l < LEGS; l++) {
-        const side = l < 4 ? 1 : -1,
-          along = ((l % 4) - 1.5) * 0.45,
-          out = sp.heading + side * (Math.PI / 2) + along,
-          step = Math.sin(sp.phase + l * 1.3) * 0.12 * s,
-          hipX = sp.at.x + Math.sin(sp.heading) * along * 0.04 * s,
-          hipZ = sp.at.z + Math.cos(sp.heading) * along * 0.04 * s,
-          footX = hipX + Math.sin(out) * 0.42 * s + Math.sin(sp.heading) * step,
-          footZ = hipZ + Math.cos(out) * 0.42 * s + Math.cos(sp.heading) * step,
-          kneeX = (hipX + footX) / 2,
-          kneeZ = (hipZ + footZ) / 2,
-          lift =
-            Math.max(0, Math.sin(sp.phase + l * 1.3 + Math.PI / 2)) * 0.05 * s;
-        this.a.set(hipX, bodyY, hipZ);
-        this.b.set(kneeX, bodyY + 0.16 * s + lift, kneeZ);
+        seaSpiderLeg(l, sp.heading, s, sp.phase, this.joints);
+        const j = this.joints;
+        this.a.set(sp.at.x + j.hip.x, sp.at.y + j.hip.y, sp.at.z + j.hip.z);
+        this.b.set(sp.at.x + j.knee.x, sp.at.y + j.knee.y, sp.at.z + j.knee.z);
         this.segment(k * LEGS * 2 + l * 2, this.a, this.b);
-        this.a.set(footX, this.limits.ground(footX, footZ) + lift * 0.5, footZ);
+        const fx = sp.at.x + j.foot.x,
+          fz = sp.at.z + j.foot.z;
+        this.a.set(fx, this.limits.ground(fx, fz) + j.foot.y, fz);
         this.segment(k * LEGS * 2 + l * 2 + 1, this.b, this.a);
       }
     });
@@ -482,31 +600,14 @@ export class IceCritters {
     this.legs.instanceMatrix.needsUpdate = true;
     // Ribbon worms: a slow travelling wave along each worm, lying on the gravel.
     for (const w of this.worms) {
-      const len = 1.8,
-        cos = Math.cos(w.heading),
-        sin = Math.sin(w.heading);
-      for (let j = 0; j <= WORM_SEGMENTS; j++) {
-        const u = j / WORM_SEGMENTS,
-          back = u * len,
-          wave = 0.12 * Math.sin(w.phase - u * 9) * (0.3 + u),
-          cx = w.at.x - sin * back + cos * wave,
-          cz = w.at.z - cos * back - sin * wave,
-          cy = this.limits.ground(cx, cz) + 0.02,
-          r = 0.018 * (1 - 0.6 * u) + 0.006;
-        for (let s = 0; s < WORM_SIDES; s++) {
-          const ang = (s / WORM_SIDES) * Math.PI * 2,
-            nx = Math.cos(ang) * cos,
-            ny = Math.sin(ang),
-            nz = -Math.cos(ang) * sin,
-            v = (j * WORM_SIDES + s) * 3;
-          w.positions[v] = cx + nx * r * 1.6;
-          w.positions[v + 1] = cy + ny * r * 0.6;
-          w.positions[v + 2] = cz + nz * r * 1.6;
-          w.normals[v] = nx;
-          w.normals[v + 1] = ny;
-          w.normals[v + 2] = nz;
-        }
-      }
+      poseRibbonWorm(
+        w.positions,
+        w.normals,
+        w.at,
+        w.heading,
+        w.phase,
+        this.limits.ground,
+      );
       w.mesh.geometry.getAttribute('position').needsUpdate = true;
       w.mesh.geometry.getAttribute('normal').needsUpdate = true;
     }

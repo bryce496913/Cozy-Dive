@@ -8,6 +8,7 @@ import type { AssetLoader, AssetLease } from '../assets/AssetLoader';
 import type { BabyDefinition } from '../config/babies';
 import { creatureStroke } from './creatureStroke';
 import { collectionShape } from './TankCollectionShapes';
+import { RIBBON_WORM_COLOUR } from './ice/IceCritters';
 
 /** V0.7 Pass 078: collection animals drawn with the shared gelatinous material. */
 const GELATINOUS_COLLECTION: Partial<Record<string, GelatinousOptions>> = {
@@ -118,8 +119,8 @@ export async function acquireCollectionArt(
         'christmas-tree-worm': 0x5299dd,
         'kelp-crab': 0x879d4c,
         octopus: 0xb87954,
-        'giant-sea-spider': 0xccad86,
-        'ribbon-worm': 0xeb6c2c,
+        // V0.8 Pass 096: the wild worm's own colour (its geometry carries none).
+        'ribbon-worm': RIBBON_WORM_COLOUR,
         'colossal-squid': 0x924d43,
         'glass-sponge': 0xe2d9bd,
         'antarctic-soft-coral': 0xdfa7b5,

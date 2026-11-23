@@ -1,3 +1,4 @@
+import { CREATURE_LOOKS } from '../../config/creatureLooks';
 import * as THREE from 'three';
 import type { AssetId } from '../../assets/AssetRegistry';
 import type { AssetLease, AssetLoader } from '../../assets/AssetLoader';
@@ -37,7 +38,7 @@ const LENGTH = { icefish: 0.75, notothen: 0.42 } as const;
  */
 const WEDDELL_LOOK = { scale: 1, tint: undefined } as const;
 /** Her pup: under half her length, its coat paler and greyer. */
-const PUP_LOOK = { scale: 0.78, tint: 0x9aa2ac } as const;
+const PUP_LOOK = CREATURE_LOOKS.weddellPup;
 
 export class IceLife {
   readonly root = new THREE.Group();

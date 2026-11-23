@@ -1,3 +1,4 @@
+import { CREATURE_LOOKS } from '../../config/creatureLooks';
 import { KELP } from '../../config/passage';
 import type { Vec3 } from '../../config/world';
 import type { CruiseGroup } from '../outer/OuterCreatures';
@@ -22,7 +23,7 @@ export const KELP_LIFE = {
   size: 2.1,
   orange: 0xff6a12,
   /** The bat rays' dark back (multiplied into the eagle ray's colours). */
-  rayTint: 0x5b5a54,
+  rayTint: CREATURE_LOOKS.batRayTint,
 } as const;
 
 /** The boulders the garibaldi gather around: spread through the forest, nearest the exit first. */

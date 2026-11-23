@@ -92,7 +92,6 @@ describe('collection audit: shared models (type A, to be replaced by species mod
       [
         'antarctic-silverfish',
         'blacksmith',
-        'cleaner-wrasse',
         'flashlight-fish',
         'garibaldi',
         'glassy-sweeper',
@@ -101,6 +100,8 @@ describe('collection audit: shared models (type A, to be replaced by species mod
         'soldierfish',
       ].sort(),
     );
+    // V0.8 Pass 096: the cleaner wrasse is on its wild rig (the firefish's), in its wild blue.
+    expect(fish('cleaner-wrasse').asset).toBe('firefish');
   });
 });
 

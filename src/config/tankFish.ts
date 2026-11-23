@@ -1,3 +1,4 @@
+import { FISH_RECOLOR } from './creatureLooks';
 import type { AssetId } from '../assets/AssetRegistry';
 import type { SpeciesId } from '../fish/FishSpecies';
 
@@ -35,7 +36,7 @@ export interface TankFishDefinition {
   /** One colour on a shared rig (the kelp and cave fish swim as recoloured chromis). */
   readonly tint?: number;
 }
-export const TANK_FISH: readonly TankFishDefinition[] = [
+const TANK_FISH_LIST: readonly TankFishDefinition[] = [
   {
     species: 'blue-green-chromis',
     label: 'Blue-green chromis',
@@ -171,7 +172,6 @@ export const TANK_FISH: readonly TankFishDefinition[] = [
     asset: 'chromis',
     note: 'Keeps a patch of its own, bright orange.',
     length: 0.5,
-    tint: 0xff6a12,
   },
   {
     species: 'kelp-bass',
@@ -182,7 +182,6 @@ export const TANK_FISH: readonly TankFishDefinition[] = [
     asset: 'chromis',
     note: 'Hangs in mid-water, olive-brown.',
     length: 0.6,
-    tint: 0x7a6a45,
   },
   {
     species: 'blacksmith',
@@ -193,7 +192,6 @@ export const TANK_FISH: readonly TankFishDefinition[] = [
     asset: 'chromis',
     note: 'A loose dark-blue school.',
     length: 0.45,
-    tint: 0x3f4d5e,
   },
   {
     species: 'senorita',
@@ -204,7 +202,6 @@ export const TANK_FISH: readonly TankFishDefinition[] = [
     asset: 'chromis',
     note: 'Slim and golden, busy near the sand.',
     length: 0.45,
-    tint: 0xe0b23a,
   },
   {
     species: 'glassy-sweeper',
@@ -215,7 +212,6 @@ export const TANK_FISH: readonly TankFishDefinition[] = [
     asset: 'chromis',
     note: 'A coppery school that keeps to the shade.',
     length: 0.35,
-    tint: 0xc98a4e,
   },
   {
     species: 'soldierfish',
@@ -226,7 +222,6 @@ export const TANK_FISH: readonly TankFishDefinition[] = [
     asset: 'chromis',
     note: 'Red and big-eyed, lingering by the rocks.',
     length: 0.45,
-    tint: 0xc23a22,
   },
   {
     species: 'flashlight-fish',
@@ -333,11 +328,21 @@ export const TANK_FISH: readonly TankFishDefinition[] = [
     group: 'individual',
     sighting: 'species:cleaner-wrasse',
     max: 3,
-    asset: 'chromis',
+    // V0.8 Pass 096: the wild cleaner wrasse's own body (the firefish's), not the chromis.
+    asset: 'firefish',
     note: 'A tiny blue cleaner from the reef.',
     length: 0.22,
-    tint: 0x65aad9,
   },
 ];
+/**
+ * V0.8 Pass 096: a fish drawn on another species' rig takes the wild animal's colour, from the one
+ * shared table (the tank kept its own copies, and some had drifted).
+ */
+export const TANK_FISH: readonly TankFishDefinition[] = TANK_FISH_LIST.map(
+  (f) => {
+    const tint = FISH_RECOLOR[f.species];
+    return tint === undefined ? f : { ...f, tint };
+  },
+);
 /** Room for added fish in all (simulation and rendering budget). */
 export const TANK_FISH_CAP = TANK_FISH.reduce((sum, fish) => sum + fish.max, 0);
