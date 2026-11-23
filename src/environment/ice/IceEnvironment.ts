@@ -2,6 +2,7 @@ import { HabitatSurface } from '../shared/HabitatSurface';
 import * as THREE from 'three';
 import { WATER_PROFILES } from '../../config/waterProfiles';
 import { beamGeometry, beamMaterial } from '../shared/LightBeam';
+import { PassageGlow } from '../shared/PassageGlow';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { ICE, ICE_FRAME } from '../../config/passage';
 import type { ConvexCollider } from '../../player/collision';
@@ -139,6 +140,11 @@ export class IceEnvironment {
   private readonly shafts: THREE.MeshBasicMaterial;
   private time = 0;
   private disposed = false;
+  /**
+   * V0.8 Pass 091: dim cave light seeping out of the tunnel home, so it stays findable from across
+   * the ice field through the shared dense murk.
+   */
+  private readonly homeGlow: PassageGlow;
   /** V0.7 Pass 079: the giant strap algae and bushy algae, swaying. */
   private readonly algae: SwayingAlgae[] = [];
 
@@ -331,6 +337,15 @@ export class IceEnvironment {
     );
     // V0.7 Pass 079: the tunnel's start (behind the swap) recedes into darkness, not a flat disc.
     this.add(tunnelThroat(tube, t.startZ + 0.25, 1), rock, 'Ice tunnel cap');
+    this.homeGlow = new PassageGlow({
+      name: 'Ice tunnel glow',
+      at: { x: 0, y: t.y, z: t.wallZ + 2.5 },
+      facing: { x: 0, y: 0, z: -1 },
+      radius: t.radius * 0.95,
+      tint: [0.45, 0.72, 0.68],
+      peak: 0.35,
+    });
+    this.root.add(this.homeGlow.mesh);
     const d = ICE_LAYOUT.duct;
     this.colliders.push(
       ...rockTubeColliders(tube, d, ICE_LAYOUT.wall),
@@ -738,6 +753,10 @@ export class IceEnvironment {
     return mesh;
   }
   /** The light shafts shimmer slowly, on simulation time only. */
+  /** Fade the tunnel's glow with the eye's distance (every frame, any motion setting). */
+  updatePassages(eye: THREE.Vector3Like): void {
+    this.homeGlow.update(eye);
+  }
   update(dt: number, active: boolean, reducedMotion: boolean): void {
     if (this.disposed || !active || reducedMotion || !(dt > 0)) return;
     this.time += Math.min(dt, 0.1);
@@ -749,6 +768,7 @@ export class IceEnvironment {
     this.disposed = true;
     this.root.removeFromParent();
     this.algae.forEach((a) => a.dispose());
+    this.homeGlow.dispose();
     this.root.clear();
     this.geometries.forEach((g) => g.dispose());
     this.materials.forEach((m) => m.dispose());

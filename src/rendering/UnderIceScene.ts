@@ -276,6 +276,7 @@ export class UnderIceScene implements WaterWorld {
       this.camera.updateProjectionMatrix();
     }
     this.environment.update(dt, active, reducedMotion);
+    this.environment.updatePassages(this.camera.position);
     this.garden.update(dt, active, reducedMotion);
     this.extras.update(dt, active, reducedMotion, player);
     // Only once warmed up, so everything is drawn (and compiled) in the warm-up first.

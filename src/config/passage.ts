@@ -359,8 +359,12 @@ export const ICE = {
    */
   // v0.6 Pass 052B: the slowing starts 3.6 m from the icebergs (was 5); their colliders stop you.
   ease: { inset: 3.6, band: 1.2, up: 5.7 },
-  /** Very clear, cold blue water: the far icebergs show faintly at the end of the tank. */
-  fog: 0.026,
+  /**
+   * V0.8 Pass 091: the outer reef's dense murk (`DENSE_WATER_FOG`), in the ice world's own cold
+   * blue water: the icebergs loom out of the gloom; the breathing holes' light shafts and daylight
+   * are not fogged, so they stay the landmarks overhead. (Was 0.026, clear to the far icebergs.)
+   */
+  fog: DENSE_WATER_FOG,
   water: 0x1d4f78,
 } as const;
 /** The tunnel's start under the ice, matching the cave's back threshold. */

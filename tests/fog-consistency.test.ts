@@ -7,13 +7,14 @@ import { WATER_PROFILES } from '../src/config/waterProfiles';
 import { waterVeil } from '../src/rendering/deepFog';
 import { CaveEnvironment } from '../src/environment/cave/CaveEnvironment';
 import { WreckEnvironment } from '../src/environment/wreck/WreckEnvironment';
+import { IceEnvironment } from '../src/environment/ice/IceEnvironment';
 import {
   PASSAGE_GLOW,
   PassageGlow,
   passageGlowStrength,
 } from '../src/environment/shared/PassageGlow';
 
-/** V0.8 Pass 089: the outer reef's dense murk, shared by the shipwreck and sea cave. */
+/** V0.8 Passes 089 and 091: the outer reef's dense murk, shared by the shipwreck, sea cave and ice. */
 const rgb = (hex: number): [number, number, number] => [
   ((hex >> 16) & 255) / 255,
   ((hex >> 8) & 255) / 255,
@@ -24,31 +25,31 @@ describe('V0.8 Pass 089 shared dense-water fog', () => {
   it('keeps the outer reef exactly as approved and shares it with the wreck and cave', () => {
     expect(DENSE_WATER_FOG).toBe(0.13);
     expect(OUTER.fog).toBe(DENSE_WATER_FOG);
-    for (const id of ['outer', 'wreck', 'cave'] as const)
+    for (const id of ['outer', 'wreck', 'cave', 'ice'] as const)
       expect(WATER_PROFILES[id].fogDensity, id).toBe(DENSE_WATER_FOG);
     expect(WRECK.fog).toBe(DENSE_WATER_FOG);
     expect(CAVE.fog).toBe(DENSE_WATER_FOG);
   });
 
-  it('leaves the aquarium, kelp forest and ice in their own clearer water', () => {
-    for (const id of ['tank', 'kelp', 'ice'] as const)
+  it('leaves the aquarium and kelp forest in their own clearer water', () => {
+    for (const id of ['tank', 'kelp'] as const)
       expect(WATER_PROFILES[id].fogDensity, id).toBeLessThan(DENSE_WATER_FOG);
   });
 
   it('keeps each world its own water colour (its own tint with distance)', () => {
-    const colours = (['outer', 'wreck', 'cave'] as const).map(
+    const colours = (['outer', 'wreck', 'cave', 'ice'] as const).map(
       (id) => WATER_PROFILES[id].water,
     );
-    expect(new Set(colours).size).toBe(3);
+    expect(new Set(colours).size).toBe(4);
     // The same density veils each to the same degree, through its own spectrum.
-    const veil = (id: 'outer' | 'wreck' | 'cave') =>
+    const veil = (id: 'outer' | 'wreck' | 'cave' | 'ice') =>
       waterVeil(14, DENSE_WATER_FOG, rgb(WATER_PROFILES[id].water));
-    for (const id of ['outer', 'wreck', 'cave'] as const)
+    for (const id of ['outer', 'wreck', 'cave', 'ice'] as const)
       expect(Math.min(...veil(id)), id).toBeGreaterThan(0.9);
   });
 
   it('keeps close range comfortable: forms within 3 m are mostly clear', () => {
-    for (const id of ['wreck', 'cave'] as const) {
+    for (const id of ['wreck', 'cave', 'ice'] as const) {
       const near = waterVeil(3, DENSE_WATER_FOG, rgb(WATER_PROFILES[id].water));
       expect(Math.max(...near), id).toBeLessThan(0.3);
     }
@@ -103,6 +104,26 @@ describe('V0.8 Pass 089 passage glows', () => {
       }
     } finally {
       cave.dispose();
+    }
+  });
+
+  it('marks the tunnel home under the ice, and keeps the breathing holes clear of the murk', () => {
+    const ice = new IceEnvironment();
+    try {
+      expect(ice.root.getObjectByName('Ice tunnel glow')).toBeDefined();
+      const lit = ice.root.children.filter(
+        (o) =>
+          o.name === 'Breathing hole light' ||
+          o.name === 'Breathing hole daylight',
+      ) as THREE.Mesh[];
+      expect(lit.length).toBeGreaterThan(0);
+      for (const m of lit)
+        expect(
+          (m.material as THREE.Material & { fog: boolean }).fog,
+          m.name,
+        ).toBe(false);
+    } finally {
+      ice.dispose();
     }
   });
 
