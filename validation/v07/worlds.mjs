@@ -54,6 +54,8 @@ export const WORLD_VIEWS = {
     ['ice-tunnel-inside', 'close', [0, 4, 0.8], [0, 3.9, -8]],
     ['ice-tunnel-looking-back', 'close', [0, 4, -6], [0, 4.1, 1.5]],
     ['ice-far-end', 'swimming', [0, 7, -24], [0, 5, -50]],
+    // V0.8 Pass 091: from mid-field back toward the tunnel home.
+    ['ice-return-tunnel', 'swimming', [0, 5, -24], [0, 4, -8]],
   ],
   wreck: [
     ['wreck-overview', 'swimming', [14, 9, -14], [0, 5, -30]],
