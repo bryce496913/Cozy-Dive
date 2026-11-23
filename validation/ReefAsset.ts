@@ -112,6 +112,8 @@ export interface ReefPrimitive {
   readonly attributes: readonly string[];
   /** TEXCOORD_0 when present. */
   readonly uvs?: Float32Array;
+  /** V0.8 Pass 092: COLOR_0 when present (RGB or RGBA, as stored). */
+  readonly colors?: Float32Array;
   readonly material: string;
   readonly doubleSided: boolean;
 }
@@ -220,6 +222,7 @@ export class ReefAsset {
         indices: decoded.indices,
         attributes: Object.keys(p.attributes),
         uvs: decoded.attributes.TEXCOORD_0,
+        colors: decoded.attributes.COLOR_0,
         material: material?.name ?? '',
         doubleSided: material?.doubleSided ?? false,
       };
@@ -232,6 +235,10 @@ export class ReefAsset {
         p.attributes.TEXCOORD_0 === undefined
           ? undefined
           : (this.read(p.attributes.TEXCOORD_0) as Float32Array),
+      colors:
+        p.attributes.COLOR_0 === undefined
+          ? undefined
+          : (this.read(p.attributes.COLOR_0) as Float32Array),
       material: material?.name ?? '',
       doubleSided: material?.doubleSided ?? false,
     };

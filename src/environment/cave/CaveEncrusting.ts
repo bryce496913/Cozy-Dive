@@ -2,6 +2,12 @@ import { CAVE_SIGHTS, type Sight } from '../../discovery/sights';
 import type { SightCandidate } from '../../discovery/journal';
 import * as THREE from 'three';
 import {
+  encrustingSponge,
+  mergeAll,
+  placed,
+  vaseSponge,
+} from '../shared/GrowthForms';
+import {
   GELATINOUS_PRESETS,
   gelatinousMaterial,
 } from '../../rendering/Gelatinous';
@@ -70,57 +76,80 @@ function merge(parts: THREE.BufferGeometry[]): THREE.BufferGeometry {
   return m;
 }
 
-/** A low, lobed sponge cushion on y 0 (about 30 cm across), pocked with dark oscula. */
+/**
+ * A low, lobed sponge cushion on y 0 (about 30 cm across). V0.8 Pass 092: feathered into the rock
+ * at its margin and raised into a few volcano-like oscula with dark openings (was a squashed
+ * hemisphere with a painted pit pattern).
+ */
 export function cushionGeometry(): THREE.BufferGeometry {
-  const g = new THREE.SphereGeometry(1, 28, 10, 0, Math.PI * 2, 0, Math.PI / 2),
-    p = g.getAttribute('position');
-  for (let i = 0; i < p.count; i++) {
-    const x = p.getX(i),
-      y = p.getY(i),
-      z = p.getZ(i),
-      a = Math.atan2(z, x),
-      lobe = 1 + 0.22 * Math.sin(a * 5) + 0.1 * Math.sin(a * 11 + 1),
-      bumps = 1 + 0.12 * Math.sin(x * 9) * Math.sin(z * 8);
-    p.setXYZ(i, x * 0.15 * lobe, y * 0.045 * bumps, z * 0.13 * lobe);
-  }
-  return shaded(g, (v) => {
-    // Dark pits where the oscula open on the upper surface.
-    const pit = Math.max(0, Math.sin(v.x * 70) * Math.sin(v.z * 64) - 0.82);
-    return v.y > 0.02 && pit > 0 ? 0.35 : 0.8 + v.y * 3;
+  const g = encrustingSponge({
+    seed: 9211,
+    radius: 1,
+    thickness: 0.36,
+    lobes: 0.3,
+    oscula: 4,
+    osculumHeight: 0.55,
+    relief: 0.3,
   });
+  g.scale(0.15, 0.15, 0.13);
+  return g;
 }
-/** A cluster of open-mouthed tube sponges on y 0 (up to about 25 cm tall). */
+/**
+ * A cluster of open-mouthed tube sponges on y 0 (up to about 25 cm tall). V0.8 Pass 092: soft,
+ * leaning, unevenly lipped tubes with growth constrictions and thick walls, rising together out of
+ * one shared encrusting base (were plain open cylinders standing on the rock).
+ */
 export function tubeClusterGeometry(): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [],
+  const parts: THREE.BufferGeometry[] = [
+      placed(
+        encrustingSponge({
+          seed: 9212,
+          radius: 1,
+          thickness: 0.35,
+          lobes: 0.25,
+          oscula: 0,
+          osculumHeight: 0,
+          relief: 0.3,
+        }),
+        [0, 0, 0],
+        0.085,
+      ),
+    ],
     tubes = [
-      [0, 0, 0.24, 0.035, 0],
-      [0.05, 0.02, 0.18, 0.03, 0.25],
-      [-0.045, 0.03, 0.15, 0.028, -0.3],
-      [0.015, -0.05, 0.2, 0.032, 0.15],
-      [-0.03, -0.04, 0.11, 0.024, -0.2],
+      [0, 0, 0.24, 0.033, 0.05, 0.02],
+      [0.05, 0.02, 0.18, 0.029, 0.22, 0.05],
+      [-0.045, 0.03, 0.15, 0.027, -0.26, 0.08],
+      [0.015, -0.05, 0.2, 0.031, 0.06, -0.2],
+      [-0.03, -0.04, 0.11, 0.024, -0.15, -0.14],
     ] as const;
-  for (const [x, z, h, r, lean] of tubes) {
-    // Open-ended, flaring a little at the lip; the inside is dark.
-    const outer = new THREE.CylinderGeometry(r * 1.15, r * 0.8, h, 14, 4, true),
-      inner = new THREE.CylinderGeometry(
-        r * 0.95,
-        r * 0.65,
-        h * 0.98,
-        14,
+  tubes.forEach(([x, z, h, r, lx, lz], k) =>
+    parts.push(
+      placed(
+        vaseSponge({
+          seed: 9220 + k,
+          height: h,
+          radius: (u) =>
+            r * (1.02 - 0.12 * Math.sin(u * Math.PI) + 0.14 * u * u),
+          wall: r * 0.28,
+          floor: 0.12,
+          ridges: 6,
+          ridgeDepth: 0.04,
+          ridgeBreak: 0.8,
+          lumps: 0.07,
+          rings: 3,
+          lipWave: 0.05,
+          lean: [lx, lz],
+          flare: 0.25,
+          sides: 22,
+          segments: 12,
+        }),
+        [x, 0, z],
         1,
-        true,
-      );
-    for (const [g, k] of [
-      [outer, 0.85],
-      [inner, 0.3],
-    ] as const) {
-      g.translate(0, h / 2, 0);
-      g.rotateZ(lean);
-      g.translate(x, 0, z);
-      parts.push(shaded(g, (v) => k * (0.85 + 0.6 * v.y)));
-    }
-  }
-  return merge(parts);
+        k * 1.3,
+      ),
+    ),
+  );
+  return mergeAll(parts);
 }
 /** A cluster of sea squirts on y 0: glassy barrels (about 5 cm) each with two siphons. */
 export function squirtClusterGeometry(): THREE.BufferGeometry {
@@ -232,10 +261,11 @@ export class CaveEncrusting {
       this.root.add(mesh);
     };
     const sponge = () => SPONGE[Math.floor(rand() * SPONGE.length)];
+    // V0.8 Pass 092: velvety sponge, matte as the wreck's (was 0.85, between tissue and stone).
     const fleshy = () =>
       new THREE.MeshStandardMaterial({
         vertexColors: true,
-        roughness: 0.85,
+        roughness: 0.97,
         metalness: 0,
       });
     // Cushions everywhere from the lower walls to the roof; tubes on the walls; squirts in the
