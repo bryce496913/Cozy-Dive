@@ -33,11 +33,24 @@ export const BOLT = {
   glide: 1.4,
   /** Swimming height above the sand while it flees or moves (m). */
   swimLift: 1.1,
-  /** Tail beats: base rate (Hz), extra per m/s, and the strength while dashing and cruising. */
+  /**
+   * Tail beats: base rate (Hz), extra per m/s, and the strength while dashing and cruising.
+   * V0.8 Pass 097: the shared stroke morph is authored for cruising (its tail throw is about 8%
+   * of body length at weight 1), so at 0.95 a dashing shark (nearly two body lengths a second)
+   * slid along as a straight rod. The bolt now drives it harder (the morph is a purely sideways
+   * displacement, so weights above 1 stay clean), strongest while it is gaining speed, and the
+   * whole body sways against the tail.
+   */
   beat: 0.8,
   beatPerSpeed: 0.55,
-  dashStroke: 0.95,
-  cruiseStroke: 0.5,
+  dashStroke: 2.0,
+  cruiseStroke: 1.1,
+  /** Extra strength while accelerating (share of the stroke, at full shortfall of speed). */
+  thrust: 0.35,
+  /** The flinch's C-bend (stroke weight). */
+  bend: 1.5,
+  /** The body's sway against the tail (radians of heading per unit of stroke). */
+  sway: 0.07,
   /** Body pitch and bank limits (radians). */
   pitch: 0.35,
   bank: 0.5,
@@ -71,6 +84,11 @@ export class SharkBolt {
   /** Forward speed (m/s), the tail's stroke (-1..1), and seconds in this mood. */
   speed = 0;
   effort = 0;
+  /**
+   * V0.8 Pass 097: the body's sway against its tail (radians), added to the drawn heading only;
+   * the heading it swims along (`yaw`) is unchanged.
+   */
+  sway = 0;
   moodTime = 0;
   /** Seconds until it can be startled again. */
   calm = 0;
@@ -228,17 +246,24 @@ export class SharkBolt {
     // The tail: a held C-bend in the flinch, then beats quickening with speed.
     if (this.mood === 'flinch') {
       const k = Math.min(1, this.moodTime / BOLT.flinch);
-      this.effort = reducedMotion ? 0 : this.side * Math.sin(Math.PI * k) * 1;
+      this.effort = reducedMotion
+        ? 0
+        : this.side * Math.sin(Math.PI * k) * BOLT.bend;
       this.phase = 0;
     } else {
+      // Beats quicken with speed, and are strongest while it is still short of the speed it wants.
       const hz = BOLT.beat + BOLT.beatPerSpeed * this.speed,
+        shortfall = Math.max(0, target - this.speed) / Math.max(0.1, target),
         strength =
           (this.mood === 'flee' ? BOLT.dashStroke : BOLT.cruiseStroke) *
+          (1 + BOLT.thrust * Math.min(1, shortfall)) *
           (reducedMotion ? 0.6 : 1) *
           (arriving ? Math.max(0.2, left / 2.5) : 1);
       this.phase += hz * Math.PI * 2 * step;
       this.effort = strength * Math.sin(this.phase);
     }
+    // The head swings a little against the tail (none with reduced motion).
+    this.sway = reducedMotion ? 0 : -BOLT.sway * this.effort;
     // Moods.
     if (this.mood === 'flinch' && this.moodTime >= BOLT.flinch) {
       this.mood = 'flee';
@@ -257,6 +282,7 @@ export class SharkBolt {
       this.pitch = 0;
       this.bank = 0;
       this.effort = 0;
+      this.sway = 0;
     }
   }
 }
