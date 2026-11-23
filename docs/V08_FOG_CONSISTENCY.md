@@ -99,3 +99,18 @@ sits elsewhere (and `wreck-hull-close` shows +10 draws, from fish, not from this
   - `sea-cave`, `shipwreck`, `wreck-loading` and `lifecycle-dispose`.
 - **Browser:** the wreck and cave scenes rendered all 11 views before and after with 0 errors. No
   whole-world playthrough.
+
+## 6. Pass 091: under the ice
+
+The same murk now fills the waters under the ice.
+
+- **Fog:** `ICE.fog` reads `DENSE_WATER_FOG` (0.13, was 0.026), in the ice world's own cold blue water and light.
+- **Landmarks:** the breathing holes' light shafts and daylight are not fogged, so they remain the landmarks overhead (tested).
+- **Way home:** the tunnel back to the cave, in the near wall, is marked by a `PassageGlow` of dim teal cave light, 2.5 m inside the tunnel. It is visible from mid-field, where the tunnel itself is lost.
+- **Cost:** one disc (about 500 triangles), and one draw call when in view.
+- **Galleries:** `docs/screenshots/v08-pass091/`, before and after, from the clean main export. The six views are open water, seabed wide and close, the ceiling, the tunnel mouth and **toward the tunnel home**.
+- **Validation:**
+  - typecheck, lint and build pass;
+  - full test suite: 106 files, 1,075 tests pass. `fog-consistency` now covers the ice world's density, colour, close range, glow and unfogged shafts.
+  - all six views rendered with 0 errors.
+- **Mood:** the ice field now reads as close, cold and vast. The far icebergs show only as they are approached.
