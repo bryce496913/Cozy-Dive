@@ -12,7 +12,11 @@ import {
   hullX,
   railAt,
 } from './WreckLayout';
-import { WRECK_GROWTH, type GrowthMode } from './WreckGrowth';
+import {
+  WRECK_GROWTH,
+  type GrowthMode,
+  type GrowthSurface,
+} from './WreckGrowth';
 
 /**
  * The shipwreck's meshes, built in code from `WreckLayout` so they match its collision: a riveted
@@ -1122,16 +1126,26 @@ export class ShipwreckModel {
         roughness: 0.86,
         metalness: 0.06,
       }),
-      soft = new THREE.MeshStandardMaterial({
-        vertexColors: true,
-        // V0.8 Pass 087 (consistency audit: the colonies' reef-bright instance colours read as
-        // stickers in the wreck's murk): a grey-green veil of silt over every colony, so they
-        // keep their hue but sit in the same light and value range as the steel they grow on.
-        color: 0xa9b5a8,
-        roughness: 0.95,
-        side: THREE.DoubleSide,
-      });
-    this.materials.push(shell, steel, soft);
+      // V0.8 Pass 087 (consistency audit: the colonies' reef-bright instance colours read as
+      // stickers in the wreck's murk): a grey-green veil of silt over every colony, so they keep
+      // their hue but sit in the same light and value range as the steel they grow on.
+      // V0.8 Pass 092: one material per kind of surface (they were one), under the same veil.
+      growth = (roughness: number) =>
+        new THREE.MeshStandardMaterial({
+          vertexColors: true,
+          color: 0xa9b5a8,
+          roughness,
+          side: THREE.DoubleSide,
+        }),
+      surfaces: Record<GrowthSurface, THREE.MeshStandardMaterial> = {
+        // Velvety sponge: the roughest.
+        sponge: growth(0.98),
+        // Living tissue keeps a soft sheen.
+        tissue: growth(0.72),
+        // Coralline crust: dead matte.
+        crust: growth(1),
+      };
+    this.materials.push(shell, steel, ...Object.values(surfaces));
     const add = (g: THREE.BufferGeometry, m: THREE.Material, name: string) => {
       this.geometries.push(g);
       const mesh = new THREE.Mesh(g, m);
@@ -1144,11 +1158,14 @@ export class ShipwreckModel {
     add(hold(), steel, 'Wreck hold');
     add(superstructure(), steel, 'Wreck superstructure');
     add(fittings(), steel, 'Wreck fittings');
-    this.growth(rand, soft);
+    this.growth(rand, surfaces);
     this.root.updateMatrixWorld(true);
   }
   /** Sponges and soft corals over the decks and the upper hull, sea fans on the sides. */
-  private growth(rand: () => number, material: THREE.Material): void {
+  private growth(
+    rand: () => number,
+    surfaces: Record<GrowthSurface, THREE.Material>,
+  ): void {
     const m = new THREE.Matrix4(),
       q = new THREE.Quaternion(),
       turn = new THREE.Quaternion(),
@@ -1173,6 +1190,7 @@ export class ShipwreckModel {
       );
     };
     const scatter = (
+      material: THREE.Material,
       geometry: THREE.BufferGeometry,
       count: number,
       name: string,
@@ -1281,6 +1299,7 @@ export class ShipwreckModel {
     for (const kind of WRECK_GROWTH) {
       const [lo, hi] = kind.size;
       scatter(
+        surfaces[kind.surface],
         kind.build(),
         kind.count,
         kind.name,

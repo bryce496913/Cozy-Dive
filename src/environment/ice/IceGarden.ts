@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { vaseSponge } from '../shared/GrowthForms';
 import { organicTube, smoothed } from '../shared/organicGeometry';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { ICE } from '../../config/passage';
@@ -47,39 +48,29 @@ function only(g: THREE.BufferGeometry): THREE.BufferGeometry {
   const out = smoothed(g);
   return out;
 }
-/** A glass sponge: a lumpy vase with a flared rim, open at the top (unit height). */
+/**
+ * A glass sponge (unit height): V0.8 Pass 092, a hexactinellid vase rising from a foot spread over
+ * the mud, its wall lumpy and faintly ribbed with growth constrictions, leaning a little, its
+ * uneven rim rolled over a thick wall into a dark atrium (was a lathe of one profile).
+ */
 export function spongeGeometry(): THREE.BufferGeometry {
-  const pts: THREE.Vector2[] = [];
-  for (let i = 0; i <= 12; i++) {
-    const t = i / 12;
-    pts.push(
-      new THREE.Vector2(
-        0.18 + 0.2 * Math.sin(t * Math.PI * 0.9) + 0.12 * t * t,
-        t,
-      ),
-    );
-  }
-  // Back down inside the rim, so the wall has thickness.
-  for (let i = 12; i >= 2; i--) {
-    const t = i / 12;
-    pts.push(
-      new THREE.Vector2(
-        0.14 + 0.2 * Math.sin(t * Math.PI * 0.9) + 0.1 * t * t,
-        t,
-      ),
-    );
-  }
-  const g = new THREE.LatheGeometry(pts, 36);
-  const p = g.getAttribute('position');
-  for (let i = 0; i < p.count; i++) {
-    const x = p.getX(i),
-      y = p.getY(i),
-      z = p.getZ(i),
-      a = Math.atan2(z, x),
-      k = 1 + 0.08 * Math.sin(a * 5 + y * 6) + 0.05 * Math.sin(a * 11 - y * 9);
-    p.setXYZ(i, x * k, y, z * k);
-  }
-  return only(g);
+  return vaseSponge({
+    seed: 9231,
+    height: 1,
+    radius: (u) => 0.15 + 0.17 * Math.sin(u * Math.PI * 0.9) + 0.15 * u * u,
+    wall: 0.06,
+    floor: 0.28,
+    ridges: 9,
+    ridgeDepth: 0.06,
+    ridgeBreak: 0.7,
+    lumps: 0.08,
+    rings: 2,
+    lipWave: 0.08,
+    lean: [0.05, 0.02],
+    flare: 0.35,
+    sides: 40,
+    segments: 18,
+  });
 }
 /** A soft coral: a short trunk branching into lobes tipped with polyps (unit height). */
 export function softCoralGeometry(): THREE.BufferGeometry {
@@ -97,8 +88,9 @@ export function softCoralGeometry(): THREE.BufferGeometry {
       organicTube(
         trunkPts,
         (u) => 0.13 - 0.07 * u + 0.05 * Math.exp(-u / 0.12),
-        8,
-        10,
+        // V0.8 Pass 092: rounder (was 8 by 10).
+        12,
+        16,
       ),
     ),
   );
@@ -123,9 +115,17 @@ export function softCoralGeometry(): THREE.BufferGeometry {
       club = organicTube(
         [start, mid, end],
         // Slim near the trunk, swelling into a rounded club of polyps.
-        (u) => 0.042 - 0.012 * u + 0.05 * Math.max(0, (u - 0.62) / 0.38) ** 1.4,
-        12,
-        9,
+        // V0.8 Pass 092: the club swells and closes round at its tip (it ended in an open,
+        // flaring trumpet).
+        (u) =>
+          0.04 -
+          0.014 * u +
+          0.05 *
+            Math.sin(Math.PI * Math.min(1, Math.max(0, (u - 0.5) / 0.5))) **
+              0.7,
+        // V0.8 Pass 092: rounder clubs (were 9-sided, reading as cones).
+        16,
+        16,
       );
     // Polyp texture: small bumps over the swollen tip.
     const p = club.getAttribute('position');
@@ -138,7 +138,9 @@ export function softCoralGeometry(): THREE.BufferGeometry {
           1 - Math.hypot(x - end.x, y - end.y, z - end.z) / 0.11,
         ),
         bump =
-          1 + 0.18 * tipness * Math.sin(x * 160) * Math.sin(y * 150 + z * 130);
+          // V0.8 Pass 092: polyp nodules at a scale the mesh carries (finer ones aliased into
+          // spikes and facets).
+          1 + 0.1 * tipness * Math.sin(x * 62) * Math.sin(y * 57 + z * 51);
       p.setXYZ(
         k,
         end.x + (x - end.x) * bump,
@@ -294,6 +296,8 @@ export class IceGarden {
       new THREE.MeshStandardMaterial({
         name: 'Glass sponges',
         color: 0xf0e8d6,
+        // V0.8 Pass 092: the vase's tone (dark atrium, silted foot, pale rim).
+        vertexColors: true,
         roughness: 0.7,
         transparent: true,
         opacity: 0.9,

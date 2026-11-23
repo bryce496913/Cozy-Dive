@@ -1,5 +1,10 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import {
+  encrustingSponge,
+  foliosePlate,
+  vaseSponge,
+} from '../shared/GrowthForms';
 
 /**
  * Playtest (higher-quality coral on the wreck): the growth that covers it, as on the SS Yongala,
@@ -316,49 +321,44 @@ export function wireCoral(): THREE.BufferGeometry {
   return taperedTube(path, 0.016, 0.006, 5, (t) => 0.8 + 0.2 * t);
 }
 
-/** A barrel sponge: a ridged vase, its rim rolled, dark down inside its open top. */
+/**
+ * A barrel sponge (Xestospongia): V0.8 Pass 092, a thick-walled, slightly leaning barrel widening
+ * to its rim, deeply but irregularly ridged (broken, wandering ridges, knobbly lumps), its foot
+ * spread over the plate, its uneven rolled lip opening into a dark atrium (was a lathe with even
+ * cosine ridges).
+ */
 export function barrelSponge(): THREE.BufferGeometry {
-  const profile: THREE.Vector2[] = [];
-  for (let i = 0; i <= 10; i++) {
-    const t = i / 10,
-      r = 0.32 + 0.2 * Math.sin(t * Math.PI * 0.85) + 0.05 * t;
-    profile.push(new THREE.Vector2(r, t * 0.7));
-  }
-  // Over the rim and down inside.
-  profile.push(
-    new THREE.Vector2(0.48, 0.72),
-    new THREE.Vector2(0.4, 0.7),
-    new THREE.Vector2(0.36, 0.45),
-  );
-  const g = new THREE.LatheGeometry(profile, 44),
-    p = g.getAttribute('position');
-  for (let i = 0; i < p.count; i++) {
-    const x = p.getX(i),
-      z = p.getZ(i),
-      a = Math.atan2(z, x),
-      // Deep vertical ridges round the outside.
-      k = 1 + 0.07 * Math.cos(a * 12) + 0.02 * Math.sin(a * 5 + p.getY(i) * 6);
-    p.setX(i, x * k);
-    p.setZ(i, z * k);
-  }
-  return finish(g, (v) => {
-    const r = Math.hypot(v.x, v.z),
-      inside = v.y < 0.71 && r < 0.42 && v.y > 0.4;
-    return inside ? 0.25 : 0.7 + 0.35 * (v.y / 0.7);
+  return vaseSponge({
+    seed: 9201,
+    height: 0.74,
+    radius: (u) => 0.27 + 0.17 * Math.sin(u * Math.PI * 0.8) + 0.07 * u,
+    wall: 0.1,
+    floor: 0.4,
+    ridges: 11,
+    ridgeDepth: 0.16,
+    ridgeBreak: 0.55,
+    lumps: 0.05,
+    rings: 0,
+    lipWave: 0.07,
+    lean: [0.06, -0.03],
+    flare: 0.4,
   });
 }
-/** An encrusting sponge: a smooth, lumpy, low cushion. */
+/**
+ * An encrusting sponge: V0.8 Pass 092, a lobed crust thick at its middle and feathered into the
+ * plate at its margin, its surface raised into volcano-like oscula with dark openings (was a
+ * squashed, uniformly lumpy hemisphere).
+ */
 export function cushionSponge(): THREE.BufferGeometry {
-  const g = new THREE.SphereGeometry(1, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2),
-    p = g.getAttribute('position');
-  for (let i = 0; i < p.count; i++) {
-    const x = p.getX(i),
-      y = p.getY(i),
-      z = p.getZ(i),
-      k = 1 + 0.2 * Math.sin(x * 4 + z * 3) + 0.1 * Math.sin(x * 9 - z * 7);
-    p.setXYZ(i, x * k, y * 0.45 * k, z * k);
-  }
-  return finish(g, (v) => 0.75 + 0.5 * v.y);
+  return encrustingSponge({
+    seed: 9202,
+    radius: 1,
+    thickness: 0.46,
+    lobes: 0.3,
+    oscula: 5,
+    osculumHeight: 0.55,
+    relief: 0.3,
+  });
 }
 
 /**
@@ -402,50 +402,21 @@ export function encrustingMat(): THREE.BufferGeometry {
   return finish(g, (v) => 0.62 + 5 * Math.max(0, v.y));
 }
 
-/** A plate coral: a broad, thin, slightly cupped plate in two tiers, ridged out from its middle. */
+/**
+ * A plate coral: V0.8 Pass 092, a foliose colony: cupped laminae whorling up out of an encrusting
+ * base, thick at their roots and thin at wavy, pale growing margins with growth rings (was two flat
+ * discs, a mirrored underside and a cylinder foot).
+ */
 export function plateCoral(): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [];
-  for (const [y, r] of [
-    [0.05, 1],
-    [0.16, 0.62],
-  ] as const) {
-    const g = new THREE.CircleGeometry(r * 0.5, 28, 0, Math.PI * 2),
-      p = g.getAttribute('position');
-    g.rotateX(-Math.PI / 2);
-    for (let i = 0; i < p.count; i++) {
-      const x = p.getX(i),
-        z = p.getZ(i),
-        d = Math.hypot(x, z) / (r * 0.5);
-      // Cupped, its rim wavy.
-      p.setY(i, y + 0.06 * d * d + 0.015 * Math.sin(Math.atan2(z, x) * 7) * d);
-    }
-    const top = finish(g, (v) => {
-      const a = Math.atan2(v.z, v.x);
-      return (
-        0.8 +
-        0.18 *
-          Math.abs(Math.sin(a * 22)) *
-          Math.min(1, Math.hypot(v.x, v.z) * 4)
-      );
-    });
-    // Its underside: the same surface, a hair lower, facing down but lit like the top (a plate
-    // seen from below otherwise lies in the dark water's shade and reads as a black hole).
-    const under = top.clone(),
-      up = under.getAttribute('position');
-    for (let i = 0; i < up.count; i += 3) {
-      const x = up.getX(i + 1),
-        y = up.getY(i + 1),
-        z = up.getZ(i + 1);
-      up.setXYZ(i + 1, up.getX(i + 2), up.getY(i + 2), up.getZ(i + 2));
-      up.setXYZ(i + 2, x, y, z);
-    }
-    under.translate(0, -0.012, 0);
-    parts.push(top, under);
-  }
-  const foot = new THREE.CylinderGeometry(0.05, 0.08, 0.16, 8);
-  foot.translate(0, 0.06, 0);
-  parts.push(finish(foot, () => 0.7));
-  return merge(parts);
+  return foliosePlate({
+    seed: 9203,
+    laminae: 7,
+    reach: 0.5,
+    rise: 0.08,
+    thickness: 0.055,
+    cup: 0.08,
+    base: 0.16,
+  });
 }
 
 /** A feather star: ten curling, feathery arms from a small central disc. */
@@ -535,8 +506,15 @@ export function hydroid(seed = 13): THREE.BufferGeometry {
 
 /** How a kind of growth sits: upright, standing out across the current (fans), or as a shelf. */
 export type GrowthMode = 'up' | 'fan' | 'shelf' | 'crust';
+/**
+ * V0.8 Pass 092: what a kind of growth is made of, so it answers the light as that material:
+ * sponge (velvety, the roughest), coral tissue (living polyps and soft tissue, a softer sheen) and
+ * mineral crust (coralline algae and calcareous turf, dead matte).
+ */
+export type GrowthSurface = 'sponge' | 'tissue' | 'crust';
 export interface GrowthKind {
   readonly name: string;
+  readonly surface: GrowthSurface;
   readonly build: () => THREE.BufferGeometry;
   readonly count: number;
   /** Share placed on the decks (the rest on the hull's sides). */
@@ -550,6 +528,7 @@ export const WRECK_GROWTH: readonly GrowthKind[] = [
   {
     // V0.8 Pass 086: the mats the colonies grow from (laid first, under everything else).
     name: 'Wreck encrusting mats',
+    surface: 'crust',
     build: encrustingMat,
     count: 170,
     onDeck: 0.35,
@@ -567,6 +546,7 @@ export const WRECK_GROWTH: readonly GrowthKind[] = [
   },
   {
     name: 'Wreck encrusting sponges',
+    surface: 'sponge',
     build: cushionSponge,
     count: 220,
     onDeck: 0.5,
@@ -581,6 +561,7 @@ export const WRECK_GROWTH: readonly GrowthKind[] = [
   },
   {
     name: 'Wreck barrel sponges',
+    surface: 'sponge',
     build: barrelSponge,
     count: 55,
     onDeck: 0.8,
@@ -595,6 +576,7 @@ export const WRECK_GROWTH: readonly GrowthKind[] = [
   },
   {
     name: 'Wreck soft corals',
+    surface: 'tissue',
     build: softCoral,
     count: 150,
     onDeck: 0.5,
@@ -611,6 +593,7 @@ export const WRECK_GROWTH: readonly GrowthKind[] = [
   },
   {
     name: 'Wreck sea fans',
+    surface: 'tissue',
     build: seaFan,
     count: 75,
     onDeck: 0.12,
@@ -625,6 +608,7 @@ export const WRECK_GROWTH: readonly GrowthKind[] = [
   },
   {
     name: 'Wreck black coral',
+    surface: 'tissue',
     build: blackCoral,
     count: 45,
     onDeck: 0.25,
@@ -638,6 +622,7 @@ export const WRECK_GROWTH: readonly GrowthKind[] = [
   },
   {
     name: 'Wreck wire coral',
+    surface: 'tissue',
     build: wireCoral,
     count: 50,
     onDeck: 0.2,
@@ -651,6 +636,7 @@ export const WRECK_GROWTH: readonly GrowthKind[] = [
   },
   {
     name: 'Wreck plate corals',
+    surface: 'tissue',
     build: plateCoral,
     count: 60,
     onDeck: 0.25,
@@ -664,6 +650,7 @@ export const WRECK_GROWTH: readonly GrowthKind[] = [
   },
   {
     name: 'Wreck feather stars',
+    surface: 'tissue',
     build: featherStar,
     count: 50,
     onDeck: 0.5,
@@ -678,6 +665,7 @@ export const WRECK_GROWTH: readonly GrowthKind[] = [
   },
   {
     name: 'Wreck hydroids',
+    surface: 'tissue',
     build: hydroid,
     count: 120,
     onDeck: 0.45,

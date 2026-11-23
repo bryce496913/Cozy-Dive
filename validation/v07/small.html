@@ -251,7 +251,9 @@
             typeof item.glass === 'string'
               ? gelatinousMaterial(GELATINOUS_PRESETS[item.glass])
               : new THREE.MeshStandardMaterial({
-                  color: vc ? 0xffffff : item.tint,
+                  // V0.8 Pass 092: the tint multiplies the vertex tone, as the instance colour
+                  // does in game (vertex-toned growth showed untinted white).
+                  color: item.tint,
                   vertexColors: vc,
                   roughness: 0.6,
                   transparent: !!item.glass,
