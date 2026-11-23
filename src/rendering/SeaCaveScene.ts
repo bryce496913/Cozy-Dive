@@ -60,6 +60,8 @@ export interface CaveLibraries {
   readonly fish: AssetLoader;
   /** How many sound locations the soundscape uses (the cave supplies as many). */
   readonly soundSpots: number;
+  /** V0.8 Pass 091: how long the build waits for the authored rock (ms; default GEOLOGY_WAIT_MS). */
+  readonly geologyWaitMs?: number;
 }
 
 export class SeaCaveScene implements WaterWorld {
@@ -113,7 +115,10 @@ export class SeaCaveScene implements WaterWorld {
   ): Promise<SeaCaveScene | undefined> {
     const stage = new Staging(frame, wanted);
     // V0.8 Pass 091: the authored limestone, held only while the cave is built.
-    const geology = await acquireGeology(libraries.fish);
+    const geology = await acquireGeology(
+      libraries.fish,
+      libraries.geologyWaitMs,
+    );
     try {
       const environment = await stage.step(
           'environment',

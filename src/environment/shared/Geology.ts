@@ -115,17 +115,50 @@ export function placeGeology(
   return g;
 }
 
-/** Acquire the geology for a world's build; undefined (code rock instead) if it cannot load. */
+/**
+ * How long a world's build waits for its geology (ms) before building with the code rock instead,
+ * as it would if the file failed: a stalled download must never hold the world closed.
+ */
+export const GEOLOGY_WAIT_MS = 6000;
+
+/**
+ * Acquire the geology for a world's build; undefined (code rock instead) if it cannot load, or has
+ * not loaded within `waitMs`. A lease that arrives after the wait is released at once.
+ */
 export async function acquireGeology(
   loader: AssetLoader,
+  waitMs: number = GEOLOGY_WAIT_MS,
 ): Promise<AssetLease | undefined> {
+  let late = false,
+    timer: ReturnType<typeof setTimeout> | undefined;
+  const lease = loader.acquire('geology').then(
+    (l) => {
+      if (late) {
+        l.release();
+        return undefined;
+      }
+      return l;
+    },
+    (error: unknown) => {
+      console.warn(
+        'Cozy Diver: the authored geology could not be loaded; using code rock.',
+        error,
+      );
+      return undefined;
+    },
+  );
+  const timeout = new Promise<undefined>((resolve) => {
+    timer = setTimeout(() => {
+      late = true;
+      console.warn(
+        'Cozy Diver: the authored geology is still loading; using code rock.',
+      );
+      resolve(undefined);
+    }, waitMs);
+  });
   try {
-    return await loader.acquire('geology');
-  } catch (error) {
-    console.warn(
-      'Cozy Diver: the authored geology could not be loaded; using code rock.',
-      error,
-    );
-    return undefined;
+    return await Promise.race([lease, timeout]);
+  } finally {
+    clearTimeout(timer);
   }
 }

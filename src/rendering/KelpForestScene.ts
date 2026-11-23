@@ -58,6 +58,8 @@ export interface KelpLibraries {
   readonly fish: AssetLoader;
   /** How many sound locations the soundscape uses (the forest supplies as many). */
   readonly soundSpots: number;
+  /** V0.8 Pass 091: how long the build waits for the authored rock (ms; default GEOLOGY_WAIT_MS). */
+  readonly geologyWaitMs?: number;
 }
 
 export class KelpForestScene implements WaterWorld {
@@ -112,7 +114,10 @@ export class KelpForestScene implements WaterWorld {
   ): Promise<KelpForestScene | undefined> {
     const stage = new Staging(frame, wanted);
     // V0.8 Pass 091: the authored coastal rock, held only while the environment is built.
-    const geology = await acquireGeology(libraries.fish);
+    const geology = await acquireGeology(
+      libraries.fish,
+      libraries.geologyWaitMs,
+    );
     try {
       const environment = await stage.step(
           'environment',
