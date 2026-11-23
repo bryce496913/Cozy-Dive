@@ -1,4 +1,5 @@
 import { limestoneGeometry } from '../shared/LimestoneGeometry';
+import { type Geology, placeGeology } from '../shared/Geology';
 import { HabitatSurface } from '../shared/HabitatSurface';
 import * as THREE from 'three';
 import {
@@ -139,7 +140,11 @@ export class CaveEnvironment {
   private poolBase?: Float32Array;
   private poolGeometry?: THREE.BufferGeometry;
 
-  constructor() {
+  /**
+   * @param geology V0.8 Pass 091: the authored limestone boulders and pillars; without it they are
+   *   the code-built rock.
+   */
+  constructor(geology?: Geology) {
     this.root.name = 'Sea cave';
     this.rock = this.own(
       this.stoneSurface.material({
@@ -317,24 +322,49 @@ export class CaveEnvironment {
       q = new THREE.Quaternion(),
       e = new THREE.Euler();
     CAVE_ROCKS.forEach((r, i) => {
-      // V0.7 Pass 079: carved inside the same hull (its collider), so silhouettes read as rock.
-      const g = limestoneGeometry(34100 + (i % 8) * 13, i % 3, true);
-      g.computeBoundingBox();
-      const box = g.boundingBox!,
-        size = box.getSize(new THREE.Vector3()),
-        centre = box.getCenter(new THREE.Vector3()),
-        y = caveFloor(r.x, r.z);
-      e.set(0, r.yaw, 0);
-      q.setFromEuler(e);
-      m.compose(
-        new THREE.Vector3(r.x, y + r.height * 0.3, r.z),
-        q,
-        new THREE.Vector3(r.size / size.x, r.height / size.y, r.size / size.z),
-      ).multiply(
-        new THREE.Matrix4().makeTranslation(-centre.x, -centre.y, -centre.z),
-      );
-      colliders.push(rockCollider(g, m));
-      rocks.push(g.applyMatrix4(m));
+      // V0.8 Pass 091: an authored limestone variant in the same box as the code rock.
+      const piece = geology?.piece(`CaveRock_${i % 6}`);
+      if (piece) {
+        const y = caveFloor(r.x, r.z);
+        rocks.push(
+          placeGeology(
+            piece,
+            {
+              x: r.x,
+              y: y + r.height * 0.3,
+              z: r.z,
+              w: r.size,
+              h: r.height,
+              d: r.size,
+              yaw: r.yaw,
+            },
+            colliders,
+          ),
+        );
+      } else {
+        // V0.7 Pass 079: carved inside the same hull (its collider), so silhouettes read as rock.
+        const g = limestoneGeometry(34100 + (i % 8) * 13, i % 3, true);
+        g.computeBoundingBox();
+        const box = g.boundingBox!,
+          size = box.getSize(new THREE.Vector3()),
+          centre = box.getCenter(new THREE.Vector3()),
+          y = caveFloor(r.x, r.z);
+        e.set(0, r.yaw, 0);
+        q.setFromEuler(e);
+        m.compose(
+          new THREE.Vector3(r.x, y + r.height * 0.3, r.z),
+          q,
+          new THREE.Vector3(
+            r.size / size.x,
+            r.height / size.y,
+            r.size / size.z,
+          ),
+        ).multiply(
+          new THREE.Matrix4().makeTranslation(-centre.x, -centre.y, -centre.z),
+        );
+        colliders.push(rockCollider(g, m));
+        rocks.push(g.applyMatrix4(m));
+      }
       // A crack at the boulder's foot, on the side facing the middle of the cavern.
       const c = CAVE.chamber,
         a = Math.atan2(c.x - r.x, c.z - r.z),
@@ -346,7 +376,7 @@ export class CaveEnvironment {
         yaw: a,
       });
     });
-    rocks.push(...this.skylightRubble(), ...this.pillars(colliders));
+    rocks.push(...this.skylightRubble(), ...this.pillars(colliders, geology));
     const merged = mergeGeometries(rocks, false);
     rocks.forEach((g) => g.dispose());
     if (merged) this.add(merged, this.rock, 'Cave boulders');
@@ -639,7 +669,10 @@ export class CaveEnvironment {
    * broad head spreading into the roof, each part carved inside its own hull (its collider). Clear
    * of the fish schools, the whitetips' resting and settling spots, the nooks and the sunbeam.
    */
-  private pillars(colliders: ConvexCollider[]): THREE.BufferGeometry[] {
+  private pillars(
+    colliders: ConvexCollider[],
+    geology?: Geology,
+  ): THREE.BufferGeometry[] {
     const out: THREE.BufferGeometry[] = [],
       m = new THREE.Matrix4(),
       q = new THREE.Quaternion(),
@@ -678,6 +711,27 @@ export class CaveEnvironment {
       const floor = caveFloor(x, z),
         roof = this.roofAt(x, z),
         span = roof - floor;
+      // V0.8 Pass 091: one authored, continuous column from below the sand into the roof, in the
+      // footprint of the old foot (4.4 by 4.0 m), instead of four stacked carved parts.
+      const piece = geology?.piece(`CavePillar_${i}`);
+      if (piece) {
+        out.push(
+          placeGeology(
+            piece,
+            {
+              x,
+              y: (floor + roof) / 2,
+              z,
+              w: 4.4,
+              h: span + 0.8,
+              d: 4.0,
+              yaw: i * 1.3,
+            },
+            colliders,
+          ),
+        );
+        return;
+      }
       part(79600 + i * 31, 0, x, floor + 1.3, z, 4.4, 3.4, 4.0, i * 1.3);
       part(
         79610 + i * 31,

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { Geology, acquireGeology } from '../environment/shared/Geology';
 import { WATER_PROFILES } from '../config/waterProfiles';
 import { createLightRig } from './atmosphere/lightRig';
 import { advanceCaustics } from './atmosphere/Caustics';
@@ -110,12 +111,21 @@ export class KelpForestScene implements WaterWorld {
     wanted: () => boolean = () => true,
   ): Promise<KelpForestScene | undefined> {
     const stage = new Staging(frame, wanted);
+    // V0.8 Pass 091: the authored coastal rock, held only while the environment is built.
+    const geology = await acquireGeology(libraries.fish);
     try {
       const environment = await stage.step(
           'environment',
-          () => new KelpEnvironment(),
+          () =>
+            new KelpEnvironment(
+              geology ? new Geology(geology.model) : undefined,
+            ),
         ),
-        stalks = await stage.step('kelp', () => new KelpStalks()),
+        stalks = await stage.step(
+          'kelp',
+          () =>
+            new KelpStalks([...environment.boulders, ...environment.wallRocks]),
+        ),
         dressing = await stage.step(
           'dressing',
           () => new KelpDressing(environment.boulders),
@@ -141,6 +151,8 @@ export class KelpForestScene implements WaterWorld {
     } catch (error) {
       if (error === Staging.cancelled) return undefined;
       throw error;
+    } finally {
+      geology?.release();
     }
   }
   constructor(
