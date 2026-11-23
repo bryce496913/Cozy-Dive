@@ -88,6 +88,12 @@ export const DESCRIPTIONS: Readonly<Record<string, string>> = {
     'Starts life female and may become male, growing a black-and-red pattern and a heavy jaw.',
   'species:giant-sea-bass':
     'A gentle giant of the kelp beds that can live for many decades.',
+  'species:pikachu-nudibranch':
+    'A yellow sea slug with black-tipped horns, creeping slowly over rubble and reef rock.',
+  'species:leaf-sheep':
+    'A tiny sea slug that eats algae and keeps its chloroplasts, so its leafy cerata photosynthesise.',
+  'species:candy-crab':
+    'A tiny pink crab that dresses in soft-coral polyps and hides among the fingers of its coral.',
   'species:spanish-shawl':
     'A nudibranch in purple and orange that swims with graceful flexes when disturbed.',
   'species:kelp-crab':

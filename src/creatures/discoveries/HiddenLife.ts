@@ -6,6 +6,7 @@ import { DiscoveryClock } from './DiscoveryClock';
 import { Seahorse } from './Seahorse';
 import { Frogfish } from './Frogfish';
 import { Nudibranchs } from './Nudibranchs';
+import { RareMinis } from './RareMinis';
 import type { DiscoveryHome, DiscoverySurfaceGroup } from './DiscoveryHabitat';
 export class HiddenLife {
   readonly root = new THREE.Group();
@@ -13,6 +14,8 @@ export class HiddenLife {
   readonly seahorse: Seahorse;
   readonly frogfish: Frogfish;
   readonly nudibranchs: Nudibranchs;
+  /** V0.8 Pass 100: the three rare miniatures (their own homes, apart from `homes`). */
+  readonly rare: RareMinis;
   readonly homes: readonly DiscoveryHome[];
   private disposed = false;
   constructor(
@@ -52,6 +55,23 @@ export class HiddenLife {
       this.frogfish.dispose();
       throw error;
     }
+    try {
+      this.rare = new RareMinis(
+        h,
+        plants,
+        groups.filter((g) => g.id !== 'shipwreck'),
+        [
+          this.seahorse.home,
+          this.frogfish.home,
+          ...this.nudibranchs.animals.map((a) => a.home),
+        ].map((home) => ({ ...home.position, clearance: 1.1 })),
+      );
+    } catch (error) {
+      this.seahorse.dispose();
+      this.frogfish.dispose();
+      this.nudibranchs.dispose();
+      throw error;
+    }
     this.homes = [
       this.seahorse.home,
       this.frogfish.home,
@@ -61,6 +81,7 @@ export class HiddenLife {
       this.seahorse.root,
       this.frogfish.root,
       this.nudibranchs.root,
+      this.rare.root,
     );
   }
   update(
@@ -77,6 +98,7 @@ export class HiddenLife {
     this.seahorse.pose(time);
     this.frogfish.pose(time);
     this.nudibranchs.pose(time);
+    this.rare.update(time, elapsed, reduced, player);
   }
   dispose(): void {
     if (this.disposed) return;
@@ -85,6 +107,7 @@ export class HiddenLife {
     this.seahorse.dispose();
     this.frogfish.dispose();
     this.nudibranchs.dispose();
+    this.rare.dispose();
     this.root.clear();
   }
 }

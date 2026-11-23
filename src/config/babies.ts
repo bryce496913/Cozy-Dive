@@ -53,7 +53,10 @@ export type TankCreatureId =
   | 'mysid'
   | 'ice-algae'
   | 'sea-angel'
-  | 'christmas-tree-worm';
+  | 'christmas-tree-worm'
+  | 'pikachu-nudibranch'
+  | 'leaf-sheep'
+  | 'candy-crab';
 export interface BabyDefinition {
   readonly id: TankCreatureId;
   readonly sighting: string;
@@ -106,6 +109,28 @@ const littleShape = (
   speed: motion === 'crawl' || motion === 'still' ? 0.025 : 0.12,
   strokeHz: 0.25,
 });
+/** V0.8 Pass 100: a rare miniature from the shared `rareMinis` library (a crawler). */
+function rareMini(
+  id: TankCreatureId,
+  label: string,
+  node: string,
+  size: number,
+): BabyDefinition {
+  return {
+    id,
+    sighting: `species:${id}`,
+    label,
+    asset: 'rareMinis',
+    nodes: [node],
+    motion: 'crawl',
+    scale: 1,
+    size,
+    radius: size * 0.75,
+    halfHeight: size * 0.4,
+    speed: 0.02,
+    strokeHz: 0.3,
+  };
+}
 /** The aquarium miniatures as they were before V0.8 Pass 096 (kept for comparison and tests). */
 export const MINIATURES_BEFORE_096: readonly BabyDefinition[] = [
   {
@@ -231,6 +256,15 @@ export const MINIATURES_BEFORE_096: readonly BabyDefinition[] = [
   },
   littleShape('sea-angel', 'Sea angel', 'drift'),
   littleShape('christmas-tree-worm', 'Christmas tree worm', 'still'),
+  // V0.8 Pass 100: the tank's rare miniatures, placed as the same models found in the reef.
+  rareMini(
+    'pikachu-nudibranch',
+    'Pikachu nudibranch',
+    'Pikachu_Nudibranch',
+    0.22,
+  ),
+  rareMini('leaf-sheep', 'Leaf sheep', 'Leaf_Sheep', 0.16),
+  rareMini('candy-crab', 'Candy crab', 'Candy_Crab', 0.16),
 ];
 /**
  * V0.8 Pass 096: the large animals' aquarium miniatures are twice the size they were displayed at
@@ -243,7 +277,10 @@ export const MINIATURES_BEFORE_096: readonly BabyDefinition[] = [
  */
 export const MINIATURE_GROWTH = 2;
 export function isLargeMiniature(d: BabyDefinition): boolean {
-  return (!!d.asset && d.id !== 'moray-eel') || d.id === 'colossal-squid';
+  return (
+    (!!d.asset && d.id !== 'moray-eel' && d.asset !== 'rareMinis') ||
+    d.id === 'colossal-squid'
+  );
 }
 function grown(d: BabyDefinition): BabyDefinition {
   if (!isLargeMiniature(d)) return d;
@@ -263,7 +300,7 @@ export function miniatureGrowth(id: TankCreatureId): number {
   const d = TANK_BABIES.find((b) => b.id === id);
   return d && isLargeMiniature(d) ? MINIATURE_GROWTH : 1;
 }
-/** How many animals a tank holds (was the roster length; fixed before the roster grows). */
-export const BABY_CAP = 61;
+/** How many animals a tank holds: one of each (V0.8 Pass 100: 61 + its three rare miniatures). */
+export const BABY_CAP = 64;
 export const babyDefinition = (id: TankCreatureId): BabyDefinition =>
   TANK_BABIES.find((b) => b.id === id)!;

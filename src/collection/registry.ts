@@ -98,6 +98,10 @@ const PAGES: Readonly<
     ['species:frogfish'],
     // The tank's moray and the cave's are one animal (the same model and species).
     ['species:moray-eel', ['sea-cave']],
+    // V0.8 Pass 100: the tank's three rare miniatures, found by looking closely.
+    ['species:pikachu-nudibranch'],
+    ['species:leaf-sheep'],
+    ['species:candy-crab'],
   ],
   'outer-reef': [
     ['coral:branching'],
@@ -243,6 +247,9 @@ const RARITY: Readonly<Record<string, Rarity>> = {
   'species:antarctic-toothfish': 'rare',
   'species:colossal-squid': 'rare',
   'species:polar-bear': 'rare',
+  'species:pikachu-nudibranch': 'rare',
+  'species:leaf-sheep': 'rare',
+  'species:candy-crab': 'rare',
 };
 
 function build(

@@ -25,6 +25,24 @@ export class PlantSystem {
   readonly root = new THREE.Group();
   readonly batches: readonly PlantBatch[];
   readonly placements: readonly PlantPlacement[];
+  /**
+   * V0.8 Pass 100: where `plant` is drawn now (its instance matrix, which the composed reef may
+   * reseat onto its rock or withhold), copied into `target`. False if it is not drawn.
+   */
+  drawnMatrix(plant: PlantPlacement, target: THREE.Matrix4): boolean {
+    const batch = this.batches.find(
+      (b) => b.species === plant.species && b.template === plant.template,
+    );
+    if (!batch) return false;
+    const index = this.placements
+      .filter(
+        (p) => p.species === plant.species && p.template === plant.template,
+      )
+      .indexOf(plant);
+    if (index < 0 || index >= batch.mesh.count) return false;
+    batch.mesh.getMatrixAt(index, target);
+    return Math.abs(target.determinant()) > 1e-9;
+  }
   readonly interests: readonly HabitatInterest[];
   readonly geometries: readonly THREE.BufferGeometry[];
   readonly material: THREE.MeshStandardMaterial;

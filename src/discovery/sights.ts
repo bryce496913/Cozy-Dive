@@ -161,6 +161,13 @@ export const WRECK_SIGHTS = {
   grouper: { id: 'species:queensland-grouper', label: 'Queensland grouper' },
 } as const satisfies Record<string, Sight>;
 
+/** V0.8 Pass 100: the aquarium's own rare miniatures, found only by looking closely. */
+export const AQUARIUM_SIGHTS = {
+  pikachu: { id: 'species:pikachu-nudibranch', label: 'Pikachu nudibranch' },
+  leafSheep: { id: 'species:leaf-sheep', label: 'Leaf sheep' },
+  candyCrab: { id: 'species:candy-crab', label: 'Candy crab' },
+} as const satisfies Record<string, Sight>;
+
 /** Every sight, in the order the "Seen" page lists them when first seen together. */
 export const SIGHTS: readonly Sight[] = [
   ...Object.values(CRUISE_SPECIES).map((s) => ({
@@ -175,6 +182,7 @@ export const SIGHTS: readonly Sight[] = [
   ...Object.values(OUTER_SIGHTS),
   ...Object.values(ICE_SIGHTS),
   ...Object.values(WRECK_SIGHTS),
+  ...Object.values(AQUARIUM_SIGHTS),
 ];
 /** A sight's name, or null for an id this version does not know (kept, but not listed). */
 export function sightLabel(id: string): string | null {
