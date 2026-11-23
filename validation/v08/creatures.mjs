@@ -13,7 +13,10 @@ const ANIMALS = (
   process.env.COZY_ANIMALS ||
   'hammerhead,reefShark,whitetipShark,greatWhite,leopardShark,nurseShark,whaleShark,eagleRay,mantaRay,seaTurtle,sunfish,humpbackWhale,killerWhale,minkeWhale,harbourSeal,leopardSeal,weddellSeal,seaLion,polarBear,seaOtter'
 ).split(',');
-const VIEWS = ['side', 'three-quarter', 'head', 'top', 'stroke'];
+// V0.8 Pass 090: COZY_VIEWS overrides (e.g. side,front,three-quarter,top,eye,flank,tail,stroke).
+const VIEWS = process.env.COZY_VIEWS
+  ? process.env.COZY_VIEWS.split(',')
+  : ['side', 'three-quarter', 'head', 'top', 'stroke'];
 // COZY_WATER=outer|kelp|ice renders in that world's water and light.
 const water = process.env.COZY_WATER || 'tank';
 fs.mkdirSync(output, { recursive: true });
