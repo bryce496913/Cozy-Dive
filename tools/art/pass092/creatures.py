@@ -176,7 +176,94 @@ def body_uv(sp, v, label, nrm):
     return np.where((label == 'body')[:, None], round_uv, planar)
 
 
-def build(name, sp, kind, smooth_parts=True, markings=True):
+# The asset standard: every image 512 by 512 (about 6 mm a texel on the whale shark, well under
+# its smallest spot).
+MARKS_SIZE = 512
+
+
+def bake_markings(sp, body, v, nrm, name):
+    """Bake the species' colour pattern into a texture on a second, unique UV set ('Marks') and
+    switch the skin's base map to it, so spots and stripes keep crisp, round edges whatever the
+    triangle count (vertex colour can only change at a vertex). The pattern is sampled from the
+    same analytic colouring at every texel's point on the surface."""
+    import bpy  # noqa: PLC0415
+    from PIL import Image  # noqa: PLC0415
+    from scipy.ndimage import distance_transform_edt  # noqa: PLC0415
+    bpy.context.view_layer.objects.active = body
+    body.select_set(True)
+    me = body.data
+    uvl = me.uv_layers.new(name='Marks')
+    me.uv_layers.active = uvl
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.uv.smart_project(angle_limit=math.radians(60), island_margin=0.006)
+    bpy.ops.object.mode_set(mode='OBJECT')
+    # Leaving edit mode rebuilds the mesh's layers: fetch them again (the old handles are stale).
+    me = body.data
+    uvl = me.uv_layers['Marks']
+    me.uv_layers.active = me.uv_layers[0]
+    nl = len(me.loops)
+    vi = np.empty(nl, np.int64)
+    me.loops.foreach_get('vertex_index', vi)
+    uv = np.empty(nl * 2)
+    uvl.data.foreach_get('uv', uv)
+    uv = uv.reshape(-1, 2) * MARKS_SIZE
+    starts = np.empty(len(me.polygons), np.int64)
+    me.polygons.foreach_get('loop_start', starts)
+    N = MARKS_SIZE
+    pts, nrms, where = [], [], []
+    for st in starts:
+        a, b, c = uv[st], uv[st + 1], uv[st + 2]
+        ia, ib, ic = vi[st], vi[st + 1], vi[st + 2]
+        x0, y0 = np.floor(np.minimum(np.minimum(a, b), c)).astype(int)
+        x1, y1 = np.ceil(np.maximum(np.maximum(a, b), c)).astype(int)
+        xs, ys = np.meshgrid(np.arange(max(x0, 0), min(x1, N - 1) + 1), np.arange(max(y0, 0), min(y1, N - 1) + 1))
+        q = np.stack([xs.ravel() + 0.5, ys.ravel() + 0.5], 1)
+        d = (b[1] - c[1]) * (a[0] - c[0]) + (c[0] - b[0]) * (a[1] - c[1])
+        if abs(d) < 1e-12:
+            continue
+        w0 = ((b[1] - c[1]) * (q[:, 0] - c[0]) + (c[0] - b[0]) * (q[:, 1] - c[1])) / d
+        w1 = ((c[1] - a[1]) * (q[:, 0] - c[0]) + (a[0] - c[0]) * (q[:, 1] - c[1])) / d
+        w2 = 1 - w0 - w1
+        inside = (w0 >= -0.02) & (w1 >= -0.02) & (w2 >= -0.02)
+        if not inside.any():
+            continue
+        W = np.stack([w0, w1, w2], 1)[inside]
+        pts.append(W @ v[[ia, ib, ic]])
+        nrms.append(W @ nrm[[ia, ib, ic]])
+        where.append(q[inside].astype(int))
+    P, Nn, at = np.vstack(pts), np.vstack(nrms), np.vstack(where)
+    Nn /= np.linalg.norm(Nn, axis=1, keepdims=True) + 1e-12
+    ds = sp.parts(P)
+    names = list(ds)
+    label = np.array(names)[np.argmin(np.stack([ds[k] for k in names]), 0)]
+    s, theta, yn = sp.body.param(P)
+    col = np.clip(sp.colour(P, Nn, s, theta, yn, label), 0, 1)
+    img = np.zeros((N, N, 3))
+    filled = np.zeros((N, N), bool)
+    img[at[:, 1], at[:, 0]] = col
+    filled[at[:, 1], at[:, 0]] = True
+    # Bleed each island's colour outward so filtering never pulls in the background.
+    _, (iy, ix) = distance_transform_edt(~filled, return_indices=True)
+    img = img[iy, ix]
+    path = m.TEX / f'p092-{name}-marks.png'
+    Image.fromarray(np.uint8(np.flipud(img) * 255 + 0.5)).save(path, optimize=True)
+    # (The colours are sRGB already, as the vertex colours were.)
+    # The skin's base map becomes the markings on 'Marks'; vertex colour goes white.
+    mat = body.data.materials[0]
+    for node in mat.node_tree.nodes:
+        if node.type == 'TEX_IMAGE' and node.image and node.image.filepath.endswith('-base.png'):
+            node.image = bpy.data.images.load(str(path))
+            uvn = mat.node_tree.nodes.new('ShaderNodeUVMap')
+            uvn.uv_map = 'Marks'
+            mat.node_tree.links.new(uvn.outputs['UV'], node.inputs['Vector'])
+    colattr = me.color_attributes['Col']
+    colattr.data.foreach_set('color', np.ones(len(colattr.data) * 4))
+    print('  baked markings', path, len(P), 'texels', flush=True)
+
+
+
+def build(name, sp, kind, smooth_parts=True, markings=True, texture=False):
     """Pass 078's build_species with the Pass 092 refinements (see the module comment)."""
     import bmesh  # noqa: PLC0415
     import bpy  # noqa: PLC0415
@@ -244,6 +331,8 @@ def build(name, sp, kind, smooth_parts=True, markings=True):
     bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces))
     bm.to_mesh(body.data)
     bm.free()
+    if texture:
+        bake_markings(sp, body, v, nrm, name)
     body.shape_key_add(name='Basis', from_mix=False)
     for sign, key in ((1, 'Stroke_Left'), (-1, 'Stroke_Right')):
         q = sp.stroke(v, label, sign) - shift
@@ -605,14 +694,53 @@ class PolarBear(c84.PolarBear):
         return col * (1 + clumps)[:, None]
 
 
+# ------------------------------------------------------------------ whale shark markings
+
+
+class WhaleShark(sc.WhaleShark):
+    """The Pass 078 anatomy; its checkerboard redrawn for the baked texture. At vertex resolution
+    the pattern blurred into angular blotches; sampled crisply it showed as a ruled grid. Real
+    whale sharks carry wavering pale lines, often broken into rows of dots, with round spots of
+    differing size between them: the lattice is warped and broken by noise, the spots jittered."""
+
+    def colour(self, p, n, s, theta, yn, label):
+        L = self.length
+        top = np.array([0.2, 0.28, 0.34])
+        belly = np.array([0.88, 0.89, 0.88])
+        k = smooth(-0.1, -0.5, yn)
+        k = np.where((label != 'body') & (n[:, 1] < -0.4), np.maximum(k, 0.6), k)
+        col = top * (1 - k[:, None]) + belly * k[:, None]
+        pale = np.array([0.8, 0.84, 0.83])
+        # The lattice, warped so its lines waver (about a quarter of a cell).
+        u = p[:, 0] / (0.07 * L) * TAU + 1.6 * noise3(p, 4, 81)
+        w = theta * 8 + 1.2 * noise3(p, 3.5, 82)
+        wrap = lambda a: np.angle(np.exp(1j * a))  # noqa: E731
+        # Thin lines, broken into dashes and dots in places.
+        dash = smooth(-0.2, 0.35, noise3(p, 40, 83) + 0.6 * np.cos(u * 3.1))
+        bar = smooth(0.94, 0.99, np.cos(u)) * (0.3 + 0.7 * dash)
+        line = smooth(0.95, 0.99, np.cos(w)) * (0.4 + 0.6 * smooth(-0.3, 0.3, noise3(p, 30, 84)))
+        # A round spot in each cell, off-centre and of its own size.
+        du = wrap(u - math.pi + 0.5 * noise3(p, 9, 86))
+        dw = wrap(w - math.pi + 0.5 * noise3(p, 9, 87))
+        radius = 0.95 + 0.35 * noise3(p, 7, 85)
+        cellspot = smooth(radius, radius * 0.72, np.hypot(du, dw))
+        head = spots(p, 0.024 * L, 5, 0.26) * (s > 0.84)
+        body = (s < 0.86) & (s > 0.12)
+        mark = np.maximum(np.maximum(bar, line) * 0.75 * body, np.maximum(cellspot * body, head))
+        mark = mark * smooth(-0.35, 0.0, yn)
+        col = col * (1 - mark[:, None]) + pale * mark[:, None]
+        col *= (1 + 0.04 * noise3(p, 12, 7))[:, None]
+        return self.eye_paint(p, col, 0.004 * L)
+
+
 # ------------------------------------------------------------------ build
 
 SPECIES = {
     'minke-whale': (Minke, 'smooth', True),
     'sea-otter': (SeaOtter, 'fur', True),
     'polar-bear': (PolarBear, 'fur', True),
-    'whale-shark': (sc.WhaleShark, 'denticle', True),
-    'eagle-ray': (c84.EagleRay, 'denticle', True),
+    'whale-shark': (WhaleShark, 'denticle', 'texture'),
+    'eagle-ray': (c84.EagleRay, 'denticle', 'texture'),
     'manta-ray': (c84.Manta, 'denticle', True),
     'great-white-shark': (c84.GreatWhite, 'denticle', True),
     'reef-shark': (c84.ReefShark, 'denticle', True),
@@ -622,4 +750,6 @@ SPECIES = {
 if __name__ == '__main__':
     for name in (sys.argv[1:] or SPECIES):
         cls, kind, marks = SPECIES[name]
-        build(name, cls(), kind, markings=marks)
+        # 'texture': the markings are baked into a texture (too many spot edges for the vertex
+        # budget); True: they are refined in the mesh.
+        build(name, cls(), kind, markings=marks is True, texture=marks == 'texture')

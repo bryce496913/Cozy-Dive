@@ -824,13 +824,13 @@
   {
     "id": "eagle-ray",
     "file": "assets/models/creatures/eagle-ray.glb",
-    "sha256": "f0eafa914b5f514f0140ad5ed49325ac0a45b0caaacf3a84a379f311e1cd5af8",
+    "sha256": "bde512e113adb5d6b17b35f0b2e3822f7b16317325de66559f65c9ec79a60cef",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 702468,
+    "bytes": 872416,
     "visualPrimitives": 2,
-    "visualTriangles": 9298,
+    "visualTriangles": 8999,
     "collisionTriangles": 0,
     "materials": 1,
     "images": [
@@ -843,12 +843,12 @@
         "encodedBytes": 306334
       },
       {
-        "name": "p078-eagle-ray-skin-base",
+        "name": "p092-eagle-ray-marks",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 17353
+        "encodedBytes": 29141
       },
       {
         "name": "p078-eagle-ray-skin-orm",
@@ -859,7 +859,7 @@
         "encodedBytes": 36573
       }
     ],
-    "geometryAccessorBytes": 224784,
+    "geometryAccessorBytes": 348720,
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Outer reef big creatures (Pass 025)"
@@ -996,13 +996,13 @@
   {
     "id": "whale-shark",
     "file": "assets/models/creatures/whale-shark.glb",
-    "sha256": "3c25b3100236fdd23a448b0a7082bcfc4641cc022015c9252eefd736cfa74ed8",
+    "sha256": "5f299a7ef16562ed7b9fdec9469c1d32752cab26ad627e0caa7ce5e39e63cee8",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 702544,
+    "bytes": 858252,
     "visualPrimitives": 2,
-    "visualTriangles": 9296,
+    "visualTriangles": 8996,
     "collisionTriangles": 0,
     "materials": 1,
     "images": [
@@ -1015,12 +1015,12 @@
         "encodedBytes": 306334
       },
       {
-        "name": "p078-whale-shark-skin-base",
+        "name": "p092-whale-shark-marks",
         "width": 512,
         "height": 512,
         "mode": "KTX2-ETC1S",
         "mipLevels": 10,
-        "encodedBytes": 17353
+        "encodedBytes": 40468
       },
       {
         "name": "p078-whale-shark-skin-orm",
@@ -1031,7 +1031,7 @@
         "encodedBytes": 36573
       }
     ],
-    "geometryAccessorBytes": 128880,
+    "geometryAccessorBytes": 164400,
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"

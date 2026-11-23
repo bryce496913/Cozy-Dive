@@ -187,7 +187,10 @@ describe('Pass 017/018 asset compression', () => {
     // (loaded only under the ice); the kelp mammals and gull carry their own maps.
     // V0.8 Pass 083: 44 MB. The tank's habitat (seven composed reef formations, their colonies and
     // vegetation, three detail levels each) is static vertex-coloured scenery with no textures.
-    expect(bytes).toBeLessThan(44 * 1024 * 1024);
+    // V0.8 Pass 092: 45 MB. The whale shark's and eagle ray's markings are baked into their own
+    // 512 px maps (vertex colour drew their spots as polygons); with the leaner minke, otter and
+    // plating corals the total grew 0.13 MiB, to 44.0 MiB, leaving no room under 44.
+    expect(bytes).toBeLessThan(45 * 1024 * 1024);
     // Source maps are authoring inputs only and no longer ship in public/.
     expect(existsSync('public/assets/textures')).toBe(false);
   });
