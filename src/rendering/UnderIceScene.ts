@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { Geology, acquireGeology } from '../environment/shared/Geology';
 import { WATER_PROFILES } from '../config/waterProfiles';
 import { createLightRig } from './atmosphere/lightRig';
 import type { AssetLoader } from '../assets/AssetLoader';
@@ -36,6 +37,8 @@ export interface IceLibraries {
   /** The tank's fish loader (for the animals to come in later passes). */
   readonly fish: AssetLoader;
   readonly soundSpots: number;
+  /** V0.8 Pass 093: how long the build waits for the authored rock (ms; default GEOLOGY_WAIT_MS). */
+  readonly geologyWaitMs?: number;
 }
 
 /**
@@ -90,10 +93,18 @@ export class UnderIceScene implements WaterWorld {
     wanted: () => boolean = () => true,
   ): Promise<UnderIceScene | undefined> {
     const stage = new Staging(frame, wanted);
+    // V0.8 Pass 093: the authored rock for the dropstones and outcrops, held only while building.
+    const geology = await acquireGeology(
+      libraries.fish,
+      libraries.geologyWaitMs,
+    );
     try {
       const environment = await stage.step(
           'ice and rock',
-          () => new IceEnvironment(),
+          () =>
+            new IceEnvironment(
+              geology ? new Geology(geology.model) : undefined,
+            ),
         ),
         garden = await stage.step(
           'garden',
@@ -118,6 +129,8 @@ export class UnderIceScene implements WaterWorld {
     } catch (error) {
       if (error === Staging.cancelled) return undefined;
       throw error;
+    } finally {
+      geology?.release();
     }
   }
   constructor(

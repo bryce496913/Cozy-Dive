@@ -56,6 +56,10 @@ export const WORLD_VIEWS = {
     ['ice-far-end', 'swimming', [0, 7, -24], [0, 5, -50]],
     // V0.8 Pass 091: from mid-field back toward the tunnel home.
     ['ice-return-tunnel', 'swimming', [0, 5, -24], [0, 4, -8]],
+    // V0.8 Pass 093: up into the largest breathing hole (its rim and chimney), and the platelet
+    // ice and dropstones beside it.
+    ['ice-breathing-hole', 'medium', [-1.5, 9.5, -22.5], [-6, 15, -28]],
+    ['ice-dropstones-close', 'close', [6.5, 2.6, -26.5], [6.5, 0.8, -32]],
   ],
   wreck: [
     ['wreck-overview', 'swimming', [14, 9, -14], [0, 5, -30]],

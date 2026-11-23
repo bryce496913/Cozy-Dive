@@ -94,6 +94,23 @@ export interface GrowthSite {
   readonly x: number;
   readonly radius: number;
 }
+/**
+ * V0.8 Pass 093: whether (x, z) is open roof on the boat deck (over the deckhouse, clear of the
+ * wheelhouse, the funnel and the davits' feet), where growth may settle.
+ */
+export function onBoatDeck(x: number, z: number): boolean {
+  const b = SHIP.bridge,
+    wh = SHIP.wheelhouse,
+    f = SHIP.funnel;
+  return (
+    Math.abs(x) < b.half - 0.15 &&
+    z > b.foreZ + 0.15 &&
+    z < b.aftZ - 0.15 &&
+    !(Math.abs(x) < wh.half + 0.3 && z < wh.aftZ + 0.3) &&
+    Math.hypot(x / (f.rx + 0.4), (z - f.z) / (f.rz + 0.4)) > 1 &&
+    Math.abs(Math.abs(x) - 2.75) > 0.3
+  );
+}
 export const GROWTH_SITES: readonly GrowthSite[] = (() => {
   const rand = random(86200),
     sites: GrowthSite[] = [],
@@ -103,7 +120,9 @@ export const GROWTH_SITES: readonly GrowthSite[] = (() => {
   const count = 30;
   for (let i = 0; i < count; i++) {
     const r = rand(),
-      side: -1 | 0 | 1 = r < 0.3 ? 0 : r < 0.65 ? -1 : 1;
+      // V0.8 Pass 093: 45% of the sites on the decks (was 30%: the deck read bare beside the
+      // crowded rails); the same 30 sites, so growth moves rather than multiplies.
+      side: -1 | 0 | 1 = r < 0.45 ? 0 : r < 0.725 ? -1 : 1;
     sites.push({
       side,
       z: zFrom + ((i + 0.15 + rand() * 0.7) / count) * zSpan,
@@ -652,6 +671,38 @@ function hold(): THREE.BufferGeometry {
 }
 
 /** A wall of the superstructure with a band of windows (dark openings between piers). */
+/**
+ * V0.8 Pass 093: an old ship's plating dished between its frames ("hungry horse"): each panel
+ * between stiffeners (`FRAME` apart) and seams (`STRAKE` apart) sagged inward a few centimetres,
+ * a little unevenly, so walls read as plated steel rather than flat boxes. `normal` is the wall's
+ * thin axis; `inward` the direction toward the structure's inside along it.
+ */
+function dished(
+  g: THREE.BufferGeometry,
+  normal: 'x' | 'z',
+  inward: number,
+  depth = 0.035,
+): THREE.BufferGeometry {
+  const p = g.getAttribute('position');
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i),
+      y = p.getY(i),
+      z = p.getZ(i),
+      h = normal === 'x' ? z : x,
+      u = frac((h + 100) / FRAME),
+      v = frac((y + 100) / STRAKE),
+      k =
+        depth *
+        Math.sin(Math.PI * u) *
+        Math.sin(Math.PI * v) *
+        (0.6 +
+          0.4 * hash(Math.floor((h + 100) / FRAME), Math.floor(y / STRAKE)));
+    if (normal === 'x') p.setX(i, x + inward * k);
+    else p.setZ(i, z + inward * k);
+  }
+  g.computeVertexNormals();
+  return g;
+}
 function windowedWall(
   along: 'x' | 'z',
   a0: number,
@@ -664,14 +715,38 @@ function windowedWall(
   panes: number,
   parts: THREE.BufferGeometry[],
 ): void {
+  // V0.8 Pass 093: the plating dished between frames (toward the house's middle, x 0 or z of
+  // the bridge's middle), and a sill under and a drip rail over the window band.
+  const normal = along === 'x' ? 'z' : 'x',
+    mid = (fixed0 + fixed1) / 2,
+    centre = normal === 'z' ? (SHIP.bridge.foreZ + SHIP.bridge.aftZ) / 2 : 0,
+    inward = Math.sign(centre - mid) || 1,
+    out = -inward,
+    face = out > 0 ? Math.max(fixed0, fixed1) : Math.min(fixed0, fixed1);
   const piece = (p0: number, p1: number, ya: number, yb: number) =>
     parts.push(
-      along === 'x'
-        ? block(p0, ya, fixed0, p1, yb, fixed1, PAINT)
-        : block(fixed0, ya, p0, fixed1, yb, p1, PAINT),
+      dished(
+        along === 'x'
+          ? block(p0, ya, fixed0, p1, yb, fixed1, PAINT)
+          : block(fixed0, ya, p0, fixed1, yb, p1, PAINT),
+        normal,
+        inward,
+      ),
     );
   piece(a0, a1, y0, band[0]);
   piece(a0, a1, band[1], y1);
+  for (const [ya, yb, reach] of [
+    [band[0] - 0.05, band[0], 0.07],
+    [band[1], band[1] + 0.04, 0.09],
+  ] as const) {
+    const f0 = face,
+      f1 = face + out * reach;
+    parts.push(
+      along === 'x'
+        ? block(a0, ya, Math.min(f0, f1), a1, yb, Math.max(f0, f1), PAINT)
+        : block(Math.min(f0, f1), ya, a0, Math.max(f0, f1), yb, a1, PAINT),
+    );
+  }
   const span = (a1 - a0) / panes;
   for (let i = 0; i <= panes; i++) {
     const c = a0 + span * i,
@@ -864,9 +939,40 @@ function superstructure(): THREE.BufferGeometry {
     const x0 = Math.min(side * wh.half, side * wg.half),
       x1 = Math.max(side * wh.half, side * wg.half),
       end = side * wg.half;
+    // V0.8 Pass 093: the breastwork's plating dished between frames, a rounded capping rail
+    // along its top, and knee braces under the platform out to its end.
     parts.push(
       block(x0, roof, wg.foreZ, x1, roof + 0.12, wg.aftZ, PAINT),
-      block(x0, roof + 0.12, wg.foreZ, x1, roof + 1.0, wg.foreZ + 0.08, PAINT),
+      dished(
+        block(
+          x0,
+          roof + 0.12,
+          wg.foreZ,
+          x1,
+          roof + 1.0,
+          wg.foreZ + 0.08,
+          PAINT,
+        ),
+        'z',
+        1,
+        0.025,
+      ),
+      rod(
+        new THREE.Vector3(x0, roof + 1.02, wg.foreZ + 0.04),
+        new THREE.Vector3(x1, roof + 1.02, wg.foreZ + 0.04),
+        0.045,
+        PAINT,
+        8,
+      ),
+      ...[wg.foreZ + 0.15, wg.aftZ - 0.15].map((bz) =>
+        rod(
+          new THREE.Vector3(side * (b.half + 0.05), roof - 1.1, bz),
+          new THREE.Vector3(side * (wg.half - 0.25), roof - 0.02, bz),
+          0.05,
+          STEEL,
+          6,
+        ),
+      ),
       rod(
         new THREE.Vector3(end, roof + 0.12, wg.foreZ),
         new THREE.Vector3(end, roof + 1.0, wg.foreZ),
@@ -917,6 +1023,82 @@ function superstructure(): THREE.BufferGeometry {
         tip = new THREE.Vector3(side * 3.6, roof + 2.0, z);
       parts.push(rod(foot, knee, 0.07), rod(knee, tip, 0.06));
     }
+  // V0.8 Pass 093: the boat deck's guard rail (stanchions, a top and a middle rail) round its sides
+  // and after edge, clear of the funnel and the wheelhouse: rusted, a few bays fallen or bent.
+  const rail = 0.95,
+    roofEdge = b.half + 0.08,
+    railRand = random(9301),
+    runs: [THREE.Vector3, THREE.Vector3][] = [
+      [
+        new THREE.Vector3(-roofEdge, roof, wh.aftZ + 0.3),
+        new THREE.Vector3(-roofEdge, roof, b.aftZ + 0.08),
+      ],
+      [
+        new THREE.Vector3(roofEdge, roof, wh.aftZ + 0.3),
+        new THREE.Vector3(roofEdge, roof, b.aftZ + 0.08),
+      ],
+      [
+        new THREE.Vector3(-roofEdge, roof, b.aftZ + 0.08),
+        new THREE.Vector3(-f.rx - 0.6, roof, b.aftZ + 0.08),
+      ],
+      [
+        new THREE.Vector3(f.rx + 0.6, roof, b.aftZ + 0.08),
+        new THREE.Vector3(roofEdge, roof, b.aftZ + 0.08),
+      ],
+    ];
+  for (const [from, to] of runs) {
+    const bays = Math.max(1, Math.round(from.distanceTo(to) / 1.1));
+    let previous: THREE.Vector3 | undefined;
+    for (let i = 0; i <= bays; i++) {
+      const foot = from.clone().lerp(to, i / bays),
+        lean = railRand() < 0.2 ? (railRand() - 0.5) * 0.5 : 0,
+        head = foot
+          .clone()
+          .add(
+            new THREE.Vector3(lean * Math.sign(foot.x || 1), rail, lean * 0.4),
+          );
+      parts.push(rod(foot, head, 0.028, STEEL, 6));
+      const fallen = railRand() < 0.22;
+      if (previous && !fallen) {
+        // A rail may hang slack from one end where its other has rusted through.
+        const sag = railRand() < 0.2 ? 0.45 : 0;
+        parts.push(
+          rod(previous, head.clone().setY(head.y - sag), 0.022, STEEL, 6),
+          rod(
+            previous.clone().setY(previous.y - rail * 0.5),
+            head.clone().setY(head.y - rail * 0.5 - sag * 0.6),
+            0.018,
+            STEEL,
+            6,
+          ),
+        );
+      }
+      previous = head;
+    }
+  }
+  // A ladder up the deckhouse's after wall to the boat deck.
+  const lx = 1.9,
+    lz = b.aftZ + 0.12;
+  for (const sx of [-0.22, 0.22])
+    parts.push(
+      rod(
+        new THREE.Vector3(lx + sx, top, lz),
+        new THREE.Vector3(lx + sx, roof + 0.9, lz),
+        0.025,
+        STEEL,
+        6,
+      ),
+    );
+  for (let y = top + 0.3; y < roof; y += 0.3)
+    parts.push(
+      rod(
+        new THREE.Vector3(lx - 0.22, y, lz + 0.02),
+        new THREE.Vector3(lx + 0.22, y, lz + 0.02),
+        0.016,
+        STEEL,
+        5,
+      ),
+    );
   return merge(parts);
 }
 
@@ -1235,13 +1417,16 @@ export class ShipwreckModel {
                 Math.max(zFrom, patch.z + gauss() * patch.spread * 1.3),
               );
         if (loose ? rand() < onDeck : patch.deck) {
-          const y = deckTopAt(z),
-            x =
-              (loose
-                ? rand() * 2 - 1
-                : Math.max(-1, Math.min(1, patch.x + gauss() * 0.5))) *
-              (hullX(z, y) - 0.5);
-          if (
+          let y = deckTopAt(z);
+          const x =
+            (loose
+              ? rand() * 2 - 1
+              : Math.max(-1, Math.min(1, patch.x + gauss() * 0.5))) *
+            (hullX(z, y) - 0.5);
+          // V0.8 Pass 093: what settles on the deckhouse grows on its roof, the boat deck
+          // (clear of the wheelhouse, the funnel and the davits), instead of being dropped.
+          if (onBoatDeck(x, z)) y = SHIP.bridge.top + 0.22;
+          else if (
             !clearOfOpenings(x, y, z) ||
             Math.abs(z - SHIP.forecastle.aftZ) < 0.6
           )

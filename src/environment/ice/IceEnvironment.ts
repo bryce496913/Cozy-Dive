@@ -1,5 +1,10 @@
 import { HabitatSurface } from '../shared/HabitatSurface';
 import * as THREE from 'three';
+import {
+  type Geology,
+  type GeologyPlacement,
+  placeGeology,
+} from '../shared/Geology';
 import { WATER_PROFILES } from '../../config/waterProfiles';
 import { beamGeometry, beamMaterial } from '../shared/LightBeam';
 import { PassageGlow } from '../shared/PassageGlow';
@@ -37,6 +42,15 @@ import { mouthArch } from '../shared/MouthArch';
  * swimmer a little short of it. One draw per material (ice, rock, seabed, light). Owns its GPU
  * resources.
  */
+/** V0.8 Pass 093: the geology variants used for the dropstones and the outcrops. */
+const DROPSTONE_ROCKS = [
+  'KelpRock_1',
+  'CaveRock_1',
+  'KelpRock_3',
+  'CaveRock_0',
+];
+const OUTCROP_ROCKS = ['KelpRock_0', 'KelpRock_5', 'CaveRock_2', 'KelpRock_2'];
+
 export const ICE_LAYOUT = {
   seed: 46001,
   /** Ice chunks hanging under the sheet, and dropstones on the seabed. */
@@ -127,6 +141,137 @@ function iceColours(g: THREE.BufferGeometry, deep = 0.5): void {
   c.needsUpdate = true;
 }
 
+/** V0.8 Pass 093: a breathing hole's edge radius at heading `a`: irregular, worn, not a circle. */
+export function holeEdge(
+  h: { x: number; z: number; r: number },
+  a: number,
+): number {
+  return (
+    h.r *
+    (1 +
+      0.09 * Math.sin(a * 3 + h.x * 0.7) +
+      0.05 * Math.sin(a * 5 - h.z * 0.4) +
+      0.025 * Math.sin(a * 11 + h.x))
+  );
+}
+/**
+ * V0.8 Pass 093: a breathing hole's shaft through the sea ice, facing inward: from a rounded lip
+ * curling out under the sheet, up its melt-scalloped wall (wider at the bottom, where the water
+ * melts it) to the daylight. Non-indexed, positions, normals and ice colours.
+ */
+function holeShaft(h: {
+  x: number;
+  z: number;
+  r: number;
+}): THREE.BufferGeometry {
+  const sides = 56,
+    rows: [number, number][] = [
+      // (radius offset, height above the sheet), from the lip under the sheet upward.
+      [0.5, -0.32],
+      [0.22, -0.3],
+      [0.06, -0.18],
+      [0.02, 0.05],
+      [0.0, 0.5],
+      [-0.03, 1.1],
+      [-0.06, 1.7],
+      [-0.08, 2.4],
+    ],
+    pos: number[] = [],
+    idx: number[] = [];
+  for (const [dr, dy] of rows)
+    for (let j = 0; j < sides; j++) {
+      const a = (j / sides) * Math.PI * 2,
+        scallop =
+          0.05 * Math.sin(a * 13 + dy * 4) * Math.min(1, Math.max(0, dy)),
+        r = holeEdge(h, a) + dr + scallop,
+        x = h.x + Math.cos(a) * r,
+        z = h.z + Math.sin(a) * r;
+      pos.push(x, iceUndersideAt(x, z) - 0.22 + dy, z);
+    }
+  // Wound so the faces look inward (into the hole) and down under the lip.
+  for (let i = 0; i + 1 < rows.length; i++)
+    for (let j = 0; j < sides; j++) {
+      const a = i * sides + j,
+        b = i * sides + ((j + 1) % sides),
+        c = a + sides,
+        d = b + sides;
+      idx.push(a, b, c, b, d, c);
+    }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  const flat = g.toNonIndexed();
+  g.dispose();
+  flat.setAttribute(
+    'color',
+    new THREE.Float32BufferAttribute(
+      new Float32Array(flat.getAttribute('position').count * 3),
+      3,
+    ),
+  );
+  iceColours(flat, 0.6);
+  return flat;
+}
+
+/** The underside of the sea ice: a lumpy sheet, its breathing holes open (pure; non-indexed). */
+export function seaIceSheet(top: number): THREE.BufferGeometry {
+  const sheet = new THREE.PlaneGeometry(60, 76, 120, 152);
+  sheet.rotateX(Math.PI / 2);
+  sheet.translate(0, top, -34);
+  const sp = sheet.getAttribute('position');
+  sheet.setAttribute(
+    'color',
+    new THREE.Float32BufferAttribute(new Float32Array(sp.count * 3), 3),
+  );
+  for (let i = 0; i < sp.count; i++) {
+    // V0.8 Pass 093: the vertices nearest each hole's edge are drawn onto it, so the hole is cut
+    // along a smooth, irregular line (whole grid triangles were dropped, leaving a sawtooth
+    // crown), and the sheet thickens and curls up into the hole's worn lip.
+    let x = sp.getX(i),
+      z = sp.getZ(i),
+      lip = 0;
+    for (const h of ICE.holes) {
+      const a = Math.atan2(z - h.z, x - h.x),
+        d = Math.hypot(x - h.x, z - h.z),
+        r = holeEdge(h, a);
+      if (Math.abs(d - r) < 0.5) {
+        x = h.x + Math.cos(a) * r;
+        z = h.z + Math.sin(a) * r;
+        lip = Math.max(lip, 1);
+      } else if (d > r && d < r + 1.2) lip = Math.max(lip, 1 - (d - r) / 1.2);
+    }
+    sp.setX(i, x);
+    sp.setZ(i, z);
+    sp.setY(i, iceUndersideAt(x, z) - 0.22 * lip * lip);
+  }
+  iceColours(sheet, 0.25);
+  const si = sheet.getIndex()!,
+    open: number[] = [];
+  for (let f = 0; f < si.count; f += 3) {
+    let cx = 0,
+      cz = 0;
+    for (let q = 0; q < 3; q++) {
+      cx += sp.getX(si.getX(f + q)) / 3;
+      cz += sp.getZ(si.getX(f + q)) / 3;
+    }
+    if (
+      !ICE.holes.some(
+        (h) =>
+          Math.hypot(cx - h.x, cz - h.z) <
+          holeEdge(h, Math.atan2(cz - h.z, cx - h.x)) - 0.02,
+      )
+    )
+      open.push(si.getX(f), si.getX(f + 1), si.getX(f + 2));
+  }
+  sheet.setIndex(open);
+  sheet.computeVertexNormals();
+  const flatSheet = sheet.toNonIndexed();
+  sheet.dispose();
+  flatSheet.deleteAttribute('uv');
+  return flatSheet;
+}
+
 export class IceEnvironment {
   private readonly iceSurface = new HabitatSurface('ice');
   private readonly rockSurface = new HabitatSurface('limestone');
@@ -148,7 +293,11 @@ export class IceEnvironment {
   /** V0.7 Pass 079: the giant strap algae and bushy algae, swaying. */
   private readonly algae: SwayingAlgae[] = [];
 
-  constructor() {
+  /**
+   * @param geology V0.8 Pass 093: the authored rock (the Pass 091 coastal and limestone variants,
+   *   darkened); without it the dropstones and outcrops are the code-built lumps.
+   */
+  constructor(private geology?: Geology) {
     this.root.name = 'Under the ice';
     const rand = random(ICE_LAYOUT.seed),
       w = ICE.walls,
@@ -397,36 +546,7 @@ export class IceEnvironment {
       block(x, w.farZ - sz * 0.55 - rand(), 7 + rand() * 4, sz, k++);
     }
     // The underside of the sea ice: a lumpy sheet, its breathing holes open.
-    const sheet = new THREE.PlaneGeometry(60, 76, 120, 152);
-    sheet.rotateX(Math.PI / 2);
-    sheet.translate(0, top, -34);
-    const sp = sheet.getAttribute('position');
-    sheet.setAttribute(
-      'color',
-      new THREE.Float32BufferAttribute(new Float32Array(sp.count * 3), 3),
-    );
-    for (let i = 0; i < sp.count; i++) {
-      sp.setY(i, iceUndersideAt(sp.getX(i), sp.getZ(i)));
-    }
-    iceColours(sheet, 0.25);
-    const si = sheet.getIndex()!,
-      open: number[] = [];
-    for (let f = 0; f < si.count; f += 3) {
-      let cx = 0,
-        cz = 0;
-      for (let q = 0; q < 3; q++) {
-        cx += sp.getX(si.getX(f + q)) / 3;
-        cz += sp.getZ(si.getX(f + q)) / 3;
-      }
-      if (!ICE.holes.some((h) => Math.hypot(cx - h.x, cz - h.z) < h.r))
-        open.push(si.getX(f), si.getX(f + 1), si.getX(f + 2));
-    }
-    sheet.setIndex(open);
-    sheet.computeVertexNormals();
-    const flatSheet = sheet.toNonIndexed();
-    sheet.dispose();
-    flatSheet.deleteAttribute('uv');
-    blocks.push(flatSheet);
+    blocks.push(seaIceSheet(top));
     // Chunks hanging under the ice, and short chimneys up each hole.
     for (let i = 0; i < ICE_LAYOUT.hanging; i++) {
       const x = (rand() * 2 - 1) * (w.x - 2),
@@ -448,37 +568,9 @@ export class IceEnvironment {
       );
     }
     for (const h of ICE.holes) {
-      const chimney = new THREE.CylinderGeometry(
-        h.r + 0.1,
-        h.r + 0.4,
-        2.6,
-        24,
-        3,
-        true,
-      );
-      chimney.translate(h.x, top + 1.1, h.z);
-      chimney.computeVertexNormals();
-      const flat = chimney.toNonIndexed();
-      chimney.dispose();
-      flat.deleteAttribute('uv');
-      flat.setAttribute(
-        'color',
-        new THREE.Float32BufferAttribute(
-          new Float32Array(flat.getAttribute('position').count * 3),
-          3,
-        ),
-      );
-      iceColours(flat, 0.6);
-      // Faces inwards: flip the winding.
-      const pa = flat.getAttribute('position');
-      for (let v = 0; v < pa.count; v += 3) {
-        const x1 = pa.getX(v + 1),
-          y1 = pa.getY(v + 1),
-          z1 = pa.getZ(v + 1);
-        pa.setXYZ(v + 1, pa.getX(v + 2), pa.getY(v + 2), pa.getZ(v + 2));
-        pa.setXYZ(v + 2, x1, y1, z1);
-      }
-      blocks.push(flat);
+      // V0.8 Pass 093: the hole's shaft up through the ice: its own irregular outline, melt-
+      // scalloped, a rounded lip turning out under the sheet (was a plain 24-sided cylinder).
+      blocks.push(holeShaft(h));
       // Daylight in the hole, and a soft shaft of light falling from it.
       const day = new THREE.CircleGeometry(h.r + 0.6, 24);
       day.rotateX(Math.PI / 2);
@@ -518,14 +610,26 @@ export class IceEnvironment {
       if (Math.abs(x) < 4 && z > t.wallZ - 7) continue;
       const s = 0.5 + rand() * rand() * 2.2,
         y = iceFloor(x, z),
-        g = lump(46500 + (i % 8) * 11, i % 4, 2);
+        yaw = rand() * Math.PI,
+        // V0.8 Pass 093: glacial erratics, rounded and subangular (the Pass 091 worn, split,
+        // dome and block variants), in the same box; they carry their own collision.
+        authored = this.authoredRock(
+          DROPSTONE_ROCKS[i % DROPSTONE_ROCKS.length],
+          { x, y: y + s * 0.25, z, w: s * 1.2, h: s * 0.8, d: s, yaw },
+          i,
+        );
+      this.stones.push({ x, y, z, size: s });
+      if (authored) {
+        stones.push(authored);
+        continue;
+      }
+      const g = lump(46500 + (i % 8) * 11, i % 4, 2);
       g.scale(s * 1.2, s * 0.8, s);
-      g.rotateY(rand() * Math.PI);
+      g.rotateY(yaw);
       g.translate(x, y + s * 0.25, z);
       const c = g.getAttribute('color');
       for (let v = 0; v < c.count; v++) c.setXYZ(v, 0.24, 0.23, 0.23);
       stones.push(g);
-      this.stones.push({ x, y, z, size: s });
       if (s > 1)
         this.colliders.push(
           boxCollider(
@@ -541,6 +645,8 @@ export class IceEnvironment {
       this.add(rocks, rock, 'Dropstones');
     }
     this.plantAlgae();
+    // The geology is only needed while building (pieces are copied out).
+    this.geology = undefined;
   }
   /**
    * V0.7 Pass 079 (playtest: "feels like a large empty room"): grounded iceberg fragments along
@@ -629,6 +735,27 @@ export class IceEnvironment {
    * set clear of the sand lanes and the holes. They join the stones, so the garden's anemones and
    * feather stars settle on them too.
    */
+  /**
+   * V0.8 Pass 093: an authored rock variant placed in a box, its collision pushed, painted as the
+   * dark basalt and granite carried out by the ice (its own light-and-shade kept). Undefined
+   * without the geology (the code-built lump is used instead).
+   */
+  private authoredRock(
+    name: string,
+    at: GeologyPlacement,
+    seed: number,
+  ): THREE.BufferGeometry | undefined {
+    const piece = this.geology?.piece(name);
+    if (!piece) return undefined;
+    const g = placeGeology(piece, at, this.colliders),
+      c = g.getAttribute('color'),
+      tint = 0.33 + 0.04 * Math.sin(seed * 1.7);
+    for (let v = 0; v < c.count; v++) {
+      const k = (c.getX(v) + c.getY(v) + c.getZ(v)) / 3;
+      c.setXYZ(v, k * tint, k * tint * 0.98, k * tint * 0.99);
+    }
+    return g;
+  }
   private outcrops(): THREE.BufferGeometry[] {
     const rand = random(79400),
       out: THREE.BufferGeometry[] = [];
@@ -645,9 +772,23 @@ export class IceEnvironment {
           z = cz + Math.sin(a) * d,
           s = k === 0 ? 2.4 + rand() * 0.8 : 1.1 + rand() * 0.9,
           y = iceFloor(x, z),
-          g = lump(79410 + k * 7 + Math.round(cx), k % 3, 2);
-        g.scale(s * 1.2, s * (k === 0 ? 1.1 : 0.75), s);
-        g.rotateY(rand() * Math.PI);
+          yaw = rand() * Math.PI,
+          h = s * (k === 0 ? 1.1 : 0.75);
+        this.stones.push({ x, y, z, size: s });
+        // V0.8 Pass 093: bedrock, layered and jointed (the Pass 091 slab, tor, ledge and tilted
+        // bed variants), in the same box, with its own collision.
+        const authored = this.authoredRock(
+          OUTCROP_ROCKS[(k + Math.round(cx)) % OUTCROP_ROCKS.length],
+          { x, y: y + s * 0.3, z, w: s * 1.2, h, d: s, yaw },
+          k + 40,
+        );
+        if (authored) {
+          out.push(authored);
+          continue;
+        }
+        const g = lump(79410 + k * 7 + Math.round(cx), k % 3, 2);
+        g.scale(s * 1.2, h, s);
+        g.rotateY(yaw);
         g.translate(x, y + s * 0.3, z);
         const c = g.getAttribute('color');
         for (let v = 0; v < c.count; v++) {
@@ -655,7 +796,6 @@ export class IceEnvironment {
           c.setXYZ(v, t, t * 0.97, t * 0.97);
         }
         this.colliders.push(rockCollider(g, new THREE.Matrix4()));
-        this.stones.push({ x, y, z, size: s });
         out.push(g);
       }
     }

@@ -721,10 +721,29 @@ export function jellyArmsGeometry(): THREE.BufferGeometry {
   }
   return merge(parts);
 }
-/** A flat, hexagonal platelet of ice (about 8 cm across). */
+/**
+ * A platelet of ice (about 8 cm across). V0.8 Pass 093: an irregular, thin, faintly bowed flake
+ * with a broken outline (was a hexagonal disc, which read as a cream starburst in mass).
+ */
 function plateletGeometry(): THREE.BufferGeometry {
-  const g = new THREE.CylinderGeometry(0.05, 0.05, 0.004, 6);
-  return coloured(g, [0.85, 0.95, 1], 0.1);
+  const n = 9,
+    pos: number[] = [0, 0.002, 0],
+    idx: number[] = [];
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2 + 0.25 * Math.sin(i * 2.3),
+      r = 0.05 * (0.6 + 0.45 * Math.abs(Math.sin(i * 1.9 + 0.7))),
+      x = Math.cos(a) * r * 1.25,
+      z = Math.sin(a) * r * 0.8;
+    // Bowed: the rim curls a few millimetres up.
+    pos.push(x, (0.004 * (x * x + z * z)) / 0.0025, z);
+  }
+  // Both faces (the material is one-sided, and platelets are seen from below as often as above).
+  for (let i = 0; i < n; i++)
+    idx.push(0, 1 + ((i + 1) % n), 1 + i, 0, 1 + i, 1 + ((i + 1) % n));
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  return coloured(g, [0.82, 0.92, 0.98], 0.08);
 }
 
 // ------------------------------------------------------------------ the collection
