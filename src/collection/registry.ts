@@ -279,9 +279,8 @@ function build(
         ...(fish.tint !== undefined ? { tint: fish.tint } : {}),
       },
       motion: fish.group === 'schooling' ? 'school' : 'swim',
-      ...(fish.sighting === null
-        ? {}
-        : { tank: { slot: 'fish', key: fish.species } }),
+      // Home fish may be added from the start (more of the tank's own), as in the catalog.
+      tank: { slot: 'fish', key: fish.species },
     };
   if (baby)
     return {
@@ -380,5 +379,9 @@ export function canAddToTank(
   entry: CollectionEntry,
   seen: readonly Sighting[],
 ): boolean {
-  return !!entry.tank && seen.some((s) => s.id === entry.id);
+  return (
+    !!entry.tank &&
+    ((entry.tank.slot === 'fish' && entry.discovery === 'home') ||
+      seen.some((s) => s.id === entry.id))
+  );
 }

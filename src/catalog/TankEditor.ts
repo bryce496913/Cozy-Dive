@@ -22,6 +22,10 @@ import { TankFish } from '../environment/TankFish';
 import type { SpeciesId } from '../fish/FishSpecies';
 import type { FishEntity } from '../fish/FishEntity';
 import { renderCatalog } from './TankCatalogPanel';
+import type { AlbumTank } from '../ui/album/Album';
+import { canAddToTank } from '../collection/registry';
+import { BABY_CAP } from '../config/babies';
+import { fishDefinition, fishRoom } from './fishCatalog';
 import { TankDecoration } from '../environment/TankDecoration';
 import { insideRock, safeFishPosition } from '../fish/FishHabitat';
 
@@ -46,6 +50,8 @@ export class TankEditor {
   private readonly confirmation = document.createElement('div');
   private readonly notice = document.createElement('p');
   private current?: EditorState;
+  /** V0.8 Pass 099: opens the field album with this aquarium's actions (set by the application). */
+  onAlbum?: (tank: AlbumTank) => void;
   private selected?: string;
   private artReady = false;
   private disposed = false;
@@ -214,6 +220,11 @@ export class TankEditor {
         choose: (kind) => this.choose(kind),
         baby: (id) => this.chooseBaby(id),
         fish: (species, add) => this.chooseFish(species, add),
+        album: () => {
+          this.panel.hidden = true;
+          this.toggle.setAttribute('aria-expanded', 'false');
+          this.onAlbum?.(this.albumTank());
+        },
         undo: () => {
           this.undo();
           this.open('undo');
@@ -282,6 +293,79 @@ export class TankEditor {
     this.babiesChanged(false);
     this.fishChanged(false);
     this.persist();
+  }
+  /**
+   * V0.8 Pass 099: the aquarium's side of the field album. Every action goes through the same
+   * catalog, placement and capacity rules and saves as before; the album stays open on its page.
+   */
+  albumTank(): AlbumTank {
+    const here = () =>
+      !!(this.current?.eligible && !this.current.active && this.model);
+    const away = 'Visit your aquarium to add it there.';
+    return {
+      state: (entry) => {
+        const t = entry.tank,
+          m = this.model,
+          seen = this.seen();
+        if (!t || t.slot === 'decoration') return undefined;
+        if (t.slot === 'animal') {
+          const placed = m?.babies.includes(t.key) ? 1 : 0,
+            room = !!m && m.babies.length < BABY_CAP,
+            canAdd = here() && canAddToTank(entry, seen) && room;
+          return {
+            canAdd,
+            placed,
+            max: 1,
+            reason: !here()
+              ? away
+              : !room
+                ? 'The aquarium has all the visitors it can hold for now.'
+                : undefined,
+          };
+        }
+        const placed = m?.fish[t.key] ?? 0,
+          room = m ? fishRoom(m.fish, t.key, seen) : undefined;
+        return {
+          canAdd: here() && !!room?.ok,
+          placed,
+          max: fishDefinition(t.key)?.max ?? 0,
+          reason: !here() ? away : room && !room.ok ? room.reason : undefined,
+        };
+      },
+      add: (entry) => {
+        const t = entry.tank,
+          m = this.model,
+          seen = this.seen();
+        if (!here() || !m || !t || t.slot === 'decoration') return away;
+        if (t.slot === 'animal') {
+          if (!canAddToTank(entry, seen) || !m.addBaby(t.key, seen))
+            return 'There is no room for another visitor just now.';
+          this.babiesChanged();
+          return `${entry.name} will be waiting in your aquarium.`;
+        }
+        const room = m.addFish(t.key, seen);
+        if (!room.ok) return room.reason;
+        if (!this.fishChanged()) {
+          m.undo();
+          return 'The aquarium cannot seat another just now.';
+        }
+        return `A ${entry.name.toLowerCase()} joins your aquarium.`;
+      },
+      remove: (entry) => {
+        const t = entry.tank,
+          m = this.model;
+        if (!here() || !m || !t || t.slot === 'decoration') return away;
+        if (t.slot === 'animal') {
+          if (!m.babies.includes(t.key)) return '';
+          m.removeBaby(t.key);
+          this.babiesChanged();
+          return `${entry.name} returns to the sea.`;
+        }
+        if (!m.removeFish(t.key)) return '';
+        this.fishChanged();
+        return `A ${entry.name.toLowerCase()} returns to the sea.`;
+      },
+    };
   }
   private close() {
     this.panel.hidden = true;

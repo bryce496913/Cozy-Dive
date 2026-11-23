@@ -1,3 +1,4 @@
+import { Album } from '../ui/album/Album';
 import { TankEditor } from '../catalog/TankEditor';
 import { AudioSystem } from '../audio/AudioSystem';
 import { AQUARIUM, SPAWN, SWIMMING, type Vec3 } from '../config/world';
@@ -217,6 +218,8 @@ export class Application {
     >
   > = {};
   readonly tankEditor?: TankEditor;
+  /** V0.8 Pass 099: the field album. */
+  album?: Album;
   private readonly abort = new AbortController();
   constructor(
     root: HTMLElement,
@@ -293,6 +296,20 @@ export class Application {
         () => this.sightings,
         () => this.enter('aquarium'),
       );
+      // V0.8 Pass 099: one field album for both entry points: the "Seen" button and the tank's
+      // "For your tank" panel. Opened near the tank, its cards offer the aquarium's actions.
+      const album = new Album(root, {
+        loaders: {
+          creatures: this.world.authored.loader,
+          reef: this.world.reefLoader,
+        },
+        seen: () => this.sightings,
+        reducedMotion: () => this.settings.reducedMotion,
+      });
+      this.album = album;
+      const editor = this.tankEditor;
+      this.ui.onAlbum = () => album.open({ tank: editor.albumTank() });
+      editor.onAlbum = (tank) => album.open({ tank });
       this.tankSoundSpots = [
         ...this.world.aquarium.hardscape.formations.map((f) => ({
           x: f.position.x,
@@ -403,6 +420,7 @@ export class Application {
       this.officeAudio?.dispose();
       this.office?.dispose();
       this.office = undefined;
+      this.album?.dispose();
       this.tankEditor?.dispose();
       this.world?.dispose();
       this.world = undefined;
@@ -1317,6 +1335,7 @@ export class Application {
     this.wreck = undefined;
     this.outer?.dispose();
     this.outer = undefined;
+    this.album?.dispose();
     this.tankEditor?.dispose();
     this.world?.dispose();
     this.ui.dispose();
