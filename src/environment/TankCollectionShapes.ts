@@ -11,7 +11,13 @@ import type { TankCreatureId } from '../config/babies';
 import { crabBody } from './cave/CaveCrabs';
 import { spinyLobsterBody } from './cave/SpinyLobster';
 import { lobsterAntennae } from './cave/CaveLobsters';
-import { lionBody, rayGeometry, shrimpGeometry } from './cave/CaveVisitors';
+import {
+  LION_RAYS,
+  lionBody,
+  lionRayPose,
+  rayGeometry,
+  shrimpGeometry,
+} from './cave/CaveVisitors';
 import {
   spongeGeometry,
   softCoralGeometry,
@@ -160,22 +166,14 @@ export function collectionShape(id: TankCreatureId): THREE.BufferGeometry {
     case 'cleaner-shrimp':
       return shrimpGeometry();
     case 'lionfish': {
-      const parts = [lionBody()];
-      for (let i = 0; i < 13; i++) {
+      // V0.8 Pass 095: the same rebuilt fish as the cave's, its fins half spread.
+      const parts = [lionBody()],
+        pose = new THREE.Matrix4();
+      for (let r = 0; r < LION_RAYS; r++) {
         const ray = rayGeometry();
-        ray.scale(1, 0.14, 1);
-        ray.rotateX((i / 12 - 0.5) * 1.2);
-        ray.translate(0, 0.09, 0.08 - i * 0.014);
+        ray.applyMatrix4(lionRayPose(r, 0.5, pose));
         parts.push(ray);
       }
-      for (const side of [-1, 1])
-        for (let i = 0; i < 8; i++) {
-          const ray = rayGeometry();
-          ray.scale(1, 0.18, 1);
-          ray.rotateZ(side * (0.6 + i * 0.18));
-          ray.translate(side * 0.025, 0.05, 0.05 - i * 0.012);
-          parts.push(ray);
-        }
       return join(parts);
     }
     case 'octopus':

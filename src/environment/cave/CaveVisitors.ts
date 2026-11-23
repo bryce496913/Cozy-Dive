@@ -54,6 +54,8 @@ const NURSE = { slipOut: 2.2, homeClear: 9, homeAfter: 25 } as const;
  */
 const MORAY_CRACK = { scale: 2.4, back: 0.4 } as const;
 const LION = { dorsal: 13, pectoral: 8, rays: 13 + 2 * 8, scale: 1.6 } as const;
+/** How many spines and pectoral rays a lionfish carries (see `lionRayPose`). */
+export const LION_RAYS = LION.rays;
 
 /** A cleaner shrimp facing +z, its legs at y 0 (about 6 cm before scaling): a slender, arched
  * body (carapace with a pointed rostrum, six tail segments curving down to a fanned tail), red
@@ -157,149 +159,294 @@ export function shrimpGeometry(): THREE.BufferGeometry {
   }
   return merged(parts);
 }
-/** Lionfish stripes: broad red-brown bands with fine ones between, on cream (z along the body). */
-function lionStripe(x: number, y: number, z: number): [number, number, number] {
-  // The bands lean back a little and curve over the head; a fine band between each broad one.
-  const t = z * 95 + Math.sin(y * 30) * 0.8 + Math.abs(x) * 20,
-    broad = Math.sin(t) > 0.35,
-    fine = Math.abs(Math.sin(t * 2 + 1.6)) > 0.93,
-    throat = y < 0.03 && z > 0.02;
-  if (throat) return [0.96, 0.9, 0.82];
-  if (broad) return [0.6, 0.14, 0.08];
-  if (fine) return [0.45, 0.12, 0.08];
-  return [0.97, 0.9, 0.8];
+/**
+ * V0.8 Pass 095 (playtest: "the lion fish need strong redesigns"): the lionfish was a squashed
+ * sphere with thick striped planks for fins, every pectoral ray splayed the same way and every
+ * dorsal spine stacked on the centreline (a single spike head-on). It is rebuilt to the animal:
+ * a deep, laterally compressed body lofted from a side profile (a big head, deepest behind it, a
+ * slim tail stalk), upturned lips, eyes high on the head with the bars running through them,
+ * long banded brow tentacles, and maroon and cream bars that slant forward on the head. The soft
+ * fins are spotted and ray-lined; the spines are slim and banded, each trailing a narrow web; the
+ * pectorals spread as true fans (each ray its own direction in the fan's plane) and the dorsal
+ * spines lean a little to either side, so the crest reads from the front.
+ */
+/** The body's side profile at z (m, +z the snout): its back and belly heights and half-width. */
+const LION_PROFILE: readonly (readonly [number, number, number, number])[] = [
+  // z, back, belly, half-width
+  [-0.168, 0.068, 0.042, 0.004],
+  [-0.15, 0.072, 0.036, 0.007],
+  [-0.12, 0.082, 0.028, 0.009],
+  [-0.08, 0.1, 0.018, 0.015],
+  [-0.03, 0.118, 0.006, 0.022],
+  [0.02, 0.126, 0.002, 0.026],
+  [0.06, 0.122, 0.008, 0.026],
+  [0.09, 0.11, 0.018, 0.022],
+  [0.115, 0.092, 0.03, 0.015],
+  [0.132, 0.074, 0.042, 0.007],
+  [0.14, 0.062, 0.048, 0.001],
+];
+/** Back height, belly height and half-width (m) at z, interpolated smoothly along the profile. */
+export function lionProfile(z: number): [number, number, number] {
+  const P = LION_PROFILE;
+  if (z <= P[0][0]) return [P[0][1], P[0][2], P[0][3]];
+  for (let i = 1; i < P.length; i++) {
+    if (z > P[i][0]) continue;
+    const a = P[i - 1],
+      b = P[i],
+      t = (z - a[0]) / (b[0] - a[0]),
+      k = t * t * (3 - 2 * t);
+    return [
+      a[1] + (b[1] - a[1]) * k,
+      a[2] + (b[2] - a[2]) * k,
+      a[3] + (b[3] - a[3]) * k,
+    ];
+  }
+  const l = P[P.length - 1];
+  return [l[1], l[2], l[3]];
 }
-/** A thin fin membrane: a fan of triangles from `base`, spotted, see-through (alpha in the material). */
+/** Lionfish bars: broad maroon bars with fine ones between, on cream; forward-slanting on the head. */
+function lionStripe(x: number, y: number, z: number): [number, number, number] {
+  const head = Math.max(0, Math.min(1, (z - 0.02) / 0.06)),
+    t =
+      z * 92 +
+      (y - 0.06) * (6 + 22 * head) +
+      Math.sin(y * 40 + z * 30) * 0.35 +
+      Math.abs(x) * 12,
+    broad = Math.sin(t) > 0.25,
+    fine = Math.abs(Math.sin(t * 2 + 1.6)) > 0.94,
+    [, belly] = lionProfile(z),
+    throat = y < belly + 0.012 && z > 0.0;
+  if (throat) return [0.95, 0.88, 0.8];
+  if (broad) return [0.52, 0.12, 0.08];
+  if (fine) return [0.4, 0.1, 0.07];
+  return [0.96, 0.89, 0.79];
+}
+/** A thin, spotted, ray-lined fin: a fan from `base` to `tips`, both faces (see-through in the material). */
 function finFan(
   base: THREE.Vector3,
   tips: readonly THREE.Vector3[],
 ): THREE.BufferGeometry {
   const pos: number[] = [],
-    col: number[] = [];
-  for (let i = 0; i < tips.length - 1; i++) {
-    const a = tips[i],
-      b = tips[i + 1];
-    // Both faces, so the fin shows from either side whatever the material's culling.
-    pos.push(base.x, base.y, base.z, a.x, a.y, a.z, b.x, b.y, b.z);
-    pos.push(base.x, base.y, base.z, b.x, b.y, b.z, a.x, a.y, a.z);
-    for (let k = 0; k < 6; k++) {
-      const spot = (i + k) % 3 === 0 ? 0.35 : 1;
-      col.push(0.85 * spot, 0.62 * spot, 0.5 * spot);
+    col: number[] = [],
+    rings = 6,
+    at = (i: number, k: number, out: THREE.Vector3) =>
+      out.lerpVectors(base, tips[i], k / rings),
+    a = new THREE.Vector3(),
+    b = new THREE.Vector3(),
+    c = new THREE.Vector3(),
+    d = new THREE.Vector3();
+  for (let i = 0; i < tips.length - 1; i++)
+    for (let k = 0; k < rings; k++) {
+      at(i, k, a);
+      at(i + 1, k, b);
+      at(i + 1, k + 1, c);
+      at(i, k + 1, d);
+      // Rows of dark spots on the rays, clear membrane between.
+      // Clear, pale membrane with a dark spot on every other ray in alternate rows.
+      const spot = k > 0 && i % 2 === 0 && k % 2 === 1,
+        tone: [number, number, number] = spot
+          ? [0.5, 0.18, 0.12]
+          : [0.88, 0.8, 0.72];
+      for (const [p, q, r] of [
+        [a, b, c],
+        [a, c, d],
+        [a, c, b],
+        [a, d, c],
+      ]) {
+        pos.push(p.x, p.y, p.z, q.x, q.y, q.z, r.x, r.y, r.z);
+        for (let n = 0; n < 3; n++) col.push(tone[0], tone[1], tone[2]);
+      }
     }
-  }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
   g.computeVertexNormals();
   return g;
 }
-/** A lionfish body facing +z, its belly at y 0 (about 30 cm before scaling), with head tentacles. */
-export function lionBody(): THREE.BufferGeometry {
-  // A deep, compressed body: big head, deepest behind it, tapering to a slim tail stalk.
-  const body = new THREE.SphereGeometry(1, 28, 18),
-    bp = body.getAttribute('position');
-  for (let i = 0; i < bp.count; i++) {
-    const x = bp.getX(i),
-      y = bp.getY(i),
-      z = bp.getZ(i),
-      // Depth along the body (z from +1 snout to -1 tail).
-      deep =
-        0.75 + 0.35 * Math.cos((z - 0.25) * 1.7) - 0.45 * Math.max(0, -z - 0.4),
-      wide = 0.8 + 0.25 * Math.cos((z - 0.2) * 1.5);
-    bp.setXYZ(i, x * 0.034 * wide, y * 0.056 * deep, z * 0.13);
+/** The lofted body (non-indexed, with normals and the bar colours), belly near y 0, snout +z. */
+function lionTrunk(): THREE.BufferGeometry {
+  const P = LION_PROFILE,
+    z0 = P[0][0],
+    z1 = P[P.length - 1][0],
+    stations = 72,
+    around = 36,
+    grid: THREE.Vector3[] = [];
+  for (let i = 0; i <= stations; i++) {
+    const z = z0 + ((z1 - z0) * i) / stations,
+      [top, bottom, half] = lionProfile(z),
+      cy = (top + bottom) / 2,
+      ry = (top - bottom) / 2;
+    for (let j = 0; j < around; j++) {
+      const a = (j / around) * Math.PI * 2,
+        cs = Math.cos(a),
+        sn = Math.sin(a),
+        // A flattened oval: full flanks, a narrow keel along the back and belly.
+        e = 2.4,
+        x = Math.sign(cs) * Math.pow(Math.abs(cs), 2 / e) * half,
+        y = Math.sign(sn) * Math.pow(Math.abs(sn), 2 / e) * ry;
+      grid.push(new THREE.Vector3(x, cy + y, z));
+    }
   }
-  body.translate(0, 0.055, 0);
-  const g = body.toNonIndexed();
-  body.dispose();
+  const idx: number[] = [];
+  for (let i = 0; i < stations; i++)
+    for (let j = 0; j < around; j++) {
+      const a = i * around + j,
+        b = i * around + ((j + 1) % around),
+        c = (i + 1) * around + ((j + 1) % around),
+        d = (i + 1) * around + j;
+      idx.push(a, c, b, a, d, c);
+    }
+  // Caps: the tail stalk's end and the snout's tip.
+  const tail = grid.length,
+    nose = tail + 1,
+    [t0, b0] = lionProfile(z0),
+    [t1, b1] = lionProfile(z1);
+  grid.push(
+    new THREE.Vector3(0, (t0 + b0) / 2, z0 - 0.002),
+    new THREE.Vector3(0, (t1 + b1) / 2, z1 + 0.004),
+  );
+  for (let j = 0; j < around; j++) {
+    const jn = (j + 1) % around;
+    idx.push(tail, j, jn);
+    idx.push(nose, stations * around + jn, stations * around + j);
+  }
+  const indexed = new THREE.BufferGeometry().setFromPoints(grid);
+  indexed.setIndex(idx);
+  indexed.computeVertexNormals();
+  const g = indexed.toNonIndexed();
+  indexed.dispose();
   const pos = g.getAttribute('position'),
     col = new Float32Array(pos.count * 3);
   for (let i = 0; i < pos.count; i++)
-    col.set(lionStripe(pos.getX(i), pos.getY(i) - 0.055, pos.getZ(i)), i * 3);
-  g.deleteAttribute('uv');
+    col.set(lionStripe(pos.getX(i), pos.getY(i), pos.getZ(i)), i * 3);
   g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-  const parts = [g],
+  return g;
+}
+/** A lionfish body facing +z, its belly at y 0 (about 30 cm before scaling), with head tentacles. */
+export function lionBody(): THREE.BufferGeometry {
+  const parts = [lionTrunk()],
     v = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
-  // Soft dorsal, anal and tail fins: spotted see-through fans.
+  // Soft dorsal behind the spines, anal fin and the rounded tail: spotted, ray-lined fans.
   parts.push(
-    finFan(v(0, 0.1, -0.06), [
-      v(0, 0.11, -0.02),
-      v(0, 0.16, -0.05),
-      v(0, 0.17, -0.09),
-      v(0, 0.15, -0.12),
-      v(0, 0.1, -0.13),
+    finFan(v(0, 0.098, -0.075), [
+      v(0, 0.115, -0.035),
+      v(0, 0.16, -0.06),
+      v(0, 0.17, -0.095),
+      v(0, 0.152, -0.125),
+      v(0, 0.095, -0.14),
     ]),
-    finFan(v(0, 0.015, -0.07), [
-      v(0, 0.01, -0.03),
-      v(0, -0.04, -0.07),
-      v(0, -0.045, -0.1),
-      v(0, 0.01, -0.12),
+    finFan(v(0, 0.024, -0.09), [
+      v(0, 0.012, -0.05),
+      v(0, -0.035, -0.075),
+      v(0, -0.045, -0.105),
+      v(0, -0.02, -0.13),
+      v(0, 0.03, -0.14),
     ]),
-    finFan(v(0, 0.055, -0.13), [
-      v(0, 0.1, -0.17),
-      v(0, 0.11, -0.21),
-      v(0, 0.08, -0.235),
-      v(0, 0.03, -0.235),
-      v(0, 0.0, -0.21),
-      v(0, 0.01, -0.17),
+    finFan(v(0, 0.055, -0.162), [
+      v(0, 0.09, -0.17),
+      v(0, 0.118, -0.2),
+      v(0, 0.118, -0.235),
+      v(0, 0.09, -0.262),
+      v(0, 0.055, -0.27),
+      v(0, 0.02, -0.262),
+      v(0, -0.008, -0.235),
+      v(0, -0.008, -0.2),
+      v(0, 0.02, -0.17),
     ]),
   );
-  // A big-lipped mouth.
-  const lips = new THREE.TorusGeometry(0.012, 0.004, 5, 10);
-  lips.scale(1.1, 0.8, 1);
-  lips.translate(0, 0.045, 0.128);
-  parts.push(tinted(lips, [0.7, 0.3, 0.22]));
+  // Upturned lips at the snout.
+  const lips = new THREE.TorusGeometry(0.009, 0.003, 5, 12);
+  lips.scale(1.2, 0.75, 1);
+  lips.rotateX(-0.5);
+  lips.translate(0, 0.056, 0.139);
+  parts.push(tinted(lips, [0.62, 0.22, 0.16]));
   for (const s of [-1, 1]) {
-    // Glossy eyes in a red ring, a stripe running through each.
-    const ring = new THREE.SphereGeometry(0.012, 10, 8);
-    ring.translate(s * 0.022, 0.075, 0.085);
-    parts.push(tinted(ring, [0.55, 0.12, 0.07]));
-    const eye = new THREE.SphereGeometry(0.0085, 10, 8);
-    eye.translate(s * 0.028, 0.076, 0.088);
-    parts.push(tinted(eye, [0.04, 0.03, 0.03]));
-    // Banded, fleshy tentacles over the eyes, and small tabs below the mouth.
-    for (let k = 0; k < 3; k++) {
-      const seg = new THREE.ConeGeometry(0.004 - k * 0.001, 0.014, 5);
-      seg.translate(s * 0.02, 0.098 + k * 0.012, 0.082 - k * 0.003);
-      parts.push(tinted(seg, k % 2 ? [0.95, 0.88, 0.8] : [0.7, 0.2, 0.12]));
+    // Eyes high on the head, in a red ring, the bar running through.
+    const [, , half] = lionProfile(0.095),
+      ring = new THREE.SphereGeometry(0.0105, 12, 8);
+    ring.scale(0.6, 1, 1);
+    ring.translate(s * (half - 0.002), 0.088, 0.095);
+    parts.push(tinted(ring, [0.5, 0.12, 0.08]));
+    const eye = new THREE.SphereGeometry(0.0075, 12, 8);
+    eye.translate(s * (half + 0.001), 0.089, 0.096);
+    parts.push(tinted(eye, [0.05, 0.04, 0.035]));
+    // Long, banded brow tentacles, leaning out and back.
+    for (let k = 0; k < 4; k++) {
+      const seg = new THREE.CylinderGeometry(
+        0.0022 - k * 0.0004,
+        0.0028 - k * 0.0004,
+        0.011,
+        5,
+      );
+      seg.rotateZ(-s * 0.25);
+      seg.rotateX(-0.35);
+      seg.translate(
+        s * (half - 0.006 + k * 0.0026),
+        0.103 + k * 0.0098,
+        0.09 - k * 0.0038,
+      );
+      parts.push(tinted(seg, k % 2 ? [0.95, 0.88, 0.8] : [0.6, 0.16, 0.1]));
     }
-    const tab = new THREE.ConeGeometry(0.003, 0.012, 4);
+    // Small fleshy tabs under the jaw.
+    const tab = new THREE.ConeGeometry(0.0028, 0.012, 4);
     tab.rotateX(Math.PI);
-    tab.translate(s * 0.012, 0.028, 0.11);
+    tab.translate(s * 0.01, 0.04, 0.12);
     parts.push(tinted(tab, [0.9, 0.8, 0.72]));
-    // Pelvic fins below, spotted.
+    // Pelvic fins below the pectorals, spotted.
     parts.push(
-      finFan(v(s * 0.01, 0.01, 0.04), [
-        v(s * 0.02, -0.03, 0.03),
-        v(s * 0.03, -0.045, -0.01),
-        v(s * 0.02, -0.03, -0.04),
+      finFan(v(s * 0.012, 0.012, 0.045), [
+        v(s * 0.022, -0.02, 0.04),
+        v(s * 0.034, -0.042, 0.0),
+        v(s * 0.03, -0.04, -0.035),
+        v(s * 0.016, -0.012, -0.05),
       ]),
     );
   }
   return merged(parts);
 }
-/** One fin ray (spine), its base at the origin, pointing up +y (1 unit long): finely banded. */
+/** One fin spine, its base at the origin, pointing up +y (1 unit long), its web trailing to -z. */
 export function rayGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [],
-    bands = 8;
+    bands = 9;
+  // A slim, tapering spine, banded maroon and cream.
   for (let k = 0; k < bands; k++) {
-    const r0 = 0.008 * (1 - k / bands) + 0.0015,
-      r1 = 0.008 * (1 - (k + 1) / bands) + 0.0015,
+    const r0 = 0.0032 * (1 - k / bands) + 0.0007,
+      r1 = 0.0032 * (1 - (k + 1) / bands) + 0.0007,
       seg = new THREE.CylinderGeometry(r1, r0, 1 / bands, 5, 1);
     seg.translate(0, (k + 0.5) / bands, 0);
-    parts.push(tinted(seg, k % 2 ? [0.96, 0.9, 0.82] : [0.62, 0.15, 0.09]));
+    parts.push(tinted(seg, k % 2 ? [0.96, 0.9, 0.82] : [0.55, 0.13, 0.08]));
   }
-  // The membrane trailing each ray: wider, from its base to two-thirds up, banded like the ray.
+  // The web: a narrow, lance-shaped membrane from near the base to three-quarters up (the tip
+  // stands free), widest a third of the way, banded with the spine.
   const web: number[] = [],
     tone: number[] = [],
-    steps = 6;
+    steps = 8,
+    width = (y: number) => 0.05 * Math.sin(Math.PI * Math.min(1, y / 0.75)),
+    droop = 0.015;
   for (let k = 0; k < steps; k++) {
-    const y0 = 0.04 + (k / steps) * 0.66,
-      y1 = 0.04 + ((k + 1) / steps) * 0.66,
-      w0 = 0.09 * (1 - k / steps),
-      w1 = 0.09 * (1 - (k + 1) / steps);
-    web.push(0, y0, 0, 0, y1, 0, 0, y0 - 0.03, -w0);
-    web.push(0, y1, 0, 0, y1 - 0.03, -w1, 0, y0 - 0.03, -w0);
-    const c = k % 2 ? [0.95, 0.85, 0.75] : [0.75, 0.32, 0.24];
+    const y0 = 0.03 + (k / steps) * 0.72,
+      y1 = 0.03 + ((k + 1) / steps) * 0.72,
+      w0 = width(y0),
+      w1 = width(y1);
+    for (const [a, b, c] of [
+      [
+        [0, y0, 0],
+        [0, y1, 0],
+        [0, y0 - droop, -w0],
+      ],
+      [
+        [0, y1, 0],
+        [0, y1 - droop, -w1],
+        [0, y0 - droop, -w0],
+      ],
+    ])
+      web.push(...a, ...b, ...c);
+    const c =
+      k % 2
+        ? [0.94, 0.84, 0.74]
+        : k % 4 === 0
+          ? [0.6, 0.2, 0.14]
+          : [0.72, 0.3, 0.22];
     for (let n = 0; n < 6; n++) tone.push(c[0], c[1], c[2]);
   }
   const membrane = new THREE.BufferGeometry();
@@ -308,6 +455,63 @@ export function rayGeometry(): THREE.BufferGeometry {
   membrane.computeVertexNormals();
   parts.push(membrane);
   return merged(parts);
+}
+const rayY = new THREE.Vector3(),
+  rayZ = new THREE.Vector3(),
+  rayX = new THREE.Vector3(),
+  rayOut = new THREE.Vector3(),
+  rayDown = new THREE.Vector3(0, -1, 0);
+/**
+ * Ray `r`'s pose on a lionfish facing +z (body units), as a matrix: spines 0..12 along the back,
+ * then the right and left pectoral fans. `spread` 0 is calm (spines laid back, the fans half open
+ * and drooping, as a hovering lionfish holds them); 1 is fully fanned at a threat. No allocation.
+ */
+export function lionRayPose(
+  r: number,
+  spread: number,
+  out: THREE.Matrix4,
+): THREE.Matrix4 {
+  const sp = Math.min(1, Math.max(0, spread));
+  if (r < LION.dorsal) {
+    // The spines rise from the back between the head and the soft dorsal; the front ones longest.
+    const u = r / (LION.dorsal - 1),
+      z = 0.075 - u * 0.135,
+      [top] = lionProfile(z),
+      lean = 1.0 - 0.7 * sp + 0.25 * u * (1 - sp),
+      tilt = (r % 2 ? 1 : -1) * (0.05 + 0.12 * sp),
+      len =
+        0.1 + 0.08 * Math.sin(Math.PI * Math.pow(1 - u, 1.4)) * (1 - 0.3 * u);
+    rayY.set(Math.sin(tilt), Math.cos(lean), -Math.sin(lean)).normalize();
+    rayZ.set(0, Math.sin(lean), Math.cos(lean));
+    rayZ.addScaledVector(rayY, -rayZ.dot(rayY)).normalize();
+    rayX.crossVectors(rayY, rayZ);
+    out.makeBasis(rayX, rayY.multiplyScalar(len), rayZ);
+    return out.setPosition(0, top - 0.004, z);
+  }
+  // The pectoral fans: every ray from one base, spread across the fan's plane, which swings out
+  // from along the flank (calm) to broadside, like wings (alarmed).
+  const j = (r - LION.dorsal) % LION.pectoral,
+    side = r < LION.dorsal + LION.pectoral ? 1 : -1,
+    u = j / (LION.pectoral - 1),
+    swing = 0.45 + 0.85 * sp,
+    from = -0.35 - 0.35 * sp,
+    to = 0.9 + 0.55 * sp,
+    psi = from + (to - from) * u,
+    len = 0.13 + 0.07 * Math.sin(Math.PI * (0.25 + 0.75 * u));
+  rayOut.set(side * Math.sin(swing), 0, -Math.cos(swing));
+  rayY
+    .copy(rayOut)
+    .multiplyScalar(Math.cos(psi))
+    .addScaledVector(rayDown, Math.sin(psi));
+  // The web trails toward the next ray down the fan: local -z along the fan's sweep.
+  rayZ
+    .copy(rayOut)
+    .multiplyScalar(Math.sin(psi))
+    .addScaledVector(rayDown, -Math.cos(psi));
+  rayX.crossVectors(rayY, rayZ);
+  const [, , half] = lionProfile(0.05);
+  out.makeBasis(rayX, rayY.multiplyScalar(len), rayZ);
+  return out.setPosition(side * (half - 0.003), 0.045, 0.05);
 }
 
 export class CaveVisitors {
@@ -736,45 +940,11 @@ export class CaveVisitors {
       );
       this.lionBodies.setMatrixAt(k, this.m);
       const sp = l.spread;
-      for (let r = 0; r < LION.rays; r++) {
-        let rx: number,
-          rz: number,
-          len: number,
-          ox: number,
-          oy: number,
-          oz: number;
-        if (r < LION.dorsal) {
-          // Dorsal spines along the back: swept back at rest, raised and splayed when alarmed.
-          const u = r / (LION.dorsal - 1);
-          ox = 0;
-          oy = 0.1;
-          oz = 0.075 - u * 0.15;
-          rx = -0.9 * (1 - sp) - 0.15 + 0.1 * u * sp;
-          rz = 0;
-          len = 0.11 + 0.06 * Math.sin(u * Math.PI);
-        } else {
-          // Pectoral fans either side: folded back along the body at rest, a wide fan when alarmed.
-          const j = (r - LION.dorsal) % LION.pectoral,
-            side = r < LION.dorsal + LION.pectoral ? 1 : -1,
-            u = j / (LION.pectoral - 1);
-          ox = side * 0.03;
-          oy = 0.04;
-          oz = 0.04;
-          rz = -side * (0.4 + (1.2 + 0.2 * u) * sp);
-          rx = -1.3 + (0.9 - u * 1.2) * sp - u * 0.25 * (1 - sp);
-          len = 0.14 + 0.04 * Math.sin(u * Math.PI);
-        }
-        this.e.set(rx, 0, rz, 'XZY');
-        this.m2.compose(
-          this.p.set(ox, oy, oz),
-          this.q.setFromEuler(this.e),
-          this.s.set(1, len, 1),
-        );
+      for (let r = 0; r < LION.rays; r++)
         this.lionRays.setMatrixAt(
           k * LION.rays + r,
-          this.m2.premultiply(this.m),
+          lionRayPose(r, sp, this.m2).premultiply(this.m),
         );
-      }
     });
     this.lionBodies.instanceMatrix.needsUpdate = true;
     this.lionRays.instanceMatrix.needsUpdate = true;

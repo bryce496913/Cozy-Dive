@@ -269,7 +269,7 @@ class Hammerhead(sc.Hammerhead):
     def eye_paint(self, p, col, r, iris=(0.03, 0.03, 0.035), ring=None):
         for e in self.eyes:
             d = np.linalg.norm((p - e) * np.array([1, 1, 0.5]), axis=1)
-            col = np.where((d < r * 1.45)[:, None], np.array([0.62, 0.6, 0.48]), col)
+            col = np.where((d < r * 1.45)[:, None], np.array(ring or (0.62, 0.6, 0.48)), col)
             col = np.where((d < r)[:, None], np.array(iris), col)
         return col
 

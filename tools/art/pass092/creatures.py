@@ -733,6 +733,28 @@ class WhaleShark(sc.WhaleShark):
         return self.eye_paint(p, col, 0.004 * L)
 
 
+class LeopardShark(c84.LeopardShark):
+    """V0.8 Pass 095: the playtest found the leopard shark washed out and almost see-through in the
+    kelp forest. The pale belly climbed halfway up the flanks and onto the fins, the saddles were
+    thin and faint, and a pale ring round each eye read as a hole. Now as the animal looks:
+    bronze-grey above, pale only beneath, with broad black saddles over the back that break into
+    bars down the flanks, black spots between them, and dark eyes."""
+
+    def colour(self, p, n, s, theta, yn, label):
+        L = self.length
+        col = self.shade(p, n, yn, label, np.array([0.4, 0.35, 0.28]), np.array([0.84, 0.81, 0.74]),
+                         low=-0.5, high=-0.85)
+        x = p[:, 0] / L
+        wob = 0.06 * noise3(p, 9, 211)
+        bands = np.cos((x + wob) * TAU * 6.0 + 0.6)
+        saddle = smooth(0.45, 0.7, bands) * smooth(-0.45, -0.1, yn)
+        flank = spots(p, 0.04 * L, 81, 0.42) * smooth(-0.55, -0.3, yn) * (1 - saddle)
+        mark = np.maximum(saddle * 0.9, flank * 0.85)
+        col = col * (1 - mark[:, None]) + np.array([0.1, 0.09, 0.08]) * mark[:, None]
+        col *= (1 + 0.05 * noise3(p, 5, 212))[:, None]
+        return self.eye_paint(p, col, 0.007 * L, ring=(0.2, 0.18, 0.15))
+
+
 # ------------------------------------------------------------------ build
 
 SPECIES = {
@@ -745,6 +767,9 @@ SPECIES = {
     'great-white-shark': (c84.GreatWhite, 'denticle', True),
     'reef-shark': (c84.ReefShark, 'denticle', True),
     'humpback-whale': (sc.Humpback, 'smooth', True),
+    # V0.8 Pass 095: the playtest found the leopard shark washed out and see-through
+    # in the kelp forest (it was still the Pass 078 build).
+    'leopard-shark': (LeopardShark, 'denticle', True),
 }
 
 if __name__ == '__main__':
