@@ -1,3 +1,4 @@
+import { FISH_RECOLOR } from '../../config/creatureLooks';
 import * as THREE from 'three';
 import type { AssetId } from '../../assets/AssetRegistry';
 import type { AssetLease, AssetLoader } from '../../assets/AssetLoader';
@@ -73,7 +74,7 @@ const LENGTH = {
   client: 0.6,
 } as const;
 /** The cleaner wrasse: the firefish's slender body, in its electric blue. */
-const CLEANER_BLUE = 0x2f74e0;
+const CLEANER_BLUE = FISH_RECOLOR['cleaner-wrasse'];
 /** The sunfish's scale on its authored 1.2 m body (about 2.2 m long, 3 m fin to fin). */
 const SUNFISH_SCALE = 1.8;
 

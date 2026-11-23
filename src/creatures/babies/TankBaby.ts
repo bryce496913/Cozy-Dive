@@ -1,5 +1,5 @@
 import type { Vec3 } from '../../config/world';
-import type { BabyDefinition } from '../../config/babies';
+import { miniatureGrowth, type BabyDefinition } from '../../config/babies';
 import type { PlayerPresence } from '../../fish/FishDiverReaction';
 import {
   BabyNavigation,
@@ -17,6 +17,11 @@ export const PLAN_BUDGET = 60;
 const COAST = 1.5;
 const v = (): Vec3 => ({ x: 0, y: 0, z: 0 });
 /** A small, fixed-step resident. Rendering, wall clocks, random sources and DOM stay outside. */
+/**
+ * The eagle ray's rest: it settles below this height (m), lying this flat (half-height, m),
+ * sinking and rising at this rate (m/s). All grow with the miniature.
+ */
+const REST = { below: 0.85, half: 0.045, rate: 0.12 } as const;
 export class TankBaby {
   readonly position = v();
   readonly velocity = v();
@@ -37,6 +42,13 @@ export class TankBaby {
   private restUntil = 0;
   private nextRest = 30;
   private settling = false;
+  /**
+   * V0.8 Pass 096: the miniature's growth (2 for the large animals), and its flat resting
+   * half-height (the eagle ray lies on the sand): both grow with its size.
+   */
+  private readonly growth: number;
+  private readonly restHalf: number;
+  private liftExtra = 0;
   private lifting = false;
   private readonly goal = v();
   private readonly target = v();
@@ -49,6 +61,8 @@ export class TankBaby {
     occupied?: readonly BabyNeighbour[],
   ) {
     this.radius = definition.radius;
+    this.growth = miniatureGrowth(definition.id);
+    this.restHalf = REST.half * this.growth;
     this.navigation = new BabyNavigation(definition, habitat);
     this.spawn.x = eye.x + 1.7;
     this.spawn.y = eye.y + 0.3;
@@ -72,7 +86,9 @@ export class TankBaby {
     if (definition.motion !== 'still') this.plan();
   }
   get halfHeight(): number {
-    return this.settling || this.lifting ? 0.045 : this.definition.halfHeight;
+    return this.settling || this.lifting
+      ? this.restHalf
+      : this.definition.halfHeight;
   }
   get finished(): boolean {
     return this.returning && this.opacity <= 0;
@@ -174,7 +190,7 @@ export class TankBaby {
         !this.settling &&
         !this.lifting &&
         this.time >= this.nextRest &&
-        p.y < 0.85 &&
+        p.y < REST.below * this.growth &&
         playerDistance > 3
       ) {
         this.settling = true;
@@ -194,17 +210,27 @@ export class TankBaby {
         this.velocity.x = this.velocity.y = this.velocity.z = 0;
         const floor = this.navigation.habitat.floor(p.x, p.z, d.radius),
           target = this.lifting
-            ? Math.max(0.35, floor + d.halfHeight + 0.12)
-            : floor + 0.045 + 0.020001;
+            ? Math.max(0.35, floor + d.halfHeight + 0.12) + this.liftExtra
+            : floor + this.restHalf + 0.020001;
         this.next.x = p.x;
         this.next.z = p.z;
         this.next.y =
-          p.y + Math.max(-0.12 * DT, Math.min(0.12 * DT, target - p.y));
-        if (this.navigation.clear(p, this.next, 0.045)) p.y = this.next.y;
+          p.y +
+          Math.max(
+            -REST.rate * this.growth * DT,
+            Math.min(REST.rate * this.growth * DT, target - p.y),
+          );
+        if (this.navigation.clear(p, this.next, this.restHalf))
+          p.y = this.next.y;
         this.resting = this.settling && Math.abs(p.y - target) < 0.005;
         if (this.lifting && Math.abs(p.y - target) < 0.005) {
-          this.lifting = false;
-          this.plan();
+          // V0.8 Pass 096: resume stroking only where the whole stroking body is clear (the lift
+          // is checked at its flat resting height); otherwise keep rising a little.
+          if (this.navigation.safe(p.x, p.y, p.z, d.halfHeight)) {
+            this.lifting = false;
+            this.liftExtra = 0;
+            this.plan();
+          } else this.liftExtra += 0.05;
         }
         return;
       }

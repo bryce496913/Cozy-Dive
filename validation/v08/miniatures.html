@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Cozy Diver — Miniature Comparison</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #1f5a6e;
+      }
+      canvas {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="c"></canvas>
+    <script type="module">
+      // V0.8 Pass 096: one animal, four views side by side, same orientation (three-quarter):
+      //   1. the wild model (framed to fill), 2. the aquarium miniature before Pass 096, 3. after,
+      //   4. the collection preview (the tank's own art, framed to fill).
+      // Views 2 and 3 share one camera distance and a 1 m bar, so their sizes compare directly.
+      // `?id=<tank creature id>`. Dev server only.
+      import * as THREE from 'three';
+      import { AssetLoader } from '/src/assets/AssetLoader.ts';
+      import {
+        MINIATURES_BEFORE_096,
+        TANK_BABIES,
+      } from '/src/config/babies.ts';
+      import { CRUISE_SPECIES } from '/src/config/creatures.ts';
+      import { acquireCollectionArt } from '/src/environment/TankCollectionArt.ts';
+      import { collectionShape } from '/src/environment/TankCollectionShapes.ts';
+      import { TANK_LIGHTING } from '/src/config/tankLighting.ts';
+      import { WATER_PROFILES } from '/src/config/waterProfiles.ts';
+      import { createLightRig } from '/src/rendering/atmosphere/lightRig.ts';
+      import { installDeepFog } from '/src/rendering/deepFog.ts';
+      installDeepFog();
+      const id = new URLSearchParams(location.search).get('id');
+      const W = innerWidth,
+        H = innerHeight;
+      const canvas = document.getElementById('c');
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+      renderer.setPixelRatio(1);
+      renderer.setSize(W, H, false);
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = TANK_LIGHTING.exposure;
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.setScissorTest(true);
+      const loader = new AssetLoader(undefined, undefined, renderer);
+      const p = WATER_PROFILES.tank;
+      const scenes = [0, 1, 2, 3].map(() => {
+        const s = new THREE.Scene();
+        s.background = new THREE.Color(p.water);
+        s.add(...createLightRig(p).lights);
+        return s;
+      });
+      const dir = new THREE.Vector3(0.75, 0.32, 0.58).normalize();
+      const centre = (o) => {
+        o.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(o),
+          c = box.getCenter(new THREE.Vector3());
+        o.position.sub(c);
+        return box.getSize(new THREE.Vector3());
+      };
+      const posed = async (d) => {
+        const art = await acquireCollectionArt(d, loader);
+        art.far.visible = false;
+        art.update(1, 0, 0);
+        const root = new THREE.Group();
+        root.scale.setScalar(d.scale);
+        root.add(art.model);
+        const holder = new THREE.Group();
+        holder.add(root);
+        return holder;
+      };
+      window.ready = (async () => {
+        const after = TANK_BABIES.find((b) => b.id === id),
+          before = MINIATURES_BEFORE_096.find((b) => b.id === id);
+        // 1. Wild: the registry asset at its wild scale, or the shared procedural factory.
+        let wild;
+        if (after.asset && !after.nodes) {
+          wild = (await loader.acquire(after.asset)).model;
+          wild.traverse((o) => {
+            if (o.name.includes('_LOD')) o.visible = false;
+            if (o.isMesh && after.tint !== undefined) {
+              o.material = o.material.clone();
+              o.material.color.multiply(new THREE.Color(after.tint));
+            }
+          });
+          const cruise = CRUISE_SPECIES[id];
+          if (cruise) wild.scale.setScalar(cruise.scale);
+        } else {
+          const art = await acquireCollectionArt({ ...after, size: 1 }, loader);
+          art.far.visible = false;
+          art.update(1, 0, 0);
+          wild = art.model;
+        }
+        const views = [wild, await posed(before), await posed(after)];
+        // 4. Preview: the same collection art, framed to fill.
+        const preview = await acquireCollectionArt(after, loader);
+        preview.far.visible = false;
+        preview.update(1, 0, 0);
+        views.push(preview.model);
+        const sizes = views.map(centre);
+        views.forEach((v, i) => scenes[i].add(v));
+        // The 1 m bar on the sand line of views 2 and 3.
+        for (const i of [1, 2]) {
+          const bar = new THREE.Mesh(
+            new THREE.BoxGeometry(1, 0.02, 0.02),
+            new THREE.MeshBasicMaterial({ color: 0xffe27a }),
+          );
+          bar.position.set(0, -Math.max(sizes[2].y, 0.2) * 1.3, 0);
+          scenes[i].add(bar);
+        }
+        const fit = (s) => Math.max(s.x, s.y, s.z) * 1.9 + 0.05;
+        // Views 2 and 3 share the after view's framing.
+        window.distances = [
+          fit(sizes[0]),
+          Math.max(fit(sizes[2]), 1.6),
+          Math.max(fit(sizes[2]), 1.6),
+          fit(sizes[3]),
+        ];
+        window.sizes = sizes.map((s) => [s.x, s.y, s.z]);
+      })();
+      window.shot = () => {
+        const cw = Math.floor(W / 4);
+        scenes.forEach((s, i) => {
+          const cam = new THREE.PerspectiveCamera(30, cw / H, 0.01, 500);
+          cam.position.copy(dir).multiplyScalar(window.distances[i]);
+          cam.lookAt(0, 0, 0);
+          renderer.setViewport(i * cw, 0, cw, H);
+          renderer.setScissor(i * cw, 0, cw, H);
+          renderer.render(s, cam);
+        });
+      };
+    </script>
+  </body>
+</html>

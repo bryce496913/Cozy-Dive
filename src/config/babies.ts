@@ -1,3 +1,4 @@
+import { CREATURE_LOOKS } from './creatureLooks';
 import { CRUISE_SPECIES, type BigCreatureId } from './creatures';
 import type { AssetId } from '../assets/AssetRegistry';
 
@@ -105,7 +106,8 @@ const littleShape = (
   speed: motion === 'crawl' || motion === 'still' ? 0.025 : 0.12,
   strokeHz: 0.25,
 });
-export const TANK_BABIES: readonly BabyDefinition[] = [
+/** The aquarium miniatures as they were before V0.8 Pass 096 (kept for comparison and tests). */
+export const MINIATURES_BEFORE_096: readonly BabyDefinition[] = [
   {
     id: 'blacktip-reef-shark',
     sighting: 'species:blacktip-reef-shark',
@@ -154,7 +156,7 @@ export const TANK_BABIES: readonly BabyDefinition[] = [
         s.id,
         `Little ${s.name.toLowerCase()}`,
         s.asset,
-        s.id === 'bat-ray' ? 0x484b51 : undefined,
+        s.id === 'bat-ray' ? CREATURE_LOOKS.batRayTint : undefined,
       ),
     ),
   littleAsset('great-white-shark', 'Great white pup', 'greatWhite'),
@@ -164,7 +166,12 @@ export const TANK_BABIES: readonly BabyDefinition[] = [
   littleAsset('western-gull', 'Little western gull', 'westernGull'),
   littleAsset('california-sea-lion', 'Sea lion pup', 'seaLion'),
   littleAsset('nurse-shark', 'Nurse shark pup', 'nurseShark'),
-  littleAsset('swell-shark', 'Little swell shark', 'nurseShark', 0xb08a5c),
+  littleAsset(
+    'swell-shark',
+    'Little swell shark',
+    'nurseShark',
+    CREATURE_LOOKS.swellSharkTint,
+  ),
   littleAsset('emperor-penguin', 'Little emperor penguin', 'emperorPenguin'),
   littleAsset('adelie-penguin', 'Little Adélie penguin', 'adeliePenguin'),
   littleAsset('weddell-seal', 'Little Weddell seal', 'weddellSeal'),
@@ -173,7 +180,7 @@ export const TANK_BABIES: readonly BabyDefinition[] = [
       'weddell-seal-pup',
       'Weddell seal pup',
       'harbourSeal',
-      0xabb6bd,
+      CREATURE_LOOKS.weddellPup.tint,
     ),
     size: 0.35,
   },
@@ -225,6 +232,38 @@ export const TANK_BABIES: readonly BabyDefinition[] = [
   littleShape('sea-angel', 'Sea angel', 'drift'),
   littleShape('christmas-tree-worm', 'Christmas tree worm', 'still'),
 ];
-export const BABY_CAP = TANK_BABIES.length;
+/**
+ * V0.8 Pass 096: the large animals' aquarium miniatures are twice the size they were displayed at
+ * (their own previous visible size, not the wild animal's): the whales, sharks, rays, turtle,
+ * seals, sea lion, penguins, gull, polar bear, otter, sunfish and colossal squid. Ordinary fish
+ * (the fish catalog) and the small invertebrates are unchanged. Every size-dependent value grows
+ * with them: the collision radius and half-height (which enclose both detail levels and every
+ * stroke), and through them the turning and wall clearance, the floor and resting height, and the
+ * avoidance of the swimmer, fish and each other.
+ */
+export const MINIATURE_GROWTH = 2;
+export function isLargeMiniature(d: BabyDefinition): boolean {
+  return (!!d.asset && d.id !== 'moray-eel') || d.id === 'colossal-squid';
+}
+function grown(d: BabyDefinition): BabyDefinition {
+  if (!isLargeMiniature(d)) return d;
+  const g = MINIATURE_GROWTH;
+  return {
+    ...d,
+    // Size-normalised animals grow by their target length; the rest by their scale.
+    ...(d.size !== undefined ? { size: d.size * g } : { scale: d.scale * g }),
+    radius: d.radius * g,
+    halfHeight: d.halfHeight * g,
+  };
+}
+export const TANK_BABIES: readonly BabyDefinition[] =
+  MINIATURES_BEFORE_096.map(grown);
+/** Displayed length scale of a miniature relative to before Pass 096 (2 for the large animals). */
+export function miniatureGrowth(id: TankCreatureId): number {
+  const d = TANK_BABIES.find((b) => b.id === id);
+  return d && isLargeMiniature(d) ? MINIATURE_GROWTH : 1;
+}
+/** How many animals a tank holds (was the roster length; fixed before the roster grows). */
+export const BABY_CAP = 61;
 export const babyDefinition = (id: TankCreatureId): BabyDefinition =>
   TANK_BABIES.find((b) => b.id === id)!;

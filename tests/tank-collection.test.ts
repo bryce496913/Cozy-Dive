@@ -1,3 +1,4 @@
+import { miniatureGrowth } from '../src/config/babies';
 import * as THREE from 'three';
 import { describe, expect, it, vi } from 'vitest';
 import { TANK_BABIES } from '../src/config/babies';
@@ -64,8 +65,9 @@ describe('the home tank collects every discovery', () => {
       const size = new THREE.Box3()
         .setFromObject(art.model)
         .getSize(new THREE.Vector3());
+      // V0.8 Pass 096: the colossal squid is a large miniature, at twice its old size.
       expect(Math.max(size.x, size.y, size.z), definition.label).toBeLessThan(
-        0.45,
+        0.45 * miniatureGrowth(definition.id),
       );
       const geometries = new Set<THREE.BufferGeometry>(),
         materials = new Set<THREE.Material>();

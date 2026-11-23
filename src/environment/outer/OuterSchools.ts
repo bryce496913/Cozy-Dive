@@ -1,3 +1,4 @@
+import { FISH_RECOLOR } from '../../config/creatureLooks';
 import * as THREE from 'three';
 import type { AssetId } from '../../assets/AssetRegistry';
 import type { AssetLease, AssetLoader } from '../../assets/AssetLoader';
@@ -37,18 +38,8 @@ const LIBRARY: Readonly<Partial<Record<SpeciesId, AssetId>>> = {
   'flashlight-fish': 'chromis',
   'antarctic-silverfish': 'chromis',
 };
-/** v0.6 Pass 032: species drawn on another's rig in a colour of their own. */
-const RECOLOR: Readonly<Partial<Record<SpeciesId, number>>> = {
-  garibaldi: 0xff6a12,
-  'glassy-sweeper': 0xc98a4e,
-  'kelp-bass': 0x7a6a45,
-  blacksmith: 0x3f4d5e,
-  senorita: 0xe0b23a,
-  soldierfish: 0xc23a22,
-  'flashlight-fish': 0x1d2126,
-  // v0.6 Pass 052: bright silver-blue.
-  'antarctic-silverfish': 0xc3d3dc,
-};
+/** v0.6 Pass 032: species drawn on another's rig, in a colour of their own (shared, V0.8 Pass 096). */
+const RECOLOR = FISH_RECOLOR;
 /** Outer schools switch to their light rigs at this many body lengths. */
 export const OUTER_FISH_DETAIL = 8;
 /**

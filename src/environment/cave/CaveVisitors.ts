@@ -1,3 +1,4 @@
+import { CREATURE_LOOKS } from '../../config/creatureLooks';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { AssetLoader } from '../../assets/AssetLoader';
@@ -813,7 +814,7 @@ export class CaveVisitors {
           0.4,
           'Swell shark',
           10,
-          0xb08a5c,
+          CREATURE_LOOKS.swellSharkTint,
         );
         this.swell = body;
         if (!(await body.ready) || this.disposed) throw Error('swell shark');
