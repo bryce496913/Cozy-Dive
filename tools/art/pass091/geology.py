@@ -42,7 +42,7 @@ for extra in ('tools/art/pass085', 'tools/art/pass083', 'tools/art/pass082', 'to
 import variants as v85  # noqa: E402  (also sets up the Pass 082 sculpt helpers)
 import reef_benchmark as rb  # noqa: E402
 from colony import decimate  # noqa: E402
-from mammals_sdf import ellipsoid, smin, smax  # noqa: E402
+from mammals_sdf import ellipsoid, noise3, smin, smax, smooth  # noqa: E402
 from skimage.measure import marching_cubes  # noqa: E402
 from scipy.ndimage import gaussian_filter  # noqa: E402
 
@@ -68,8 +68,8 @@ class Piece(v85.Piece):
         env = self.envelope(p)
         d = env.copy()
         band = (env > -0.2) & (env < 0.15)
-        if band.any() and self.porosity > 0:
-            d[band] = rb.porous(p[band], env[band], 900 + self.seed, self.porosity)
+        if band.any():
+            d[band] = weather(p[band], env[band], 900 + self.seed, self.porosity)
         for c, r in self.caves:
             d = smax(d, -ellipsoid(p, c, r), 0.06)
         return d
@@ -79,10 +79,41 @@ class Piece(v85.Piece):
         X, Y, Z = np.meshgrid(*axes, indexing='ij')
         p = np.stack([X.ravel(), Y.ravel(), Z.ravel()], 1)
         f = self.field(p).reshape(X.shape)
-        f = gaussian_filter(f, 0.35)
+        # Broad, continuous surfaces: a wider blur than the reef's live rock.
+        f = gaussian_filter(f, 0.9)
         v, fc, _, _ = marching_cubes(f, 0.0, spacing=(voxel,) * 3)
         v += np.array([a[0] for a in axes])
-        return v, fc[:, ::-1].copy()
+        return largest(v, fc[:, ::-1].copy())
+
+
+def largest(v, f):
+    """The rock's one connected body: no detached crumbs hovering beside it."""
+    from scipy.sparse import coo_matrix
+    from scipy.sparse.csgraph import connected_components
+    e = np.concatenate([f[:, [0, 1]], f[:, [1, 2]]])
+    g = coo_matrix((np.ones(len(e)), (e[:, 0], e[:, 1])), shape=(len(v), len(v)))
+    _, label = connected_components(g, directed=False)
+    keep = np.bincount(label[f[:, 0]]).argmax()
+    f = f[label[f[:, 0]] == keep]
+    used = np.unique(f)
+    remap = np.full(len(v), -1)
+    remap[used] = np.arange(len(used))
+    return v[used], remap[f]
+
+
+def weather(p, env, seed, strength):
+    """Weathered stone, not live reef: a few rounded solution pockets in clusters, faint bedding
+    and broad undulation. (The Pass 082 live-rock porosity, a dense field of fine holes, decimated
+    into crumpled spiky pits on rock this size.)"""
+    d = env.copy()
+    cluster = smooth(-0.1, 0.45, noise3(p, 0.8, seed))
+    pockets = rb.worley(p, 0.42, seed + 2) * 0.42 - 0.085 * cluster
+    d = smax(d, -pockets * strength, 0.09)
+    # Bedding: shallow grooves along the strata, wandering a little.
+    d += 0.009 * np.sin(p[:, 1] * 34 + 2.5 * noise3(p, 1.1, seed + 5))
+    # Broad undulation of the faces.
+    d += 0.03 * noise3(p, 1.6, seed + 3) + 0.008 * rb.ridged(p, 4.0, seed + 4, 2)
+    return d
 
 
 def kelp_rocks():
