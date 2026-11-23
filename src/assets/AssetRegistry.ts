@@ -48,6 +48,15 @@ export const ASSET_REGISTRY = {
     maxDimension: 26,
     requireMorphs: false,
   },
+  // V0.8 Pass 100: the aquarium's three rare miniatures (one canonical model each).
+  rareMinis: {
+    path: 'assets/models/creatures/rare-minis.glb',
+    requiredNodes: ['Pikachu_Nudibranch', 'Leaf_Sheep', 'Candy_Crab'],
+    minDimension: 0.4,
+    maxDimension: 1,
+    // A library of named animals (each carries its own Stroke morphs, checked by its tests).
+    requireMorphs: false,
+  },
   nudibranchs: {
     path: 'assets/models/creatures/nudibranchs.glb',
     requiredNodes: [

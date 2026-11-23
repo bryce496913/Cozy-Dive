@@ -44,7 +44,7 @@ describe('collection audit: identities', () => {
       coral: prefix('coral:'),
       plant: prefix('plant:'),
       place: prefix('place:'),
-    }).toEqual({ species: 83, coral: 5, plant: 3, place: 5 });
+    }).toEqual({ species: 86, coral: 5, plant: 3, place: 5 }); // Pass 100: +3 rare minis
   });
 
   it('lets every species, coral and plant sighting unlock something in the tank', () => {

@@ -46,9 +46,12 @@ export class UnderwaterScene implements WaterWorld {
   /** v0.6 Pass 059: see `setDetail`. */
   private detail: GraphicsDetail = 'full';
   readonly camera = new THREE.PerspectiveCamera(64, 1, 0.08, 80);
-  /** v0.4 Pass 023: the tank as a swimmable world (nothing in it counts as a new sighting). */
+  /** v0.4 Pass 023: the tank as a swimmable world. */
   readonly id = 'aquarium' as const;
-  readonly sightings: readonly SightCandidate[] = [];
+  /** V0.8 Pass 100: only its three rare miniatures count as sightings (once they are shown). */
+  get sightings(): readonly SightCandidate[] {
+    return this.aquarium.anchoredLife.hidden.rare.sightings;
+  }
   get bounds(): Bounds {
     return AQUARIUM;
   }
@@ -144,6 +147,8 @@ export class UnderwaterScene implements WaterWorld {
         if (this.disposed) return false;
         this.settleFrogfish();
         this.gripSeahorse();
+        await this.showRareMinis();
+        if (this.disposed) return false;
         // Sand drifted into the authored wreck wears the seabed's own sand (Pass 019).
         this.aquarium.ornaments.models
           .find((m) => m.kind === 'shipwreck')
@@ -228,6 +233,36 @@ export class UnderwaterScene implements WaterWorld {
       prefer,
     });
     if (found) s.rehome(found.grip, found.forward);
+  }
+  /**
+   * V0.8 Pass 100: show the rare miniatures (the same library the album and tank use), perch the
+   * candy crab on its coral's authored fingers and settle the nudibranch on the authored rock.
+   */
+  private async showRareMinis(): Promise<void> {
+    const rare = this.aquarium.anchoredLife.hidden.rare;
+    if (!(await rare.load(this.authored.loader))) return;
+    rare.perchCrab((plant) => {
+      const toWorld = new THREE.Matrix4();
+      if (
+        plant.species.id !== 'soft-coral' ||
+        !this.aquarium.plants.drawnMatrix(plant, toWorld)
+      )
+        return undefined;
+      return {
+        points: this.reef.plantTemplatePositions('soft-coral', plant.template),
+        toWorld,
+      };
+    });
+    const home = rare.homes.pikachu,
+      n = home.orientation,
+      down = new THREE.Vector3(-n.x, -n.y, -n.z),
+      origin = new THREE.Vector3(
+        home.position.x,
+        home.position.y,
+        home.position.z,
+      ).addScaledVector(down, -0.2);
+    const hit = this.reef.rockSurfaceDistance(origin, down, 0.5);
+    if (hit !== undefined) rare.settleNudibranch(hit - 0.2);
   }
   /** Seat the rock-top frogfish on the authored stone surface beneath its hull-top perch. */
   private settleFrogfish(): void {

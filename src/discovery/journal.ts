@@ -17,6 +17,12 @@ export interface SightCandidate {
     readonly z: number;
   };
   readonly radius: number;
+  /**
+   * V0.8 Pass 100: small, hidden animals are only seen up close and looked at directly: the
+   * farthest the eye may be (m, from its centre) and the view cone's half-angle (radians).
+   */
+  readonly reach?: number;
+  readonly cone?: number;
 }
 export interface Sighting {
   readonly id: string;
@@ -125,9 +131,12 @@ export class SightingTracker {
         dz = c.position.z - eye.z,
         d = Math.hypot(dx, dy, dz);
       if (
-        d - c.radius <= SIGHTING.distance &&
+        (c.reach === undefined
+          ? d - c.radius <= SIGHTING.distance
+          : d <= c.reach) &&
         (d < 1e-6 ||
-          (dx * forward.x + dy * forward.y + dz * forward.z) / d >= cosCone)
+          (dx * forward.x + dy * forward.y + dz * forward.z) / d >=
+            (c.cone === undefined ? cosCone : Math.cos(c.cone)))
       )
         inView.add(c.id);
     }

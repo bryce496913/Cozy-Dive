@@ -56,7 +56,8 @@ describe('collection registry: identities', () => {
         ALBUM_SECTIONS.map((s) => [s, sectionProgress(s, []).total]),
       ),
     ).toEqual({
-      aquarium: 9,
+      // V0.8 Pass 100: + the Pikachu nudibranch, leaf sheep and candy crab.
+      aquarium: 12,
       'outer-reef': 26,
       'kelp-forest': 14,
       shipwreck: 1,
@@ -103,9 +104,17 @@ describe('collection registry: identities', () => {
     expect(named(/frogfish/i).map((e) => e.id)).toEqual(['species:frogfish']);
     expect(named(/seahorse/i).map((e) => e.id)).toEqual(['species:seahorse']);
     expect(named(/octopus/i).map((e) => e.id)).toEqual(['species:octopus']);
-    // Nudibranchs: the Spanish shawl is the only named species (the tank's are generic scenery).
+    // Nudibranchs: the tank's five are generic scenery; the named species are the Spanish shawl
+    // and (V0.8 Pass 100) the Pikachu nudibranch, each once.
     expect(named(/nudibranch|spanish/i).map((e) => e.id)).toEqual([
+      'species:pikachu-nudibranch',
       'species:spanish-shawl',
+    ]);
+    expect(named(/leaf.sheep/i).map((e) => e.id)).toEqual([
+      'species:leaf-sheep',
+    ]);
+    expect(named(/candy.crab/i).map((e) => e.id)).toEqual([
+      'species:candy-crab',
     ]);
   });
 
