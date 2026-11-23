@@ -50,6 +50,8 @@ export class Interface {
   private noteTimer?: ReturnType<typeof setTimeout>;
   private readonly seenPanel: HTMLElement;
   private readonly seenToggle: HTMLButtonElement;
+  /** V0.8 Pass 099: opens the field album from the "Seen" entry point (set by the application). */
+  onAlbum?: () => void;
   private fatalMessage = '';
   /** v0.8 Pass 060: what "Beta feedback" shows (filled when opened). */
   private diagnostics: () => string = () => `Cozy Diver ${VERSION}`;
@@ -72,7 +74,7 @@ export class Interface {
         <div class="entry-actions"><div class="entry-choice"><button class="enter" id="office" aria-describedby="office-note">Enter the Office ${arrow}</button><small id="office-note">Walk around the room, then dive into the tank.</small></div><div class="entry-choice"><button class="enter" id="enter" aria-describedby="enter-note">Dive In ${arrow}</button><small id="enter-note">Go straight into the water.</small></div><button class="enter secondary" id="return-tank" hidden>Return to the tank ${arrow}</button></div>
         <p class="entry-note" id="entry-note">Walk with W A S D and look around with the mouse.</p>
         <p class="load-note" id="load-note" aria-live="polite" hidden>Settling the water…</p>
-        <button class="seen-toggle" id="seen-toggle" type="button" aria-expanded="false" aria-controls="seen-panel" hidden>Seen in the outer waters</button>
+        <button class="seen-toggle" id="seen-toggle" type="button" aria-expanded="false" aria-controls="seen-panel" hidden>Field album</button>
         <p class="status" id="status" role="status" aria-live="polite"></p>
         <button class="enter secondary reload" id="reload" type="button" hidden>Reload</button>
       </div><div class="scene-label"><span class="label-line"></span><span>THE SUNLIT REEF AQUARIUM<small>01 / FIRST DIVE</small></span></div></main>
@@ -205,7 +207,11 @@ export class Interface {
     };
     this.seenToggle.addEventListener(
       'click',
-      () => setSeenOpen(Boolean(this.seenPanel.hidden)),
+      () =>
+        // V0.8 Pass 099: the field album replaces the list (when the world has one to show).
+        this.onAlbum
+          ? this.onAlbum()
+          : setSeenOpen(Boolean(this.seenPanel.hidden)),
       { signal },
     );
     this.get('close-seen').addEventListener('click', () => setSeenOpen(false), {
