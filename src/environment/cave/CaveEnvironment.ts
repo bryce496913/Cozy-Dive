@@ -19,6 +19,7 @@ import {
 import { createRockGeometry, rockShape } from '../RockGeometry';
 import { rockCollider } from '../rockCollider';
 import { faceByBisection, mouthArch } from '../shared/MouthArch';
+import { PassageGlow } from '../shared/PassageGlow';
 import { seaFan } from '../wreck/WreckGrowth';
 import {
   strapAlgaGeometry,
@@ -34,6 +35,8 @@ import { caveFloor, chamberDepth, wallLumps, wallPoint } from './CaveTerrain';
  * ice world's dark basalt and read as a ring of blue-slate rubble in a pale cave.
  */
 const CAVE_MOUTH_STONE = [0.44, 0.4, 0.31] as const;
+/** V0.8 Pass 089: how far inside each tunnel its glow sits (m). */
+const PASSAGE_GLOW_INSET = 2.5;
 /** V0.8 Pass 086: whether a point is beyond the dome's wall (in the rock). */
 const inCaveRock = (x: number, y: number, z: number): boolean =>
   chamberDepth({ x, y, z }) >= 1;
@@ -128,6 +131,8 @@ export class CaveEnvironment {
   /** V0.7 Pass 079: the kelp under the skylight and by the entrance, swaying. */
   private readonly algae: SwayingAlgae[] = [];
   private disposed = false;
+  /** V0.8 Pass 089: light seeping in from beyond each tunnel, a landmark through the murk. */
+  private readonly passages: PassageGlow[] = [];
   /** The roof's height at the skylight (where the sunbeam starts). */
   readonly skylightTop: number;
   /** v0.6 Pass 035: the pool of light's resting colours, and its geometry (it shimmers). */
@@ -246,6 +251,28 @@ export class CaveEnvironment {
       tunnel,
       'Cave back tunnel arch',
     );
+    // V0.8 Pass 089: through the shared dense murk the tunnels are lost from mid-cavern, so a soft
+    // glow inside each marks the way: kelp-forest daylight up the entrance (the way home), cold
+    // blue water beyond the back tunnel.
+    this.passages.push(
+      new PassageGlow({
+        name: 'Cave entrance glow',
+        at: { x: 0, y: CAVE.tunnel.y, z: mouthZ + PASSAGE_GLOW_INSET },
+        facing: { x: 0, y: 0, z: -1 },
+        radius: CAVE.tunnel.radius * 0.95,
+        tint: [0.5, 0.78, 0.62],
+        peak: 0.35,
+      }),
+      new PassageGlow({
+        name: 'Cave back tunnel glow',
+        at: { x: back.x, y: back.y, z: backMouthZ() - PASSAGE_GLOW_INSET },
+        facing: { x: 0, y: 0, z: 1 },
+        radius: back.radius * 0.95,
+        tint: [0.55, 0.72, 0.95],
+        peak: 0.32,
+      }),
+    );
+    for (const p of this.passages) this.root.add(p.mesh);
     this.add(
       icicles(backTube, (backMouthZ() + back.endZ) / 2, back.endZ + 0.4, 30),
       tunnel,
@@ -934,6 +961,10 @@ export class CaveEnvironment {
     ];
   }
   /** The light shaft breathes slowly and the sponges pulse, on simulation time only. */
+  /** V0.8 Pass 089: fade the passage glows with the eye's distance (every frame, any motion setting). */
+  updatePassages(eye: THREE.Vector3Like): void {
+    for (const p of this.passages) p.update(eye);
+  }
   update(dt: number, active: boolean, reducedMotion: boolean): void {
     if (this.disposed || !active || reducedMotion || !(dt > 0)) return;
     this.time += Math.min(dt, 0.1);
@@ -969,6 +1000,7 @@ export class CaveEnvironment {
     this.disposed = true;
     this.root.removeFromParent();
     this.algae.forEach((a) => a.dispose());
+    this.passages.forEach((p) => p.dispose());
     this.root.clear();
     this.geometries.forEach((g) => g.dispose());
     this.materials.forEach((m) => m.dispose());

@@ -1,4 +1,5 @@
 import type { Bounds } from './world';
+import { DENSE_WATER_FOG } from './waterVisibility';
 import type { PassageFrame } from './passage';
 
 /**
@@ -42,8 +43,12 @@ export const WRECK = {
   shaft: { x: 0, z: -26.5, threshold: 25, top: 29 },
   /** Soft limits: easing begins `inset` m short of a wall (or `up` under the roof). */
   ease: { inset: 2.5, band: 1.2, up: 1.4 },
-  /** Dim, deep blue-green water: about 20 m of visibility. */
-  fog: 0.045,
+  /**
+   * V0.8 Pass 089: the outer reef's dense murk (`DENSE_WATER_FOG`), in the wreck's own dark
+   * blue-green water: the ship emerges from the gloom as the swimmer approaches. (Was 0.045,
+   * about 20 m of visibility.)
+   */
+  fog: DENSE_WATER_FOG,
   water: 0x12323c,
   /** Inside the wreck: how dark it gets (0..1), and how fast it darkens and clears (per s). */
   darkness: 0.9,

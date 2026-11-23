@@ -1,4 +1,5 @@
 import type { Bounds, Vec3 } from './world';
+import { DENSE_WATER_FOG } from './waterVisibility';
 
 /**
  * v0.4 Pass 023: the hidden passage. A crack in a rock outcrop against the tank's back glass leads
@@ -63,8 +64,9 @@ export const OUTER = {
    * Pass 026: distance fades to dark blue. Exponential fog towards the water colour, which matches the
    * water's horizon, so the blue past the reef's edge deepens with distance.
    */
-  // Visibility hotfix: about 96% haze by 14 m, concealing distant detail changes.
-  fog: 0.13,
+  // Visibility hotfix: about 96% haze by 14 m, concealing distant detail changes. V0.8 Pass 089:
+  // the approved open-ocean murk, now shared with the shipwreck and sea cave (the same value).
+  fog: DENSE_WATER_FOG,
   /**
    * Render range ends deep in the haze; the ocean background stays continuous. Playtest fix: 45 m
    * (was 25), well beyond the reef's furthest drawn pieces (30 m, the backdrop 36 m, plus their
@@ -308,9 +310,13 @@ export const CAVE = {
    * under the ice: its axis (x, y), radius, and where it ends (its threshold, z).
    */
   backTunnel: { x: -3, y: 3.2, radius: 1.45, endZ: -42 },
-  /** Dim blue-green water: about 12 m of visibility, darker than the kelp forest. */
-  // v0.6 Pass 036: clear enough to see the far walls and the roof all round.
-  fog: 0.042,
+  /**
+   * V0.8 Pass 089: the outer reef's dense murk (`DENSE_WATER_FOG`), in the cave's own dim
+   * blue-green water: the far walls and roof fall away into the water, so the cavern feels
+   * enclosed and larger than it is; the skylight's sunbeam and its pool are not fogged, so they
+   * stay the landmark at its heart. (Was 0.042, clear enough to see the far walls.)
+   */
+  fog: DENSE_WATER_FOG,
   water: 0x1a4550,
 } as const;
 /** v0.6 Pass 046: the threshold at the end of the cave's back tunnel, to the waters under the ice. */

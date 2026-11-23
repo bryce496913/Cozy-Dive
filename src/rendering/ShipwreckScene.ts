@@ -257,6 +257,7 @@ export class ShipwreckScene implements WaterWorld {
     if (this.ready && player)
       this.life?.update(dt, active, reducedMotion, player, this.camera);
     this.snow.update(dt, active, reducedMotion, this.camera.position);
+    this.environment.updatePassages(this.camera.position);
     this.renderer.render(this.scene, this.camera);
   }
   dispose(): void {
