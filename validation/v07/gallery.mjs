@@ -31,7 +31,9 @@ try {
   for (const [name, yaw, pitch] of [
     ['side', 0],
     ['three-quarter', 0.7],
-    ...(set !== 'fish' ? [['top', 0.35, 1.0]] : []),
+    // V0.8 Pass 090: the fish set also renders head-on and from above.
+    ...(set === 'fish' ? [['front', Math.PI / 2]] : []),
+    ['top', 0.35, 1.0],
   ]) {
     const stats = await page.evaluate(
       ([y, p]) => window.view(y, p ?? 0),
@@ -40,7 +42,7 @@ try {
     await page.screenshot({ path: path.join(output, `gallery-${name}.png`) });
     console.log(name, JSON.stringify(stats));
   }
-  if (set !== 'fish') {
+  {
     await page.goto(`${url}/validation/v07/gallery.html?set=${set}&stroke=1`);
     await page.waitForFunction(() => window.ready);
     await page.evaluate(() => window.ready);
