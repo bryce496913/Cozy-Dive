@@ -419,6 +419,20 @@ function skipLegacyHullDraws(rand: () => number): void {
       rand();
     }
 }
+/**
+ * V0.8 Pass 095: below the counter the lofted sides stopped short of the centreline (each row's
+ * last station kept part of its breadth), so the stern was open between them: a hole up into the
+ * hull, seen from astern. Each undercut row now runs fine into the sternpost over its last
+ * `STERN_RUN` metres, closing the stern without moving it; rows at the counter, which already
+ * close, are left as they were. The hull's collision is unchanged (the run lies inside it).
+ */
+const STERN_RUN = 1.4;
+export function sternRun(z: number, end: number): number {
+  const under = Math.min(1, Math.max(0, (SHIP.sternZ - end) / 0.3)),
+    t = Math.min(1, Math.max(0, (end - z) / STERN_RUN)),
+    fine = Math.sqrt(t * (2 - t));
+  return 1 - under * (1 - fine);
+}
 /** The hull plating, keel to rail, lofted section by section, open where it has rusted through. */
 function hullShell(rand: () => number): THREE.BufferGeometry {
   skipLegacyHullDraws(rand);
@@ -436,7 +450,7 @@ function hullShell(rand: () => number): THREE.BufferGeometry {
       z = start + (end - start) * u,
       top = railAt(z),
       yy = Math.min(y, top),
-      x = hullX(z, yy);
+      x = hullX(z, yy) * sternRun(z, end);
     return new THREE.Vector3(
       side * Math.max(0, x - (x > 0.3 ? hullInset(yy, z) : 0)),
       yy,
@@ -1265,13 +1279,27 @@ function fittings(): THREE.BufferGeometry {
   );
   // Rudder and propeller under the counter.
   // In the aperture under the counter: the screw just aft of the hull's lower end, then the rudder.
-  const post = SHIP.sternZ - 1.6;
-  const rudder = new THREE.BoxGeometry(0.16, 3.2, 1.5);
-  rudder.translate(0, 2.0, post + 1.05);
+  // V0.8 Pass 095: the rudder hung over the screw (its blades cut into its leading edge) and its
+  // top floated under the counter. It now stands aft of the blades with clearance, hung on a stock
+  // that rises into the counter.
+  const rudder = new THREE.BoxGeometry(0.16, 3.2, RUDDER.chord);
+  rudder.translate(0, 2.0, RUDDER.z);
   parts.push(painted(rudder, weathered(BOTTOM)));
+  const stock = new THREE.CylinderGeometry(
+    0.11,
+    0.11,
+    RUDDER.stockTop - 3.4,
+    10,
+  );
+  stock.translate(
+    0,
+    (RUDDER.stockTop + 3.4) / 2,
+    RUDDER.z - RUDDER.chord / 2 + 0.15,
+  );
+  parts.push(painted(stock, weathered(BOTTOM)));
   const hub = new THREE.CylinderGeometry(0.3, 0.38, 0.6, 14);
   hub.rotateX(Math.PI / 2);
-  hub.translate(0, 1.7, post + 0.25);
+  hub.translate(0, SCREW.y, SCREW.z);
   parts.push(painted(hub, () => [0.4, 0.33, 0.2]));
   for (let i = 0; i < 4; i++) {
     const blade = new THREE.SphereGeometry(1, 10, 6);
@@ -1279,11 +1307,16 @@ function fittings(): THREE.BufferGeometry {
     blade.translate(0, 0.85, 0);
     blade.rotateY(0.45);
     blade.rotateZ((i / 4) * Math.PI * 2 + 0.3);
-    blade.translate(0, 1.7, post + 0.25);
+    blade.translate(0, SCREW.y, SCREW.z);
     parts.push(painted(blade, () => [0.42, 0.34, 0.2]));
   }
   return merge(parts);
 }
+
+/** V0.8 Pass 095: the rudder, aft of the screw (centre z, chord), and the top of its stock. */
+export const RUDDER = { z: SHIP.sternZ - 0.15, chord: 1.2, stockTop: 5.6 };
+/** The screw: its hub's centre (z), and the blades' reach from the shaft. */
+export const SCREW = { z: SHIP.sternZ - 1.35, y: 1.7, reach: 1.7 };
 
 export class ShipwreckModel {
   readonly root = new THREE.Group();

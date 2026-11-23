@@ -114,6 +114,39 @@ export function wallRockLayout(): Boulder[] {
   return out;
 }
 
+/**
+ * V0.8 Pass 095: drop the north wall's triangles over the tunnel's mouth (a little wider than the
+ * tunnel, so the stacked rock frames the opening instead of covering it).
+ */
+export function openTunnelMouth(g: THREE.BufferGeometry): void {
+  const p = g.getAttribute('position'),
+    index = g.getIndex()!,
+    keep: number[] = [],
+    t = KELP.tunnel,
+    open = t.radius + 0.35;
+  // Snap every vertex inside the opening onto its rim, so the cut follows the circle (dropping
+  // whole grid cells left a sawtooth crown); the covered triangles then collapse onto the rim.
+  for (let i = 0; i < p.count; i++) {
+    const dx = p.getX(i),
+      dy = p.getY(i) - t.y,
+      d = Math.hypot(dx, dy);
+    if (d >= open) continue;
+    const k = d > 1e-6 ? open / d : 0;
+    p.setXY(i, dx * k + (k ? 0 : open), t.y + dy * k);
+  }
+  for (let i = 0; i < index.count; i += 3) {
+    let x = 0,
+      y = 0;
+    for (let k = 0; k < 3; k++) {
+      x += p.getX(index.getX(i + k)) / 3;
+      y += p.getY(index.getX(i + k)) / 3;
+    }
+    if (Math.hypot(x, y - t.y) < open - 1e-3) continue;
+    keep.push(index.getX(i), index.getX(i + 1), index.getX(i + 2));
+  }
+  g.setIndex(keep);
+}
+
 /** v0.6 Pass 052B: how far inside the side and far walls' line their colliders start (m). */
 export const KELP_WALL_FACE = 1.2;
 
@@ -552,6 +585,15 @@ export class KelpEnvironment {
       colors.push(tone * 0.95, tone * 0.82, tone * 0.78);
     }
     g.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    // V0.8 Pass 095: the ring faces +z, away from the forest. Since the wall took the shared
+    // (front-sided) rock material, it was culled from inside the forest, leaving the tunnel's
+    // tube floating in open water. Wind it to face the forest (-z).
+    const index = g.getIndex()!;
+    for (let i = 0; i < index.count; i += 3) {
+      const b = index.getX(i + 1);
+      index.setX(i + 1, index.getX(i + 2));
+      index.setX(i + 2, b);
+    }
     g.computeVertexNormals();
     return g;
   }
@@ -630,6 +672,8 @@ export class KelpEnvironment {
       [-w.x, near, -w.x, w.farZ - 2, 1, 0],
       [w.x, w.farZ - 2, w.x, near, -1, 0],
       [-w.x - 2, w.farZ, w.x + 2, w.farZ, 0, 1],
+      // V0.8 Pass 095: the north wall too (it was the plain ring alone), opened round the tunnel.
+      [w.x + 2, KELP.tunnel.wallZ, -w.x - 2, KELP.tunnel.wallZ, 0, -1],
     ];
     for (const [x0, z0, x1, z1, nx, nz] of lines) {
       const length = Math.hypot(x1 - x0, z1 - z0),
@@ -672,6 +716,7 @@ export class KelpEnvironment {
       }
       g.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
       g.deleteAttribute('uv');
+      if (nz < 0) openTunnelMouth(g);
       faces.push(g);
     }
     const merged = mergeGeometries(faces, false)!;
@@ -704,8 +749,9 @@ export class KelpEnvironment {
     const b = KELP.bounds,
       R = KELP.tunnel.radius,
       y = KELP.tunnel.y,
-      z0 = KELP.tunnel.wallZ,
-      z1 = z0 + 1.4;
+      // V0.8 Pass 095: from just inside the north wall's rocky face, like the other walls.
+      z0 = KELP.tunnel.wallZ - KELP_WALL_FACE,
+      z1 = KELP.tunnel.wallZ + 1.4;
     // v0.6 Pass 052B: the side and far walls are solid just inside their rocky face, so the rock
     // itself stops the swimmer (the easing now starts only a few metres short of it).
     const w = KELP.walls,

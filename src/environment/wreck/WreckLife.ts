@@ -352,7 +352,9 @@ export class WreckLife {
       this.restingShark.yaw = 1.2;
     }
     this.turtle = new LoopSwim(around(8.5, 21, 9.8, 12), 0.35, 0.25, 0.1);
-    Object.assign(this.sternGrouper.position, at(0, 3.0, SHIP.sternZ - 0.4));
+    // V0.8 Pass 095: beside the rudder, still in the shade under the counter (it hung on the
+    // centreline, inside the rudder blade).
+    Object.assign(this.sternGrouper.position, at(1.5, 2.4, SHIP.sternZ - 0.2));
     this.sternGrouper.yaw = -Math.PI / 2 + 0.5;
     Object.assign(
       this.sleeper.position,

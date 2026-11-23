@@ -1697,13 +1697,13 @@
   {
     "id": "leopard-shark",
     "file": "assets/models/creatures/leopard-shark.glb",
-    "sha256": "d802730dd177a39485d92e11bc25f3e69d5347177159c25c54b868bb4cd024f8",
+    "sha256": "12ea763df91fedd6a8e89b12dd21dcad9d89367613b2056b47cf9af7ae61e611",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
-    "bytes": 688704,
+    "bytes": 700844,
     "visualPrimitives": 2,
-    "visualTriangles": 8997,
+    "visualTriangles": 9296,
     "collisionTriangles": 0,
     "materials": 1,
     "images": [
@@ -1732,7 +1732,7 @@
         "encodedBytes": 36573
       }
     ],
-    "geometryAccessorBytes": 108744,
+    "geometryAccessorBytes": 112392,
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"

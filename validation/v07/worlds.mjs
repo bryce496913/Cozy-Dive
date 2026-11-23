@@ -30,6 +30,8 @@ export const WORLD_VIEWS = {
     ['kelp-blades-close', 'close', [2, 7, -30], [4, 8, -33]],
     ['kelp-holdfast-close', 'close', [-3, 1.8, -28], [-4.5, 0.4, -31]],
     ['kelp-forest-wide', 'swimming', [10, 4, -18], [-6, 6, -40]],
+    // V0.8 Pass 095: looking back north at the wall the arrival tunnel opens through.
+    ['kelp-north-wall', 'medium', [8, 5, -15], [5, 5, -8]],
   ],
   cave: [
     ['cave-cavern', 'swimming', [0, 5, -14], [0, 3, -26]],
@@ -43,6 +45,9 @@ export const WORLD_VIEWS = {
     ['cave-pillar', 'swimming', [-4, 5, -17], [-15, 5, -24]],
     // V0.8 Pass 089: from mid-cavern back toward the entrance tunnel (the way home).
     ['cave-return-tunnel', 'swimming', [0, 4, -22], [0, 3, -9]],
+    // V0.8 Pass 095: the lionfish on its boulder, from the side and head-on.
+    ['cave-lionfish-side', 'close', [7.13, 1.65, -34.15], [6.5, 1.55, -33.5]],
+    ['cave-lionfish-front', 'close', [7.15, 1.62, -32.87], [6.5, 1.55, -33.5]],
   ],
   ice: [
     ['ice-open-water', 'swimming', [0, 6, -16], [0, 4, -30]],
@@ -73,6 +78,10 @@ export const WORLD_VIEWS = {
     ['wreck-bridge', 'medium', [6, 11, -12.5], [0, 8.6, -19.5]],
     // V0.8 Pass 089: from beside the deckhouse up toward the shaft in the roof (the way home).
     ['wreck-return-shaft', 'medium', [8, 10, -16], [0, 22, -26.5]],
+    // V0.8 Pass 095: under the counter, from astern and from the quarter (the playtest found a hole
+    // there, and the screw and a fish caught in the rudder).
+    ['wreck-stern-close', 'close', [0.4, 2.2, -10.5], [0, 2, -16]],
+    ['wreck-stern-quarter', 'close', [3.2, 1.6, -12], [0, 2, -15.6]],
   ],
 };
 const browser = await chromium.launch({
