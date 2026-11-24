@@ -107,6 +107,21 @@ describe('outer reef rare miniatures: homes', () => {
           );
         }
     }
+    // The frogfish and octopus are on open sand, clear of every rock and coral as drawn.
+    for (const k of ['frogfish', 'mimic'] as const)
+      for (const o of placements)
+        if (
+          ['rock', 'backdrop', 'massive', 'branching', 'plate'].includes(
+            o.family,
+          )
+        )
+          expect(
+            Math.hypot(
+              o.position.x - homes[k].position.x,
+              o.position.z - homes[k].position.z,
+            ),
+            k,
+          ).toBeGreaterThan(0.8 + 1.1 * Math.max(o.scale.x, o.scale.z));
     const d = REEF_MINI_TUNING.dayOctopus;
     expect(
       Math.hypot(homes.mimic.position.x - d.x, homes.mimic.position.z - d.z),

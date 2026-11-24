@@ -149,7 +149,7 @@ try {
         a.state.velocity.x = a.state.velocity.y = a.state.velocity.z = 0;
         a.state.neutralDepth = eye.y;
         const dx = c.x - eye.x,
-          dy = c.y + 0.04 - eye.y,
+          dy = c.y + 0.05 - eye.y,
           dz = c.z - eye.z,
           d = Math.hypot(dx, dy, dz);
         a.controls.yaw = a.controls.targetYaw = Math.atan2(-dx, -dz);
@@ -183,7 +183,7 @@ try {
     }
     report.sighted[kind].seen = seen;
     await shot(`02-${kind}-found`);
-    await lookAt(kind, 0.3);
+    await lookAt(kind, 0.45);
     await step(2);
     await shot(`03-${kind}-close`);
     assert(seen, `${kind} was not sighted from its viewing spot`);

@@ -156,14 +156,35 @@ export function reefMiniHomes(
       }
     return undefined;
   };
+  /**
+   * Open sand: clear of every rock and coral by more than its own drawn size (their hulls are
+   * smaller than the rock as drawn), not under the reef and not screened by seagrass.
+   */
+  const solid = placements.filter(
+    (q) =>
+      q.family === 'rock' ||
+      q.family === 'backdrop' ||
+      q.family === 'massive' ||
+      q.family === 'branching' ||
+      q.family === 'plate',
+  );
+  const open = (q: { x: number; z: number }) => {
+    const y = seabedHeight(q.x, q.z);
+    return (
+      !screened(q) &&
+      solid.every(
+        (o) => flat(o.position, q) > 0.8 + 1.1 * Math.max(o.scale.x, o.scale.z),
+      ) &&
+      ![0.05, 0.5, 1.2].some((h) => blocked(q.x, y + h, q.z))
+    );
+  };
   /** Open sand stepping out from `p` (towards the open water), within a few metres. */
-  const sandBeside = (p: Readonly<Vec3>) => {
-    for (let r = 0.9; r < 4; r += 0.25) {
-      const q = out(p, r);
-      const y = seabedHeight(q.x, q.z) + 0.05;
-      if (!blocked(q.x, y, q.z) && !blocked(q.x + 0.25, y, q.z) && !screened(q))
-        return q;
-    }
+  const sandBeside = (p: Readonly<Vec3>, from = 0.9) => {
+    for (const angle of [0, 0.7, -0.7, 1.4, -1.4])
+      for (let r = from; r < 4; r += 0.25) {
+        const q = out(p, r, angle);
+        if (open(q)) return q;
+      }
     return undefined;
   };
   /**
@@ -215,10 +236,12 @@ export function reefMiniHomes(
     yaw: p.yaw,
   }));
   // Hairy frogfish: on the sand beside rubble.
-  const frogfish = pick('frogfish', ['rubble', 'shell'], 0.6, (p) => ({
-    at: onSand(out(p.position, 0.35 * Math.max(p.scale.x, 0.6))),
-    yaw: 0.4,
-  }));
+  const frogfish = pick('frogfish', ['rubble', 'shell'], 0.6, (p) => {
+    const sand = sandBeside(p.position, 0.3);
+    return sand && flat(sand, p.position) < 1.2
+      ? { at: onSand(sand), yaw: 0.4 }
+      : undefined;
+  });
   // Mimic octopus: on open sand at the edge of a seagrass patch, far from the day octopus.
   const d = t.dayOctopus;
   const mimic = pick('mimic', ['grass', 'blade'], 0.8, (p) => {
