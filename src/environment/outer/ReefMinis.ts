@@ -98,106 +98,134 @@ const flat = (a: { x: number; z: number }, b: { x: number; z: number }) =>
  */
 export function reefMiniHomes(
   placements: readonly ReefPlacement[],
+  /** Whether a point is inside the reef's solid hulls (the scene's collision; none if absent). */
+  blocked: (x: number, y: number, z: number) => boolean = () => false,
 ): Readonly<Record<ReefMiniKind, ReefMiniHome>> {
   const t = REEF_MINI_TUNING,
     taken: Vec3[] = [];
-  const pick = (
-    kind: ReefMiniKind,
-    families: readonly ReefPlacement['family'][],
-    accept: (p: ReefPlacement) => boolean = () => true,
-  ) => {
-    const a = t.anchors[kind];
-    let best = -1;
-    placements.forEach((p, i) => {
-      if (
-        !families.includes(p.family) ||
-        !inside(p.position) ||
-        !accept(p) ||
-        taken.some((q) => flat(q, p.position) < t.spacing)
-      )
-        return;
-      if (best < 0 || flat(p.position, a) < flat(placements[best].position, a))
-        best = i;
-    });
-    if (best < 0) throw Error(`No reef home for the ${kind}`);
-    return best;
-  };
+  /** Plants that would screen an animal on the sand from view. */
+  const screened = (p: { x: number; z: number }) =>
+    placements.some(
+      (q) =>
+        (q.family === 'grass' || q.family === 'blade') &&
+        flat(q.position, p) < 1.2,
+    );
   // Towards the open water (the tunnel side, +z), where the swimmer comes from.
   const out = (p: Readonly<Vec3>, r: number, angle = 0) => ({
     x: p.x + Math.sin(angle) * r,
     z: p.z + Math.cos(angle) * r,
   });
-  const home = (
-    kind: ReefMiniKind,
-    index: number,
-    at: { x: number; y: number; z: number },
-    yaw: number,
-    lift: number,
-  ): ReefMiniHome => {
-    taken.push(at);
-    const p = placements[index];
-    return {
-      kind,
-      source: { family: p.family, index },
-      position: at,
-      yaw,
-      view: { x: at.x, y: at.y + lift, z: at.z + 1.1 },
-    };
+  /**
+   * A clear spot to look from: the first of eight directions round the animal (towards the
+   * open water first) where the reef stays well below the eye along the whole line of sight.
+   */
+  const viewOf = (at: Readonly<Vec3>, lift: number): Vec3 | undefined => {
+    // Lower and nearer first; the eye may rise (looking down into the reef) while the animal
+    // stays well within reach.
+    for (const [d, rise] of [
+      [1.1, 0],
+      [1.5, 0],
+      [1.1, 0.5],
+      [1.5, 0.5],
+      [1.2, 1],
+      [1.4, 1.4],
+    ] as const)
+      for (const a of [0, 0.8, -0.8, 1.6, -1.6, 2.4, -2.4, Math.PI]) {
+        const v = {
+          x: at.x + Math.sin(a) * d,
+          y: at.y + lift + rise,
+          z: at.z + Math.cos(a) * d,
+        };
+        if (Math.hypot(d, lift + rise) > t.reach - 0.3) continue;
+        if (!inside(v)) continue;
+        let clear = true;
+        for (const u of [0.35, 0.6, 0.85, 1]) {
+          const x = at.x + (v.x - at.x) * u,
+            z = at.z + (v.z - at.z) * u,
+            y = at.y + (v.y - at.y) * u;
+          // The line of sight through open water, and room for the swimmer at the eye.
+          if (
+            blocked(x, y, z) ||
+            (u === 1 && (blocked(x, y - 0.3, z) || blocked(x, y + 0.3, z)))
+          ) {
+            clear = false;
+            break;
+          }
+        }
+        if (clear) return v;
+      }
+    return undefined;
   };
-  // Harlequin shrimp: on the sand at the foot of a plate coral that stands on the seabed, in the
-  // shade under its shelf.
-  const plateIndex = pick(
-      'harlequin',
-      ['plate'],
-      (p) => p.position.y - seabedHeight(p.position.x, p.position.z) < 0.3,
-    ),
-    plate = placements[plateIndex],
-    under = out(plate.position, 0.28 * plate.scale.x);
-  const harlequin = home(
-    'harlequin',
-    plateIndex,
-    { ...under, y: seabedHeight(under.x, under.z) },
-    Math.PI,
-    0.55,
-  );
+  /** Open sand stepping out from `p` (towards the open water), within a few metres. */
+  const sandBeside = (p: Readonly<Vec3>) => {
+    for (let r = 0.9; r < 4; r += 0.25) {
+      const q = out(p, r);
+      const y = seabedHeight(q.x, q.z) + 0.05;
+      if (!blocked(q.x, y, q.z) && !blocked(q.x + 0.25, y, q.z) && !screened(q))
+        return q;
+    }
+    return undefined;
+  };
+  /**
+   * The home by the suitable piece nearest the kind's anchor: `locate` places the animal by a
+   * piece (or rejects it); a home also needs a clear viewing spot and room from the others.
+   */
+  const pick = (
+    kind: ReefMiniKind,
+    families: readonly ReefPlacement['family'][],
+    lift: number,
+    locate: (p: ReefPlacement) => { at: Vec3; yaw: number } | undefined,
+  ): ReefMiniHome => {
+    const a = t.anchors[kind];
+    const order = placements
+      .map((p, index) => ({ p, index }))
+      .filter(({ p }) => families.includes(p.family) && inside(p.position))
+      .sort((x, y) => flat(x.p.position, a) - flat(y.p.position, a));
+    for (const { p, index } of order) {
+      const found = locate(p);
+      if (!found || taken.some((q) => flat(q, found.at) < t.spacing)) continue;
+      const view = viewOf(found.at, lift);
+      if (!view) continue;
+      taken.push(found.at);
+      return {
+        kind,
+        source: { family: p.family, index },
+        position: found.at,
+        yaw: found.yaw,
+        view,
+      };
+    }
+    throw Error(`No reef home for the ${kind}`);
+  };
+  const onSand = (q: { x: number; z: number }) => ({
+    ...q,
+    y: seabedHeight(q.x, q.z),
+  });
+  // Harlequin shrimp: on the rock head a plate coral grows from, close in under its shelf (the
+  // plates all stand on rocks), not screened by seagrass.
+  const harlequin = pick('harlequin', ['plate'], 0.55, (p) => {
+    const under = out(p.position, 0.16 * p.scale.x);
+    return screened(under)
+      ? undefined
+      : { at: { ...under, y: p.position.y }, yaw: Math.PI };
+  });
   // Ghost pipefish: in front of a sea fan's face, half-way up, head down.
-  const fanIndex = pick('pipefish', ['fan']),
-    fan = placements[fanIndex],
-    face = out(fan.position, 0.14, fan.yaw);
-  const pipefish = home(
-    'pipefish',
-    fanIndex,
-    { ...face, y: fan.position.y + 0.45 * fan.scale.y },
-    fan.yaw,
-    0.15,
-  );
+  const pipefish = pick('pipefish', ['fan'], 0.15, (p) => ({
+    at: { ...out(p.position, 0.14, p.yaw), y: p.position.y + 0.45 * p.scale.y },
+    yaw: p.yaw,
+  }));
   // Hairy frogfish: on the sand beside rubble.
-  const rubbleIndex = pick('frogfish', ['rubble', 'shell']),
-    rubble = placements[rubbleIndex],
-    beside = out(rubble.position, 0.35 * Math.max(rubble.scale.x, 0.6));
-  const frogfish = home(
-    'frogfish',
-    rubbleIndex,
-    { ...beside, y: seabedHeight(beside.x, beside.z) },
-    0.4,
-    0.6,
-  );
+  const frogfish = pick('frogfish', ['rubble', 'shell'], 0.6, (p) => ({
+    at: onSand(out(p.position, 0.35 * Math.max(p.scale.x, 0.6))),
+    yaw: 0.4,
+  }));
   // Mimic octopus: on open sand at the edge of a seagrass patch, far from the day octopus.
-  const d = t.dayOctopus,
-    grassIndex = pick(
-      'mimic',
-      ['grass', 'blade'],
-      (p) => flat(p.position, d) > d.clearance,
-    ),
-    grass = placements[grassIndex],
-    margin = out(grass.position, 0.9 * Math.max(grass.scale.x, 0.8));
-  const mimic = home(
-    'mimic',
-    grassIndex,
-    { ...margin, y: seabedHeight(margin.x, margin.z) },
-    -0.6,
-    0.8,
-  );
+  const d = t.dayOctopus;
+  const mimic = pick('mimic', ['grass', 'blade'], 0.8, (p) => {
+    const sand =
+      flat(p.position, d) > d.clearance ? sandBeside(p.position) : undefined;
+    return sand ? { at: onSand(sand), yaw: -0.6 } : undefined;
+  });
   return { harlequin, pipefish, frogfish, mimic };
 }
 
@@ -250,9 +278,12 @@ export class ReefMinis {
     { left: number; right: number; flat?: number; lion?: number }
   >();
 
-  constructor(placements: readonly ReefPlacement[]) {
+  constructor(
+    placements: readonly ReefPlacement[],
+    blocked?: (x: number, y: number, z: number) => boolean,
+  ) {
     this.root.name = 'Outer reef rare miniatures';
-    this.homes = reefMiniHomes(placements);
+    this.homes = reefMiniHomes(placements, blocked);
     for (const kind of Object.keys(REEF_MINI_NODES) as ReefMiniKind[]) {
       const h = this.homes[kind],
         pose = new THREE.Group();

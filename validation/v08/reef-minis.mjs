@@ -149,7 +149,7 @@ try {
         a.state.velocity.x = a.state.velocity.y = a.state.velocity.z = 0;
         a.state.neutralDepth = eye.y;
         const dx = c.x - eye.x,
-          dy = c.y + 0.02 - eye.y,
+          dy = c.y + 0.04 - eye.y,
           dz = c.z - eye.z,
           d = Math.hypot(dx, dy, dz);
         a.controls.yaw = a.controls.targetYaw = Math.atan2(-dx, -dz);

@@ -324,7 +324,20 @@ export class OuterWatersScene implements WaterWorld {
     this.barracuda = barracuda;
     const life = new ReefLife(fishLoader, drawn, obstacles);
     this.life = life;
-    const minis = new ReefMinis(drawn);
+    // Homes with viewing spots in open water (the reef's own solid hulls); initialization only.
+    const solid = this.world;
+    const minis = new ReefMinis(drawn, (x, y, z) =>
+      solid.colliders.some(
+        (c) =>
+          x >= c.min.x &&
+          x <= c.max.x &&
+          y >= c.min.y &&
+          y <= c.max.y &&
+          z >= c.min.z &&
+          z <= c.max.z &&
+          solid.contains(c, x, y, z),
+      ),
+    );
     this.minis = minis;
     const prep = this.preparation;
     const [, loaded, visiting, schooling, living, small] = await Promise.all([

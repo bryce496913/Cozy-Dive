@@ -79,8 +79,11 @@ describe('outer reef rare miniatures: homes', () => {
     expect(['grass', 'blade']).toContain(
       placements[homes.mimic.source.index].family,
     );
-    // The bottom-dwellers rest on the seabed; the pipefish hovers above its fan's foot.
-    for (const k of ['harlequin', 'frogfish', 'mimic'] as const) {
+    // The frogfish and octopus rest on the seabed; the pipefish hovers above its fan's foot.
+    // The shrimp on the rock its plate coral stands on, at the plate's foot.
+    const plate = placements[homes.harlequin.source.index];
+    expect(homes.harlequin.position.y).toBeCloseTo(plate.position.y, 6);
+    for (const k of ['frogfish', 'mimic'] as const) {
       const p = homes[k].position;
       expect(Math.abs(p.y - seabedHeight(p.x, p.z)), k).toBeLessThan(1e-6);
     }
@@ -108,6 +111,22 @@ describe('outer reef rare miniatures: homes', () => {
     expect(
       Math.hypot(homes.mimic.position.x - d.x, homes.mimic.position.z - d.z),
     ).toBeGreaterThan(d.clearance);
+  });
+
+  it('looks from open water: a view through solid reef is moved round to a clear side', () => {
+    const free = homes.pipefish,
+      v = free.view,
+      // A boulder where the first viewing spot would be.
+      blocked = (x: number, y: number, z: number) =>
+        Math.hypot(x - v.x, y - v.y, z - v.z) < 0.4;
+    const moved = reefMiniHomes(placements, blocked).pipefish;
+    expect(moved.position).toEqual(free.position);
+    expect(blocked(moved.view.x, moved.view.y, moved.view.z)).toBe(false);
+    expect(moved.view).not.toEqual(v);
+    const p = moved.position;
+    expect(
+      Math.hypot(moved.view.x - p.x, moved.view.y - p.y, moved.view.z - p.z),
+    ).toBeLessThan(REEF_MINI_TUNING.reach);
   });
 });
 
