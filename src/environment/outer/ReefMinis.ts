@@ -80,6 +80,8 @@ export interface ReefMiniHome {
   readonly view: Readonly<Vec3>;
 }
 
+/** Height (m) of the drawn sand's ripples above the terrain function. */
+export const SAND_LIFT = 0.02;
 /** The reef top inside the glass, away from its edges (where the swimmer explores). */
 function inside(p: Readonly<Vec3>): boolean {
   const g = OUTER.glass;
@@ -218,9 +220,10 @@ export function reefMiniHomes(
     }
     throw Error(`No reef home for the ${kind}`);
   };
+  // The drawn sand (with its ripples) lies a little above the terrain function: rest on it.
   const onSand = (q: { x: number; z: number }) => ({
     ...q,
-    y: seabedHeight(q.x, q.z),
+    y: seabedHeight(q.x, q.z) + SAND_LIFT,
   });
   // Harlequin shrimp: on the rock head a plate coral grows from, close in under its shelf (the
   // plates all stand on rocks), not screened by seagrass.

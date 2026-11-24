@@ -4,6 +4,7 @@ import {
   REEF_MINI_NODES,
   REEF_MINI_TUNING,
   ReefMinis,
+  SAND_LIFT,
   burrowAt,
   mimicryAt,
   reefMiniHomes,
@@ -85,7 +86,10 @@ describe('outer reef rare miniatures: homes', () => {
     expect(homes.harlequin.position.y).toBeCloseTo(plate.position.y, 6);
     for (const k of ['frogfish', 'mimic'] as const) {
       const p = homes[k].position;
-      expect(Math.abs(p.y - seabedHeight(p.x, p.z)), k).toBeLessThan(1e-6);
+      expect(
+        Math.abs(p.y - seabedHeight(p.x, p.z) - SAND_LIFT),
+        k,
+      ).toBeLessThan(1e-6);
     }
     const fan = placements[homes.pipefish.source.index];
     expect(homes.pipefish.position.y).toBeGreaterThan(fan.position.y + 0.1);
