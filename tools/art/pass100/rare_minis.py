@@ -146,6 +146,7 @@ def bend_keys(obj, positions: np.ndarray, length: float, amount: float, *, lift=
     z = positions[:, 2] / (length / 2)
     for name, side in (('Stroke_Left', 1), ('Stroke_Right', -1)):
         key = obj.shape_key_add(name=name, from_mix=False)
+        key.value = 0.0  # the rest pose by default (Blender starts new keys at 1)
         moved = positions.copy()
         moved[:, 0] += side * amount * (np.sin(z * 1.6) * 0.6 + 0.4 * z * z * np.sign(-z))
         if lift is not None:

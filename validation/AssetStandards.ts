@@ -475,7 +475,8 @@ export function gltfIO(): Promise<NodeIO> {
 export function categoryFor(file: string): CategoryId {
   const f = file.replaceAll('\\', '/');
   if (/\/fish\/|-(chromis|clownfish)\.glb$/.test(f)) return 'fish';
-  if (/(anchored-life|nudibranchs|rare-minis)\.glb$/.test(f)) return 'library';
+  if (/(anchored-life|nudibranchs|rare-minis|reef-minis)\.glb$/.test(f))
+    return 'library';
   if (/\/creatures\//.test(f)) return 'creature';
   if (/\/coral\//.test(f)) return 'reef';
   return 'library';

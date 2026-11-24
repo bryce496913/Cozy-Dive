@@ -151,6 +151,17 @@ export const OUTER_SIGHTS = {
     id: 'species:christmas-tree-worm',
     label: 'Christmas tree worms',
   },
+  // V0.8 Pass 101: the reef's rare miniatures, found by looking closely.
+  harlequinShrimp: {
+    id: 'species:harlequin-shrimp',
+    label: 'Harlequin shrimp',
+  },
+  ghostPipefish: {
+    id: 'species:ornate-ghost-pipefish',
+    label: 'Ornate ghost pipefish',
+  },
+  hairyFrogfish: { id: 'species:hairy-frogfish', label: 'Hairy frogfish' },
+  mimicOctopus: { id: 'species:mimic-octopus', label: 'Mimic octopus' },
 } as const satisfies Record<string, Sight>;
 
 /** What the shipwreck shows: the place, and its two spaces inside. */

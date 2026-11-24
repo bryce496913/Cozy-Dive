@@ -141,7 +141,8 @@ describe('Pass 017/018 asset compression', () => {
         id !== 'reefOuter' &&
         id !== 'geology' &&
         // V0.8 Pass 100: the rare miniatures are vertex-coloured (no images to compress).
-        id !== 'rareMinis'
+        id !== 'rareMinis' &&
+        id !== 'reefMinis'
       ) {
         expect(json.extensionsUsed, id).toContain('KHR_texture_basisu');
         expect(images.length, id).toBeGreaterThan(0);

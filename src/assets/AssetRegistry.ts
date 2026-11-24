@@ -57,6 +57,20 @@ export const ASSET_REGISTRY = {
     // A library of named animals (each carries its own Stroke morphs, checked by its tests).
     requireMorphs: false,
   },
+  // V0.8 Pass 101: the outer reef's four rare miniatures (one canonical model each).
+  reefMinis: {
+    path: 'assets/models/creatures/reef-minis.glb',
+    requiredNodes: [
+      'Harlequin_Shrimp',
+      'Ghost_Pipefish',
+      'Hairy_Frogfish',
+      'Mimic_Octopus',
+    ],
+    minDimension: 1,
+    maxDimension: 3,
+    // A library of named animals (each carries its own morphs, checked by its tests).
+    requireMorphs: false,
+  },
   nudibranchs: {
     path: 'assets/models/creatures/nudibranchs.glb',
     requiredNodes: [

@@ -58,7 +58,8 @@ describe('collection registry: identities', () => {
     ).toEqual({
       // V0.8 Pass 100: + the Pikachu nudibranch, leaf sheep and candy crab.
       aquarium: 12,
-      'outer-reef': 26,
+      // V0.8 Pass 101: + the harlequin shrimp, ghost pipefish, hairy frogfish and mimic octopus.
+      'outer-reef': 30,
       'kelp-forest': 14,
       shipwreck: 1,
       'sea-cave': 14,
@@ -101,9 +102,16 @@ describe('collection registry: identities', () => {
     ]);
     expect(named(/sea.angel/i).map((e) => e.id)).toEqual(['species:sea-angel']);
     expect(named(/isopod/i).map((e) => e.id)).toEqual(['species:giant-isopod']);
-    expect(named(/frogfish/i).map((e) => e.id)).toEqual(['species:frogfish']);
+    // The tank's frogfish and (V0.8 Pass 101) the reef's hairy frogfish: two species, once each.
+    expect(named(/frogfish/i).map((e) => e.id)).toEqual([
+      'species:frogfish',
+      'species:hairy-frogfish',
+    ]);
     expect(named(/seahorse/i).map((e) => e.id)).toEqual(['species:seahorse']);
-    expect(named(/octopus/i).map((e) => e.id)).toEqual(['species:octopus']);
+    expect(named(/octopus/i).map((e) => e.id)).toEqual([
+      'species:octopus',
+      'species:mimic-octopus',
+    ]);
     // Nudibranchs: the tank's five are generic scenery; the named species are the Spanish shawl
     // and (V0.8 Pass 100) the Pikachu nudibranch, each once.
     expect(named(/nudibranch|spanish/i).map((e) => e.id)).toEqual([

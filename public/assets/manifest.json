@@ -2497,7 +2497,7 @@
   {
     "id": "rare-minis",
     "file": "assets/models/creatures/rare-minis.glb",
-    "sha256": "ada3037d027248c0deef238bfccb513301de2b5f9eeab4a9464554f182a56418",
+    "sha256": "4a5e4f27c280dfd616e5d38800a20ab909ad6eefcd2625863024b30af978d059",
     "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
     "license": "CC0-1.0",
     "attribution": "Not required; authoring source retained",
@@ -2508,6 +2508,24 @@
     "materials": 3,
     "images": [],
     "geometryAccessorBytes": 431712,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Default aquarium hero asset"
+  },
+  {
+    "id": "reef-minis",
+    "file": "assets/models/creatures/reef-minis.glb",
+    "sha256": "4be06461bce0e1eaf04b0d0f2afbe6cf9a4011280e9ababf2f0a5cbe1433dd48",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 299404,
+    "visualPrimitives": 4,
+    "visualTriangles": 13432,
+    "collisionTriangles": 0,
+    "materials": 4,
+    "images": [],
+    "geometryAccessorBytes": 25728,
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
