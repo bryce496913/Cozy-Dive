@@ -94,6 +94,14 @@ export const DESCRIPTIONS: Readonly<Record<string, string>> = {
     'A tiny sea slug that eats algae and keeps its chloroplasts, so its leafy cerata photosynthesise.',
   'species:candy-crab':
     'A tiny pink crab that dresses in soft-coral polyps and hides among the fingers of its coral.',
+  'species:harlequin-shrimp':
+    'Pairs live under coral ledges, waving petal-like claws; they feed on sea stars.',
+  'species:ornate-ghost-pipefish':
+    'A lacy relative of seahorses that hovers head-down among sea fans and feather stars.',
+  'species:hairy-frogfish':
+    'A furry-looking anglerfish that walks on its fins and fishes with a worm-like lure.',
+  'species:mimic-octopus':
+    'Lives on sandy flats and can pose like a flatfish or a lionfish to deter predators.',
   'species:spanish-shawl':
     'A nudibranch in purple and orange that swims with graceful flexes when disturbed.',
   'species:kelp-crab':

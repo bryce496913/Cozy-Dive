@@ -130,6 +130,11 @@ const PAGES: Readonly<
     ['species:humpback-whale'],
     ['species:ocean-sunfish'],
     ['species:great-white-shark'],
+    // V0.8 Pass 101: the reef's rare miniatures, found by looking closely.
+    ['species:harlequin-shrimp'],
+    ['species:ornate-ghost-pipefish'],
+    ['species:hairy-frogfish'],
+    ['species:mimic-octopus'],
   ],
   'kelp-forest': [
     ['species:garibaldi'],
@@ -250,6 +255,10 @@ const RARITY: Readonly<Record<string, Rarity>> = {
   'species:pikachu-nudibranch': 'rare',
   'species:leaf-sheep': 'rare',
   'species:candy-crab': 'rare',
+  'species:harlequin-shrimp': 'rare',
+  'species:ornate-ghost-pipefish': 'rare',
+  'species:hairy-frogfish': 'rare',
+  'species:mimic-octopus': 'rare',
 };
 
 function build(

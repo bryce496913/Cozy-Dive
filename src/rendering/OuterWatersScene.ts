@@ -27,6 +27,7 @@ import {
 import { reefSightings } from '../environment/outer/outerSightings';
 import { BarracudaSchool } from '../environment/outer/BarracudaSchool';
 import { ReefLife } from '../environment/outer/ReefLife';
+import { ReefMinis } from '../environment/outer/ReefMinis';
 import { OUTER_SIGHTS } from '../discovery/sights';
 import { PassingLanes } from '../environment/outer/PassingLanes';
 import { WallVisitors } from '../environment/outer/WallVisitors';
@@ -115,6 +116,8 @@ export class OuterWatersScene implements WaterWorld {
   barracuda?: BarracudaSchool;
   /** v0.6 Pass 043 */
   life?: ReefLife;
+  /** V0.8 Pass 101: the reef's four rare miniatures. */
+  minis?: ReefMinis;
   /** This visit's number (see `arrive`), kept until the visitors exist. */
   private visit = 0;
   /** What can be seen here: the reef's corals and seagrass, and its big creatures. */
@@ -321,13 +324,29 @@ export class OuterWatersScene implements WaterWorld {
     this.barracuda = barracuda;
     const life = new ReefLife(fishLoader, drawn, obstacles);
     this.life = life;
+    // Homes with viewing spots in open water (the reef's own solid hulls); initialization only.
+    const solid = this.world;
+    const minis = new ReefMinis(drawn, (x, y, z) =>
+      solid.colliders.some(
+        (c) =>
+          x >= c.min.x &&
+          x <= c.max.x &&
+          y >= c.min.y &&
+          y <= c.max.y &&
+          z >= c.min.z &&
+          z <= c.max.z &&
+          solid.contains(c, x, y, z),
+      ),
+    );
+    this.minis = minis;
     const prep = this.preparation;
-    const [, loaded, visiting, schooling, living] = await Promise.all([
+    const [, loaded, visiting, schooling, living, small] = await Promise.all([
       prep.track('schools', this.schools.ready),
       prep.track('cruisers', creatures.ready),
       prep.track('wall visitors', visitors.ready),
       prep.track('barracuda', barracuda.ready),
       prep.track('reef life', life.ready),
+      prep.track('rare miniatures', minis.load(fishLoader)),
     ]);
     if (this.disposed) return false;
     this.scene.add(this.schools.root);
@@ -353,7 +372,11 @@ export class OuterWatersScene implements WaterWorld {
     // v0.6 Pass 043: the reef's newer life, and its new schooling fish seen by following one.
     this.scene.add(life.root);
     if (living) this.sightings.push(...life.sightings);
-    else this.sightings.push(...life.octopus.sightings);
+    // Shown (and sightable) only if their models loaded; otherwise the reef is as it was.
+    if (small) {
+      this.scene.add(minis.root);
+      this.sightings.push(...minis.sightings);
+    } else this.sightings.push(...life.octopus.sightings);
     const fish = this.schools.fish.simulation.fish;
     for (const [id, sight, every] of [
       ['blue-tang', OUTER_SIGHTS.tang, 9],
@@ -454,6 +477,7 @@ export class OuterWatersScene implements WaterWorld {
     if (this.reefReady) {
       this.barracuda?.update(dt, active, reducedMotion);
       this.life?.update(dt, active, reducedMotion, player, this.camera);
+      if (active) this.minis?.update(dt, reducedMotion, player);
     }
     this.visitors?.update(
       dt,
@@ -479,6 +503,7 @@ export class OuterWatersScene implements WaterWorld {
     this.visitors?.dispose();
     this.barracuda?.dispose();
     this.life?.dispose();
+    this.minis?.dispose();
     this.sightings.length = 0;
     this.reef.dispose();
     this.environment.dispose();
