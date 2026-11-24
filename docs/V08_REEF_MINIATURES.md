@@ -39,10 +39,10 @@ Model details:
 
 Each animal has one stable home, chosen from the reef's own layout. The home is the nearest suitable piece to a fixed point on the reef top inside the glass. Homes are at least 5 m apart, and the mimic octopus keeps more than 7 m from the day octopus's den. Nothing spawns at random.
 
-- **Harlequin shrimp pair:** on the sand at the foot of a plate coral standing on the seabed, under its shelf. Small, deliberate steps now and then. The claws wave slowly, and the mate is a little out of step.
+- **Harlequin shrimp pair:** on the rock head a plate coral grows from (every plate on this reef stands on a rock), close in under its shelf, with no seagrass screening it. Small, deliberate steps now and then. The claws wave slowly, and the mate is a little out of step.
 - **Ghost pipefish:** in front of a sea fan's face, half-way up, hovering head-down and swaying with the fan. It turns side-on to a close diver.
-- **Hairy frogfish:** on the sand beside rubble. It shuffles slowly on its fins along a short path (under 20 cm) and freezes when the diver is close.
-- **Mimic octopus:** on open sand at the edge of a seagrass patch.
+- **Hairy frogfish:** on open sand within about 1 m of rubble. It shuffles slowly on its fins along a short path (under 20 cm) and freezes when the diver is close.
+- **Mimic octopus:** on open sand stepping out from a seagrass patch.
   - It is out about four-fifths of the time, on a fixed 66 s cycle: out 52 s, then 14 s in its burrow. Its appearances are regular, so it never needs a rare random encounter.
   - Every 17 s it takes a flatfish or a lionfish posture, alternating, for about 5 s.
   - While in its burrow it cannot be sighted.
@@ -57,6 +57,12 @@ Each animal has one stable home, chosen from the reef's own layout. The home is 
 - They are tiny and sit on the sand or hover by a fan, so they need no colliders.
 
 **Loading:** the models load with the reef's other life, through the creature loader and its cache. Until they load, nothing is shown or sightable. If loading fails, the reef is as it was and nothing is lost.
+
+**Viewing spots and open sand:**
+
+- Each home has a viewing spot whose line of sight passes only through open water, checked against the reef's real collision hulls (supplied by the scene). The spot rises in steps if needed but always stays within reach.
+- The rocks as drawn are bigger than their hulls. "Open sand" for the frogfish and octopus therefore also means clear of every rock and coral by more than its own drawn size. An early version hid the octopus behind a rock while still counting it as sighted.
+- The drawn sand ripples sit about 2 cm above the terrain function, so the sand dwellers rest on the visible sand (`SAND_LIFT`) instead of sinking into it.
 
 ## Collection and tank
 
