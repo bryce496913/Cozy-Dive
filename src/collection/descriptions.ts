@@ -103,7 +103,7 @@ export const DESCRIPTIONS: Readonly<Record<string, string>> = {
   'species:mimic-octopus':
     'Lives on sandy flats and can pose like a flatfish or a lionfish to deter predators.',
   'species:weedy-seadragon':
-    'Phyllopteryx taeniolatus: a gently drifting Australian temperate-water seadragon. A deliberate geographic exception in this California-inspired kelp forest.',
+    'Phyllopteryx taeniolatus: drifts among kelp; an approved Australian temperate exception in this California-inspired forest.',
   'species:sarcastic-fringehead':
     'Neoclinus blanchardi: a small den-dwelling fish that occasionally unfurls a remarkably broad, colourful mouth.',
   'species:east-pacific-red-octopus':

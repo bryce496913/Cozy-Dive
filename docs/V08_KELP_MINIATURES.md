@@ -41,18 +41,19 @@ Habitat, album previews and aquarium placements select the **same named GLB mesh
 
 ## Validation
 
-Results and exact commands are recorded below after the final checks. The browser harness is deliberately limited to four kelp closeups and four model gallery views. It does not run a journey, stress test or hardware performance benchmark.
+Results and exact commands follow. The browser harness is deliberately limited to four kelp closeups and four model gallery views. It does not run a journey, stress test or hardware performance benchmark.
 
 Checks completed in this Linux workspace (Chromium with SwiftShader):
 
-| Command                                                                                                                                    | Result                                                                       |
-| ------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
-| `npm run build`                                                                                                                            | Passed; existing >500 kB chunk-size advisory remains.                        |
-| `npm run typecheck`                                                                                                                        | Passed.                                                                      |
-| `npm run lint`                                                                                                                             | Passed.                                                                      |
-| `npx vitest run tests/fish-lod-compression.test.ts tests/kelp-minis.test.ts tests/asset-validation.test.ts tests/asset-production.test.ts` | 4 files, 90 tests passed.                                                    |
-| `npx vitest run tests/asset-production.test.ts tests/tank-babies.test.ts tests/reef-minis.test.ts`                                         | 3 files, 34 tests passed, including old saves and one-of-each tank capacity. |
-| `npm run test -- --maxWorkers=2 --testTimeout=30000`                                                                                       | Final full-suite run in progress; result recorded before PR readiness.       |
+| Command                                                                                                                                    | Result                                                                                                                 |
+| ------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| `npm run build`                                                                                                                            | Passed; existing >500 kB chunk-size advisory remains.                                                                  |
+| `npm run typecheck`                                                                                                                        | Passed.                                                                                                                |
+| `npm run lint`                                                                                                                             | Passed.                                                                                                                |
+| `npx vitest run tests/fish-lod-compression.test.ts tests/kelp-minis.test.ts tests/asset-validation.test.ts tests/asset-production.test.ts` | 4 files, 90 tests passed.                                                                                              |
+| `npx vitest run tests/asset-production.test.ts tests/tank-babies.test.ts tests/reef-minis.test.ts`                                         | 3 files, 34 tests passed, including old saves and one-of-each tank capacity.                                           |
+| `npx vitest run tests/album-pages.test.ts tests/collection-audit.test.ts tests/collection-registry.test.ts`                                | 3 files, 23 tests passed after shortening the seadragon note, including every album card and the geographic exception. |
+| `npm run test -- --maxWorkers=2 --testTimeout=30000`                                                                                       | 117 files / 1,187 tests passed; one album-note length failure was corrected and rechecked below.                       |
 
 The focused miniature tests cover authored/fallback terrain, dressing and stalk clearance, close-range discoveries and solid-rock/dressing occlusion, pause/reduced motion, frame-rate consistency, intermittent den exploration, failed/late load cleanup, journal round trips, stable Spanish-shawl identity, original anatomy retained within Draco quantization tolerance, default morph weights and identical geometry in habitat/card/tank.
 
@@ -74,3 +75,5 @@ The habitat check reached `ready`, exposed exactly the four intended sightings, 
 The initial diagnostic runs caught the fixed tank-capacity limit, missing library classification/compression integration, outdated collection counts and the fringehead–urchin overlap. Those issues were corrected, rather than bypassing their checks. A fixture comparison was changed from rounded coordinate keys to an actual distance tolerance for float32/Draco export, and the terrain test has an explicit timeout for its real-geometry raycasts.
 
 Rendering was capped at 0.7 pixel ratio for this localized software-renderer check. No full travel tour, long retention/stress run, cross-browser claim or hardware frame-rate claim is made for this pass.
+
+The full run covered 118 files and 1,188 tests in 226.43 s. Its only final failure was the seadragon description exceeding the album's 139-character limit; the text was shortened and all affected album/collection tests passed. The full suite was not repeated for that localized text edit.
