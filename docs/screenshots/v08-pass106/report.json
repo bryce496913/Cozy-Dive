@@ -44,7 +44,7 @@
   },
   "observed": {
     "id": "species:leaf-sheep",
-    "first": "2026-11-25T20:25:26.124Z"
+    "first": "2026-11-25T20:36:30.850Z"
   },
   "tabs": [
     "Contents",
@@ -101,7 +101,7 @@
     {
       "page": 5,
       "loaded": 2,
-      "visible": 2,
+      "visible": 0,
       "leases": 51,
       "geometries": 64,
       "textures": 49
@@ -127,8 +127,8 @@
       "loaded": 1,
       "visible": 1,
       "leases": 50,
-      "geometries": 65,
-      "textures": 50
+      "geometries": 64,
+      "textures": 49
     },
     {
       "page": 1,
@@ -149,7 +149,7 @@
     {
       "page": 5,
       "loaded": 2,
-      "visible": 0,
+      "visible": 2,
       "leases": 51,
       "geometries": 64,
       "textures": 49
@@ -173,7 +173,7 @@
     {
       "page": 10,
       "loaded": 1,
-      "visible": 1,
+      "visible": 0,
       "leases": 50,
       "geometries": 64,
       "textures": 49
@@ -216,9 +216,9 @@
       "status": "placed",
       "scale": 0.3666666666666667,
       "position": {
-        "x": 2.1894448668009554,
+        "x": 2.190827443314369,
         "y": 4.85,
-        "z": 7.8261140676066905
+        "z": 7.835792103200584
       }
     },
     {
@@ -249,8 +249,8 @@
       "scale": 1,
       "position": {
         "x": -11.25,
-        "y": 0.16857107532024385,
-        "z": 3
+        "y": 0.1743140648007393,
+        "z": 3.75
       },
       "mode": "bottom"
     },
@@ -260,7 +260,7 @@
       "scale": 1,
       "position": {
         "x": -11.25,
-        "y": 1.1,
+        "y": 1.85,
         "z": 3
       },
       "mode": "pelagic"

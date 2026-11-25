@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <link rel="icon" href="data:," />
     <title>Cozy Diver — Shark Bolt Probe</title>
     <style>
       html,
@@ -42,6 +43,14 @@
         window.cave = scene;
         return true;
       })();
+      window.finish = () => {
+        scene.dispose();
+        const leases = fish.leased;
+        fish.dispose();
+        renderer.dispose();
+        renderer.forceContextLoss();
+        return { leases, ...renderer.info.memory };
+      };
       /** Step `n` frames of `dt` s with the swimmer at `p` (active), or away (null). */
       window.step = (n, dt, p, reduced = false) => {
         const out = [];

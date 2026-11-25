@@ -43,7 +43,12 @@ const browser = await chromium.launch({
     '--use-angle=swiftshader',
   ],
 });
-const report = { errors: [], requests: [] };
+const report = {
+  errors: [],
+  requests: [],
+  acceptance: process.env.COZY_ACCEPTANCE === '1',
+};
+const started = Date.now();
 try {
   const page = await browser.newPage({
     viewport: { width: 1280, height: 960 },
@@ -125,6 +130,7 @@ try {
   await page.goto(process.env.COZY_URL || 'http://127.0.0.1:5177');
   await ready();
   console.log('Aquarium and saved residents ready');
+  report.loadingMs = Date.now() - started;
   report.startupRareLibraries = [...new Set(report.requests)];
   assert.ok(
     report.startupRareLibraries.every((u) => u.endsWith('/rare-minis.glb')),
@@ -181,6 +187,20 @@ try {
   await album.waitFor();
   report.tabs = await album.locator('.album-tab').allTextContents();
   await album.locator('.album-tab', { hasText: 'Aquarium' }).click();
+  if (report.acceptance) {
+    const initial = await page.evaluate(() => window.__cozy.album.page);
+    await page.keyboard.press('PageDown');
+    assert.equal(
+      await page.evaluate(() => window.__cozy.album.page),
+      initial + 1,
+    );
+    await page.keyboard.press('PageUp');
+    assert.equal(await page.evaluate(() => window.__cozy.album.page), initial);
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('ArrowLeft');
+    assert.equal(await page.evaluate(() => window.__cozy.album.page), initial);
+    report.keyboardNavigation = true;
+  }
   await album.locator('[data-id="species:leaf-sheep"]').click();
   await page.waitForFunction(() => window.__cozy.album.previews?.loaded === 1);
   await page.waitForFunction(() => {
@@ -202,6 +222,78 @@ try {
   assert.equal(report.backgroundFrozen, true);
   await shot('02-leaf-sheep-card');
   console.log('Observed animal card ready');
+  if (report.acceptance) {
+    const pose = () =>
+      page.evaluate(() => {
+        const p = window.__cozy.album.previews;
+        const out = [];
+        p.slots[0].preview.object.traverse((o) => {
+          if (o.morphTargetInfluences) out.push(...o.morphTargetInfluences);
+        });
+        return out;
+      });
+    const before = await pose();
+    await page.waitForTimeout(450);
+    const after = await pose();
+    report.idleAnimation = after.some((w, i) => Math.abs(w - before[i]) > 1e-6);
+    assert.equal(report.idleAnimation, true);
+    const yaw = await page.evaluate(
+      () => window.__cozy.album.previews.slots[0].yaw,
+    );
+    await album
+      .getByRole('button', { name: 'Turn right', exact: true })
+      .click();
+    report.modelRotation = await page.evaluate(
+      (yaw) => window.__cozy.album.previews.slots[0].yaw > yaw,
+      yaw,
+    );
+    assert.equal(report.modelRotation, true);
+    await page.keyboard.press('Escape');
+    assert.equal(await album.locator('.album-detail').isHidden(), true);
+    assert.equal(
+      await page.evaluate(() => document.activeElement?.dataset.id),
+      'species:leaf-sheep',
+    );
+    await album.locator('[data-id="species:leaf-sheep"]').click();
+    await album.getByRole('button', { name: 'Close the album' }).click();
+    await page.getByRole('button', { name: /^Settings/ }).click();
+    await page.locator('#reduced-motion').check();
+    await page
+      .getByRole('button', { name: 'Close settings', exact: true })
+      .click();
+    await page
+      .getByRole('button', { name: 'Field album', exact: true })
+      .click();
+    await page.waitForFunction(
+      () => window.__cozy.album.previews?.loaded === 1,
+    );
+    await page.waitForFunction(() => {
+      const p = window.__cozy.album.previews;
+      let still = true;
+      p.slots[0].preview.object.traverse((o) => {
+        if (o.morphTargetInfluences)
+          still &&= o.morphTargetInfluences.every((w) => w === 0);
+      });
+      return still && window.__cozy.settings.reducedMotion;
+    });
+    report.reducedMotion = true;
+    await shot('06-reduced-motion');
+    await album.getByRole('button', { name: 'Close the album' }).click();
+    await page.getByRole('button', { name: /^Settings/ }).click();
+    await page.locator('#reduced-motion').uncheck();
+    await page
+      .getByRole('button', { name: 'Close settings', exact: true })
+      .click();
+    await page
+      .getByRole('button', { name: 'Field album', exact: true })
+      .click();
+    report.activePreviewRenderers = await page.evaluate(() =>
+      window.__cozy.album.previews ? 1 : 0,
+    );
+    assert.equal(report.activePreviewRenderers, 1);
+    console.log('Keyboard, rotation, idle and reduced-motion checks passed');
+  }
+
   await album
     .getByRole('button', { name: 'Add to Aquarium', exact: true })
     .click();
@@ -213,6 +305,65 @@ try {
   assert.ok(report.afterLeafSheep.babies.includes('leaf-sheep'));
   assert.equal(report.afterLeafSheep.fish['royal-gramma'], 2);
   assert.deepEqual(report.afterLeafSheep.items, report.originalTank.items);
+  if (report.acceptance) {
+    await album.getByRole('button', { name: 'Back to the page' }).click();
+    await album.locator('[data-id="species:royal-gramma"]').click();
+    await album.getByRole('button', { name: 'Return one to the sea' }).click();
+    assert.equal((await tank()).fish['royal-gramma'], 1);
+    await album
+      .getByRole('button', { name: 'Add one to the aquarium' })
+      .click();
+    assert.equal((await tank()).fish['royal-gramma'], 2);
+    report.ordinaryFishActions = true;
+    await album.getByRole('button', { name: 'Back to the page' }).click();
+    await album.locator('.album-tab', { hasText: 'Outer Reef' }).click();
+    for (
+      let i = 0;
+      !(await album.locator('[data-id="species:humpback-whale"]').count()) &&
+      i < 3;
+      i++
+    )
+      await album.getByRole('button', { name: 'Next page' }).click();
+    await album.locator('[data-id="species:humpback-whale"]').click();
+    await album
+      .getByRole('button', { name: 'Add to Aquarium', exact: true })
+      .click();
+    await page.evaluate(async () => {
+      await window.__cozy.world.babies.ready;
+    });
+    report.largeMiniature = await page.evaluate(async () => {
+      const a = window.__cozy,
+        T = await import('/node_modules/three/build/three.module.js'),
+        { MINIATURES_BEFORE_096 } = await import('/src/config/babies.ts');
+      const b = a.world.babies.animals.find(
+          (b) => b.definition.id === 'humpback-whale',
+        ),
+        d = b.definition,
+        old = MINIATURES_BEFORE_096.find((d) => d.id === 'humpback-whale'),
+        root = a.world.babies.root.children.find((r) => r.name === d.label),
+        size = new T.Box3().setFromObject(root, true).getSize(new T.Vector3());
+      return {
+        status: a.world.babies.status(d.id),
+        displayScale: (d.size ?? d.scale) / (old.size ?? old.scale),
+        radius: d.radius / old.radius,
+        halfHeight: d.halfHeight / old.halfHeight,
+        modelLength: Math.max(size.x, size.y, size.z),
+      };
+    });
+    assert.equal(report.largeMiniature.status, 'placed');
+    assert.equal(report.largeMiniature.displayScale, 2);
+    assert.equal(report.largeMiniature.radius, 2);
+    assert.equal(report.largeMiniature.halfHeight, 2);
+    await shot('07-large-miniature');
+    await album.getByRole('button', { name: 'Return it to the sea' }).click();
+    assert.ok(!(await tank()).babies.includes('humpback-whale'));
+    await album.getByRole('button', { name: 'Back to the page' }).click();
+    await album.locator('.album-tab', { hasText: 'Aquarium' }).click();
+    await album.locator('[data-id="species:leaf-sheep"]').click();
+    console.log(
+      'Ordinary fish and double-sized large-miniature actions passed',
+    );
+  }
   await album.getByRole('button', { name: 'Close the album' }).click();
   // The editor still provides decorations; its creature link opens the same selected card.
   await page
@@ -265,6 +416,8 @@ try {
             visible: p.slots.filter((s) => s.visible).length,
             leases: a.world.authored.loader.leased,
             ...p.rendererInfo,
+            previewDraw: { ...p.renderer.info.render },
+            activePreviewRenderers: p ? 1 : 0,
           };
         }),
       );
@@ -444,6 +597,17 @@ try {
       ...a.world.renderer.info.memory,
     };
   });
+  report.downloads = await page.evaluate(() =>
+    performance
+      .getEntriesByType('resource')
+      .filter((r) => r.name.includes('.glb'))
+      .map((r) => ({
+        file: new URL(r.name).pathname,
+        encodedBytes: r.encodedBodySize,
+        transferBytes: r.transferSize,
+        durationMs: r.duration,
+      })),
+  );
   assert.equal(report.released.leases, 0);
   assert.equal(report.released.reefLeases, 0);
   assert.equal(report.released.geometries, 0);

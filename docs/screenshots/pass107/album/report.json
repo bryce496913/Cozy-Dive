@@ -1,0 +1,420 @@
+{
+  "errors": [],
+  "requests": [
+    "http://127.0.0.1:5177/assets/models/creatures/rare-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/kelp-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/wreck-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/ice-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/kelp-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/wreck-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/ice-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/ice-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/reef-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/reef-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/cave-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/cave-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/ice-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/ice-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/rare-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/reef-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/cave-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/ice-minis.glb"
+  ],
+  "acceptance": true,
+  "loadingMs": 193188,
+  "startupRareLibraries": [
+    "http://127.0.0.1:5177/assets/models/creatures/rare-minis.glb"
+  ],
+  "originalTank": {
+    "version": 3,
+    "items": [
+      {
+        "id": "tank-106",
+        "kind": "stone",
+        "position": {
+          "x": 10,
+          "y": 0,
+          "z": 8
+        },
+        "rotation": 0
+      }
+    ],
+    "babies": ["blacktip-reef-shark"],
+    "fish": {
+      "royal-gramma": 2
+    }
+  },
+  "observed": {
+    "id": "species:leaf-sheep",
+    "first": "2026-11-25T23:48:37.653Z"
+  },
+  "tabs": [
+    "Contents",
+    "Aquarium 12/12",
+    "Outer Reef 7/30",
+    "Kelp Forest 5/17",
+    "Shipwreck 4/5",
+    "Sea Cave 4/18",
+    "Antarctic 3/33"
+  ],
+  "keyboardNavigation": true,
+  "backgroundFrozen": true,
+  "idleAnimation": true,
+  "modelRotation": true,
+  "reducedMotion": true,
+  "activePreviewRenderers": 1,
+  "afterLeafSheep": {
+    "version": 3,
+    "fish": {
+      "royal-gramma": 2
+    },
+    "items": [
+      {
+        "id": "tank-106",
+        "kind": "stone",
+        "position": {
+          "x": 10,
+          "y": 0,
+          "z": 8
+        },
+        "rotation": 0
+      }
+    ],
+    "babies": ["blacktip-reef-shark", "leaf-sheep"]
+  },
+  "ordinaryFishActions": true,
+  "largeMiniature": {
+    "status": "placed",
+    "displayScale": 2,
+    "radius": 2,
+    "halfHeight": 2,
+    "modelLength": 1.0999999999999996
+  },
+  "editorSections": [
+    "Creatures and fish",
+    "Plants and corals",
+    "Rocks and decorations"
+  ],
+  "editorReturnFocus": "For your tank",
+  "browse": [
+    {
+      "page": 1,
+      "loaded": 12,
+      "visible": 12,
+      "leases": 61,
+      "geometries": 66,
+      "textures": 49,
+      "previewDraw": {
+        "frame": 24,
+        "calls": 14,
+        "triangles": 85772,
+        "points": 0,
+        "lines": 0
+      },
+      "activePreviewRenderers": 1
+    },
+    {
+      "page": 2,
+      "loaded": 0,
+      "visible": 0,
+      "leases": 49,
+      "geometries": 64,
+      "textures": 49,
+      "previewDraw": {
+        "frame": 32,
+        "calls": 10,
+        "triangles": 15360,
+        "points": 0,
+        "lines": 0
+      },
+      "activePreviewRenderers": 1
+    },
+    {
+      "page": 5,
+      "loaded": 2,
+      "visible": 2,
+      "leases": 51,
+      "geometries": 64,
+      "textures": 49,
+      "previewDraw": {
+        "frame": 32,
+        "calls": 10,
+        "triangles": 15360,
+        "points": 0,
+        "lines": 0
+      },
+      "activePreviewRenderers": 1
+    },
+    {
+      "page": 7,
+      "loaded": 4,
+      "visible": 0,
+      "leases": 53,
+      "geometries": 64,
+      "textures": 49,
+      "previewDraw": {
+        "frame": 38,
+        "calls": 1,
+        "triangles": 7599,
+        "points": 0,
+        "lines": 0
+      },
+      "activePreviewRenderers": 1
+    },
+    {
+      "page": 8,
+      "loaded": 0,
+      "visible": 0,
+      "leases": 49,
+      "geometries": 64,
+      "textures": 49,
+      "previewDraw": {
+        "frame": 50,
+        "calls": 2,
+        "triangles": 4522,
+        "points": 0,
+        "lines": 0
+      },
+      "activePreviewRenderers": 1
+    },
+    {
+      "page": 10,
+      "loaded": 1,
+      "visible": 0,
+      "leases": 50,
+      "geometries": 64,
+      "textures": 49,
+      "previewDraw": {
+        "frame": 50,
+        "calls": 2,
+        "triangles": 4522,
+        "points": 0,
+        "lines": 0
+      },
+      "activePreviewRenderers": 1
+    },
+    {
+      "page": 1,
+      "loaded": 12,
+      "visible": 12,
+      "leases": 61,
+      "geometries": 64,
+      "textures": 49,
+      "previewDraw": {
+        "frame": 52,
+        "calls": 1,
+        "triangles": 3304,
+        "points": 0,
+        "lines": 0
+      },
+      "activePreviewRenderers": 1
+    },
+    {
+      "page": 2,
+      "loaded": 0,
+      "visible": 0,
+      "leases": 49,
+      "geometries": 64,
+      "textures": 49,
+      "previewDraw": {
+        "frame": 72,
+        "calls": 14,
+        "triangles": 85772,
+        "points": 0,
+        "lines": 0
+      },
+      "activePreviewRenderers": 1
+    },
+    {
+      "page": 5,
+      "loaded": 2,
+      "visible": 2,
+      "leases": 51,
+      "geometries": 64,
+      "textures": 49,
+      "previewDraw": {
+        "frame": 72,
+        "calls": 14,
+        "triangles": 85772,
+        "points": 0,
+        "lines": 0
+      },
+      "activePreviewRenderers": 1
+    },
+    {
+      "page": 7,
+      "loaded": 4,
+      "visible": 0,
+      "leases": 53,
+      "geometries": 64,
+      "textures": 49,
+      "previewDraw": {
+        "frame": 78,
+        "calls": 1,
+        "triangles": 7599,
+        "points": 0,
+        "lines": 0
+      },
+      "activePreviewRenderers": 1
+    },
+    {
+      "page": 8,
+      "loaded": 0,
+      "visible": 0,
+      "leases": 49,
+      "geometries": 64,
+      "textures": 49,
+      "previewDraw": {
+        "frame": 90,
+        "calls": 2,
+        "triangles": 4522,
+        "points": 0,
+        "lines": 0
+      },
+      "activePreviewRenderers": 1
+    },
+    {
+      "page": 10,
+      "loaded": 1,
+      "visible": 1,
+      "leases": 50,
+      "geometries": 65,
+      "textures": 50,
+      "previewDraw": {
+        "frame": 92,
+        "calls": 1,
+        "triangles": 3304,
+        "points": 0,
+        "lines": 0
+      },
+      "activePreviewRenderers": 1
+    }
+  ],
+  "afterBrowse": {
+    "closed": true,
+    "leases": 49
+  },
+  "failedArrival": "failed",
+  "retriedArrival": "placed",
+  "saved": {
+    "version": 3,
+    "fish": {
+      "royal-gramma": 2
+    },
+    "items": [
+      {
+        "id": "tank-106",
+        "kind": "stone",
+        "position": {
+          "x": 10,
+          "y": 0,
+          "z": 8
+        },
+        "rotation": 0
+      }
+    ],
+    "babies": [
+      "blacktip-reef-shark",
+      "leaf-sheep",
+      "ornate-ghost-pipefish",
+      "banded-coral-shrimp",
+      "sea-angel"
+    ]
+  },
+  "placed": [
+    {
+      "id": "blacktip-reef-shark",
+      "status": "placed",
+      "scale": 0.3666666666666667,
+      "position": {
+        "x": 2.1894448668009554,
+        "y": 4.85,
+        "z": 7.8261140676066905
+      }
+    },
+    {
+      "id": "leaf-sheep",
+      "status": "placed",
+      "scale": 1,
+      "position": {
+        "x": -13.5,
+        "y": 0.18288723224401474,
+        "z": 6.75
+      },
+      "mode": "bottom"
+    },
+    {
+      "id": "ornate-ghost-pipefish",
+      "status": "placed",
+      "scale": 1,
+      "position": {
+        "x": -13.5,
+        "y": 0.35,
+        "z": 12
+      },
+      "mode": "hover"
+    },
+    {
+      "id": "banded-coral-shrimp",
+      "status": "placed",
+      "scale": 1,
+      "position": {
+        "x": -11.25,
+        "y": 0.1743140648007393,
+        "z": 3.75
+      },
+      "mode": "bottom"
+    },
+    {
+      "id": "sea-angel",
+      "status": "placed",
+      "scale": 1,
+      "position": {
+        "x": -11.25,
+        "y": 1.85,
+        "z": 3
+      },
+      "mode": "pelagic"
+    }
+  ],
+  "reloaded": {
+    "version": 3,
+    "fish": {
+      "royal-gramma": 2
+    },
+    "items": [
+      {
+        "id": "tank-106",
+        "kind": "stone",
+        "position": {
+          "x": 10,
+          "y": 0,
+          "z": 8
+        },
+        "rotation": 0
+      }
+    ],
+    "babies": [
+      "blacktip-reef-shark",
+      "leaf-sheep",
+      "ornate-ghost-pipefish",
+      "banded-coral-shrimp",
+      "sea-angel"
+    ]
+  },
+  "released": {
+    "leases": 0,
+    "reefLeases": 0,
+    "geometries": 0,
+    "textures": 0
+  },
+  "downloads": [
+    {
+      "file": "/assets/models/ornaments/reef-props.glb",
+      "encodedBytes": 1264560,
+      "transferBytes": 1264860,
+      "durationMs": 1022.5999999977648
+    }
+  ],
+  "ok": true
+}
