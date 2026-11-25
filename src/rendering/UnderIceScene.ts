@@ -1,3 +1,4 @@
+import { IceMinis } from '../environment/ice/IceMinis';
 import * as THREE from 'three';
 import { Geology, acquireGeology } from '../environment/shared/Geology';
 import { WATER_PROFILES } from '../config/waterProfiles';
@@ -80,6 +81,7 @@ export class UnderIceScene implements WaterWorld {
   /** v0.6 Pass 052: its detail and drifting life, and its mid-water school. */
   readonly extras: IceExtras;
   schools?: OuterSchools;
+  minis?: IceMinis;
   private disposed = false;
 
   /**
@@ -231,13 +233,17 @@ export class UnderIceScene implements WaterWorld {
     this.rare = rare;
     const schools = new OuterSchools(iceHabitat(), iceSpecies(), fish);
     this.schools = schools;
+    const minis = new IceMinis(this.environment, this.garden, this.extras.root);
+    this.minis = minis;
     await Promise.all([
+      this.preparation.track('miniatures', minis.load(fish)),
       this.preparation.track('wildlife', life.ready),
       this.preparation.track('rare encounters', rare.ready),
       this.preparation.track('schools', schools.ready),
     ]);
     if (this.disposed) return false;
-    this.scene.add(life.root, rare.root, schools.root);
+    this.scene.add(life.root, rare.root, schools.root, minis.root);
+    this.sightings.push(...minis.sightings);
     // The school counts as seen from close by its leading fish (it carries its sighting with it).
     const lead = schools.fish.simulation.fish[0];
     if (lead)
@@ -294,6 +300,7 @@ export class UnderIceScene implements WaterWorld {
     this.extras.update(dt, active, reducedMotion, player);
     // Only once warmed up, so everything is drawn (and compiled) in the warm-up first.
     if (this.ready) {
+      this.minis?.update(dt, active, reducedMotion);
       this.life?.update(dt, active, reducedMotion, player, this.camera);
       this.rare?.update(dt, active, reducedMotion, player, this.camera);
       this.schools?.update(dt, active, reducedMotion, player, this.camera);
@@ -306,6 +313,7 @@ export class UnderIceScene implements WaterWorld {
     this.disposed = true;
     this.preparation.dispose();
     this.ready = false;
+    this.minis?.dispose();
     this.garden.dispose();
     this.life?.dispose();
     this.rare?.dispose();

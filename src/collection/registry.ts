@@ -215,6 +215,7 @@ const PAGES: Readonly<
     ['species:killer-whale'],
     ['species:minke-whale'],
     ['species:polar-bear'],
+    ['species:tritoniella-belli'],
   ],
 };
 
@@ -265,6 +266,9 @@ const RARITY: Readonly<Record<string, Rarity>> = {
   'species:antarctic-toothfish': 'rare',
   'species:colossal-squid': 'rare',
   'species:polar-bear': 'rare',
+  'species:sea-angel': 'rare',
+  'species:giant-isopod': 'rare',
+  'species:tritoniella-belli': 'rare',
   'species:pikachu-nudibranch': 'rare',
   'species:leaf-sheep': 'rare',
   'species:candy-crab': 'rare',

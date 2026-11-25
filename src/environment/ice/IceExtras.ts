@@ -30,7 +30,6 @@ import { IceUnderside } from './IceUnderside';
  *   - dropstones (dropped from melting icebergs) and white clumps of anchor ice;
  *   - beds of Antarctic scallops, some clapping their shells now and then;
  *   - red sea urchins, brittle stars, sea cucumbers and swaying sea pens;
- *   - giant isopods crawling slowly over the bottom.
  * In mid-water, where the swimmer is:
  *   - big Antarctic jellyfish, pulsing slowly, trailing frilled arms and long tentacles;
  *   - chains of salps drifting and undulating.
@@ -47,6 +46,7 @@ export const ICE_EXTRAS = {
   brittleStars: 130,
   cucumbers: 45,
   seaPens: 45,
+  /** Legacy layout slots, consumed to preserve subsequent seeded wildlife positions. */
   isopods: 10,
   jellies: 7,
   salpChains: 8,
@@ -817,13 +817,6 @@ interface Jelly {
   readonly phase: number;
   readonly scale: number;
 }
-interface Crawler {
-  readonly home: Vec3;
-  readonly radius: number;
-  angle: number;
-  readonly speed: number;
-  readonly at: Vec3;
-}
 
 export class IceExtras {
   readonly root = new THREE.Group();
@@ -841,8 +834,6 @@ export class IceExtras {
     h: number;
     phase: number;
   }[] = [];
-  private readonly isopods: THREE.InstancedMesh;
-  private readonly crawlers: Crawler[] = [];
   private readonly salps: THREE.InstancedMesh;
   private readonly chains: {
     centre: Vec3;
@@ -1091,24 +1082,15 @@ export class IceExtras {
       });
     }
     this.pens.count = this.penBase.length;
-    // Giant isopods crawling slow circles.
-    this.isopods = this.instanced(
-      isopodGeometry(),
-      detail,
-      ICE_EXTRAS.isopods,
-      'Giant isopods',
-    );
+    // Preserve the seeded layout of subsequent salps/jellies when replacing the old isopods.
+    // The canonical Glyptonotus encounters and sightings are owned by IceMinis (Pass 105).
     for (let i = 0; i < ICE_EXTRAS.isopods; i++) {
-      const { x, z } = spot();
-      this.crawlers.push({
-        home: { x, y: 0, z },
-        radius: 1 + rand() * 2,
-        angle: rand() * 6.3,
-        speed: (0.03 + rand() * 0.03) * (rand() < 0.5 ? -1 : 1),
-        at: { x, y: 0, z },
-      });
+      spot();
+      rand();
+      rand();
+      rand();
+      rand();
     }
-    this.isopods.count = this.crawlers.length;
     // Salp chains drifting in mid-water.
     this.salps = this.instanced(
       salpGeometry(),
@@ -1185,12 +1167,6 @@ export class IceExtras {
     }
     for (const p of this.penBase.slice(0, 12))
       this.sightings.push({ ...ICE_SIGHTS.seaPen, position: p, radius: 1 });
-    for (const c of this.crawlers)
-      this.sightings.push({
-        ...ICE_SIGHTS.isopod,
-        position: c.at,
-        radius: 0.8,
-      });
     for (const c of this.chains)
       this.sightings.push({ ...ICE_SIGHTS.salp, position: c.at, radius: 2 });
     this.root.add(this.underside.root);
@@ -1222,7 +1198,6 @@ export class IceExtras {
     player?: PlayerPresence,
   ): void {
     if (this.disposed || !active) return;
-    this.underside.update(dt, active, reducedMotion);
     const step = Math.min(Math.max(dt, 0), 0.1);
     this.time += reducedMotion ? step * 0.4 : step;
     const t = this.time;
@@ -1258,25 +1233,6 @@ export class IceExtras {
       this.pens.setMatrixAt(i, this.m);
     });
     this.pens.instanceMatrix.needsUpdate = true;
-    // Isopods crawl slow circles over the bottom.
-    this.crawlers.forEach((c, i) => {
-      c.angle += (c.speed / c.radius) * step;
-      c.at.x = c.home.x + Math.cos(c.angle) * c.radius;
-      c.at.z = c.home.z + Math.sin(c.angle) * c.radius;
-      c.at.y = iceFloor(c.at.x, c.at.z);
-      const heading = Math.atan2(
-        -Math.cos(c.angle) * Math.sign(c.speed),
-        -Math.sin(c.angle) * Math.sign(c.speed),
-      );
-      this.e.set(0, heading, 0);
-      this.m.compose(
-        this.p.set(c.at.x, c.at.y, c.at.z),
-        this.q.setFromEuler(this.e),
-        this.s.setScalar(1.8),
-      );
-      this.isopods.setMatrixAt(i, this.m);
-    });
-    this.isopods.instanceMatrix.needsUpdate = true;
     // Salp chains: a slow loop, the chain undulating along its length.
     this.chains.forEach((c, k) => {
       const a = c.phase + t * c.speed;
@@ -1339,8 +1295,7 @@ export class IceExtras {
     this.root.clear();
     this.geometries.forEach((g) => g.dispose());
     this.materials.forEach((m) => m.dispose());
-    for (const mesh of [this.scallops, this.pens, this.isopods, this.salps])
-      mesh.dispose();
+    for (const mesh of [this.scallops, this.pens, this.salps]) mesh.dispose();
     this.sightings.length = 0;
   }
 }

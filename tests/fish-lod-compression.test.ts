@@ -145,7 +145,8 @@ describe('Pass 017/018 asset compression', () => {
         id !== 'reefMinis' &&
         id !== 'kelpMinis' &&
         id !== 'wreckMinis' &&
-        id !== 'caveMinis'
+        id !== 'caveMinis' &&
+        id !== 'iceMinis'
       ) {
         expect(json.extensionsUsed, id).toContain('KHR_texture_basisu');
         expect(images.length, id).toBeGreaterThan(0);

@@ -52,6 +52,7 @@ export type TankCreatureId =
   | 'sea-squirt'
   | 'mysid'
   | 'ice-algae'
+  | 'tritoniella-belli'
   | 'sea-angel'
   | 'christmas-tree-worm'
   | 'pikachu-nudibranch'
@@ -135,7 +136,8 @@ function rareMini(
     | 'reefMinis'
     | 'kelpMinis'
     | 'wreckMinis'
-    | 'caveMinis' = 'rareMinis',
+    | 'caveMinis'
+    | 'iceMinis' = 'rareMinis',
 ): BabyDefinition {
   return {
     id,
@@ -271,7 +273,13 @@ export const MINIATURES_BEFORE_096: readonly BabyDefinition[] = [
   littleShape('sea-cucumber', 'Sea cucumber', 'crawl'),
   littleShape('antarctic-scallop', 'Antarctic scallop', 'still'),
   littleShape('sea-pen', 'Sea pen', 'still'),
-  littleShape('giant-isopod', 'Little giant isopod', 'crawl'),
+  rareMini(
+    'giant-isopod',
+    'Giant Antarctic isopod',
+    'Glyptonotus_Antarcticus',
+    0.32,
+    'iceMinis',
+  ),
   littleShape('encrusting-sponge', 'Encrusting sponge', 'still'),
   littleShape('tube-sponge', 'Tube sponges', 'still'),
   littleShape('sea-squirt', 'Sea squirts', 'still'),
@@ -281,7 +289,26 @@ export const MINIATURES_BEFORE_096: readonly BabyDefinition[] = [
     sighting: 'plant:ice-algae',
     halfHeight: 0.005,
   },
-  littleShape('sea-angel', 'Sea angel', 'drift'),
+  {
+    ...rareMini(
+      'sea-angel',
+      'Antarctic sea angel',
+      'Clione_Antarctica',
+      0.127,
+      'iceMinis',
+    ),
+    motion: 'drift',
+    speed: 0.015,
+    // The upright angel needs clearance for its full head-to-tail height.
+    halfHeight: 0.075,
+  },
+  rareMini(
+    'tritoniella-belli',
+    'Antarctic nudibranch',
+    'Tritoniella_Belli',
+    0.18,
+    'iceMinis',
+  ),
   littleShape('christmas-tree-worm', 'Christmas tree worm', 'still'),
   // V0.8 Pass 100: the tank's rare miniatures, placed as the same models found in the reef.
   rareMini(
@@ -439,7 +466,8 @@ export function isLargeMiniature(d: BabyDefinition): boolean {
       d.asset !== 'reefMinis' &&
       d.asset !== 'kelpMinis' &&
       d.asset !== 'wreckMinis' &&
-      d.asset !== 'caveMinis') ||
+      d.asset !== 'caveMinis' &&
+      d.asset !== 'iceMinis') ||
     d.id === 'colossal-squid'
   );
 }

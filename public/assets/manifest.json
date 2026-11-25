@@ -2608,5 +2608,23 @@
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Four rare sea cave miniature discoveries; shared album and aquarium art (Pass 104)"
+  },
+  {
+    "id": "ice-minis",
+    "file": "assets/models/creatures/ice-minis.glb",
+    "sha256": "7353537916af1c333d447bb1f9997a5ca298ac41c5d6abf009d3062fb9df6c7b",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 273404,
+    "visualPrimitives": 3,
+    "visualTriangles": 19968,
+    "collisionTriangles": 0,
+    "materials": 3,
+    "images": [],
+    "geometryAccessorBytes": 267745,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Three Antarctic miniature discoveries; shared album and aquarium art (Pass 105)"
   }
 ]

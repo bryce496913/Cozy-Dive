@@ -57,6 +57,17 @@ export const ASSET_REGISTRY = {
     // A library of named animals (each carries its own Stroke morphs, checked by its tests).
     requireMorphs: false,
   },
+  iceMinis: {
+    path: 'assets/models/creatures/ice-minis.glb',
+    requiredNodes: [
+      'Clione_Antarctica',
+      'Tritoniella_Belli',
+      'Glyptonotus_Antarcticus',
+    ],
+    minDimension: 1,
+    maxDimension: 3,
+    requireMorphs: false,
+  },
   // V0.8 Pass 104: the cave's four rare miniature species.
   caveMinis: {
     path: 'assets/models/creatures/cave-minis.glb',
