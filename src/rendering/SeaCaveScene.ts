@@ -1,3 +1,4 @@
+import { CaveMinis } from '../environment/cave/CaveMinis';
 import * as THREE from 'three';
 import { Geology, acquireGeology } from '../environment/shared/Geology';
 import { WATER_PROFILES } from '../config/waterProfiles';
@@ -91,6 +92,7 @@ export class SeaCaveScene implements WaterWorld {
   /** v0.6 Pass 045 */
   visitors?: CaveVisitors;
   readonly nooks: CaveNooks;
+  minis?: CaveMinis;
   readonly sightings: SightCandidate[] = [];
   /** v0.6 Pass 046 review: how far it has got, and which parts loaded. */
   readonly preparation = new WorldPreparation();
@@ -259,17 +261,24 @@ export class SeaCaveScene implements WaterWorld {
     );
     if (!(await this.nextPart())) return false;
     this.visitors = new CaveVisitors(fish, this.nooks);
+    this.minis = new CaveMinis(
+      this.environment,
+      this.dressing.root,
+      this.visitors.root,
+    );
     const prep = this.preparation;
     const [schooled, cruising, resting, visiting] = await Promise.all([
       prep.track('schools', this.schools.ready),
       prep.track('cruisers', this.creatures.ready),
       prep.track('resting sharks', this.resting.ready),
       prep.track('visitors', this.visitors.ready),
+      prep.track('rare miniatures', this.minis.load(fish)),
     ]);
     // v0.6 Pass 046 review: nothing is added once the cave has been let go.
     if (this.disposed) return false;
     // The schools show their simple fish if their rigs failed, so they are always added.
-    this.scene.add(this.schools.root);
+    this.scene.add(this.schools.root, this.minis.root);
+    this.sightings.push(...this.minis.sightings);
     if (cruising) {
       this.scene.add(this.creatures.root);
       this.sightings.push(...this.creatures.sightings);
@@ -362,6 +371,7 @@ export class SeaCaveScene implements WaterWorld {
     this.creatures?.update(dt, active, reducedMotion, player, this.camera);
     // Only once warmed up, so everything is drawn (and compiled) in the warm-up first.
     if (this.ready) this.visitors?.update(dt, active, reducedMotion, player);
+    if (this.ready) this.minis?.update(dt, active, reducedMotion);
     this.renderer.render(this.scene, this.camera);
   }
   dispose(): void {
@@ -372,6 +382,7 @@ export class SeaCaveScene implements WaterWorld {
     this.schools?.dispose();
     this.creatures?.dispose();
     this.resting?.dispose();
+    this.minis?.dispose();
     this.sightings.length = 0;
     this.lobsters.dispose();
     this.visitors?.dispose();

@@ -1,0 +1,224 @@
+{
+  "prepared": {
+    "state": "ready",
+    "loaded": true,
+    "sights": [
+      "species:stargazer",
+      "species:psychedelic-frogfish",
+      "species:banded-coral-shrimp",
+      "species:wonderpus"
+    ],
+    "homes": {
+      "gazer": {
+        "position": {
+          "x": -3,
+          "y": -0.40684779442994,
+          "z": -17.45
+        },
+        "rotation": {
+          "isQuaternion": true,
+          "_x": -0.027546026060174377,
+          "_y": 0,
+          "_z": 0.011286842305062642,
+          "_w": 0.9995568136124493
+        },
+        "target": {
+          "x": -3.0000497452243637,
+          "y": -0.382442383544117,
+          "z": -17.370121405368273
+        },
+        "view": {
+          "x": -3,
+          "y": 0.24315220557006,
+          "z": -16.5
+        },
+        "attachment": "Existing cave sand"
+      },
+      "frog": {
+        "position": {
+          "x": -7.543010297342774,
+          "y": -0.11684261852330868,
+          "z": -32.77039333133778
+        },
+        "rotation": {
+          "isQuaternion": true,
+          "_x": 0,
+          "_y": 0,
+          "_z": 0,
+          "_w": 1
+        },
+        "target": {
+          "x": -7.543010297342774,
+          "y": -0.056842618523308686,
+          "z": -32.77039333133778
+        },
+        "view": {
+          "x": -7.543010297342774,
+          "y": 0.5331573814766913,
+          "z": -31.82039333133778
+        },
+        "attachment": "Sheltered boulder margin",
+        "shelter": {
+          "x": -7.226495364554513,
+          "y": 0.07205928843229847,
+          "z": -32.81749213516593
+        }
+      },
+      "shrimp": {
+        "position": {
+          "x": 12.738469442139316,
+          "y": -0.30532478203806734,
+          "z": -26.96542924283367
+        },
+        "rotation": {
+          "isQuaternion": true,
+          "_x": 0,
+          "_y": 0,
+          "_z": 0,
+          "_w": 1
+        },
+        "target": {
+          "x": 12.738469442139316,
+          "y": -0.24532478203806735,
+          "z": -26.96542924283367
+        },
+        "view": {
+          "x": 12.738469442139316,
+          "y": 0.3446752179619327,
+          "z": -26.015429242833672
+        },
+        "attachment": "Existing boulder crack",
+        "shelter": {
+          "x": 12.630841795099906,
+          "y": 0.9573610722039395,
+          "z": -27.26678665454402
+        }
+      },
+      "wonderpus": {
+        "position": {
+          "x": -5.5,
+          "y": 0.2629647279117422,
+          "z": -12.5
+        },
+        "rotation": {
+          "isQuaternion": true,
+          "_x": 0,
+          "_y": 0,
+          "_z": 0,
+          "_w": 1
+        },
+        "target": {
+          "x": -5.5,
+          "y": 0.35296472791174216,
+          "z": -12.5
+        },
+        "view": {
+          "x": -4.55,
+          "y": 0.9129647279117422,
+          "z": -12.5
+        },
+        "attachment": "Entrance sand beside shelter"
+      }
+    }
+  },
+  "habitat": {
+    "gazer": {
+      "baseline": {
+        "frame": 28,
+        "calls": 46,
+        "triangles": 2040929,
+        "points": 420,
+        "lines": 0
+      },
+      "visible": {
+        "frame": 29,
+        "calls": 47,
+        "triangles": 2044209,
+        "points": 420,
+        "lines": 0
+      },
+      "extraCalls": 1,
+      "extraTriangles": 3280,
+      "fog": 0.13
+    },
+    "frog": {
+      "baseline": {
+        "frame": 31,
+        "calls": 48,
+        "triangles": 2136070,
+        "points": 420,
+        "lines": 0
+      },
+      "visible": {
+        "frame": 32,
+        "calls": 49,
+        "triangles": 2143050,
+        "points": 420,
+        "lines": 0
+      },
+      "extraCalls": 1,
+      "extraTriangles": 6980,
+      "fog": 0.13
+    },
+    "shrimp": {
+      "baseline": {
+        "frame": 34,
+        "calls": 48,
+        "triangles": 1935726,
+        "points": 420,
+        "lines": 0
+      },
+      "visible": {
+        "frame": 35,
+        "calls": 49,
+        "triangles": 1938702,
+        "points": 420,
+        "lines": 0
+      },
+      "extraCalls": 1,
+      "extraTriangles": 2976,
+      "fog": 0.13
+    },
+    "wonderpus": {
+      "baseline": {
+        "frame": 37,
+        "calls": 33,
+        "triangles": 1906818,
+        "points": 420,
+        "lines": 0
+      },
+      "visible": {
+        "frame": 38,
+        "calls": 34,
+        "triangles": 1916662,
+        "points": 420,
+        "lines": 0
+      },
+      "extraCalls": 1,
+      "extraTriangles": 9844,
+      "fog": 0.13
+    }
+  },
+  "smoke": {
+    "observed": [
+      "species:stargazer",
+      "species:psychedelic-frogfish",
+      "species:banded-coral-shrimp",
+      "species:wonderpus"
+    ],
+    "pause": true,
+    "reduced": true,
+    "restingSharks": 3,
+    "sharkReady": true,
+    "fog": 0.13,
+    "approvedFog": 0.13,
+    "returnPassages": ["Cave entrance glow", "Cave back tunnel glow"]
+  },
+  "released": {
+    "geometries": 0,
+    "textures": 0,
+    "leases": 0
+  },
+  "errors": [],
+  "renderer": "Chromium SwiftShader; cave-only localized views, no traversal"
+}

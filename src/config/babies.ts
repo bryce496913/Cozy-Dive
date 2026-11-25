@@ -67,7 +67,11 @@ export type TankCreatureId =
   | 'skeleton-shrimp'
   | 'juvenile-wolf-eel'
   | 'decorator-crab'
-  | 'painted-greenling';
+  | 'painted-greenling'
+  | 'stargazer'
+  | 'psychedelic-frogfish'
+  | 'banded-coral-shrimp'
+  | 'wonderpus';
 export interface BabyDefinition {
   readonly id: TankCreatureId;
   readonly sighting: string;
@@ -126,7 +130,12 @@ function rareMini(
   label: string,
   node: string,
   size: number,
-  asset: 'rareMinis' | 'reefMinis' | 'kelpMinis' | 'wreckMinis' = 'rareMinis',
+  asset:
+    | 'rareMinis'
+    | 'reefMinis'
+    | 'kelpMinis'
+    | 'wreckMinis'
+    | 'caveMinis' = 'rareMinis',
 ): BabyDefinition {
   return {
     id,
@@ -349,6 +358,34 @@ export const MINIATURES_BEFORE_096: readonly BabyDefinition[] = [
     motion: 'still',
     speed: 0,
   },
+  {
+    ...rareMini('stargazer', 'Stargazer fish', 'Stargazer', 0.3, 'caveMinis'),
+    motion: 'still',
+    speed: 0,
+  },
+  {
+    ...rareMini(
+      'psychedelic-frogfish',
+      'Psychedelic frogfish',
+      'Psychedelic_Frogfish',
+      0.24,
+      'caveMinis',
+    ),
+    motion: 'still',
+    speed: 0,
+  },
+  {
+    ...rareMini(
+      'banded-coral-shrimp',
+      'Banded coral shrimp',
+      'Banded_Coral_Shrimp',
+      0.28,
+      'caveMinis',
+    ),
+    motion: 'still',
+    speed: 0,
+  },
+  rareMini('wonderpus', 'Wonderpus octopus', 'Wonderpus', 0.43, 'caveMinis'),
   // V0.8 Pass 101: the outer reef's rare miniatures (the same models as on the reef).
   rareMini(
     'harlequin-shrimp',
@@ -401,7 +438,8 @@ export function isLargeMiniature(d: BabyDefinition): boolean {
       d.asset !== 'rareMinis' &&
       d.asset !== 'reefMinis' &&
       d.asset !== 'kelpMinis' &&
-      d.asset !== 'wreckMinis') ||
+      d.asset !== 'wreckMinis' &&
+      d.asset !== 'caveMinis') ||
     d.id === 'colossal-squid'
   );
 }

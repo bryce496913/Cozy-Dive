@@ -2565,5 +2565,48 @@
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Four rare shipwreck miniature discoveries; shared album and aquarium art (Pass 103)"
+  },
+  {
+    "id": "cave-minis",
+    "file": "assets/models/creatures/cave-minis.glb",
+    "sha256": "563ef75761b29a639b920c494e5400955f211835ec73d9f60b5579d677e9aad6",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 721620,
+    "visualPrimitives": 4,
+    "visualTriangles": 23080,
+    "collisionTriangles": 0,
+    "materials": 4,
+    "images": [
+      {
+        "name": "PsychedelicFrogfish-normal",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-UASTC+zstd",
+        "mipLevels": 10,
+        "encodedBytes": 23113
+      },
+      {
+        "name": "PsychedelicFrogfish-base",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 30038
+      },
+      {
+        "name": "PsychedelicFrogfish-orm",
+        "width": 512,
+        "height": 512,
+        "mode": "KTX2-ETC1S",
+        "mipLevels": 10,
+        "encodedBytes": 15205
+      }
+    ],
+    "geometryAccessorBytes": 711973,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Four rare sea cave miniature discoveries; shared album and aquarium art (Pass 104)"
   }
 ]
