@@ -2547,5 +2547,23 @@
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Kelp forest rare miniatures; shared habitat, album and aquarium models (Pass 102)"
+  },
+  {
+    "id": "wreck-minis",
+    "file": "assets/models/creatures/wreck-minis.glb",
+    "sha256": "294a021f531d593a084541007b3d710cad53e5f19a32a98abd843857e9abff26",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 291600,
+    "visualPrimitives": 4,
+    "visualTriangles": 11285,
+    "collisionTriangles": 0,
+    "materials": 4,
+    "images": [],
+    "geometryAccessorBytes": 283353,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Four rare shipwreck miniature discoveries; shared album and aquarium art (Pass 103)"
   }
 ]

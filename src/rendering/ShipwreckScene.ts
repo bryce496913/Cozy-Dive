@@ -3,6 +3,7 @@ import { WATER_PROFILES } from '../config/waterProfiles';
 import { createLightRig } from './atmosphere/lightRig';
 import type { AssetLoader } from '../assets/AssetLoader';
 import type { PlayerPresence } from '../fish/FishDiverReaction';
+import { WreckMinis } from '../environment/wreck/WreckMinis';
 import { WreckLife } from '../environment/wreck/WreckLife';
 import { WRECK, WRECK_FRAME } from '../config/wreck';
 import type { Bounds, Vec3 } from '../config/world';
@@ -88,6 +89,7 @@ export class ShipwreckScene implements WaterWorld {
   private disposed = false;
   /** Its fish: the sea bass in the hold, and the schools round the ship. */
   life?: WreckLife;
+  minis?: WreckMinis;
 
   static async build(
     renderer: THREE.WebGLRenderer,
@@ -185,9 +187,15 @@ export class ShipwreckScene implements WaterWorld {
     if (this.disposed) return false;
     const life = new WreckLife(fish);
     this.life = life;
-    await this.preparation.track('wildlife', life.ready);
+    const minis = new WreckMinis(this.environment);
+    this.minis = minis;
+    await Promise.all([
+      this.preparation.track('wildlife', life.ready),
+      this.preparation.track('rare miniatures', minis.load(fish)),
+    ]);
     if (this.disposed) return false;
-    this.scene.add(life.root);
+    this.scene.add(life.root, minis.root);
+    this.sightings.push(...minis.sightings);
     this.sightings.push(...life.sightings);
     // Compiled with the torch lit, so it never compiles on the way into the ship.
     this.torch.intensity = WRECK.torch.intensity;
@@ -256,6 +264,7 @@ export class ShipwreckScene implements WaterWorld {
     // Only once warmed up, so everything is drawn (and compiled) in the warm-up first.
     if (this.ready && player)
       this.life?.update(dt, active, reducedMotion, player, this.camera);
+    if (this.ready) this.minis?.update(dt, active, reducedMotion, player);
     this.snow.update(dt, active, reducedMotion, this.camera.position);
     this.environment.updatePassages(this.camera.position);
     this.renderer.render(this.scene, this.camera);
@@ -266,6 +275,7 @@ export class ShipwreckScene implements WaterWorld {
     this.preparation.dispose();
     this.ready = false;
     this.life?.dispose();
+    this.minis?.dispose();
     this.snow.dispose();
     this.environment.dispose();
     this.lights.forEach((l) => l.dispose());

@@ -1,0 +1,25 @@
+{
+  "sourceTriangles": 104496,
+  "homes": {
+    "skeleton": {
+      "msPerQuery": 0.029070300000003043,
+      "fullMeshMsPerQuery": 3.760066569999999,
+      "nearbyTriangles": 1433
+    },
+    "wolf": {
+      "msPerQuery": 0.04470545000000129,
+      "fullMeshMsPerQuery": 3.7856563899999993,
+      "nearbyTriangles": 1075
+    },
+    "crab": {
+      "msPerQuery": 0.019105569999996987,
+      "fullMeshMsPerQuery": 4.014202019999998,
+      "nearbyTriangles": 1242
+    },
+    "greenling": {
+      "msPerQuery": 0.03194415999999364,
+      "fullMeshMsPerQuery": 4.75919872,
+      "nearbyTriangles": 1370
+    }
+  }
+}

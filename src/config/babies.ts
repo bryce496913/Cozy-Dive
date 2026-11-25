@@ -63,7 +63,11 @@ export type TankCreatureId =
   | 'mimic-octopus'
   | 'weedy-seadragon'
   | 'sarcastic-fringehead'
-  | 'east-pacific-red-octopus';
+  | 'east-pacific-red-octopus'
+  | 'skeleton-shrimp'
+  | 'juvenile-wolf-eel'
+  | 'decorator-crab'
+  | 'painted-greenling';
 export interface BabyDefinition {
   readonly id: TankCreatureId;
   readonly sighting: string;
@@ -122,7 +126,7 @@ function rareMini(
   label: string,
   node: string,
   size: number,
-  asset: 'rareMinis' | 'reefMinis' | 'kelpMinis' = 'rareMinis',
+  asset: 'rareMinis' | 'reefMinis' | 'kelpMinis' | 'wreckMinis' = 'rareMinis',
 ): BabyDefinition {
   return {
     id,
@@ -309,6 +313,42 @@ export const MINIATURES_BEFORE_096: readonly BabyDefinition[] = [
     0.32,
     'kelpMinis',
   ),
+  rareMini(
+    'skeleton-shrimp',
+    'Skeleton shrimp',
+    'Skeleton_Shrimp',
+    0.24,
+    'wreckMinis',
+  ),
+  {
+    ...rareMini(
+      'juvenile-wolf-eel',
+      'Juvenile wolf eel',
+      'Juvenile_Wolf_Eel',
+      0.5,
+      'wreckMinis',
+    ),
+    motion: 'still',
+    speed: 0,
+  },
+  rareMini(
+    'decorator-crab',
+    'Decorator crab',
+    'Decorator_Crab',
+    0.23,
+    'wreckMinis',
+  ),
+  {
+    ...rareMini(
+      'painted-greenling',
+      'Painted greenling',
+      'Painted_Greenling',
+      0.28,
+      'wreckMinis',
+    ),
+    motion: 'still',
+    speed: 0,
+  },
   // V0.8 Pass 101: the outer reef's rare miniatures (the same models as on the reef).
   rareMini(
     'harlequin-shrimp',
@@ -360,7 +400,8 @@ export function isLargeMiniature(d: BabyDefinition): boolean {
       d.id !== 'moray-eel' &&
       d.asset !== 'rareMinis' &&
       d.asset !== 'reefMinis' &&
-      d.asset !== 'kelpMinis') ||
+      d.asset !== 'kelpMinis' &&
+      d.asset !== 'wreckMinis') ||
     d.id === 'colossal-squid'
   );
 }
@@ -382,10 +423,7 @@ export function miniatureGrowth(id: TankCreatureId): number {
   const d = TANK_BABIES.find((b) => b.id === id);
   return d && isLargeMiniature(d) ? MINIATURE_GROWTH : 1;
 }
-/**
- * How many animals a tank holds: one of each (61, + V0.8 Pass 100's three rare tank miniatures,
- * + Pass 101's four from the outer reef, + Pass 102's three new kelp species).
- */
+/** A tank holds one of every discovered catalog identity. */
 export const BABY_CAP = TANK_BABIES.length;
 export const babyDefinition = (id: TankCreatureId): BabyDefinition =>
   TANK_BABIES.find((b) => b.id === id)!;

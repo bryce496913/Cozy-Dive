@@ -102,6 +102,14 @@ export const DESCRIPTIONS: Readonly<Record<string, string>> = {
     'A furry-looking anglerfish that walks on its fins and fishes with a worm-like lure.',
   'species:mimic-octopus':
     'Lives on sandy flats and can pose like a flatfish or a lionfish to deter predators.',
+  'species:skeleton-shrimp':
+    'Caprellidae: slender amphipods that grip hydroids with hooked rear legs and sway with the water.',
+  'species:juvenile-wolf-eel':
+    'Anarrhichthys ocellatus: orange juveniles wear dark spots and gently withdraw into shelter when approached.',
+  'species:decorator-crab':
+    'A spider crab carrying algae and sponge fragments on hooked hairs, camouflaged among living wreck growth.',
+  'species:painted-greenling':
+    'Oxylebius pictus: a striped little fish that rests on broad pectoral fins and makes short, controlled perch changes.',
   'species:weedy-seadragon':
     'Phyllopteryx taeniolatus: drifts among kelp; an approved Australian temperate exception in this California-inspired forest.',
   'species:sarcastic-fringehead':
