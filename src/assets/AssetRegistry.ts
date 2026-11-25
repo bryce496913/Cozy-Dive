@@ -57,6 +57,19 @@ export const ASSET_REGISTRY = {
     // A library of named animals (each carries its own Stroke morphs, checked by its tests).
     requireMorphs: false,
   },
+  // V0.8 Pass 102: four rare kelp discoveries, including the existing Spanish shawl.
+  kelpMinis: {
+    path: 'assets/models/creatures/kelp-minis.glb',
+    requiredNodes: [
+      'Weedy_Seadragon',
+      'Spanish_Shawl',
+      'Sarcastic_Fringehead',
+      'Red_Octopus',
+    ],
+    minDimension: 1,
+    maxDimension: 3,
+    requireMorphs: false,
+  },
   // V0.8 Pass 101: the outer reef's four rare miniatures (one canonical model each).
   reefMinis: {
     path: 'assets/models/creatures/reef-minis.glb',

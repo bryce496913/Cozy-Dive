@@ -102,8 +102,14 @@ export const DESCRIPTIONS: Readonly<Record<string, string>> = {
     'A furry-looking anglerfish that walks on its fins and fishes with a worm-like lure.',
   'species:mimic-octopus':
     'Lives on sandy flats and can pose like a flatfish or a lionfish to deter predators.',
+  'species:weedy-seadragon':
+    'Phyllopteryx taeniolatus: drifts among kelp; an approved Australian temperate exception in this California-inspired forest.',
+  'species:sarcastic-fringehead':
+    'Neoclinus blanchardi: a small den-dwelling fish that occasionally unfurls a remarkably broad, colourful mouth.',
+  'species:east-pacific-red-octopus':
+    'Octopus rubescens: a shy little red octopus with subtle camouflage, slow-moving arms and a sheltered rock-side home.',
   'species:spanish-shawl':
-    'A nudibranch in purple and orange that swims with graceful flexes when disturbed.',
+    'Flabellinopsis iodinea: a purple nudibranch with orange cerata, grazing hydroids on sheltered kelp-forest rocks.',
   'species:kelp-crab':
     'A long-legged crab that climbs the kelp stalks and feeds on the fronds.',
   'species:leopard-shark':

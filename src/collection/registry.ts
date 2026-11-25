@@ -151,6 +151,9 @@ const PAGES: Readonly<
     ['species:harbour-seal'],
     ['species:california-sea-lion'],
     ['species:western-gull'],
+    ['species:weedy-seadragon'],
+    ['species:sarcastic-fringehead'],
+    ['species:east-pacific-red-octopus'],
   ],
   shipwreck: [['species:queensland-grouper']],
   'sea-cave': [
@@ -259,6 +262,10 @@ const RARITY: Readonly<Record<string, Rarity>> = {
   'species:ornate-ghost-pipefish': 'rare',
   'species:hairy-frogfish': 'rare',
   'species:mimic-octopus': 'rare',
+  'species:spanish-shawl': 'rare',
+  'species:weedy-seadragon': 'rare',
+  'species:sarcastic-fringehead': 'rare',
+  'species:east-pacific-red-octopus': 'rare',
 };
 
 function build(

@@ -2529,5 +2529,23 @@
     "animations": [],
     "units": "aquarium world units; library gallery root offsets are normalized at runtime",
     "usage": "Default aquarium hero asset"
+  },
+  {
+    "id": "kelp-minis",
+    "file": "assets/models/creatures/kelp-minis.glb",
+    "sha256": "cef49ae9a21e15acbbc41cdfd474aa67f2630cb9594ee546d4dcb152d1dccaaf",
+    "creator": "Cozy Diver original Blender authoring; sources under tools/art/",
+    "license": "CC0-1.0",
+    "attribution": "Not required; authoring source retained",
+    "bytes": 429256,
+    "visualPrimitives": 4,
+    "visualTriangles": 24072,
+    "collisionTriangles": 0,
+    "materials": 4,
+    "images": [],
+    "geometryAccessorBytes": 421491,
+    "animations": [],
+    "units": "aquarium world units; library gallery root offsets are normalized at runtime",
+    "usage": "Kelp forest rare miniatures; shared habitat, album and aquarium models (Pass 102)"
   }
 ]

@@ -35,7 +35,7 @@ const KELP_ONLY = ['giantSeaBass', 'sheephead'] as const;
  *   - a shy harbour seal that watches the swimmer from a distance;
  *   - now and then a giant sea bass cruising slowly past;
  *   - now and then a gull plunging in to peck at the sand near the swimmer, then leaving;
- *   - Spanish shawl nudibranchs on the boulders and kelp crabs on the stalks.
+ *   - kelp crabs on the stalks (the four rare miniatures are owned by KelpForestScene).
  * Each part loads on its own and is left out if it cannot. Owns everything it creates.
  */
 export const SHEEPHEAD: GrazeConfig = {

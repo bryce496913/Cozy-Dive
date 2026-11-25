@@ -33,6 +33,7 @@ interface Accessor {
 interface GltfDocument {
   nodes: GltfNode[];
   meshes: {
+    weights?: number[];
     primitives: {
       attributes: Record<string, number>;
       indices: number;

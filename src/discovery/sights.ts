@@ -24,6 +24,15 @@ export const REEF_SIGHTS = {
 
 /** v0.6 Pass 032: what the kelp forest shows (its bat rays are listed with the big creatures). */
 export const KELP_SIGHTS = {
+  seadragon: { id: 'species:weedy-seadragon', label: 'Weedy seadragon' },
+  fringehead: {
+    id: 'species:sarcastic-fringehead',
+    label: 'Sarcastic fringehead',
+  },
+  redOctopus: {
+    id: 'species:east-pacific-red-octopus',
+    label: 'East Pacific red octopus',
+  },
   kelp: { id: 'plant:giant-kelp', label: 'Giant kelp' },
   garibaldi: { id: 'species:garibaldi', label: 'Garibaldi' },
   /** v0.6 Pass 035. */

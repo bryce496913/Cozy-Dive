@@ -60,7 +60,10 @@ export type TankCreatureId =
   | 'harlequin-shrimp'
   | 'ornate-ghost-pipefish'
   | 'hairy-frogfish'
-  | 'mimic-octopus';
+  | 'mimic-octopus'
+  | 'weedy-seadragon'
+  | 'sarcastic-fringehead'
+  | 'east-pacific-red-octopus';
 export interface BabyDefinition {
   readonly id: TankCreatureId;
   readonly sighting: string;
@@ -119,7 +122,7 @@ function rareMini(
   label: string,
   node: string,
   size: number,
-  asset: 'rareMinis' | 'reefMinis' = 'rareMinis',
+  asset: 'rareMinis' | 'reefMinis' | 'kelpMinis' = 'rareMinis',
 ): BabyDefinition {
   return {
     id,
@@ -218,7 +221,13 @@ export const MINIATURES_BEFORE_096: readonly BabyDefinition[] = [
   littleAsset('minke-whale', 'Minke whale calf', 'minkeWhale'),
   littleAsset('killer-whale', 'Orca calf', 'killerWhale'),
   littleAsset('polar-bear', 'Polar bear cub', 'polarBear'),
-  littleShape('spanish-shawl', 'Spanish shawl nudibranch', 'crawl'),
+  rareMini(
+    'spanish-shawl',
+    'Spanish shawl nudibranch',
+    'Spanish_Shawl',
+    0.18,
+    'kelpMinis',
+  ),
   littleShape('kelp-crab', 'Kelp crab', 'crawl'),
   littleShape('spiny-lobster', 'Spiny lobster', 'crawl'),
   littleShape('rock-crab', 'Rock crab', 'crawl'),
@@ -270,6 +279,36 @@ export const MINIATURES_BEFORE_096: readonly BabyDefinition[] = [
   ),
   rareMini('leaf-sheep', 'Leaf sheep', 'Leaf_Sheep', 0.16),
   rareMini('candy-crab', 'Candy crab', 'Candy_Crab', 0.16),
+  // Pass 102: reuse Spanish shawl's existing id above; three additional kelp identities.
+  {
+    ...rareMini(
+      'weedy-seadragon',
+      'Weedy seadragon',
+      'Weedy_Seadragon',
+      0.36,
+      'kelpMinis',
+    ),
+    motion: 'swim',
+    speed: 0.025,
+  },
+  {
+    ...rareMini(
+      'sarcastic-fringehead',
+      'Sarcastic fringehead',
+      'Sarcastic_Fringehead',
+      0.3,
+      'kelpMinis',
+    ),
+    motion: 'still',
+    speed: 0,
+  },
+  rareMini(
+    'east-pacific-red-octopus',
+    'East Pacific red octopus',
+    'Red_Octopus',
+    0.32,
+    'kelpMinis',
+  ),
   // V0.8 Pass 101: the outer reef's rare miniatures (the same models as on the reef).
   rareMini(
     'harlequin-shrimp',
@@ -320,7 +359,8 @@ export function isLargeMiniature(d: BabyDefinition): boolean {
     (!!d.asset &&
       d.id !== 'moray-eel' &&
       d.asset !== 'rareMinis' &&
-      d.asset !== 'reefMinis') ||
+      d.asset !== 'reefMinis' &&
+      d.asset !== 'kelpMinis') ||
     d.id === 'colossal-squid'
   );
 }
@@ -344,8 +384,8 @@ export function miniatureGrowth(id: TankCreatureId): number {
 }
 /**
  * How many animals a tank holds: one of each (61, + V0.8 Pass 100's three rare tank miniatures,
- * + Pass 101's four from the outer reef).
+ * + Pass 101's four from the outer reef, + Pass 102's three new kelp species).
  */
-export const BABY_CAP = 68;
+export const BABY_CAP = TANK_BABIES.length;
 export const babyDefinition = (id: TankCreatureId): BabyDefinition =>
   TANK_BABIES.find((b) => b.id === id)!;

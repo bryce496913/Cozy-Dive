@@ -60,7 +60,7 @@ describe('collection registry: identities', () => {
       aquarium: 12,
       // V0.8 Pass 101: + the harlequin shrimp, ghost pipefish, hairy frogfish and mimic octopus.
       'outer-reef': 30,
-      'kelp-forest': 14,
+      'kelp-forest': 17,
       shipwreck: 1,
       'sea-cave': 14,
       antarctic: 32,
@@ -111,6 +111,7 @@ describe('collection registry: identities', () => {
     expect(named(/octopus/i).map((e) => e.id)).toEqual([
       'species:octopus',
       'species:mimic-octopus',
+      'species:east-pacific-red-octopus',
     ]);
     // Nudibranchs: the tank's five are generic scenery; the named species are the Spanish shawl
     // and (V0.8 Pass 100) the Pikachu nudibranch, each once.
