@@ -51,7 +51,7 @@ export class TankEditor {
   private readonly notice = document.createElement('p');
   private current?: EditorState;
   /** V0.8 Pass 099: opens the field album with this aquarium's actions (set by the application). */
-  onAlbum?: (tank: AlbumTank) => void;
+  onAlbum?: (tank: AlbumTank, returnFocus: HTMLElement) => void;
   private selected?: string;
   private artReady = false;
   private disposed = false;
@@ -223,7 +223,7 @@ export class TankEditor {
         album: () => {
           this.panel.hidden = true;
           this.toggle.setAttribute('aria-expanded', 'false');
-          this.onAlbum?.(this.albumTank());
+          this.onAlbum?.(this.albumTank(), this.toggle);
         },
         undo: () => {
           this.undo();
@@ -311,16 +311,22 @@ export class TankEditor {
         if (t.slot === 'animal') {
           const placed = m?.babies.includes(t.key) ? 1 : 0,
             room = !!m && m.babies.length < BABY_CAP,
-            canAdd = here() && canAddToTank(entry, seen) && room;
+            arrival = this.world.babies?.status(t.key),
+            retry = placed > 0 && arrival === 'failed',
+            canAdd = here() && canAddToTank(entry, seen) && (room || retry);
           return {
             canAdd,
             placed,
             max: 1,
+            retry,
+            pending: arrival === 'pending',
             reason: !here()
               ? away
-              : !room
-                ? 'The aquarium has all the visitors it can hold for now.'
-                : undefined,
+              : retry
+                ? 'It could not arrive this time. Try again, or return it to the sea.'
+                : !room
+                  ? 'The aquarium has all the visitors it can hold for now.'
+                  : undefined,
           };
         }
         const placed = m?.fish[t.key] ?? 0,
@@ -338,6 +344,14 @@ export class TankEditor {
           seen = this.seen();
         if (!here() || !m || !t || t.slot === 'decoration') return away;
         if (t.slot === 'animal') {
+          if (
+            canAddToTank(entry, seen) &&
+            m.babies.includes(t.key) &&
+            this.world.babies?.status(t.key) === 'failed'
+          ) {
+            this.babiesChanged(false);
+            return `Trying to welcome ${entry.name.toLowerCase()} again.`;
+          }
           if (!canAddToTank(entry, seen) || !m.addBaby(t.key, seen))
             return 'There is no room for another visitor just now.';
           this.babiesChanged();

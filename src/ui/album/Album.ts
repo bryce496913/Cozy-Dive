@@ -45,6 +45,8 @@ export interface AlbumTankState {
   readonly placed: number;
   readonly max: number;
   readonly reason?: string;
+  readonly retry?: boolean;
+  readonly pending?: boolean;
 }
 export interface AlbumTank {
   state(entry: CollectionEntry): AlbumTankState | undefined;
@@ -102,7 +104,11 @@ export class Album {
   private frame = 0;
   private opener?: HTMLElement;
   private selected?: CollectionEntry;
+  private remembered?: { entry: CollectionEntry; page: number };
   private swipeX?: number;
+  private actions?: HTMLElement;
+  private actionKey: string | undefined = '';
+  private nextActions = 0;
   private turning?: ReturnType<typeof setTimeout>;
 
   constructor(
@@ -180,24 +186,38 @@ export class Album {
   open(
     options: {
       tank?: AlbumTank;
+      returnFocus?: HTMLElement;
       section?: (typeof ALBUM_SECTIONS)[number];
     } = {},
   ): void {
+    if (this.open_) return;
     this.tank = options.tank;
     this.opener =
-      document.activeElement instanceof HTMLElement
+      options.returnFocus ??
+      (document.activeElement instanceof HTMLElement
         ? document.activeElement
-        : undefined;
+        : undefined);
     this.previews ??= new AlbumPreviews(this.options.loaders);
     this.open_ = true;
     this.root.hidden = false;
     this.index = options.section ? firstSpread(options.section) : lastSpread();
+    rememberSpread(this.index);
     this.status.textContent = '';
     this.render();
-    this.closer.focus();
+    if (
+      this.remembered?.page === this.index &&
+      isDiscovered(this.remembered.entry, this.options.seen())
+    )
+      this.openDetail(this.remembered.entry);
+    else this.closer.focus();
     const loop = (ms: number) => {
       if (!this.open_) return;
       this.previews?.frame(ms / 1000, this.options.reducedMotion());
+      if (this.selected && this.actions && ms >= this.nextActions) {
+        this.nextActions = ms + 300;
+        if (JSON.stringify(this.tank?.state(this.selected)) !== this.actionKey)
+          this.renderActions(this.selected, this.actions);
+      }
       this.frame = requestAnimationFrame(loop);
     };
     this.frame = requestAnimationFrame(loop);
@@ -208,7 +228,11 @@ export class Album {
     this.open_ = false;
     cancelAnimationFrame(this.frame);
     clearTimeout(this.turning);
+    this.remembered = this.selected
+      ? { entry: this.selected, page: this.index }
+      : undefined;
     this.closeDetail(false);
+    this.tank = undefined;
     this.previews?.dispose();
     this.previews = undefined;
     this.root.hidden = true;
@@ -218,7 +242,11 @@ export class Album {
   /** Turn to spread `index` (clamped), with the page-turn movement unless motion is reduced. */
   go(index: number): void {
     const to = turn(index, 0);
-    if (to === this.index || !this.open_) return;
+    if (!this.open_) return;
+    if (to === this.index) {
+      if (!this.detail.hidden) this.closeDetail();
+      return;
+    }
     const forward = to > this.index;
     this.index = to;
     rememberSpread(to);
@@ -440,6 +468,7 @@ export class Album {
       ),
     );
     const actions = el('div', 'album-actions');
+    this.actions = actions;
     info.append(actions);
     this.renderActions(entry, actions);
     const view = el('div', 'album-detail-view');
@@ -456,6 +485,7 @@ export class Album {
   private renderActions(entry: CollectionEntry, box: HTMLElement): void {
     box.replaceChildren();
     const state = this.tank?.state(entry);
+    this.actionKey = JSON.stringify(state);
     if (!this.tank || !state) {
       if (entry.tank && entry.tank.slot !== 'decoration')
         box.append(
@@ -475,13 +505,17 @@ export class Album {
       fish = entry.tank?.slot === 'fish',
       add = button(
         'album-action',
-        fish ? 'Add one to the aquarium' : 'Add to Aquarium',
+        state.retry
+          ? 'Try adding again'
+          : fish
+            ? 'Add one to the aquarium'
+            : 'Add to Aquarium',
       ),
       back = button(
         'album-action',
         fish ? 'Return one to the sea' : 'Return it to the sea',
       );
-    add.disabled = !state.canAdd || (!fish && state.placed > 0);
+    add.disabled = !state.canAdd || (!fish && state.placed > 0 && !state.retry);
     back.disabled = state.placed === 0;
     add.addEventListener('click', () => {
       this.status.textContent = tank.add(entry);
@@ -497,14 +531,16 @@ export class Album {
         'album-action-note',
         fish
           ? `${state.placed} of ${state.max} in your aquarium.`
-          : state.placed
-            ? 'In your aquarium.'
-            : 'Not in your aquarium.',
+          : state.pending
+            ? 'Arriving in your aquarium…'
+            : state.placed
+              ? 'In your aquarium.'
+              : 'Not in your aquarium.',
       ),
     );
-    if (!state.canAdd && state.reason && !state.placed)
+    if (state.reason && (!state.placed || state.retry))
       box.append(el('p', 'album-action-why', state.reason));
-    if (fish || !state.placed) box.append(add);
+    if (fish || !state.placed || state.retry) box.append(add);
     if (state.placed) box.append(back);
   }
   private closeDetail(restore = true): void {
@@ -513,6 +549,7 @@ export class Album {
     this.detail.hidden = true;
     this.detail.replaceChildren();
     this.selected = undefined;
+    this.actions = undefined;
     this.spread.hidden = false;
     this.prev.hidden = this.next.hidden = false;
     this.back.hidden = true;
