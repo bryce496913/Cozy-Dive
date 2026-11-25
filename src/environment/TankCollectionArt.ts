@@ -6,6 +6,7 @@ import {
 } from '../rendering/Gelatinous';
 import type { AssetLoader, AssetLease } from '../assets/AssetLoader';
 import type { BabyDefinition } from '../config/babies';
+import { animateWreckMini } from './wreck/WreckMiniAnimation';
 import { animateKelpMini } from './kelp/KelpMiniAnimation';
 import { creatureStroke } from './creatureStroke';
 import { collectionShape } from './TankCollectionShapes';
@@ -217,6 +218,8 @@ export async function acquireCollectionArt(
         for (const s of strokes)
           if (s.left !== undefined && s.right !== undefined)
             creatureStroke(s.mesh, s, effort);
+        if (d.asset === 'wreckMinis')
+          for (const s of strokes) animateWreckMini(s.mesh, time);
         if (d.asset === 'kelpMinis')
           for (const s of strokes) animateKelpMini(s.mesh, time);
         if (d.shape) {

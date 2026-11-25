@@ -173,12 +173,16 @@ export const OUTER_SIGHTS = {
   mimicOctopus: { id: 'species:mimic-octopus', label: 'Mimic octopus' },
 } as const satisfies Record<string, Sight>;
 
-/** What the shipwreck shows: the place, and its two spaces inside. */
+/** Stable wreck identities: its places, resident grouper and four rare miniatures. */
 export const WRECK_SIGHTS = {
   place: { id: 'place:shipwreck', label: 'Shipwreck' },
   hold: { id: 'place:shipwreck-hold', label: "The wreck's cargo hold" },
   bridge: { id: 'place:shipwreck-bridge', label: "The wreck's bridge" },
   grouper: { id: 'species:queensland-grouper', label: 'Queensland grouper' },
+  skeleton: { id: 'species:skeleton-shrimp', label: 'Skeleton shrimp' },
+  wolf: { id: 'species:juvenile-wolf-eel', label: 'Juvenile wolf eel' },
+  decorator: { id: 'species:decorator-crab', label: 'Decorator crab' },
+  greenling: { id: 'species:painted-greenling', label: 'Painted greenling' },
 } as const satisfies Record<string, Sight>;
 
 /** V0.8 Pass 100: the aquarium's own rare miniatures, found only by looking closely. */

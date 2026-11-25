@@ -1,0 +1,220 @@
+{
+  "prepared": {
+    "state": "ready",
+    "loaded": true,
+    "sights": [
+      "species:skeleton-shrimp",
+      "species:juvenile-wolf-eel",
+      "species:decorator-crab",
+      "species:painted-greenling"
+    ],
+    "homes": {
+      "wolf": {
+        "position": {
+          "x": 3.5105631201930696,
+          "y": 3.5700529416281155,
+          "z": -37.616597279334485
+        },
+        "rotation": {
+          "isQuaternion": true,
+          "_x": -0.04169510015512012,
+          "_y": 0.7058764188036418,
+          "_z": 0.028983256293565983,
+          "_w": 0.7065125411870772
+        },
+        "target": {
+          "x": 3.712027701596205,
+          "y": 3.6656311825456007,
+          "z": -37.617947206435666
+        },
+        "view": {
+          "x": 4.682077555856731,
+          "y": 4.014175343931267,
+          "z": -37.6224469634396
+        },
+        "attachment": "Existing starboard hull breach"
+      },
+      "skeleton": {
+        "position": {
+          "x": -2.9582439238700946,
+          "y": 5.8807884333762726,
+          "z": -40.80641800762215
+        },
+        "rotation": {
+          "isQuaternion": true,
+          "_x": -0.04234842327347153,
+          "_y": 0.9174746414690506,
+          "_z": -0.028020021096910878,
+          "_w": -0.3945399494754449
+        },
+        "view": {
+          "x": -3.6725539636458073,
+          "y": 6.451087923220103,
+          "z": -41.43651296790918
+        },
+        "target": {
+          "x": -2.9682256483035916,
+          "y": 5.980272731269069,
+          "z": -40.80821791042838
+        },
+        "attachment": "Wreck hydroids",
+        "instance": 87
+      },
+      "crab": {
+        "position": {
+          "x": -2.8630733701167714,
+          "y": 6.149706005948608,
+          "z": -27.029994037209118
+        },
+        "rotation": {
+          "isQuaternion": true,
+          "_x": -0.008988630995889516,
+          "_y": -0.000449806450991632,
+          "_z": 0.04997714512798589,
+          "_w": 0.9987098112824528
+        },
+        "view": {
+          "x": -2.9295717927790905,
+          "y": 6.812472139331548,
+          "z": -26.141839201482796
+        },
+        "target": {
+          "x": -2.8690624047609714,
+          "y": 6.209396584685929,
+          "z": -27.031073978890063
+        },
+        "attachment": "Wreck soft corals",
+        "instance": 97
+      },
+      "greenling": {
+        "position": {
+          "x": -3.5854033867678456,
+          "y": 5.979439314855575,
+          "z": -32.435154278506985
+        },
+        "rotation": {
+          "isQuaternion": true,
+          "_x": -0.008988630995889516,
+          "_y": -0.000449806450991632,
+          "_z": 0.04997714512798589,
+          "_w": 0.9987098112824528
+        },
+        "view": {
+          "x": -3.6519018094301647,
+          "y": 6.642205448238514,
+          "z": -31.546999442780663
+        },
+        "target": {
+          "x": -3.5913924214120456,
+          "y": 6.039129893592896,
+          "z": -32.43623422018793
+        },
+        "attachment": "Wreck encrusting mats",
+        "instance": 119
+      }
+    }
+  },
+  "habitat": {
+    "wolf": {
+      "baseline": {
+        "frame": 18,
+        "calls": 60,
+        "triangles": 2572166,
+        "points": 420,
+        "lines": 0
+      },
+      "visible": {
+        "frame": 19,
+        "calls": 61,
+        "triangles": 2574858,
+        "points": 420,
+        "lines": 0
+      },
+      "extraCalls": 1,
+      "extraTriangles": 2692,
+      "torch": 0,
+      "shade": 0
+    },
+    "skeleton": {
+      "baseline": {
+        "frame": 21,
+        "calls": 72,
+        "triangles": 2503705,
+        "points": 420,
+        "lines": 0
+      },
+      "visible": {
+        "frame": 22,
+        "calls": 74,
+        "triangles": 2509105,
+        "points": 420,
+        "lines": 0
+      },
+      "extraCalls": 2,
+      "extraTriangles": 5400,
+      "torch": 0,
+      "shade": 0
+    },
+    "crab": {
+      "baseline": {
+        "frame": 24,
+        "calls": 66,
+        "triangles": 2573534,
+        "points": 420,
+        "lines": 0
+      },
+      "visible": {
+        "frame": 25,
+        "calls": 70,
+        "triangles": 2584819,
+        "points": 420,
+        "lines": 0
+      },
+      "extraCalls": 4,
+      "extraTriangles": 11285,
+      "torch": 0,
+      "shade": 0
+    },
+    "greenling": {
+      "baseline": {
+        "frame": 27,
+        "calls": 62,
+        "triangles": 2589553,
+        "points": 420,
+        "lines": 0
+      },
+      "visible": {
+        "frame": 28,
+        "calls": 64,
+        "triangles": 2594522,
+        "points": 420,
+        "lines": 0
+      },
+      "extraCalls": 2,
+      "extraTriangles": 4969,
+      "torch": 0,
+      "shade": 0
+    }
+  },
+  "smoke": {
+    "torch": 4.320000000000001,
+    "shade": 0.4800000000000001,
+    "pause": true,
+    "reduced": true,
+    "updateMs": 0.002149999999984478,
+    "sightings": [
+      "species:skeleton-shrimp",
+      "species:juvenile-wolf-eel",
+      "species:decorator-crab",
+      "species:painted-greenling"
+    ],
+    "renderer": "WebKit WebGL"
+  },
+  "released": {
+    "geometries": 0,
+    "textures": 0,
+    "leases": 0
+  },
+  "errors": [],
+  "renderer": "Chromium SwiftShader; wreck-only localized views, no traversal"
+}

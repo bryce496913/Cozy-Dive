@@ -57,6 +57,19 @@ export const ASSET_REGISTRY = {
     // A library of named animals (each carries its own Stroke morphs, checked by its tests).
     requireMorphs: false,
   },
+  // V0.8 Pass 103: four rare wreck creatures, with shared collection art.
+  wreckMinis: {
+    path: 'assets/models/creatures/wreck-minis.glb',
+    requiredNodes: [
+      'Skeleton_Shrimp',
+      'Juvenile_Wolf_Eel',
+      'Decorator_Crab',
+      'Painted_Greenling',
+    ],
+    minDimension: 1,
+    maxDimension: 3,
+    requireMorphs: false,
+  },
   // V0.8 Pass 102: four rare kelp discoveries, including the existing Spanish shawl.
   kelpMinis: {
     path: 'assets/models/creatures/kelp-minis.glb',

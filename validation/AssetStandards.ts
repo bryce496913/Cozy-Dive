@@ -476,7 +476,9 @@ export function categoryFor(file: string): CategoryId {
   const f = file.replaceAll('\\', '/');
   if (/\/fish\/|-(chromis|clownfish)\.glb$/.test(f)) return 'fish';
   if (
-    /(anchored-life|nudibranchs|rare-minis|reef-minis|kelp-minis)\.glb$/.test(f)
+    /(anchored-life|nudibranchs|rare-minis|reef-minis|kelp-minis|wreck-minis)\.glb$/.test(
+      f,
+    )
   )
     return 'library';
   if (/\/creatures\//.test(f)) return 'creature';

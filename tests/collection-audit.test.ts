@@ -44,7 +44,7 @@ describe('collection audit: identities', () => {
       coral: prefix('coral:'),
       plant: prefix('plant:'),
       place: prefix('place:'),
-    }).toEqual({ species: 93, coral: 5, plant: 3, place: 5 }); // Pass 100: +3; Pass 101: +4; Pass 102: +3 (Spanish shawl already exists)
+    }).toEqual({ species: 97, coral: 5, plant: 3, place: 5 }); // Pass 103: +4 rare wreck creatures; existing identities remain stable.
   });
 
   it('lets every species, coral and plant sighting unlock something in the tank', () => {

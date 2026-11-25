@@ -61,7 +61,7 @@ describe('collection registry: identities', () => {
       // V0.8 Pass 101: + the harlequin shrimp, ghost pipefish, hairy frogfish and mimic octopus.
       'outer-reef': 30,
       'kelp-forest': 17,
-      shipwreck: 1,
+      shipwreck: 5,
       'sea-cave': 14,
       antarctic: 32,
     });
