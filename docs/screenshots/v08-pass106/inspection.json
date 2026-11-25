@@ -7,7 +7,7 @@
   },
   "opacity": 1,
   "render": {
-    "frame": 62,
+    "frame": 59,
     "calls": 94,
     "triangles": 897845,
     "points": 210,
@@ -19,19 +19,19 @@
       "status": "placed"
     },
     {
-      "id": "ornate-ghost-pipefish",
-      "status": "placed"
-    },
-    {
       "id": "sea-angel",
       "status": "placed"
     },
     {
-      "id": "blacktip-reef-shark",
+      "id": "ornate-ghost-pipefish",
       "status": "placed"
     },
     {
       "id": "banded-coral-shrimp",
+      "status": "placed"
+    },
+    {
+      "id": "blacktip-reef-shark",
       "status": "placed"
     }
   ]

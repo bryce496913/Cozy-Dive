@@ -395,14 +395,16 @@ export class Album {
     }
     const card = button(`album-card album-card-${entry.rarity}`, ''),
       canvas = el('canvas', 'album-card-model'),
-      placed = this.tank?.state(entry)?.placed ?? 0;
+      state = this.tank?.state(entry),
+      placed = state?.placed ?? 0,
+      residentNote = state?.retry ? 'Waiting to arrive' : 'In your aquarium';
     canvas.width = CARD.w;
     canvas.height = CARD.h;
     canvas.setAttribute('aria-hidden', 'true');
     card.dataset.id = entry.id;
     card.setAttribute(
       'aria-label',
-      `${entry.name}, ${SECTION_NAMES[entry.section]}, ${RARITY_LABEL[entry.rarity]}${placed ? ', in your aquarium' : ''}. Open card.`,
+      `${entry.name}, ${SECTION_NAMES[entry.section]}, ${RARITY_LABEL[entry.rarity]}${placed ? `, ${residentNote.toLowerCase()}` : ''}. Open card.`,
     );
     card.append(
       canvas,
@@ -415,8 +417,7 @@ export class Album {
       ),
       el('span', 'album-card-note', DESCRIPTIONS[entry.id] ?? ''),
     );
-    if (placed)
-      card.append(el('span', 'album-card-placed', 'In your aquarium'));
+    if (placed) card.append(el('span', 'album-card-placed', residentNote));
     card.addEventListener('click', () => this.openDetail(entry));
     cards.push({ canvas, entry });
     return card;
@@ -533,9 +534,11 @@ export class Album {
           ? `${state.placed} of ${state.max} in your aquarium.`
           : state.pending
             ? 'Arriving in your aquarium…'
-            : state.placed
-              ? 'In your aquarium.'
-              : 'Not in your aquarium.',
+            : state.retry
+              ? 'Waiting to arrive.'
+              : state.placed
+                ? 'In your aquarium.'
+                : 'Not in your aquarium.',
       ),
     );
     if (state.reason && (!state.placed || state.retry))

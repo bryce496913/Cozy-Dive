@@ -69,10 +69,10 @@ The actual-app browser walkthrough passed:
 
 - Observed an initially unseen leaf sheep at its real aquarium home through the application's normal dwell/journal path, unlocked its card and confirmed rendered 3D pixels in the preview.
 - Added it through the card; checked both entry points, preserved selection, return focus and continued access to the decoration editor.
-- Browsed all six habitat sections twice. Maximum loaded card models stayed **12** in both rounds; peak preview geometries were **66 → 64**, textures **50 → 49**, and total creature-loader leases **61 → 61**. Closing released the preview owner and returned the loader to its existing-world baseline of **49** leases.
+- Browsed all six habitat sections twice. Maximum loaded card models stayed **12** in both rounds; peak preview geometries were **66 → 64**, textures **49 → 49**, and total creature-loader leases **61 → 61**. Closing released the preview owner and returned the loader to its existing-world baseline of **49** leases.
 - Verified the main renderer's frame counter stayed unchanged while the album's own preview rendered: the paused background did not redraw.
 - Returned/re-added the leaf sheep without changing its first discovery; placed an ornate ghost pipefish, banded coral shrimp and sea angel alongside the older blacktip resident.
-- Injected a blocked-floor placement failure for the shrimp, verified its failed state, restored the floor and used the actual “Try adding again” card action. The same saved identity arrived, with no duplicate slot or lost discovery.
+- Injected a blocked-floor placement failure for the shrimp, verified its failed state, restored the floor and used the actual “Try adding again” card action. The same saved identity arrived, with no duplicate slot or lost discovery. Failed-arrival card labels say “Waiting to arrive” rather than claiming the animal is already present.
 - Reloaded the saved tank: all **five residents** arrived, the **two added royal grammas** remained, and the original stone layout and journal were unchanged.
 - Took a clear local rendering of the reloaded leaf sheep using the real aquarium renderer and normal owner updates for its arrival fade. This is controlled close inspection, not a navigation playthrough.
 - After complete disposal: **0 creature leases, 0 reef leases, 0 geometries, 0 textures**, and **0 browser errors**.
@@ -88,3 +88,5 @@ Collection-to-tank demonstration:
 5. [Reloaded leaf sheep in the actual aquarium](screenshots/v08-pass106/05-placed-leaf-sheep.png).
 
 Raw evidence: [walkthrough/resource report](screenshots/v08-pass106/report.json) and [reloaded placement inspection](screenshots/v08-pass106/inspection.json). Ground residents retain a small conservative substrate clearance; they do not climb vertical scenery or acquire newly modeled dens. Exact roaming positions remain outside the existing save format. No full-game playthrough or hardware performance benchmark was run.
+
+The finalized self-contained harness reproduced the complete walkthrough successfully in a second isolated browser run, including its stable observation view, 3D-pixel assertion, blocked-placement retry, reload inspection and zero-resource cleanup. The checked-in report and images are from that reproduction. A final copy-only refinement makes failed-arrival badges and detail notes explicit; its TypeScript/lint checks passed.
