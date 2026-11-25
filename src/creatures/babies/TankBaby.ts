@@ -1,3 +1,4 @@
+import { smallAnimalMode, smallAnimalShelter } from './SmallAnimalHabitat';
 import type { Vec3 } from '../../config/world';
 import { miniatureGrowth, type BabyDefinition } from '../../config/babies';
 import type { PlayerPresence } from '../../fish/FishDiverReaction';
@@ -54,12 +55,16 @@ export class TankBaby {
   private readonly target = v();
   private readonly next = v();
   private readonly spawn = v();
+  private readonly restsLocally: boolean;
+  private readonly smallMode: ReturnType<typeof smallAnimalMode>;
   constructor(
     readonly definition: BabyDefinition,
     habitat: BabyHabitat,
     eye: Readonly<Vec3>,
     occupied?: readonly BabyNeighbour[],
   ) {
+    this.restsLocally = /octopus|wonderpus/.test(definition.id);
+    this.smallMode = smallAnimalMode(definition);
     this.radius = definition.radius;
     this.growth = miniatureGrowth(definition.id);
     this.restHalf = REST.half * this.growth;
@@ -72,16 +77,51 @@ export class TankBaby {
         habitat.floor(this.spawn.x, this.spawn.z, definition.radius) +
         definition.halfHeight +
         0.2;
+    if (this.smallMode && this.smallMode !== 'pelagic') {
+      let nearest = Infinity;
+      for (const interest of habitat.interests ?? []) {
+        const suitable =
+          this.smallMode === 'hover'
+            ? interest.kind === 'plant' || interest.kind === 'seagrass-meadow'
+            : smallAnimalShelter(definition)
+              ? /shelter|crevice|overhang|rock|hardscape/.test(interest.kind)
+              : /plant|coral|grass|substrate|floor/.test(interest.kind);
+        if (!suitable) continue;
+        const p = interest.position,
+          distance = Math.hypot(p.x - eye.x, p.z - eye.z);
+        if (distance >= nearest) continue;
+        nearest = distance;
+        this.spawn.x = p.x + 0.45;
+        this.spawn.z = p.z + 0.45;
+        this.spawn.y =
+          this.smallMode === 'bottom'
+            ? habitat.floor(this.spawn.x, this.spawn.z, definition.radius) +
+              definition.halfHeight +
+              0.025
+            : Math.max(
+                p.y + 0.2,
+                habitat.floor(this.spawn.x, this.spawn.z, definition.radius) +
+                  definition.halfHeight +
+                  0.4,
+              );
+      }
+    }
     if (
       !this.navigation.nearest(
         this.spawn,
         this.position,
         eye,
         occupied,
-        definition.motion === 'still',
+        definition.motion === 'still' || this.smallMode === 'bottom',
       )
     )
       throw Error('No open water for a little visitor');
+    if (this.smallMode) {
+      this.spawn.x = this.position.x;
+      this.spawn.y = this.position.y;
+      this.spawn.z = this.position.z;
+      return;
+    }
     this.setGoal();
     if (definition.motion !== 'still') this.plan();
   }
@@ -144,7 +184,7 @@ export class TankBaby {
   }
   replan() {
     this.navigation.invalidate();
-    this.plan();
+    if (!this.smallMode) this.plan();
   }
   update(
     dt: number,
@@ -160,6 +200,80 @@ export class TankBaby {
       this.step(reducedMotion, player, others);
     }
   }
+  /** Confined substrate exploration / vegetation hovering; never a 3D grid shortcut over rocks. */
+  private stepSmall(
+    reduced: boolean,
+    player?: PlayerPresence,
+    others?: readonly TankBaby[],
+  ): void {
+    const d = this.definition,
+      p = this.position,
+      nav = this.navigation;
+    this.effort = reduced ? 0 : 0.3 * Math.sin(this.time * 0.8);
+    this.velocity.x = this.velocity.y = this.velocity.z = 0;
+    if (
+      d.motion === 'still' ||
+      d.id === 'skeleton-shrimp' ||
+      (this.restsLocally && this.time % 50 < 25)
+    )
+      return;
+    const phase = this.time * 0.1 + (this.goalIndex * Math.PI) / 4,
+      radius = this.smallMode === 'bottom' ? 0.2 : 0.45;
+    this.target.x = this.spawn.x + radius * Math.sin(phase);
+    this.target.z = this.spawn.z + radius * (Math.cos(phase) - 1);
+    this.target.y =
+      this.smallMode === 'bottom'
+        ? nav.habitat.floor(this.target.x, this.target.z, d.radius) +
+          d.halfHeight +
+          0.025
+        : this.spawn.y + 0.1 * Math.sin(phase * 0.7);
+    const dx = this.target.x - p.x,
+      dy = this.target.y - p.y,
+      dz = this.target.z - p.z,
+      distance = Math.hypot(dx, dy, dz),
+      step = Math.min(distance, d.speed * DT * (reduced ? 0.85 : 1));
+    if (distance < 1e-8) return;
+    this.next.x = p.x + (dx / distance) * step;
+    this.next.z = p.z + (dz / distance) * step;
+    this.next.y =
+      this.smallMode === 'bottom'
+        ? nav.habitat.floor(this.next.x, this.next.z, d.radius) +
+          d.halfHeight +
+          0.025
+        : p.y + (dy / distance) * step;
+    if (!nav.clear(p, this.next)) return;
+    if (
+      player?.active &&
+      Math.hypot(
+        this.next.x - player.position.x,
+        this.next.y - player.position.y,
+        this.next.z - player.position.z,
+      ) <
+        1.2 + d.radius
+    )
+      return;
+    if (others)
+      for (const other of others)
+        if (
+          other !== this &&
+          Math.hypot(
+            this.next.x - other.position.x,
+            this.next.y - other.position.y,
+            this.next.z - other.position.z,
+          ) <
+            d.radius + other.radius + 0.1
+        )
+          return;
+    this.velocity.x = (this.next.x - p.x) / DT;
+    this.velocity.y = (this.next.y - p.y) / DT;
+    this.velocity.z = (this.next.z - p.z) / DT;
+    p.x = this.next.x;
+    p.y = this.next.y;
+    p.z = this.next.z;
+    const yaw = Math.atan2(-this.velocity.z, this.velocity.x),
+      turn = Math.atan2(Math.sin(yaw - this.yaw), Math.cos(yaw - this.yaw));
+    this.yaw += turn * (1 - Math.exp(-2.5 * DT));
+  }
   private step(
     reduced: boolean,
     player?: PlayerPresence,
@@ -173,6 +287,10 @@ export class TankBaby {
     if (this.returning && !this.opacity) return;
     const d = this.definition,
       p = this.position;
+    if (this.smallMode) {
+      this.stepSmall(reduced, player, others);
+      return;
+    }
     if (d.motion === 'still') {
       this.effort = reduced ? 0 : 0.1 * Math.sin(this.time * 0.8);
       return;

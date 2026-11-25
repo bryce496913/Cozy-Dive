@@ -309,7 +309,7 @@ export class Application {
       this.album = album;
       const editor = this.tankEditor;
       this.ui.onAlbum = () => album.open({ tank: editor.albumTank() });
-      editor.onAlbum = (tank) => album.open({ tank });
+      editor.onAlbum = (tank, returnFocus) => album.open({ tank, returnFocus });
       this.tankSoundSpots = [
         ...this.world.aquarium.hardscape.formations.map((f) => ({
           x: f.position.x,
@@ -1197,7 +1197,7 @@ export class Application {
       this.frame = requestAnimationFrame(this.tick);
       return;
     }
-    if (!this.entered && !document.hidden)
+    if (!this.entered && !document.hidden && !this.album?.isOpen)
       advanceHoverPreview(
         this.state,
         dt,
@@ -1262,7 +1262,8 @@ export class Application {
     );
     if (this.controls.locked && !document.hidden) this.lookFor(water, dt);
     this.playerPresence.active = this.controls.locked && !document.hidden;
-    if (!document.hidden)
+    // The modal album has its own renderer; retain the paused scene as a static background.
+    if (!document.hidden && !this.album?.isOpen)
       water.render(
         this.elapsed,
         this.settings.reducedMotion,
@@ -1306,7 +1307,7 @@ export class Application {
     office.camera.rotation.set(controls.pitch, controls.yaw, 0, 'YXZ');
     this.officeAudio?.update(tankDistance(p));
     this.playerPresence.active = false;
-    if (!document.hidden)
+    if (!document.hidden && !this.album?.isOpen)
       office.render(
         this.clockBase + this.officeTime,
         this.elapsed,

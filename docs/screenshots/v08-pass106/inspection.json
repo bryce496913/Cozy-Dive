@@ -1,0 +1,38 @@
+{
+  "fish": 2,
+  "position": {
+    "x": -1.4602661338409877,
+    "y": 0.15354230844974517,
+    "z": 8.246013315568248
+  },
+  "opacity": 1,
+  "render": {
+    "frame": 62,
+    "calls": 94,
+    "triangles": 897845,
+    "points": 210,
+    "lines": 12
+  },
+  "residents": [
+    {
+      "id": "leaf-sheep",
+      "status": "placed"
+    },
+    {
+      "id": "ornate-ghost-pipefish",
+      "status": "placed"
+    },
+    {
+      "id": "sea-angel",
+      "status": "placed"
+    },
+    {
+      "id": "blacktip-reef-shark",
+      "status": "placed"
+    },
+    {
+      "id": "banded-coral-shrimp",
+      "status": "placed"
+    }
+  ]
+}

@@ -349,13 +349,17 @@ export const MINIATURES_BEFORE_096: readonly BabyDefinition[] = [
     0.32,
     'kelpMinis',
   ),
-  rareMini(
-    'skeleton-shrimp',
-    'Skeleton shrimp',
-    'Skeleton_Shrimp',
-    0.24,
-    'wreckMinis',
-  ),
+  {
+    ...rareMini(
+      'skeleton-shrimp',
+      'Skeleton shrimp',
+      'Skeleton_Shrimp',
+      0.24,
+      'wreckMinis',
+    ),
+    // Its upright body needs a taller envelope; the displayed model remains 0.24 m.
+    halfHeight: 0.12,
+  },
   {
     ...rareMini(
       'juvenile-wolf-eel',

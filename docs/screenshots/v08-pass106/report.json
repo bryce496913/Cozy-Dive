@@ -1,0 +1,301 @@
+{
+  "errors": [],
+  "requests": [
+    "http://127.0.0.1:5177/assets/models/creatures/rare-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/kelp-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/wreck-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/ice-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/kelp-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/wreck-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/ice-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/ice-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/reef-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/reef-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/cave-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/cave-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/ice-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/ice-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/rare-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/reef-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/cave-minis.glb",
+    "http://127.0.0.1:5177/assets/models/creatures/ice-minis.glb"
+  ],
+  "startupRareLibraries": [
+    "http://127.0.0.1:5177/assets/models/creatures/rare-minis.glb"
+  ],
+  "originalTank": {
+    "version": 3,
+    "items": [
+      {
+        "id": "tank-106",
+        "kind": "stone",
+        "position": {
+          "x": 10,
+          "y": 0,
+          "z": 8
+        },
+        "rotation": 0
+      }
+    ],
+    "babies": ["blacktip-reef-shark"],
+    "fish": {
+      "royal-gramma": 2
+    }
+  },
+  "observed": {
+    "id": "species:leaf-sheep",
+    "first": "2026-11-25T20:25:26.124Z"
+  },
+  "tabs": [
+    "Contents",
+    "Aquarium 12/12",
+    "Outer Reef 7/30",
+    "Kelp Forest 5/17",
+    "Shipwreck 4/5",
+    "Sea Cave 4/18",
+    "Antarctic 3/33"
+  ],
+  "backgroundFrozen": true,
+  "afterLeafSheep": {
+    "version": 3,
+    "fish": {
+      "royal-gramma": 2
+    },
+    "items": [
+      {
+        "id": "tank-106",
+        "kind": "stone",
+        "position": {
+          "x": 10,
+          "y": 0,
+          "z": 8
+        },
+        "rotation": 0
+      }
+    ],
+    "babies": ["blacktip-reef-shark", "leaf-sheep"]
+  },
+  "editorSections": [
+    "Creatures and fish",
+    "Plants and corals",
+    "Rocks and decorations"
+  ],
+  "editorReturnFocus": "For your tank",
+  "browse": [
+    {
+      "page": 1,
+      "loaded": 12,
+      "visible": 12,
+      "leases": 61,
+      "geometries": 66,
+      "textures": 49
+    },
+    {
+      "page": 2,
+      "loaded": 0,
+      "visible": 0,
+      "leases": 49,
+      "geometries": 64,
+      "textures": 49
+    },
+    {
+      "page": 5,
+      "loaded": 2,
+      "visible": 2,
+      "leases": 51,
+      "geometries": 64,
+      "textures": 49
+    },
+    {
+      "page": 7,
+      "loaded": 4,
+      "visible": 4,
+      "leases": 53,
+      "geometries": 64,
+      "textures": 49
+    },
+    {
+      "page": 8,
+      "loaded": 0,
+      "visible": 0,
+      "leases": 49,
+      "geometries": 64,
+      "textures": 49
+    },
+    {
+      "page": 10,
+      "loaded": 1,
+      "visible": 1,
+      "leases": 50,
+      "geometries": 65,
+      "textures": 50
+    },
+    {
+      "page": 1,
+      "loaded": 12,
+      "visible": 12,
+      "leases": 61,
+      "geometries": 64,
+      "textures": 49
+    },
+    {
+      "page": 2,
+      "loaded": 0,
+      "visible": 0,
+      "leases": 49,
+      "geometries": 64,
+      "textures": 49
+    },
+    {
+      "page": 5,
+      "loaded": 2,
+      "visible": 0,
+      "leases": 51,
+      "geometries": 64,
+      "textures": 49
+    },
+    {
+      "page": 7,
+      "loaded": 4,
+      "visible": 0,
+      "leases": 53,
+      "geometries": 64,
+      "textures": 49
+    },
+    {
+      "page": 8,
+      "loaded": 0,
+      "visible": 0,
+      "leases": 49,
+      "geometries": 64,
+      "textures": 49
+    },
+    {
+      "page": 10,
+      "loaded": 1,
+      "visible": 1,
+      "leases": 50,
+      "geometries": 64,
+      "textures": 49
+    }
+  ],
+  "afterBrowse": {
+    "closed": true,
+    "leases": 49
+  },
+  "failedArrival": "failed",
+  "retriedArrival": "placed",
+  "saved": {
+    "version": 3,
+    "fish": {
+      "royal-gramma": 2
+    },
+    "items": [
+      {
+        "id": "tank-106",
+        "kind": "stone",
+        "position": {
+          "x": 10,
+          "y": 0,
+          "z": 8
+        },
+        "rotation": 0
+      }
+    ],
+    "babies": [
+      "blacktip-reef-shark",
+      "leaf-sheep",
+      "ornate-ghost-pipefish",
+      "banded-coral-shrimp",
+      "sea-angel"
+    ]
+  },
+  "placed": [
+    {
+      "id": "blacktip-reef-shark",
+      "status": "placed",
+      "scale": 0.3666666666666667,
+      "position": {
+        "x": 2.1894448668009554,
+        "y": 4.85,
+        "z": 7.8261140676066905
+      }
+    },
+    {
+      "id": "leaf-sheep",
+      "status": "placed",
+      "scale": 1,
+      "position": {
+        "x": -13.5,
+        "y": 0.18288723224401474,
+        "z": 6.75
+      },
+      "mode": "bottom"
+    },
+    {
+      "id": "ornate-ghost-pipefish",
+      "status": "placed",
+      "scale": 1,
+      "position": {
+        "x": -13.5,
+        "y": 0.35,
+        "z": 12
+      },
+      "mode": "hover"
+    },
+    {
+      "id": "banded-coral-shrimp",
+      "status": "placed",
+      "scale": 1,
+      "position": {
+        "x": -11.25,
+        "y": 0.16857107532024385,
+        "z": 3
+      },
+      "mode": "bottom"
+    },
+    {
+      "id": "sea-angel",
+      "status": "placed",
+      "scale": 1,
+      "position": {
+        "x": -11.25,
+        "y": 1.1,
+        "z": 3
+      },
+      "mode": "pelagic"
+    }
+  ],
+  "reloaded": {
+    "version": 3,
+    "fish": {
+      "royal-gramma": 2
+    },
+    "items": [
+      {
+        "id": "tank-106",
+        "kind": "stone",
+        "position": {
+          "x": 10,
+          "y": 0,
+          "z": 8
+        },
+        "rotation": 0
+      }
+    ],
+    "babies": [
+      "blacktip-reef-shark",
+      "leaf-sheep",
+      "ornate-ghost-pipefish",
+      "banded-coral-shrimp",
+      "sea-angel"
+    ]
+  },
+  "released": {
+    "leases": 0,
+    "reefLeases": 0,
+    "geometries": 0,
+    "textures": 0
+  },
+  "ok": true
+}

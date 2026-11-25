@@ -60,6 +60,9 @@ export class TankBabyHabitat implements BabyHabitat {
     };
     this.refresh();
   }
+  get interests() {
+    return this.q.fish.simulation.habitat.interests;
+  }
   refresh() {
     this.solids.length = 0;
     this.solids.push(...this.q.collision.colliders, ...this.protected);

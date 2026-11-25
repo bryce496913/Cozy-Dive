@@ -149,6 +149,8 @@ interface Slot {
   readonly entry: CollectionEntry;
   preview?: Preview;
   failed?: boolean;
+  loading?: boolean;
+  visible: boolean;
   /** Extra turn (radians) and tilt set by dragging (the detail view). */
   yaw: number;
   pitch: number;
@@ -167,6 +169,7 @@ export class AlbumPreviews {
   private loading = 0;
   private next = 0;
   private disposed = false;
+  private readonly observer?: IntersectionObserver;
   /** Cards drawn per frame (the detail view is drawn every frame). */
   static readonly PER_FRAME = 4;
   /** Models that may load at once. */
@@ -176,6 +179,13 @@ export class AlbumPreviews {
     private readonly loaders: PreviewLoaders,
     canvas: HTMLCanvasElement = document.createElement('canvas'),
   ) {
+    if (typeof IntersectionObserver !== 'undefined')
+      this.observer = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          const slot = this.slots.find((s) => s.canvas === entry.target);
+          if (slot) slot.visible = entry.isIntersecting;
+        }
+      });
     this.renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: true,
@@ -213,17 +223,24 @@ export class AlbumPreviews {
         old ?? {
           canvas: c.canvas,
           entry: c.entry,
+          visible: !this.observer,
           yaw: 0,
           pitch: 0,
           spin: c.spin ?? true,
         },
       );
     }
-    for (const s of this.slots) if (!keep.includes(s)) s.preview?.dispose();
+    for (const s of this.slots)
+      if (!keep.includes(s)) {
+        this.observer?.unobserve(s.canvas);
+        s.preview?.dispose();
+      }
+    for (const s of keep)
+      if (!this.slots.includes(s)) this.observer?.observe(s.canvas);
     this.slots = keep;
     this.queue = this.queue.filter((s) => keep.includes(s));
     for (const s of keep)
-      if (!s.preview && !s.failed && !this.queue.includes(s))
+      if (!s.preview && !s.failed && !s.loading && !this.queue.includes(s))
         this.queue.push(s);
     this.pump();
   }
@@ -245,6 +262,7 @@ export class AlbumPreviews {
     while (this.loading < AlbumPreviews.CONCURRENT && this.queue.length) {
       const s = this.queue.shift()!;
       this.loading++;
+      s.loading = true;
       buildPreview(s.entry, this.loaders)
         .then((p) => {
           if (this.disposed || !this.slots.includes(s)) p.dispose();
@@ -259,6 +277,7 @@ export class AlbumPreviews {
           );
         })
         .finally(() => {
+          s.loading = false;
           this.loading--;
           if (!this.disposed) this.pump();
         });
@@ -270,7 +289,7 @@ export class AlbumPreviews {
    */
   frame(t: number, still: boolean): void {
     if (this.disposed || !this.slots.length) return;
-    const ready = this.slots.filter((s) => s.preview);
+    const ready = this.slots.filter((s) => s.preview && s.visible);
     if (!ready.length) return;
     const draw = ready.filter((s) => !s.spin),
       spinning = ready.filter((s) => s.spin);
@@ -312,6 +331,11 @@ export class AlbumPreviews {
     for (const s of this.slots) s.preview?.dispose();
     this.slots = [];
     this.queue = [];
+    this.observer?.disconnect();
+    this.scene.traverse((o) => {
+      if (o instanceof THREE.Light) o.dispose();
+    });
+    this.scene.clear();
     this.renderer.dispose();
     this.renderer.forceContextLoss();
   }

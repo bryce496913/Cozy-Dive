@@ -1,3 +1,4 @@
+import { smallAnimalMode } from '../creatures/babies/SmallAnimalHabitat';
 import * as THREE from 'three';
 import type { AssetLoader } from '../assets/AssetLoader';
 import type { TankCreatureId } from '../config/babies';
@@ -71,6 +72,13 @@ export class TankBabies {
       if (this.disposed || !this.desired.has(id)) {
         art.dispose();
         return;
+      }
+      if (smallAnimalMode(d) === 'bottom') {
+        // Fit the actual neutral foot/legs to the lower edge of the existing collision envelope.
+        // Geometry, materials, size and the large visitors' 2x scale stay unchanged.
+        art.model.updateMatrixWorld(true);
+        const bottom = new THREE.Box3().setFromObject(art.model, true).min.y;
+        art.model.position.y += -d.halfHeight + 0.006 - bottom;
       }
       const baby = new TankBaby(d, this.habitat, this.spawn, [
           ...this.occupants,
@@ -155,6 +163,14 @@ export class TankBabies {
       r.root.rotation.set(0, b.yaw, 0);
       r.art.update(b.opacity, b.effort, reduced ? 0 : b.time);
     }
+  }
+  status(id: TankCreatureId): 'pending' | 'failed' | 'placed' | undefined {
+    if (!this.desired.has(id)) return;
+    if (this.pending.has(id)) return 'pending';
+    if (this.failed.has(id)) return 'failed';
+    return this.rigs.some((r) => r.baby.definition.id === id)
+      ? 'placed'
+      : undefined;
   }
   get nearCount(): number {
     let n = 0;

@@ -1,3 +1,4 @@
+import type { HabitatInterest } from '../../fish/FishHabitat';
 import { AQUARIUM, type Vec3 } from '../../config/world';
 import type { BabyDefinition } from '../../config/babies';
 import type { ConvexCollider } from '../../player/collision';
@@ -8,6 +9,7 @@ export interface BabyNeighbour {
   readonly radius: number;
 }
 export interface BabyHabitat {
+  readonly interests?: readonly HabitatInterest[];
   readonly solids: readonly ConvexCollider[];
   /** Maximum rendered sand height over the square footprint, including its boundary. */
   readonly floor: (x: number, z: number, radius: number) => number;
