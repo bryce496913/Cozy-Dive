@@ -1,0 +1,141 @@
+{
+  "errors": [],
+  "renderer": "Chromium SwiftShader; cave-only simulation and sparse renders, no traversal",
+  "loadingMs": 29708,
+  "whitetip": {
+    "rounds": [
+      {
+        "round": 1,
+        "fleeFrames": 97,
+        "peak": 2.2738547879635824,
+        "range": 4.309023153955829,
+        "tailWorldDisplacement": 0.32949562385792414,
+        "matched": true,
+        "finite": true,
+        "settled": true,
+        "travel": 9.596754306007915,
+        "finalPitch": 0,
+        "finalBank": 0,
+        "finalSway": 0
+      },
+      {
+        "round": 2,
+        "fleeFrames": 97,
+        "peak": 2.2738547879635824,
+        "range": 4.309023153955829,
+        "tailWorldDisplacement": 0.32949562385792414,
+        "matched": true,
+        "finite": true,
+        "settled": true,
+        "travel": 21.911464708486978,
+        "finalPitch": 0,
+        "finalBank": 0,
+        "finalSway": 0
+      },
+      {
+        "round": 3,
+        "fleeFrames": 97,
+        "peak": 2.2738547879635824,
+        "range": 4.309023153955829,
+        "tailWorldDisplacement": 0.32949562385792414,
+        "matched": true,
+        "finite": true,
+        "settled": true,
+        "travel": 21.905264999420673,
+        "finalPitch": 0,
+        "finalBank": 0,
+        "finalSway": 0
+      },
+      {
+        "round": 4,
+        "fleeFrames": 97,
+        "peak": 2.2738547879635824,
+        "range": 4.309023153955829,
+        "tailWorldDisplacement": 0.32949562385792414,
+        "matched": true,
+        "finite": true,
+        "settled": true,
+        "travel": 21.90761460036867,
+        "finalPitch": 0,
+        "finalBank": 0,
+        "finalSway": 0
+      }
+    ],
+    "pause": true,
+    "reducedPeak": 1.2754920081181624,
+    "noSway": true,
+    "vertexCount": 3802,
+    "morphNames": ["Stroke_Left", "Stroke_Right"]
+  },
+  "nurse": {
+    "rounds": [
+      {
+        "round": 1,
+        "fleeFrames": 97,
+        "peak": 2.2738547879635824,
+        "range": 4.309023153955829,
+        "tailWorldDisplacement": 0.5268023534044793,
+        "matched": true,
+        "finite": true,
+        "settled": true,
+        "travel": 22.53445407188354,
+        "finalPitch": 0,
+        "finalBank": 0,
+        "finalSway": 0
+      },
+      {
+        "round": 2,
+        "fleeFrames": 97,
+        "peak": 2.2738547879635824,
+        "range": 4.309023153955829,
+        "tailWorldDisplacement": 0.5268023534044793,
+        "matched": true,
+        "finite": true,
+        "settled": true,
+        "travel": 19.60312419877469,
+        "finalPitch": 0,
+        "finalBank": 0,
+        "finalSway": 0
+      },
+      {
+        "round": 3,
+        "fleeFrames": 97,
+        "peak": 2.2738547879635824,
+        "range": 4.309023153955829,
+        "tailWorldDisplacement": 0.5268023534044793,
+        "matched": true,
+        "finite": true,
+        "settled": true,
+        "travel": 21.91281160684083,
+        "finalPitch": 0,
+        "finalBank": 0,
+        "finalSway": 0
+      },
+      {
+        "round": 4,
+        "fleeFrames": 97,
+        "peak": 2.2738547879635824,
+        "range": 4.309023153955829,
+        "tailWorldDisplacement": 0.5268023534044793,
+        "matched": true,
+        "finite": true,
+        "settled": true,
+        "travel": 21.901719491064476,
+        "finalPitch": 0,
+        "finalBank": 0,
+        "finalSway": 0
+      }
+    ],
+    "pause": true,
+    "reducedPeak": 1.2754920081181624,
+    "noSway": true,
+    "vertexCount": 3822,
+    "morphNames": ["Stroke_Left", "Stroke_Right"]
+  },
+  "released": {
+    "leases": 0,
+    "geometries": 0,
+    "textures": 0
+  },
+  "ok": true
+}
