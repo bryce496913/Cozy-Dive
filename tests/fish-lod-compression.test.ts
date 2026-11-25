@@ -144,7 +144,8 @@ describe('Pass 017/018 asset compression', () => {
         id !== 'rareMinis' &&
         id !== 'reefMinis' &&
         id !== 'kelpMinis' &&
-        id !== 'wreckMinis'
+        id !== 'wreckMinis' &&
+        id !== 'caveMinis'
       ) {
         expect(json.extensionsUsed, id).toContain('KHR_texture_basisu');
         expect(images.length, id).toBeGreaterThan(0);
@@ -196,7 +197,8 @@ describe('Pass 017/018 asset compression', () => {
     // 512 px maps (vertex colour drew their spots as polygons); with the leaner minke, otter and
     // plating corals the total grew 0.13 MiB, to 44.0 MiB, leaving no room under 44.
     // Pass 102: four more vertex-coloured kelp miniatures, loaded only in their habitat/cards/tank.
-    expect(bytes).toBeLessThan(46 * 1024 * 1024);
+    // Pass 104: four detailed cave miniatures, shared across habitat/cards/tank.
+    expect(bytes).toBeLessThan(47 * 1024 * 1024);
     // Source maps are authoring inputs only and no longer ship in public/.
     expect(existsSync('public/assets/textures')).toBe(false);
   });

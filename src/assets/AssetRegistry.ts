@@ -57,6 +57,19 @@ export const ASSET_REGISTRY = {
     // A library of named animals (each carries its own Stroke morphs, checked by its tests).
     requireMorphs: false,
   },
+  // V0.8 Pass 104: the cave's four rare miniature species.
+  caveMinis: {
+    path: 'assets/models/creatures/cave-minis.glb',
+    requiredNodes: [
+      'Stargazer',
+      'Psychedelic_Frogfish',
+      'Banded_Coral_Shrimp',
+      'Wonderpus',
+    ],
+    minDimension: 1,
+    maxDimension: 3,
+    requireMorphs: false,
+  },
   // V0.8 Pass 103: four rare wreck creatures, with shared collection art.
   wreckMinis: {
     path: 'assets/models/creatures/wreck-minis.glb',

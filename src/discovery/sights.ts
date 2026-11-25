@@ -61,6 +61,16 @@ export const KELP_SIGHTS = {
 /** v0.6 Pass 034: what the sea cave shows (its whitetips are listed with the big creatures). */
 export const CAVE_SIGHTS = {
   cave: { id: 'place:sea-cave', label: 'Sea cave' },
+  stargazer: { id: 'species:stargazer', label: 'Stargazer fish' },
+  psychedelic: {
+    id: 'species:psychedelic-frogfish',
+    label: 'Psychedelic frogfish',
+  },
+  bandedCoral: {
+    id: 'species:banded-coral-shrimp',
+    label: 'Banded coral shrimp',
+  },
+  wonderpus: { id: 'species:wonderpus', label: 'Wonderpus octopus' },
   lobster: { id: 'species:spiny-lobster', label: 'Spiny lobster' },
   sweeper: { id: 'species:glassy-sweeper', label: 'Glassy sweeper' },
   // v0.6 Pass 041

@@ -62,7 +62,7 @@ describe('collection registry: identities', () => {
       'outer-reef': 30,
       'kelp-forest': 17,
       shipwreck: 5,
-      'sea-cave': 14,
+      'sea-cave': 18,
       antarctic: 32,
     });
     for (const s of ALBUM_SECTIONS) {
@@ -106,12 +106,14 @@ describe('collection registry: identities', () => {
     expect(named(/frogfish/i).map((e) => e.id)).toEqual([
       'species:frogfish',
       'species:hairy-frogfish',
+      'species:psychedelic-frogfish',
     ]);
     expect(named(/seahorse/i).map((e) => e.id)).toEqual(['species:seahorse']);
     expect(named(/octopus/i).map((e) => e.id)).toEqual([
       'species:octopus',
       'species:mimic-octopus',
       'species:east-pacific-red-octopus',
+      'species:wonderpus',
     ]);
     // Nudibranchs: the tank's five are generic scenery; the named species are the Spanish shawl
     // and (V0.8 Pass 100) the Pikachu nudibranch, each once.

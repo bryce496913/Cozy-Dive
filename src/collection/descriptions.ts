@@ -102,6 +102,14 @@ export const DESCRIPTIONS: Readonly<Record<string, string>> = {
     'A furry-looking anglerfish that walks on its fins and fishes with a worm-like lure.',
   'species:mimic-octopus':
     'Lives on sandy flats and can pose like a flatfish or a lionfish to deter predators.',
+  'species:stargazer':
+    'A broad-headed stargazer, camouflaged in sand with upward eyes and mouth. Part of the cave’s intentional geographic mixture.',
+  'species:psychedelic-frogfish':
+    'Histiophryne psychedelica: fingerprint swirls and fin-supported shuffles. An approved Indo-Pacific addition to this mixed cave.',
+  'species:banded-coral-shrimp':
+    'Stenopus hispidus: red-and-white bands, large third claws and long white antennae reaching out of a sheltered crack.',
+  'species:wonderpus':
+    'Wunderpus photogenicus: copper-brown and white arms, stalked eyes and quiet sand exploration; part of the cave’s geographic mixture.',
   'species:skeleton-shrimp':
     'Caprellidae: slender amphipods that grip hydroids with hooked rear legs and sway with the water.',
   'species:juvenile-wolf-eel':
