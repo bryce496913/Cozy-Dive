@@ -172,9 +172,11 @@ export const DESCRIPTIONS: Readonly<Record<string, string>> = {
     'A small catshark that can swallow water to puff itself up and wedge into a crevice.',
   'species:nurse-shark':
     'A slow bottom-dweller with barbels on its snout, often asleep under a ledge.',
+  'species:tritoniella-belli':
+    'Tritoniella belli is a pale Antarctic sea slug with short marginal processes, found among soft coral and seabed growth.',
   // Antarctic
   'species:sea-angel':
-    'A tiny, shell-less sea snail that flaps through the water on two translucent wings.',
+    'Clione antarctica, a shell-less Antarctic snail, swims beneath sea ice on translucent wings.',
   'species:sea-butterfly':
     'A tiny swimming snail with a fragile shell, beating its wings to stay afloat.',
   'species:comb-jelly':
@@ -206,7 +208,7 @@ export const DESCRIPTIONS: Readonly<Record<string, string>> = {
   'species:antarctic-scallop':
     'Claps its shells together to swim away in sudden bursts.',
   'species:giant-isopod':
-    'A large Antarctic isopod that crawls over the seabed scavenging, armoured in plates.',
+    'Glyptonotus antarcticus explores the Antarctic seabed on seven pairs of jointed legs, protected by overlapping plates.',
   'species:giant-sea-spider':
     'Long legs and a tiny body; in the cold Antarctic water it grows unusually large.',
   'species:ribbon-worm':

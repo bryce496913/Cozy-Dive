@@ -1,3 +1,4 @@
+import { animateIceMini } from './ice/IceMiniAnimation';
 import * as THREE from 'three';
 import {
   GELATINOUS_PRESETS,
@@ -219,6 +220,8 @@ export async function acquireCollectionArt(
         for (const s of strokes)
           if (s.left !== undefined && s.right !== undefined)
             creatureStroke(s.mesh, s, effort);
+        if (d.asset === 'iceMinis')
+          for (const s of strokes) animateIceMini(s.mesh, time);
         if (d.asset === 'caveMinis')
           for (const s of strokes) animateCaveMini(s.mesh, time);
         if (d.asset === 'wreckMinis')

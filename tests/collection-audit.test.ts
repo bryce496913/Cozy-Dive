@@ -44,7 +44,7 @@ describe('collection audit: identities', () => {
       coral: prefix('coral:'),
       plant: prefix('plant:'),
       place: prefix('place:'),
-    }).toEqual({ species: 101, coral: 5, plant: 3, place: 5 }); // Pass 103: +4 rare wreck creatures; existing identities remain stable.
+    }).toEqual({ species: 102, coral: 5, plant: 3, place: 5 }); // Pass 103: +4 rare wreck creatures; existing identities remain stable.
   });
 
   it('lets every species, coral and plant sighting unlock something in the tank', () => {

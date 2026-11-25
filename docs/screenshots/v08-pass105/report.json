@@ -1,0 +1,175 @@
+{
+  "prepared": {
+    "state": "ready",
+    "loaded": true,
+    "sights": [
+      "species:sea-angel",
+      "species:tritoniella-belli",
+      "species:giant-isopod"
+    ],
+    "homes": {
+      "angel": {
+        "position": {
+          "x": -9,
+          "y": 9,
+          "z": -19
+        },
+        "rotation": {
+          "isQuaternion": true,
+          "_x": 0,
+          "_y": 0,
+          "_z": 0,
+          "_w": 1
+        },
+        "target": {
+          "x": -9,
+          "y": 9.065,
+          "z": -19
+        },
+        "view": {
+          "x": -9,
+          "y": 9.145,
+          "z": -18.25
+        },
+        "attachment": "Under-ice water"
+      },
+      "slug": {
+        "position": {
+          "x": -9.29639881170898,
+          "y": 0.18841816184659632,
+          "z": -22.801065177458486
+        },
+        "rotation": {
+          "isQuaternion": true,
+          "_x": 0,
+          "_y": 0,
+          "_z": 0,
+          "_w": 1
+        },
+        "target": {
+          "x": -9.29639881170898,
+          "y": 0.22841816184659633,
+          "z": -22.801065177458486
+        },
+        "view": {
+          "x": -9.29639881170898,
+          "y": 0.7284181618465964,
+          "z": -22.051065177458486
+        },
+        "attachment": "Existing soft-coral margin"
+      },
+      "isopod": {
+        "position": {
+          "x": 8.084952374323787,
+          "y": -0.10848672548414595,
+          "z": -30.44203310137307
+        },
+        "rotation": {
+          "isQuaternion": true,
+          "_x": 0,
+          "_y": 0,
+          "_z": 0,
+          "_w": 1
+        },
+        "target": {
+          "x": 8.084952374323787,
+          "y": -0.06848672548414594,
+          "z": -30.44203310137307
+        },
+        "view": {
+          "x": 8.084952374323787,
+          "y": 0.4315132745158541,
+          "z": -29.69203310137307
+        },
+        "attachment": "Existing dropstone margin"
+      }
+    }
+  },
+  "habitat": {
+    "angel": {
+      "baseline": {
+        "frame": 41,
+        "calls": 75,
+        "triangles": 3578191,
+        "points": 440,
+        "lines": 0
+      },
+      "visible": {
+        "frame": 42,
+        "calls": 76,
+        "triangles": 3581495,
+        "points": 440,
+        "lines": 0
+      },
+      "extraCalls": 1,
+      "extraTriangles": 3304,
+      "fog": 0.13
+    },
+    "slug": {
+      "baseline": {
+        "frame": 44,
+        "calls": 58,
+        "triangles": 3511795,
+        "points": 440,
+        "lines": 0
+      },
+      "visible": {
+        "frame": 45,
+        "calls": 59,
+        "triangles": 3516003,
+        "points": 440,
+        "lines": 0
+      },
+      "extraCalls": 1,
+      "extraTriangles": 4208,
+      "fog": 0.13
+    },
+    "isopod": {
+      "baseline": {
+        "frame": 47,
+        "calls": 56,
+        "triangles": 3517315,
+        "points": 440,
+        "lines": 0
+      },
+      "visible": {
+        "frame": 48,
+        "calls": 57,
+        "triangles": 3529771,
+        "points": 440,
+        "lines": 0
+      },
+      "extraCalls": 1,
+      "extraTriangles": 12456,
+      "fog": 0.13
+    }
+  },
+  "smoke": {
+    "observed": [
+      "species:sea-angel",
+      "species:tritoniella-belli",
+      "species:giant-isopod"
+    ],
+    "pause": true,
+    "reduced": true,
+    "wildlifeReady": true,
+    "iceHoles": 3,
+    "fog": 0.13,
+    "approvedFog": 0.13,
+    "returnPassages": [
+      "Ice tunnel",
+      "Ice tunnel collar",
+      "Ice tunnel arch",
+      "Ice tunnel icicles",
+      "Ice tunnel cap",
+      "Ice tunnel glow"
+    ]
+  },
+  "released": {
+    "geometries": 0,
+    "textures": 0,
+    "leases": 0
+  },
+  "errors": [],
+  "renderer": "Chromium SwiftShader; Antarctic-only localized views, no traversal"
+}

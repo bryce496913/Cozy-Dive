@@ -63,7 +63,7 @@ describe('collection registry: identities', () => {
       'kelp-forest': 17,
       shipwreck: 5,
       'sea-cave': 18,
-      antarctic: 32,
+      antarctic: 33,
     });
     for (const s of ALBUM_SECTIONS) {
       const orders = COLLECTION.filter((e) => e.section === s).map(
@@ -120,6 +120,7 @@ describe('collection registry: identities', () => {
     expect(named(/nudibranch|spanish/i).map((e) => e.id)).toEqual([
       'species:pikachu-nudibranch',
       'species:spanish-shawl',
+      'species:tritoniella-belli',
     ]);
     expect(named(/leaf.sheep/i).map((e) => e.id)).toEqual([
       'species:leaf-sheep',
@@ -193,7 +194,7 @@ describe('collection registry: discovery and the tank', () => {
 
   it('tells nothing about an unseen slot', () => {
     const page = albumPage('antarctic', []);
-    expect(page).toHaveLength(32);
+    expect(page).toHaveLength(33);
     for (const slot of page) {
       expect(slot.kind).toBe('mystery');
       expect(Object.keys(slot).sort()).toEqual(['kind', 'order']);

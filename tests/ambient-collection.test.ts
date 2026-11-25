@@ -20,11 +20,10 @@ const AMBIENT_SIGHTS = [
   CAVE_SIGHTS.seaSquirt,
   CAVE_SIGHTS.mysid,
   ICE_SIGHTS.iceAlgae,
-  ICE_SIGHTS.seaAngel,
   OUTER_SIGHTS.christmasTreeWorm,
 ];
 
-describe('seven ambient discoveries can come home', () => {
+describe('six procedural ambient discoveries can come home', () => {
   it('registers real world positions, discovers each kind and unlocks its tank entry', () => {
     const cave = new CaveEncrusting(20),
       ice = new IceUnderside(),
@@ -68,7 +67,7 @@ describe('seven ambient discoveries can come home', () => {
           model.addBaby(definition.id, [{ id: sight.id, first: '' }]),
         ).toBe(true);
       }
-      expect(model.babies).toHaveLength(7);
+      expect(model.babies).toHaveLength(6);
     } finally {
       cave.dispose();
       ice.dispose();
@@ -87,7 +86,6 @@ describe('seven ambient discoveries can come home', () => {
         position = new THREE.Vector3();
       for (const [owner, id, name] of [
         [cave, CAVE_SIGHTS.mysid.id, 'Mysid swarm'],
-        [ice, ICE_SIGHTS.seaAngel.id, 'Sea angels'],
       ] as const) {
         const sight = owner.sightings.find(
           (c) => c.id === id,
@@ -143,7 +141,6 @@ it('retains translucent native materials while collection entries fade', async (
   // the material must still be gelatinous. The others keep a flat native opacity.
   for (const [id, alpha] of [
     ['sea-squirt', 1],
-    ['sea-angel', 0.8],
     ['ice-algae', 0.6],
   ] as const) {
     const d = TANK_BABIES.find((b) => b.id === id)!,

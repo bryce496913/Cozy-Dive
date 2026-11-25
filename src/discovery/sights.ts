@@ -102,6 +102,10 @@ export function reefSight(family: string): Sight | undefined {
 export const ICE_SIGHTS = {
   place: { id: 'place:under-ice', label: 'Under the ice' },
   iceAlgae: { id: 'plant:ice-algae', label: 'Ice algae' },
+  tritoniella: {
+    id: 'species:tritoniella-belli',
+    label: 'Antarctic nudibranch',
+  },
   seaAngel: { id: 'species:sea-angel', label: 'Sea angels' },
   sponge: { id: 'species:glass-sponge', label: 'Glass sponge' },
   coral: { id: 'species:antarctic-soft-coral', label: 'Antarctic soft coral' },
