@@ -6,6 +6,7 @@ import {
 } from '../rendering/Gelatinous';
 import type { AssetLoader, AssetLease } from '../assets/AssetLoader';
 import type { BabyDefinition } from '../config/babies';
+import { animateKelpMini } from './kelp/KelpMiniAnimation';
 import { creatureStroke } from './creatureStroke';
 import { collectionShape } from './TankCollectionShapes';
 import { RIBBON_WORM_COLOUR } from './ice/IceCritters';
@@ -216,6 +217,8 @@ export async function acquireCollectionArt(
         for (const s of strokes)
           if (s.left !== undefined && s.right !== undefined)
             creatureStroke(s.mesh, s, effort);
+        if (d.asset === 'kelpMinis')
+          for (const s of strokes) animateKelpMini(s.mesh, time);
         if (d.shape) {
           const pulse =
             d.motion === 'drift' ? 1 + 0.035 * Math.sin(time * 1.3) : 1;

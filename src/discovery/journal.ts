@@ -23,6 +23,10 @@ export interface SightCandidate {
    */
   readonly reach?: number;
   readonly cone?: number;
+  /** Optional habitat visibility test; rare animals cannot be earned through solid scenery. */
+  readonly visibleFrom?: (
+    eye: Readonly<{ x: number; y: number; z: number }>,
+  ) => boolean;
 }
 export interface Sighting {
   readonly id: string;
@@ -136,7 +140,8 @@ export class SightingTracker {
           : d <= c.reach) &&
         (d < 1e-6 ||
           (dx * forward.x + dy * forward.y + dz * forward.z) / d >=
-            (c.cone === undefined ? cosCone : Math.cos(c.cone)))
+            (c.cone === undefined ? cosCone : Math.cos(c.cone))) &&
+        (!c.visibleFrom || c.visibleFrom(eye))
       )
         inView.add(c.id);
     }

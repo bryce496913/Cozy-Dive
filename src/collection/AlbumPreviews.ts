@@ -297,7 +297,7 @@ export class AlbumPreviews {
       -0.6 + s.yaw + (still || !s.spin ? 0 : 0.35 * Math.sin(t * 0.4 + phase)),
       0,
     );
-    p.update(t, still ? 0 : 0.6 * Math.sin(t * 2.2 + phase));
+    p.update(still ? 0 : t, still ? 0 : 0.6 * Math.sin(t * 2.2 + phase));
     this.stage.add(p.object);
     this.renderer.render(this.scene, this.camera);
     this.stage.remove(p.object);

@@ -1,27 +1,23 @@
 import * as THREE from 'three';
-import { spanishShawlGeometry } from './SpanishShawl';
 import type { Vec3 } from '../../config/world';
 import type { SightCandidate } from '../../discovery/journal';
 import { KELP_SIGHTS } from '../../discovery/sights';
 import type { PlayerPresence } from '../../fish/FishDiverReaction';
 import { crabBody } from '../cave/CaveCrabs';
 import type { Boulder } from './KelpEnvironment';
-import { onBoulder } from './KelpDressing';
 
 /**
  * v0.6 Pass 044: small things to find in the kelp forest, built in code.
- *   - Spanish shawl nudibranchs: violet-blue slugs crowned with bright orange cerata and red
- *     rhinophores, creeping very slowly over the boulders;
+ * Spanish shawl has moved to the single canonical KelpMinis library.
  *   - kelp crabs: olive-brown, long-legged, clinging to the kelp stalks low down, climbing a little
  *     way up and down; one that the swimmer comes close to sidles round to the far side of its stalk.
- * One instanced draw each. Allocation-free per frame. Owns its GPU resources.
+ * One instanced crab draw. Allocation-free per frame. Owns its GPU resources.
  */
 export const CRITTERS = {
-  nudibranchs: 26,
+  // Spanish shawl is owned once by KelpMinis (the saved species id is unchanged).
   crabs: 20,
-  /** Nudibranch creep (m/s) and size; crab climb range above the seabed (m) and speed (m/s). */
-  creep: 0.01,
-  slug: 2.2,
+  /** Crab climb range above the seabed (m) and speed (m/s). */
+
   climb: [0.4, 3.5] as const,
   crawl: 0.06,
   crabSize: 1.4,
@@ -29,12 +25,6 @@ export const CRITTERS = {
   wary: 1.6,
 } as const;
 
-interface Slug {
-  readonly boulder: Boulder;
-  a: number;
-  readonly e: number;
-  readonly dir: number;
-}
 interface Crab {
   readonly x: number;
   readonly z: number;
@@ -49,20 +39,15 @@ interface Crab {
 export class KelpCritters {
   readonly root = new THREE.Group();
   readonly sightings: SightCandidate[] = [];
-  private readonly slugMesh: THREE.InstancedMesh;
   private readonly crabMesh: THREE.InstancedMesh;
   private readonly material = new THREE.MeshStandardMaterial({
     name: 'Kelp critters',
     vertexColors: true,
     roughness: 0.5,
   });
-  private readonly slugs: Slug[] = [];
   private readonly crabs: Crab[] = [];
   private readonly m = new THREE.Matrix4();
   private readonly q = new THREE.Quaternion();
-  private readonly up = new THREE.Vector3(0, 1, 0);
-  private readonly n = new THREE.Vector3();
-  private readonly turn = new THREE.Quaternion();
   private readonly p = new THREE.Vector3();
   private readonly s = new THREE.Vector3();
   private readonly e = new THREE.Euler();
@@ -70,7 +55,7 @@ export class KelpCritters {
   private disposed = false;
 
   constructor(
-    boulders: readonly Boulder[],
+    _boulders: readonly Boulder[],
     stalks: readonly {
       readonly x: number;
       readonly z: number;
@@ -78,13 +63,6 @@ export class KelpCritters {
     }[],
   ) {
     this.root.name = 'Kelp critters';
-    this.slugMesh = new THREE.InstancedMesh(
-      // v0.6 Pass 053: the rebuilt Spanish shawl.
-      spanishShawlGeometry(),
-      this.material,
-      CRITTERS.nudibranchs,
-    );
-    this.slugMesh.name = 'Spanish shawl nudibranchs';
     const crab = crabBody();
     this.crabMesh = new THREE.InstancedMesh(
       crab,
@@ -93,13 +71,6 @@ export class KelpCritters {
     );
     this.crabMesh.name = 'Kelp crabs';
     const olive = new THREE.Color(0.55, 0.62, 0.3);
-    for (let i = 0; i < CRITTERS.nudibranchs && boulders.length; i++)
-      this.slugs.push({
-        boulder: boulders[(i * 7) % boulders.length],
-        a: this.random() * Math.PI * 2,
-        e: 0.35 + this.random() * 0.8,
-        dir: this.random() < 0.5 ? 1 : -1,
-      });
     const pick = stalks.filter((_, i) => i % 3 === 0);
     for (let i = 0; i < CRITTERS.crabs && pick.length; i++) {
       const st = pick[(i * 5) % pick.length],
@@ -117,18 +88,7 @@ export class KelpCritters {
       this.crabs.push(crab);
       this.crabMesh.setColorAt(i, olive);
     }
-    this.slugMesh.count = this.slugs.length;
     this.crabMesh.count = this.crabs.length;
-    this.slugs.forEach((sl, i) => {
-      if (i % 4 === 0) {
-        const at = onBoulder(sl.boulder, sl.a, sl.e);
-        this.sightings.push({
-          ...KELP_SIGHTS.nudibranch,
-          position: { x: at.x, y: at.y, z: at.z },
-          radius: 0.5,
-        });
-      }
-    });
     this.crabs.forEach((c, i) => {
       if (i % 3 === 0)
         this.sightings.push({
@@ -138,28 +98,13 @@ export class KelpCritters {
         });
     });
     this.place();
-    this.root.add(this.slugMesh, this.crabMesh);
+    this.root.add(this.crabMesh);
   }
   private random(): number {
     this.seed = (Math.imul(this.seed, 1664525) + 1013904223) >>> 0;
     return this.seed / 4294967296;
   }
   private place(): void {
-    this.slugs.forEach((sl, i) => {
-      const at = onBoulder(sl.boulder, sl.a, sl.e);
-      // Lying on the rock (up along its normal), heading round the boulder.
-      this.n.set(at.nx, at.ny, at.nz);
-      this.q.setFromUnitVectors(this.up, this.n);
-      this.turn.setFromAxisAngle(this.up, -sl.a + (sl.dir > 0 ? 0 : Math.PI));
-      this.q.multiply(this.turn);
-      this.m.compose(
-        this.p.set(at.x, at.y, at.z),
-        this.q,
-        this.s.setScalar(CRITTERS.slug),
-      );
-      this.slugMesh.setMatrixAt(i, this.m);
-    });
-    this.slugMesh.instanceMatrix.needsUpdate = true;
     this.crabs.forEach((c, i) => {
       // Clinging to the stalk: its back to the stalk, legs round it, belly out, facing up.
       const r = 0.07;
@@ -186,10 +131,6 @@ export class KelpCritters {
     if (this.disposed || !active || !(dt > 0)) return;
     const step = Math.min(dt, 0.1) * (reducedMotion ? 0.5 : 1),
       e = player.position;
-    for (const sl of this.slugs)
-      sl.a +=
-        (sl.dir * CRITTERS.creep * step) /
-        Math.max(0.3, sl.boulder.size * 0.46);
     for (const c of this.crabs) {
       const near =
         player.active &&
@@ -219,9 +160,7 @@ export class KelpCritters {
     this.disposed = true;
     this.root.removeFromParent();
     this.root.clear();
-    this.slugMesh.geometry.dispose();
     this.crabMesh.geometry.dispose();
-    this.slugMesh.dispose();
     this.crabMesh.dispose();
     this.material.dispose();
     this.sightings.length = 0;
