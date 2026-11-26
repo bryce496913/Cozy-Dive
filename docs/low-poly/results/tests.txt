@@ -1,0 +1,16 @@
+
+> cozy-diver@0.6.0-rc.25 test
+> vitest run tests/collection-acceptance.test.ts tests/shared-models-scale.test.ts tests/asset-lifecycle.test.ts tests/save-compatibility.test.ts --maxWorkers=1
+
+
+ RUN  v5.1.0 /workspace/Cozy-Dive
+
+
+ Test Files  4 passed (4)
+      Tests  18 passed (18)
+   Start at  02:09:30
+   Duration  6.97s (tests 86%, import 8%, transform 6%)
+
+    Isolate  4 workers spawned · ~122ms startup each (spawn + environment, per file)
+             at least ~366ms faster with isolate: false — reuses workers across files instead of one per file
+
