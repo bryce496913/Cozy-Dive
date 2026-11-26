@@ -1,5 +1,7 @@
 # Cozy Diver
 
+Current shared modelling tools: [low-poly pipeline and inspection guide](docs/low-poly/PIPELINE.md) (migration Pass 016; existing game art is unchanged).
+
 Current art authority: [crafted low-poly direction](docs/LOW_POLY_ART_DIRECTION.md). Previous realism milestones below are historical. Migration ownership and integration/animation/verification stages are defined in that document.
 
 A quiet little world beneath the surface. **v0.8 / Complete tank collection (`0.6.0-rc.25`, beta candidate; not released)** is a first-person, browser-based aquarium prototype. Start in a small glass-walled office where a one-metre aquarium sits on its stand, then swim at your own pace through its rippled sand, carved reef rock, corals, seagrass and soft blue-green water. v0.2 (Living Aquarium) was accepted at `0.2.0-rc.15` and v0.3 (Office & Dive Transition) at `0.3.0-rc.1`. No scores, timers, combat, accounts, or external asset services.
