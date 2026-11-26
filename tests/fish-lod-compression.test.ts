@@ -126,6 +126,7 @@ describe('Pass 017/018 asset compression', () => {
   it('ships every registered GLB with Draco geometry and KTX2 (Basis) textures', () => {
     const KTX2_ID = [0xab, 0x4b, 0x54, 0x58, 0x20, 0x32, 0x30, 0xbb];
     for (const id of Object.keys(ASSET_REGISTRY) as AssetId[]) {
+      if (ASSET_REGISTRY[id].path.startsWith('generated/')) continue; // Generated resources have separate canonical/runtime tests.
       const path = `public/${ASSET_REGISTRY[id].path}`;
       const json = glbJson(path);
       expect(json.extensionsUsed, id).toContain('KHR_draco_mesh_compression');

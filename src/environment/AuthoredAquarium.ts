@@ -217,7 +217,7 @@ export class AuthoredAquarium {
             !(o.material instanceof THREE.MeshStandardMaterial)
           )
             return;
-          if (o.material === f.material) return;
+          if (o.material === f.material || o.material.userData.coreFish) return;
           let tinted = camouflage.get(o.material);
           if (!tinted) {
             const m = o.material.clone();

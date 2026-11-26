@@ -1,0 +1,32 @@
+> cozy-diver@0.6.0-rc.25 test
+> vitest run
+
+
+ RUN  v5.1.0 /workspace/Cozy-Dive
+
+ ❯ tests/reef-collision-audit.test.ts (1 test | 1 failed) 5872ms
+   × uses the shipped plate hull height instead of invisible procedural towers in the original reef 5868ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/reef-collision-audit.test.ts > uses the shipped plate hull height instead of invisible procedural towers in the original reef
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/reef-collision-audit.test.ts:7:1
+      5| import { ReefAsset } from '../validation/ReefAsset';
+      6|
+      7| it('uses the shipped plate hull height instead of invisible procedural…
+       | ^
+      8|   const q = new Aquarium(),
+      9|     asset = new ReefAsset();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 126 passed (127)
+      Tests  1 failed | 1322 passed (1323)
+   Start at  13:41:38
+   Duration  658.99s (tests 91%, import 8%)
+
+    Isolate  127 workers spawned · ~347ms startup each (spawn + environment, per file)
+             at least ~43.74s faster with isolate: false — reuses workers across files instead of one per file

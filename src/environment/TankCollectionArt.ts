@@ -102,6 +102,11 @@ export async function acquireCollectionArt(
             node.geometry = own;
           }
           near.add(node);
+          if (node.name === 'FrogFoot') {
+            const right = node.clone();
+            right.scale.x *= -1;
+            near.add(right);
+          }
         }
         near.rotation.y = Math.PI / 2;
         const far = near.clone(true);

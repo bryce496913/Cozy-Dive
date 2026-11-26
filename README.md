@@ -1,6 +1,6 @@
 # Cozy Diver
 
-Current shared modelling tools: [low-poly pipeline and inspection guide](docs/low-poly/PIPELINE.md) (migration Pass 016; existing game art is unchanged).
+Current shared modelling tools: [low-poly pipeline and inspection guide](docs/low-poly/PIPELINE.md) (migration Pass 016). Core fish now use the [Pass 017 library](docs/low-poly/PASS_017_VALIDATION.md).
 
 Current art authority: [crafted low-poly direction](docs/LOW_POLY_ART_DIRECTION.md). Previous realism milestones below are historical. Migration ownership and integration/animation/verification stages are defined in that document.
 

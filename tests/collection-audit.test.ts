@@ -84,24 +84,14 @@ describe('collection audit: shared models (type A, to be replaced by species mod
     expect(baby('swell-shark').asset).toBe(baby('nurse-shark').asset);
     expect(baby('weddell-seal-pup').asset).toBe(baby('harbour-seal').asset);
     const fish = (id: string) => TANK_FISH.find((f) => f.species === id)!;
-    expect(fish('queensland-grouper').asset).toBe(fish('giant-sea-bass').asset);
+    expect(fish('queensland-grouper').asset).not.toBe(
+      fish('giant-sea-bass').asset,
+    );
     const onChromis = TANK_FISH.filter(
       (f) => f.asset === 'chromis' && f.species !== 'blue-green-chromis',
     ).map((f) => f.species);
-    expect(onChromis.sort()).toEqual(
-      [
-        'antarctic-silverfish',
-        'blacksmith',
-        'flashlight-fish',
-        'garibaldi',
-        'glassy-sweeper',
-        'kelp-bass',
-        'senorita',
-        'soldierfish',
-      ].sort(),
-    );
-    // V0.8 Pass 096: the cleaner wrasse is on its wild rig (the firefish's), in its wild blue.
-    expect(fish('cleaner-wrasse').asset).toBe('firefish');
+    expect(onChromis).toEqual([]);
+    expect(fish('cleaner-wrasse').asset).toBe('cleanerWrasse');
   });
 });
 

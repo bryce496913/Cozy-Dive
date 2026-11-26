@@ -21,6 +21,9 @@ export class FishRenderBatch {
         visuals.length,
       );
       mesh.frustumCulled = true;
+      for (let instance = 0; instance < visuals.length; instance++)
+        if (part.morphTargetInfluences)
+          mesh.setMorphAt(instance, this.parts[instance][i]);
       for (let instance = 0; instance < visuals.length; instance++) {
         const tint: unknown = visuals[instance].root.userData.marineTint;
         if (tint instanceof THREE.Color) mesh.setColorAt(instance, tint);
@@ -35,11 +38,15 @@ export class FishRenderBatch {
     if (this.disposed) return;
     for (let i = 0; i < this.visuals.length; i++) {
       this.visuals[i].root.updateMatrixWorld(true);
-      for (let j = 0; j < this.meshes.length; j++)
+      for (let j = 0; j < this.meshes.length; j++) {
         this.meshes[j].setMatrixAt(i, this.parts[i][j].matrixWorld);
+        if (this.parts[i][j].morphTargetInfluences)
+          this.meshes[j].setMorphAt(i, this.parts[i][j]);
+      }
     }
     for (const mesh of this.meshes) {
       mesh.instanceMatrix.needsUpdate = true;
+      if (mesh.morphTexture) mesh.morphTexture.needsUpdate = true;
       // Bounds must follow every articulated instance before Three.js tests the camera frustum.
       // Geometry spheres enclose fins/eyes as well as bodies; no guessed body-radius proxy.
       mesh.computeBoundingSphere();

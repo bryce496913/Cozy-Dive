@@ -1,0 +1,5 @@
+> cozy-diver@0.6.0-rc.25 lint
+> eslint . && prettier --check .
+
+Checking formatting...
+All matched files use Prettier code style!

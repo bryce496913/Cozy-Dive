@@ -83,22 +83,7 @@ export class LowPolyResources {
       flatShading,
       vertexColors,
     ]);
-    return this.acquire(
-      this.materials,
-      key,
-      () =>
-        new THREE.MeshStandardMaterial({
-          color,
-          flatShading,
-          vertexColors,
-          opacity,
-          transparent: opacity < 1,
-          depthWrite: opacity === 1,
-          roughness: spec.role === 'metal' ? 0.55 : 0.85,
-          metalness: spec.role === 'metal' ? 0.25 : 0,
-          fog: true,
-        }),
-    );
+    return this.acquire(this.materials, key, () => lowPolyMaterial(spec));
   }
   get counts(): { geometries: number; materials: number } {
     return { geometries: this.geometries.size, materials: this.materials.size };
@@ -107,4 +92,29 @@ export class LowPolyResources {
   dispose(): void {
     this.retired = true;
   }
+}
+
+/** Uncached material for owners such as AssetLoader that already manage resource lifetimes. */
+export function lowPolyMaterial(
+  spec: MaterialSpec,
+): THREE.MeshStandardMaterial {
+  const opacity = spec.opacity ?? (spec.role === 'translucent' ? 0.55 : 1);
+  if (
+    !Number.isFinite(opacity) ||
+    opacity <= 0 ||
+    opacity > 1 ||
+    (opacity < 1 && spec.role !== 'translucent')
+  )
+    throw Error('Invalid opacity');
+  return new THREE.MeshStandardMaterial({
+    color: spec.color ?? 0xffffff,
+    vertexColors: spec.vertexColors ?? false,
+    flatShading: spec.flatShading ?? true,
+    opacity,
+    transparent: opacity < 1,
+    depthWrite: opacity === 1,
+    roughness: spec.role === 'metal' ? 0.55 : 0.85,
+    metalness: spec.role === 'metal' ? 0.25 : 0,
+    fog: true,
+  });
 }

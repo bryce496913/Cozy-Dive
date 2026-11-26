@@ -100,12 +100,11 @@ it('releases fulfilled leases immediately when another member of the same fish g
   let bass = 0;
   const source = {
     acquire: async (id: string) => {
-      if (id === 'giantSeaBass' && bass++ === 0)
-        throw Error('one failed decode');
+      if (id === 'grouper' && bass++ === 0) throw Error('one failed decode');
       return {
         model: new THREE.Group(),
         animations: [],
-        release: id === 'giantSeaBass' ? release : vi.fn(),
+        release: id === 'grouper' ? release : vi.fn(),
       };
     },
     evictUnused: vi.fn(),

@@ -1,3 +1,4 @@
+import { CORE_FISH_ASSET } from '../../fish/lowPoly/designs';
 import { FISH_RECOLOR } from '../../config/creatureLooks';
 import * as THREE from 'three';
 import type { AssetId } from '../../assets/AssetRegistry';
@@ -20,24 +21,7 @@ import { OUTER_EXTRA_SPECIES } from './OuterExtraSpecies';
  * as in the tank (leased from the tank's fish libraries, so each decodes once). If the rigs
  * cannot load, the simulation's simple fish are shown instead.
  */
-const LIBRARY: Readonly<Partial<Record<SpeciesId, AssetId>>> = {
-  'blue-green-chromis': 'chromis',
-  'pajama-cardinalfish': 'cardinalfish',
-  'firefish-goby': 'firefish',
-  'yellow-assessor': 'assessor',
-  'royal-gramma': 'gramma',
-  garibaldi: 'chromis',
-  'glassy-sweeper': 'chromis',
-  'kelp-bass': 'chromis',
-  blacksmith: 'chromis',
-  senorita: 'chromis',
-  soldierfish: 'chromis',
-  'blue-tang': 'blueTang',
-  'threadfin-butterflyfish': 'butterflyfish',
-  'moorish-idol': 'moorishIdol',
-  'flashlight-fish': 'chromis',
-  'antarctic-silverfish': 'chromis',
-};
+const LIBRARY: Readonly<Record<SpeciesId, AssetId>> = CORE_FISH_ASSET;
 /** v0.6 Pass 032: species drawn on another's rig, in a colour of their own (shared, V0.8 Pass 096). */
 const RECOLOR = FISH_RECOLOR;
 /** Outer schools switch to their light rigs at this many body lengths. */
