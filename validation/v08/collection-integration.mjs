@@ -47,6 +47,7 @@ const report = {
   errors: [],
   requests: [],
   acceptance: process.env.COZY_ACCEPTANCE === '1',
+  cleanup: process.env.COZY_CLEANUP === '1',
 };
 const started = Date.now();
 try {
@@ -443,6 +444,29 @@ try {
     leases: window.__cozy.world.authored.loader.leased,
   }));
   assert.equal(report.afterBrowse.closed, true);
+  if (report.cleanup) {
+    report.rapidReopens = [];
+    for (let round = 0; round < 3; round++) {
+      await page
+        .getByRole('button', { name: 'Field album', exact: true })
+        .click();
+      for (const name of ['Kelp Forest', 'Outer Reef', 'Shipwreck'])
+        await album.locator('.album-tab', { hasText: name }).click();
+      // Close without waiting for the last page's model queue: late results must release.
+      await album.getByRole('button', { name: 'Close the album' }).click();
+      await page.waitForFunction(
+        (baseline) =>
+          !window.__cozy.album.previews &&
+          window.__cozy.world.authored.loader.leased === baseline,
+        report.afterBrowse.leases,
+      );
+      report.rapidReopens.push({
+        round: round + 1,
+        closed: true,
+        leases: report.afterBrowse.leases,
+      });
+    }
+  }
   // A returned animal can be re-added; journal and older saved decorations/fish survive reload.
   await page.getByRole('button', { name: 'Field album', exact: true }).click();
   await album.locator('.album-tab', { hasText: 'Aquarium' }).click();

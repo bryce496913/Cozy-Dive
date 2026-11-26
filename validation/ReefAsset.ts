@@ -286,4 +286,24 @@ export function installReefHulls(
         [rock.collider],
         asset.colliders(`Rock_${rock.template}_Root`, rock.mesh.matrix),
       );
+  const variants: Record<string, number> = {},
+    names = {
+      branching: 'Coral_Branching',
+      rounded: 'Coral_Massive',
+      plate: 'Coral_Plate',
+    };
+  for (const f of q.hardscape.formations) {
+    const variant = (variants[f.kind] = (variants[f.kind] ?? -1) + 1);
+    q.replacePresentationColliders(
+      f.colliders,
+      asset.colliders(
+        `${names[f.kind]}_${variant}_Root`,
+        new THREE.Matrix4().makeTranslation(
+          f.position.x,
+          f.position.y,
+          f.position.z,
+        ),
+      ),
+    );
+  }
 }

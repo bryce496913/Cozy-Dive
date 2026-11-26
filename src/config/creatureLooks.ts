@@ -2,7 +2,7 @@ import type { SpeciesId } from '../fish/FishSpecies';
 
 /**
  * V0.8 Pass 096: one source for how an animal looks, shared by its wild appearance and its
- * aquarium (and later, collection) presentation. The tank had its own copies of these colours,
+ * aquarium and collection presentation. The tank had its own copies of these colours,
  * and several had drifted from the wild animal's (the bat ray, Weddell seal pup, flashlight fish,
  * Antarctic silverfish and cleaner wrasse). Values are the wild animal's.
  */

@@ -10,7 +10,7 @@ import {
 } from '../src/environment/AuthoredReef';
 
 /** Minimal structurally valid reef library: real node names, PBR maps, colours and phase UVs. */
-function reefFixture(): {
+function reefFixture(withCoral = false): {
   asset: LoadedAsset;
   geometries: THREE.BufferGeometry[];
 } {
@@ -63,6 +63,12 @@ function reefFixture(): {
       add(`${name}_${i}`);
   for (const prefix of Object.values(PLANT_TEMPLATE_NODES))
     for (let i = 0; i < 3; i++) add(`${prefix}_${i}`);
+  if (withCoral) {
+    const root = new THREE.Group();
+    root.name = 'Coral_Plate_0_Root';
+    scene.add(root);
+    for (let i = 0; i < 4; i++) add(`COLLIDER_Coral_Plate_0_${i}`, root);
+  }
   add('Coral_Massive_0_LOD1');
   add('Rubble_0');
   add('Rubble_1');
@@ -121,6 +127,42 @@ describe('AuthoredReef presentation lifecycle', () => {
     expect(colliders).toEqual(original);
     expect(disposed).toHaveBeenCalledTimes(geometries.length);
     q.dispose();
+  }, 20000);
+  it('swaps original coral hulls when composed assets fail and restores them on rollback', async () => {
+    const q = new Aquarium(),
+      original = q.collision.colliders.slice(),
+      { asset } = reefFixture(true),
+      warn = vi.spyOn(console, 'warn').mockImplementation(() => {}),
+      error = vi.spyOn(console, 'error').mockImplementation(() => {}),
+      loader = new AssetLoader(async (url) => {
+        if (url.includes('reef-environment.glb')) return asset;
+        throw Error('composed assets unavailable');
+      }),
+      reef = new AuthoredReef(q, loader, 'habitat');
+    try {
+      expect(await reef.ready).toBe(true);
+      const plate = q.hardscape.formations.find((f) => f.kind === 'plate')!;
+      for (let i = 0; i < 3; i++) {
+        expect(
+          plate.colliders.every((c) => !q.collision.colliders.includes(c)),
+        ).toBe(true);
+        expect(plate.mesh.visible).toBe(false);
+        expect(new Set(q.collision.colliders).size).toBe(
+          q.collision.colliders.length,
+        );
+        reef.setEnabled(false);
+        expect(q.collision.colliders).toEqual(original);
+        expect(plate.mesh.visible).toBe(true);
+        reef.setEnabled(true);
+      }
+      reef.dispose();
+      expect(q.collision.colliders).toEqual(original);
+    } finally {
+      reef.dispose();
+      q.dispose();
+      warn.mockRestore();
+      error.mockRestore();
+    }
   }, 20000);
   it('keeps the procedural reef untouched when the library fails or is disposed early', async () => {
     const q = new Aquarium();
