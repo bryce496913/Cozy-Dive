@@ -1,5 +1,7 @@
 # Cozy Diver — roadmap
 
+Current art authority: [crafted low-poly direction](LOW_POLY_ART_DIRECTION.md). Previous realism milestones below are historical. Migration ownership and integration/animation/verification stages are defined in that document.
+
 This is the canonical roadmap. It was reconciled with the code in Pass 049; the evidence (feature matrix, tests and gaps) is in [DEVELOPMENT_AUDIT.md](DEVELOPMENT_AUDIT.md). Milestones describe direction, not a fixed release schedule. Each pass stays small, playable and easy to review. A milestone closes only on the user's explicit acceptance after a macOS play-through. Passing automated checks never closes one.
 
 ## Vision

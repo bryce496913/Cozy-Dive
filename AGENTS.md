@@ -4,6 +4,10 @@
 
 Build a peaceful browser aquarium for relaxing exploration: enjoyable swimming, inviting scenery, no pressure. The office and the dive are done (v0.3). v0.4 adds a hidden passage from the tank into larger outer waters; v0.5 lets the player personalize the tank. v0.6 adds new environments beyond the outer reef, reached through hidden passages, starting with a kelp forest. Follow the requested pass; do not add quests, combat, accounts, backends, multiplayer, or unrequested frameworks. The one agreed form of progression is gentle discovery: things seen in the outer waters unlock for the tank, with no counters, currency, timers, scores or anything to lose. Use code-generated scenery and local assets; never depend on externally hosted runtime assets.
 
+## Authoritative art direction
+
+[LOW_POLY_ART_DIRECTION.md](docs/LOW_POLY_ART_DIRECTION.md) is the permanent visual standard. Prior stylized-realism instructions are superseded for future art work; preserve historical reports. Migration Passes 015–028 are a new sequence. Preserve existing gameplay, saves and collision/animation contracts while replacing art in the assigned passes.
+
 ## Architecture conventions
 
 - Keep `app/` focused on lifecycle and orchestration; no scene generation or settings markup there.
