@@ -1,0 +1,15 @@
+
+> cozy-diver@0.6.0-rc.25 test
+> vitest run
+
+
+ RUN  v5.1.0 /workspace/Cozy-Dive
+
+
+ Test Files  126 passed (126)
+      Tests  1247 passed (1247)
+   Start at  04:41:28
+   Duration  415.01s (tests 92%, import 7%)
+
+    Isolate  126 workers spawned · ~186ms startup each (spawn + environment, per file)
+             at least ~23.20s faster with isolate: false — reuses workers across files instead of one per file

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <link rel="icon" href="data:," />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Cozy Diver · Low-poly pipeline inspection</title>
+    <style>
+      body {
+        margin: 0;
+        background: #183137;
+        color: #e3efe5;
+        font: 15px system-ui;
+      }
+      header {
+        padding: 20px 28px;
+      }
+      h1 {
+        font-size: 22px;
+        margin: 0 0 8px;
+      }
+      p {
+        margin: 6px 0;
+        color: #b9ccc3;
+      }
+      nav {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 15px;
+      }
+      button,
+      select {
+        font: inherit;
+        background: #2c4b50;
+        color: #fff;
+        border: 1px solid #78938b;
+        border-radius: 5px;
+        padding: 7px 12px;
+      }
+      button:focus-visible,
+      select:focus-visible {
+        outline: 3px solid #f1c078;
+      }
+      canvas {
+        display: block;
+        width: 100%;
+        height: 520px;
+      }
+      #metrics {
+        white-space: pre-wrap;
+        font: 13px monospace;
+        margin: 15px 28px;
+      }
+      footer {
+        padding: 0 28px 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Shared low-poly pipeline · Pass 016</h1>
+      <p>
+        Inspection prototypes only. Deliberate silhouettes, anatomical colors
+        and continuous deformation.
+      </p>
+      <nav>
+        <select id="view" aria-label="View">
+          <option value="three-quarter">Three-quarter</option>
+          <option value="side">Side</option>
+          <option value="front">Front</option>
+          <option value="top">Top</option></select
+        ><button id="pause">Pause motion</button
+        ><button id="reduced" aria-pressed="false">Reduced motion</button
+        ><button id="release">Release models</button
+        ><button id="restore">Restore models</button>
+      </nav>
+    </header>
+    <canvas id="scene"></canvas>
+    <div id="metrics"></div>
+    <footer>
+      Left to right: common fish · ray · branching coral · irregular rock ·
+      aquatic plant<br />All cameras inspect the same geometry. No gameplay
+      assets are loaded.
+    </footer>
+    <script type="module" src="./inspection.ts"></script>
+  </body>
+</html>

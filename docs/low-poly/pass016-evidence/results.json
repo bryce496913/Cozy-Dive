@@ -1,0 +1,183 @@
+{
+  "renderer": "Chromium / SwiftShader (software); not real GPU or MacBook Air",
+  "loadMs": 4430,
+  "initial": {
+    "models": 5,
+    "cache": {
+      "geometries": 5,
+      "materials": 4
+    },
+    "drawCalls": 5,
+    "triangles": 994,
+    "geometries": 5,
+    "textures": 4,
+    "programs": 2,
+    "paused": false,
+    "reduced": false,
+    "time": 0.05,
+    "counts": [
+      {
+        "id": "fish",
+        "triangles": 280
+      },
+      {
+        "id": "ray",
+        "triangles": 168
+      },
+      {
+        "id": "coral",
+        "triangles": 86
+      },
+      {
+        "id": "rock",
+        "triangles": 12
+      },
+      {
+        "id": "plant",
+        "triangles": 448
+      }
+    ]
+  },
+  "cycles": [
+    {
+      "models": 0,
+      "cache": {
+        "geometries": 0,
+        "materials": 0
+      },
+      "drawCalls": 0,
+      "triangles": 0,
+      "geometries": 0,
+      "textures": 1,
+      "programs": 0,
+      "paused": false,
+      "reduced": false,
+      "time": 0.34989999999999966,
+      "counts": []
+    },
+    {
+      "models": 0,
+      "cache": {
+        "geometries": 0,
+        "materials": 0
+      },
+      "drawCalls": 0,
+      "triangles": 0,
+      "geometries": 0,
+      "textures": 1,
+      "programs": 0,
+      "paused": false,
+      "reduced": false,
+      "time": 0.7165000000000001,
+      "counts": []
+    },
+    {
+      "models": 0,
+      "cache": {
+        "geometries": 0,
+        "materials": 0
+      },
+      "drawCalls": 0,
+      "triangles": 0,
+      "geometries": 0,
+      "textures": 1,
+      "programs": 0,
+      "paused": false,
+      "reduced": false,
+      "time": 1.0830999999999988,
+      "counts": []
+    },
+    {
+      "models": 0,
+      "cache": {
+        "geometries": 0,
+        "materials": 0
+      },
+      "drawCalls": 0,
+      "triangles": 0,
+      "geometries": 0,
+      "textures": 1,
+      "programs": 0,
+      "paused": false,
+      "reduced": false,
+      "time": 1.433100000000001,
+      "counts": []
+    },
+    {
+      "models": 0,
+      "cache": {
+        "geometries": 0,
+        "materials": 0
+      },
+      "drawCalls": 0,
+      "triangles": 0,
+      "geometries": 0,
+      "textures": 1,
+      "programs": 0,
+      "paused": false,
+      "reduced": false,
+      "time": 1.816500000000001,
+      "counts": []
+    }
+  ],
+  "final": {
+    "models": 5,
+    "cache": {
+      "geometries": 5,
+      "materials": 4
+    },
+    "drawCalls": 5,
+    "triangles": 994,
+    "geometries": 5,
+    "textures": 4,
+    "programs": 2,
+    "paused": false,
+    "reduced": false,
+    "time": 5.016499999999991,
+    "counts": [
+      {
+        "id": "fish",
+        "triangles": 280
+      },
+      {
+        "id": "ray",
+        "triangles": 168
+      },
+      {
+        "id": "coral",
+        "triangles": 86
+      },
+      {
+        "id": "rock",
+        "triangles": 12
+      },
+      {
+        "id": "plant",
+        "triangles": 448
+      }
+    ]
+  },
+  "timing": {
+    "frames": 60,
+    "medianMs": 100,
+    "p95Ms": 200,
+    "maxMs": 334.4999999955289
+  },
+  "disposed": {
+    "models": 0,
+    "cache": {
+      "geometries": 0,
+      "materials": 0
+    },
+    "drawCalls": 5,
+    "triangles": 994,
+    "geometries": 0,
+    "textures": 0,
+    "programs": 0,
+    "paused": false,
+    "reduced": false,
+    "time": 5.016499999999991,
+    "counts": []
+  },
+  "errors": []
+}
