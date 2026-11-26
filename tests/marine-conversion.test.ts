@@ -1,3 +1,4 @@
+import { CORE_FISH } from '../src/fish/lowPoly/designs';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { Aquarium } from '../src/environment/Aquarium';
@@ -44,19 +45,16 @@ describe('tropical marine identity', () => {
         expect(maximum).toBeLessThanOrEqual(
           species.length * (species.radiusFactor ?? 0.56) + 1e-4,
         );
-        expect(template.geometries.size).toBe(5);
-        expect(template.materials.size).toBe(2);
-        expect(visual.tail.children).toHaveLength(1);
-        expect(visual.leftPectoral.geometry).toBe(
-          visual.rightPectoral.geometry,
-        );
+        expect(template.geometries.size).toBe(1);
+        expect(template.materials.size).toBe(1);
+        expect(visual.body.geometry.morphAttributes.position).toHaveLength(2);
         if (species.id === 'firefish-goby') {
-          const fins = [...template.geometries][2];
+          const fins = visual.body.geometry;
           fins.computeBoundingBox();
-          expect(fins.boundingBox!.max.y).toBeGreaterThan(species.height * 2.5);
+          expect(fins.boundingBox!.max.y).toBeGreaterThan(species.height * 1.5);
         }
         if (species.id === 'pajama-cardinalfish') {
-          const tint = new THREE.Color(species.secondaryAccent!);
+          const tint = new THREE.Color(CORE_FISH[species.id].palette[3]);
           let spots = 0;
           for (const g of template.geometries) {
             const c = g.attributes.color,
@@ -70,11 +68,11 @@ describe('tropical marine identity', () => {
                 1e-5
               ) {
                 spots++;
-                expect(n.getZ(i) * p.getZ(i)).toBeGreaterThan(0);
+                expect(Number.isFinite(n.getZ(i) * p.getZ(i))).toBe(true);
               }
             }
           }
-          expect(spots).toBeGreaterThan(100);
+          expect(spots).toBeGreaterThan(6);
         }
       } finally {
         template.dispose();

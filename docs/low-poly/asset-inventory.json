@@ -1940,10 +1940,11 @@
         "src/environment/AuthoredAquarium.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Rebuilt at the mixed-library loading boundary; unrelated library parts retained.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/anchored.ts"
     },
     {
       "id": "public/assets/models/creatures/anchored-life.glb#1",
@@ -1961,10 +1962,11 @@
         "src/environment/AuthoredAquarium.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Rebuilt at the mixed-library loading boundary; unrelated library parts retained.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/anchored.ts"
     },
     {
       "id": "public/assets/models/creatures/anchored-life.glb#2",
@@ -1982,10 +1984,11 @@
         "src/environment/AuthoredAquarium.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Rebuilt at the mixed-library loading boundary; unrelated library parts retained.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/anchored.ts"
     },
     {
       "id": "public/assets/models/creatures/anchored-life.glb#3",
@@ -2003,10 +2006,11 @@
         "src/environment/AuthoredAquarium.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Rebuilt at the mixed-library loading boundary; unrelated library parts retained.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/anchored.ts"
     },
     {
       "id": "public/assets/models/creatures/anchored-life.glb#4",
@@ -2025,10 +2029,11 @@
         "src/environment/AuthoredAquarium.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Rebuilt at the mixed-library loading boundary; unrelated library parts retained.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/anchored.ts"
     },
     {
       "id": "public/assets/models/creatures/anchored-life.glb#6",
@@ -2161,10 +2166,11 @@
         "src/environment/AuthoredAquarium.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Rebuilt at the mixed-library loading boundary; unrelated library parts retained.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/anchored.ts"
     },
     {
       "id": "public/assets/models/creatures/anchored-life.glb#14",
@@ -2183,10 +2189,11 @@
         "src/environment/AuthoredAquarium.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Rebuilt at the mixed-library loading boundary; unrelated library parts retained.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/anchored.ts"
     },
     {
       "id": "public/assets/models/creatures/anchored-life.glb#15",
@@ -2206,10 +2213,11 @@
         "src/environment/AuthoredAquarium.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Rebuilt at the mixed-library loading boundary; unrelated library parts retained.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/anchored.ts"
     },
     {
       "id": "public/assets/models/creatures/anchored-life.glb#16",
@@ -2228,10 +2236,11 @@
         "src/environment/AuthoredAquarium.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Rebuilt at the mixed-library loading boundary; unrelated library parts retained.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/anchored.ts"
     },
     {
       "id": "public/assets/models/creatures/barracuda.glb#0",
@@ -2274,11 +2283,12 @@
         "src/environment/outer/SoloCreature.ts",
         "src/fish/FishSpecies.ts"
       ],
-      "pass": "018",
-      "status": "pending",
+      "pass": "017",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/creatures/barracuda.glb#1",
@@ -2300,11 +2310,12 @@
         "src/environment/outer/OuterCreatures.ts",
         "src/environment/outer/SoloCreature.ts"
       ],
-      "pass": "018",
-      "status": "pending",
+      "pass": "017",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/creatures/cave-minis.glb#0",
@@ -4538,10 +4549,11 @@
         "src/fish/FishSpecies.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/assessor.glb#1",
@@ -4564,10 +4576,11 @@
         "src/environment/outer/SoloCreature.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/assessor.glb#2",
@@ -4585,10 +4598,11 @@
         "src/environment/outer/OuterSchools.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/assessor.glb#3",
@@ -4603,10 +4617,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/assessor.glb#4",
@@ -4621,10 +4636,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/assessor.glb#5",
@@ -4639,10 +4655,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/assessor.glb#6",
@@ -4661,10 +4678,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/assessor.glb#7",
@@ -4683,10 +4701,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/bannerfish.glb#0",
@@ -4730,10 +4749,11 @@
         "src/fish/FishSpecies.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/bannerfish.glb#1",
@@ -4756,10 +4776,11 @@
         "src/environment/outer/SoloCreature.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/bannerfish.glb#2",
@@ -4777,10 +4798,11 @@
         "src/environment/outer/OuterSchools.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/bannerfish.glb#3",
@@ -4795,10 +4817,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/bannerfish.glb#4",
@@ -4813,10 +4836,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/bannerfish.glb#5",
@@ -4831,10 +4855,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/bannerfish.glb#6",
@@ -4853,10 +4878,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/bannerfish.glb#7",
@@ -4875,10 +4901,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/bluetang.glb#0",
@@ -4922,10 +4949,11 @@
         "src/fish/FishSpecies.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/bluetang.glb#1",
@@ -4948,10 +4976,11 @@
         "src/environment/outer/SoloCreature.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/bluetang.glb#2",
@@ -4969,10 +4998,11 @@
         "src/environment/outer/OuterSchools.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/bluetang.glb#3",
@@ -4987,10 +5017,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/bluetang.glb#4",
@@ -5005,10 +5036,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/bluetang.glb#5",
@@ -5023,10 +5055,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/bluetang.glb#6",
@@ -5045,10 +5078,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/bluetang.glb#7",
@@ -5067,10 +5101,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/butterflyfish.glb#0",
@@ -5114,10 +5149,11 @@
         "src/fish/FishSpecies.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/butterflyfish.glb#1",
@@ -5140,10 +5176,11 @@
         "src/environment/outer/SoloCreature.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/butterflyfish.glb#2",
@@ -5161,10 +5198,11 @@
         "src/environment/outer/OuterSchools.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/butterflyfish.glb#3",
@@ -5179,10 +5217,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/butterflyfish.glb#4",
@@ -5197,10 +5236,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/butterflyfish.glb#5",
@@ -5215,10 +5255,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/butterflyfish.glb#6",
@@ -5237,10 +5278,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/butterflyfish.glb#7",
@@ -5259,10 +5301,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/cardinalfish.glb#0",
@@ -5306,10 +5349,11 @@
         "src/fish/FishSpecies.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/cardinalfish.glb#1",
@@ -5332,10 +5376,11 @@
         "src/environment/outer/SoloCreature.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/cardinalfish.glb#2",
@@ -5353,10 +5398,11 @@
         "src/environment/outer/OuterSchools.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/cardinalfish.glb#3",
@@ -5371,10 +5417,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/cardinalfish.glb#4",
@@ -5389,10 +5436,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/cardinalfish.glb#5",
@@ -5407,10 +5455,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/cardinalfish.glb#6",
@@ -5429,10 +5478,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/cardinalfish.glb#7",
@@ -5451,10 +5501,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/chromis.glb#0",
@@ -5499,10 +5550,11 @@
         "src/fish/FishSpecies.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/chromis.glb#1",
@@ -5526,10 +5578,11 @@
         "src/environment/outer/SoloCreature.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/chromis.glb#2",
@@ -5548,10 +5601,11 @@
         "src/environment/outer/OuterSchools.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/chromis.glb#3",
@@ -5569,10 +5623,11 @@
         "src/benchmark/style/StyleBench.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/chromis.glb#4",
@@ -5590,10 +5645,11 @@
         "src/benchmark/style/StyleBench.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/chromis.glb#5",
@@ -5611,10 +5667,11 @@
         "src/benchmark/style/StyleBench.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/chromis.glb#6",
@@ -5634,10 +5691,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/chromis.glb#7",
@@ -5657,10 +5715,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/clownfish.glb#0",
@@ -5705,10 +5764,11 @@
         "src/fish/FishSpecies.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/clownfish.glb#1",
@@ -5732,10 +5792,11 @@
         "src/environment/outer/SoloCreature.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/clownfish.glb#2",
@@ -5754,10 +5815,11 @@
         "src/environment/outer/OuterSchools.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/clownfish.glb#3",
@@ -5775,10 +5837,11 @@
         "src/benchmark/style/StyleBench.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/clownfish.glb#4",
@@ -5796,10 +5859,11 @@
         "src/benchmark/style/StyleBench.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/clownfish.glb#5",
@@ -5817,10 +5881,11 @@
         "src/benchmark/style/StyleBench.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/clownfish.glb#6",
@@ -5840,10 +5905,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/clownfish.glb#7",
@@ -5863,10 +5929,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/firefish.glb#0",
@@ -5910,10 +5977,11 @@
         "src/fish/FishSpecies.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/firefish.glb#1",
@@ -5936,10 +6004,11 @@
         "src/environment/outer/SoloCreature.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/firefish.glb#2",
@@ -5957,10 +6026,11 @@
         "src/environment/outer/OuterSchools.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/firefish.glb#3",
@@ -5975,10 +6045,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/firefish.glb#4",
@@ -5993,10 +6064,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/firefish.glb#5",
@@ -6011,10 +6083,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/firefish.glb#6",
@@ -6033,10 +6106,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/firefish.glb#7",
@@ -6055,10 +6129,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/gramma.glb#0",
@@ -6102,10 +6177,11 @@
         "src/fish/FishSpecies.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/gramma.glb#1",
@@ -6128,10 +6204,11 @@
         "src/environment/outer/SoloCreature.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/gramma.glb#2",
@@ -6149,10 +6226,11 @@
         "src/environment/outer/OuterSchools.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/gramma.glb#3",
@@ -6167,10 +6245,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/gramma.glb#4",
@@ -6185,10 +6264,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/gramma.glb#5",
@@ -6203,10 +6283,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/gramma.glb#6",
@@ -6225,10 +6306,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/gramma.glb#7",
@@ -6247,10 +6329,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/icefish.glb#0",
@@ -6294,10 +6377,11 @@
         "src/fish/FishSpecies.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/icefish.glb#1",
@@ -6320,10 +6404,11 @@
         "src/environment/outer/SoloCreature.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/icefish.glb#2",
@@ -6341,10 +6426,11 @@
         "src/environment/outer/OuterSchools.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/icefish.glb#3",
@@ -6359,10 +6445,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/icefish.glb#4",
@@ -6377,10 +6464,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/icefish.glb#5",
@@ -6395,10 +6483,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/icefish.glb#6",
@@ -6417,10 +6506,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/icefish.glb#7",
@@ -6439,10 +6529,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/idol.glb#0",
@@ -6486,10 +6577,11 @@
         "src/fish/FishSpecies.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/idol.glb#1",
@@ -6512,10 +6604,11 @@
         "src/environment/outer/SoloCreature.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/idol.glb#2",
@@ -6533,10 +6626,11 @@
         "src/environment/outer/OuterSchools.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/idol.glb#3",
@@ -6551,10 +6645,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/idol.glb#4",
@@ -6569,10 +6664,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/idol.glb#5",
@@ -6587,10 +6683,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/idol.glb#6",
@@ -6609,10 +6706,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/idol.glb#7",
@@ -6631,10 +6729,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/napoleon.glb#0",
@@ -6678,10 +6777,11 @@
         "src/fish/FishSpecies.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/napoleon.glb#1",
@@ -6704,10 +6804,11 @@
         "src/environment/outer/SoloCreature.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/napoleon.glb#2",
@@ -6725,10 +6826,11 @@
         "src/environment/outer/OuterSchools.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/napoleon.glb#3",
@@ -6743,10 +6845,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/napoleon.glb#4",
@@ -6761,10 +6864,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/napoleon.glb#5",
@@ -6779,10 +6883,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/napoleon.glb#6",
@@ -6801,10 +6906,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/napoleon.glb#7",
@@ -6823,10 +6929,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/notothen.glb#0",
@@ -6870,10 +6977,11 @@
         "src/fish/FishSpecies.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/notothen.glb#1",
@@ -6896,10 +7004,11 @@
         "src/environment/outer/SoloCreature.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/notothen.glb#2",
@@ -6917,10 +7026,11 @@
         "src/environment/outer/OuterSchools.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/notothen.glb#3",
@@ -6935,10 +7045,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/notothen.glb#4",
@@ -6953,10 +7064,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/notothen.glb#5",
@@ -6971,10 +7083,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/notothen.glb#6",
@@ -6993,10 +7106,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/notothen.glb#7",
@@ -7015,10 +7129,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/parrotfish.glb#0",
@@ -7062,10 +7177,11 @@
         "src/fish/FishSpecies.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/parrotfish.glb#1",
@@ -7088,10 +7204,11 @@
         "src/environment/outer/SoloCreature.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/parrotfish.glb#2",
@@ -7109,10 +7226,11 @@
         "src/environment/outer/OuterSchools.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/parrotfish.glb#3",
@@ -7127,10 +7245,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/parrotfish.glb#4",
@@ -7145,10 +7264,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/parrotfish.glb#5",
@@ -7163,10 +7283,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/parrotfish.glb#6",
@@ -7185,10 +7306,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/parrotfish.glb#7",
@@ -7207,10 +7329,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/seabass.glb#0",
@@ -7254,10 +7377,11 @@
         "src/fish/FishSpecies.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/seabass.glb#1",
@@ -7280,10 +7404,11 @@
         "src/environment/outer/SoloCreature.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/seabass.glb#2",
@@ -7301,10 +7426,11 @@
         "src/environment/outer/OuterSchools.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/seabass.glb#3",
@@ -7319,10 +7445,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/seabass.glb#4",
@@ -7337,10 +7464,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/seabass.glb#5",
@@ -7355,10 +7483,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/seabass.glb#6",
@@ -7377,10 +7506,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/seabass.glb#7",
@@ -7399,10 +7529,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/sheephead.glb#0",
@@ -7446,10 +7577,11 @@
         "src/fish/FishSpecies.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/sheephead.glb#1",
@@ -7472,10 +7604,11 @@
         "src/environment/outer/SoloCreature.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/sheephead.glb#2",
@@ -7493,10 +7626,11 @@
         "src/environment/outer/OuterSchools.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/sheephead.glb#3",
@@ -7511,10 +7645,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/sheephead.glb#4",
@@ -7529,10 +7664,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/sheephead.glb#5",
@@ -7547,10 +7683,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/sheephead.glb#6",
@@ -7569,10 +7706,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/sheephead.glb#7",
@@ -7591,10 +7729,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/toothfish.glb#0",
@@ -7638,10 +7777,11 @@
         "src/fish/FishSpecies.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/toothfish.glb#1",
@@ -7664,10 +7804,11 @@
         "src/environment/outer/SoloCreature.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/toothfish.glb#2",
@@ -7685,10 +7826,11 @@
         "src/environment/outer/OuterSchools.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/toothfish.glb#3",
@@ -7703,10 +7845,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/toothfish.glb#4",
@@ -7721,10 +7864,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/toothfish.glb#5",
@@ -7739,10 +7883,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/toothfish.glb#6",
@@ -7761,10 +7906,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/toothfish.glb#7",
@@ -7783,10 +7929,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/trevally.glb#0",
@@ -7830,10 +7977,11 @@
         "src/fish/FishSpecies.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/trevally.glb#1",
@@ -7856,10 +8004,11 @@
         "src/environment/outer/SoloCreature.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/trevally.glb#2",
@@ -7877,10 +8026,11 @@
         "src/environment/outer/OuterSchools.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/trevally.glb#3",
@@ -7895,10 +8045,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/trevally.glb#4",
@@ -7913,10 +8064,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/trevally.glb#5",
@@ -7931,10 +8083,11 @@
       "environments": "Resolve through sourceReferences and registry; shared library may span habitats",
       "sourceReferences": ["src/assets/AssetRegistry.ts"],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/trevally.glb#6",
@@ -7953,10 +8106,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/fish/trevally.glb#7",
@@ -7975,10 +8129,11 @@
         "src/environment/outer/PosedFish.ts"
       ],
       "pass": "017",
-      "status": "pending",
+      "status": "Superseded at runtime by canonical Pass 017 generated fish; original GLB retained as historical/source asset.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "core-fish-low-poly.test.ts; Pass 017 gallery and habitat report",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "public/assets/models/ornaments/reef-props.glb#0",
@@ -22331,10 +22486,11 @@
       "collision": "Inspect collider/interaction consumers in owning source",
       "environments": ["Aquarium"],
       "pass": "017",
-      "status": "pending-source-review",
+      "status": "Legacy construction replaced by canonical Pass 017 factory.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/anchored.ts"
     },
     {
       "id": "src/creatures/discoveries/Frogfish.ts:158",
@@ -22348,10 +22504,11 @@
       "collision": "Inspect collider/interaction consumers in owning source",
       "environments": ["Aquarium"],
       "pass": "017",
-      "status": "pending-source-review",
+      "status": "Legacy construction replaced by canonical Pass 017 factory.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/anchored.ts"
     },
     {
       "id": "src/creatures/discoveries/Frogfish.ts:168",
@@ -22365,10 +22522,11 @@
       "collision": "Inspect collider/interaction consumers in owning source",
       "environments": ["Aquarium"],
       "pass": "017",
-      "status": "pending-source-review",
+      "status": "Legacy construction replaced by canonical Pass 017 factory.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/anchored.ts"
     },
     {
       "id": "src/creatures/discoveries/Frogfish.ts:193",
@@ -22382,10 +22540,11 @@
       "collision": "Inspect collider/interaction consumers in owning source",
       "environments": ["Aquarium"],
       "pass": "017",
-      "status": "pending-source-review",
+      "status": "Legacy construction replaced by canonical Pass 017 factory.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/anchored.ts"
     },
     {
       "id": "src/creatures/discoveries/Frogfish.ts:199",
@@ -22399,10 +22558,11 @@
       "collision": "Inspect collider/interaction consumers in owning source",
       "environments": ["Aquarium"],
       "pass": "017",
-      "status": "pending-source-review",
+      "status": "Legacy construction replaced by canonical Pass 017 factory.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/anchored.ts"
     },
     {
       "id": "src/creatures/discoveries/Frogfish.ts:248",
@@ -22416,10 +22576,11 @@
       "collision": "Inspect collider/interaction consumers in owning source",
       "environments": ["Aquarium"],
       "pass": "017",
-      "status": "pending-source-review",
+      "status": "Legacy construction replaced by canonical Pass 017 factory.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/anchored.ts"
     },
     {
       "id": "src/creatures/discoveries/Frogfish.ts:249",
@@ -22433,10 +22594,11 @@
       "collision": "Inspect collider/interaction consumers in owning source",
       "environments": ["Aquarium"],
       "pass": "017",
-      "status": "pending-source-review",
+      "status": "Legacy construction replaced by canonical Pass 017 factory.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/anchored.ts"
     },
     {
       "id": "src/creatures/discoveries/Frogfish.ts:276",
@@ -22450,10 +22612,11 @@
       "collision": "Inspect collider/interaction consumers in owning source",
       "environments": ["Aquarium"],
       "pass": "017",
-      "status": "pending-source-review",
+      "status": "Legacy construction replaced by canonical Pass 017 factory.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/anchored.ts"
     },
     {
       "id": "src/creatures/discoveries/Nudibranchs.ts:95",
@@ -22517,11 +22680,12 @@
       "dependencies": "Trace callers before modifying shared factory; preserve sighting/save identity",
       "collision": "Inspect collider/interaction consumers in owning source",
       "environments": ["Aquarium"],
-      "pass": "018",
-      "status": "pending-source-review",
+      "pass": "017",
+      "status": "Legacy construction replaced by canonical Pass 017 anchored-fish factory.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/anchored.ts"
     },
     {
       "id": "src/creatures/discoveries/Seahorse.ts:92",
@@ -22534,11 +22698,12 @@
       "dependencies": "Trace callers before modifying shared factory; preserve sighting/save identity",
       "collision": "Inspect collider/interaction consumers in owning source",
       "environments": ["Aquarium"],
-      "pass": "018",
-      "status": "pending-source-review",
+      "pass": "017",
+      "status": "Legacy construction replaced by canonical Pass 017 anchored-fish factory.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/anchored.ts"
     },
     {
       "id": "src/creatures/discoveries/Seahorse.ts:109",
@@ -22551,11 +22716,12 @@
       "dependencies": "Trace callers before modifying shared factory; preserve sighting/save identity",
       "collision": "Inspect collider/interaction consumers in owning source",
       "environments": ["Aquarium"],
-      "pass": "018",
-      "status": "pending-source-review",
+      "pass": "017",
+      "status": "Legacy construction replaced by canonical Pass 017 anchored-fish factory.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/anchored.ts"
     },
     {
       "id": "src/creatures/discoveries/Seahorse.ts:135",
@@ -22568,11 +22734,12 @@
       "dependencies": "Trace callers before modifying shared factory; preserve sighting/save identity",
       "collision": "Inspect collider/interaction consumers in owning source",
       "environments": ["Aquarium"],
-      "pass": "018",
-      "status": "pending-source-review",
+      "pass": "017",
+      "status": "Legacy construction replaced by canonical Pass 017 anchored-fish factory.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/anchored.ts"
     },
     {
       "id": "src/creatures/discoveries/Seahorse.ts:164",
@@ -22585,11 +22752,12 @@
       "dependencies": "Trace callers before modifying shared factory; preserve sighting/save identity",
       "collision": "Inspect collider/interaction consumers in owning source",
       "environments": ["Aquarium"],
-      "pass": "018",
-      "status": "pending-source-review",
+      "pass": "017",
+      "status": "Legacy construction replaced by canonical Pass 017 anchored-fish factory.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/anchored.ts"
     },
     {
       "id": "src/creatures/discoveries/Seahorse.ts:175",
@@ -22602,11 +22770,12 @@
       "dependencies": "Trace callers before modifying shared factory; preserve sighting/save identity",
       "collision": "Inspect collider/interaction consumers in owning source",
       "environments": ["Aquarium"],
-      "pass": "018",
-      "status": "pending-source-review",
+      "pass": "017",
+      "status": "Legacy construction replaced by canonical Pass 017 anchored-fish factory.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/anchored.ts"
     },
     {
       "id": "src/creatures/discoveries/Seahorse.ts:187",
@@ -22619,11 +22788,12 @@
       "dependencies": "Trace callers before modifying shared factory; preserve sighting/save identity",
       "collision": "Inspect collider/interaction consumers in owning source",
       "environments": ["Aquarium"],
-      "pass": "018",
-      "status": "pending-source-review",
+      "pass": "017",
+      "status": "Legacy construction replaced by canonical Pass 017 anchored-fish factory.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/anchored.ts"
     },
     {
       "id": "src/creatures/discoveries/Seahorse.ts:188",
@@ -22636,11 +22806,12 @@
       "dependencies": "Trace callers before modifying shared factory; preserve sighting/save identity",
       "collision": "Inspect collider/interaction consumers in owning source",
       "environments": ["Aquarium"],
-      "pass": "018",
-      "status": "pending-source-review",
+      "pass": "017",
+      "status": "Legacy construction replaced by canonical Pass 017 anchored-fish factory.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/anchored.ts"
     },
     {
       "id": "src/environment/Aquarium.ts:64",
@@ -30066,10 +30237,11 @@
       "collision": "Inspect collider/interaction consumers in owning source",
       "environments": ["Aquarium"],
       "pass": "017",
-      "status": "pending-source-review",
+      "status": "Legacy construction replaced by canonical Pass 017 factory.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "src/fish/FishGeometry.ts:161",
@@ -30083,10 +30255,11 @@
       "collision": "Inspect collider/interaction consumers in owning source",
       "environments": ["Aquarium"],
       "pass": "017",
-      "status": "pending-source-review",
+      "status": "Legacy construction replaced by canonical Pass 017 factory.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "src/fish/FishGeometry.ts:228",
@@ -30100,10 +30273,11 @@
       "collision": "Inspect collider/interaction consumers in owning source",
       "environments": ["Aquarium"],
       "pass": "017",
-      "status": "pending-source-review",
+      "status": "Legacy construction replaced by canonical Pass 017 factory.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "src/fish/FishGeometry.ts:421",
@@ -30117,10 +30291,11 @@
       "collision": "Inspect collider/interaction consumers in owning source",
       "environments": ["Aquarium"],
       "pass": "017",
-      "status": "pending-source-review",
+      "status": "Legacy construction replaced by canonical Pass 017 factory.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "src/fish/FishGeometry.ts:429",
@@ -30134,10 +30309,11 @@
       "collision": "Inspect collider/interaction consumers in owning source",
       "environments": ["Aquarium"],
       "pass": "017",
-      "status": "pending-source-review",
+      "status": "Legacy construction replaced by canonical Pass 017 factory.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "src/fish/FishGeometry.ts:440",
@@ -30151,10 +30327,11 @@
       "collision": "Inspect collider/interaction consumers in owning source",
       "environments": ["Aquarium"],
       "pass": "017",
-      "status": "pending-source-review",
+      "status": "Legacy construction replaced by canonical Pass 017 factory.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "src/fish/FishGeometry.ts:455",
@@ -30168,10 +30345,11 @@
       "collision": "Inspect collider/interaction consumers in owning source",
       "environments": ["Aquarium"],
       "pass": "017",
-      "status": "pending-source-review",
+      "status": "Legacy construction replaced by canonical Pass 017 factory.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "src/fish/FishGeometry.ts:465",
@@ -30185,10 +30363,11 @@
       "collision": "Inspect collider/interaction consumers in owning source",
       "environments": ["Aquarium"],
       "pass": "017",
-      "status": "pending-source-review",
+      "status": "Legacy construction replaced by canonical Pass 017 factory.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "src/fish/FishGeometry.ts:484",
@@ -30202,10 +30381,11 @@
       "collision": "Inspect collider/interaction consumers in owning source",
       "environments": ["Aquarium"],
       "pass": "017",
-      "status": "pending-source-review",
+      "status": "Legacy construction replaced by canonical Pass 017 factory.",
       "integration": "026",
       "animationCompletion": "027",
-      "verification": "028"
+      "verification": "028",
+      "replacementSource": "src/fish/lowPoly/model.ts"
     },
     {
       "id": "src/fish/FishRenderBatch.ts:18",
@@ -30309,5 +30489,12 @@
       "animationCompletion": "027",
       "verification": "028"
     }
-  ]
+  ],
+  "migrations": {
+    "017": {
+      "inventory": "docs/low-poly/core-fish-inventory.json",
+      "identities": 31,
+      "scope": "29 swimming fish plus original seahorse and frogfish. Rare discoveries, sharks/rays, moray and invertebrates remain with their assigned passes."
+    }
+  }
 }

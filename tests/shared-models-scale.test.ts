@@ -8,7 +8,7 @@ import {
   miniatureGrowth,
 } from '../src/config/babies';
 import { CRUISE_SPECIES } from '../src/config/creatures';
-import { CREATURE_LOOKS, FISH_RECOLOR } from '../src/config/creatureLooks';
+import { CREATURE_LOOKS } from '../src/config/creatureLooks';
 import { TANK_FISH } from '../src/config/tankFish';
 import { TankBaby } from '../src/creatures/babies/TankBaby';
 import { Aquarium } from '../src/environment/Aquarium';
@@ -88,10 +88,9 @@ describe('V0.8 Pass 096 shared models', () => {
   });
 
   it('gives every recoloured fish and tinted large animal its wild colour', () => {
-    for (const f of TANK_FISH)
-      expect(f.tint, f.species).toBe(FISH_RECOLOR[f.species]);
+    for (const f of TANK_FISH) expect(f.tint, f.species).toBeUndefined(); // Canonical fish carry authored palette regions.
     expect(TANK_FISH.find((f) => f.species === 'cleaner-wrasse')?.asset).toBe(
-      'firefish',
+      'cleanerWrasse',
     );
     const baby = (id: string) => TANK_BABIES.find((b) => b.id === id)!;
     expect(baby('bat-ray').tint).toBe(CREATURE_LOOKS.batRayTint);

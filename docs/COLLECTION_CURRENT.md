@@ -1,6 +1,6 @@
 # Current collection and aquarium integration
 
-Current after Pass 108; historical `V08_*` pass reports remain snapshots of their respective passes. The [Pass 107 acceptance report](PASS_107_ACCEPTANCE_REPORT.md) and [22-species inventory](PASS_107_COLLECTION_MATRIX.md) document the collection candidate. Final acceptance and real MacBook Air testing are still pending; no release or version bump is implied.
+Collection contracts after Pass 108, with fish sources updated by low-poly migration Pass 017; historical `V08_*` pass reports remain snapshots of their respective passes. The [Pass 107 acceptance report](PASS_107_ACCEPTANCE_REPORT.md) and [22-species inventory](PASS_107_COLLECTION_MATRIX.md) document the collection candidate. Final acceptance and real MacBook Air testing are still pending; no release or version bump is implied.
 
 ## Registry and discovery
 
@@ -20,22 +20,19 @@ Slots include the registered coral identities and the existing Weddell pup slot;
 
 ## Canonical sources and intentional sharing
 
-The registry describes model identity; wild owners continue to acquire their own assets/factories. There is no universal runtime model resolver and no registry migration in this cleanup. Fish cards use their fish asset/tint; visitor and rare cards use `acquireCollectionArt`, as does the tank; procedural art uses shared geometry factories. Corals resolve existing reef-library nodes. `AssetLoader` leases cloned hierarchy/skeleton state over reference-counted source resources; the six rare libraries stay lazy and use the same source nodes in wild/card/tank contexts.
+The registry describes model identity; wild owners continue to acquire their own assets/factories. Fish assets resolve through the existing AssetLoader: the 29 core swimming identities now have independent generated models, shared by wild, card, tank and fallback contexts. The original seahorse and frogfish use shared rebuilt parts within the mixed anchored-life library. Fish cards use their canonical palette; visitor and rare cards use `acquireCollectionArt`, as does the tank; procedural art uses shared geometry factories. Corals resolve existing reef-library nodes. `AssetLoader` leases cloned hierarchy/skeleton state over reference-counted source resources; the six rare libraries stay lazy and use the same source nodes in wild/card/tank contexts.
 
-**Cross-context consistency does not imply species-specific anatomy.** All 22 authored rare discoveries have their registered species-specific source nodes. Existing species still intentionally share the following base forms; these substitutions are documented, not rebuilt or relabeled:
+**Cross-context consistency does not imply species-specific anatomy.** All 22 authored rare discoveries have their registered species-specific source nodes. The following non-core-fish species still share base forms and remain outside Pass 017:
 
-| Shared source                     | Species/identities represented                                                                                                                                                  |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `chromis` rig                     | Blue-green chromis plus garibaldi, kelp bass, blacksmith, señorita, glassy sweeper, soldierfish, flashlight fish and Antarctic silverfish; existing species tints/scales remain |
-| `firefish` rig                    | Firefish goby and cleaner wrasse (blue tint)                                                                                                                                    |
-| `eagleRay`                        | Spotted eagle ray and bat ray (dark tint)                                                                                                                                       |
-| `hammerhead`                      | Great and scalloped hammerhead                                                                                                                                                  |
-| `nurseShark`                      | Nurse shark and swell shark (smaller/tinted wild presentation)                                                                                                                  |
-| `harbourSeal`                     | Harbour seal and Weddell seal pup (grey tint and life-stage scale)                                                                                                              |
-| `giantSeaBass`                    | Giant sea bass and Queensland grouper                                                                                                                                           |
-| `crabBody()`                      | Kelp crab and rock crab                                                                                                                                                         |
-| `krillShape()`                    | Antarctic krill and smaller mysid                                                                                                                                               |
-| Shared anemone/sea-star factories | Antarctic identities and existing kelp dressing                                                                                                                                 |
+| Shared source                     | Species/identities represented                                     |
+| --------------------------------- | ------------------------------------------------------------------ |
+| `eagleRay`                        | Spotted eagle ray and bat ray (dark tint)                          |
+| `hammerhead`                      | Great and scalloped hammerhead                                     |
+| `nurseShark`                      | Nurse shark and swell shark (smaller/tinted wild presentation)     |
+| `harbourSeal`                     | Harbour seal and Weddell seal pup (grey tint and life-stage scale) |
+| `crabBody()`                      | Kelp crab and rock crab                                            |
+| `krillShape()`                    | Antarctic krill and smaller mysid                                  |
+| Shared anemone/sea-star factories | Antarctic identities and existing kelp dressing                    |
 
 The five coral cards and decoration placements resolve original reef-library representatives; the default composed reef uses benchmark/habitat colonies. These are category representatives, not identical per-colony meshes across contexts. No coral model replacement is made here.
 
@@ -51,4 +48,4 @@ The original reef (including fallback after composed assets fail) now swaps each
 
 ## Status and follow-up
 
-See [Pass 108 results and remaining issues](PASS_108_INTEGRATION_CLEANUP.md) and the [MacBook Air checklist](PASS_107_MACBOOK_AIR_CHECKLIST.md). Linux Chromium SwiftShader evidence is not Apple GPU, Safari, Retina, thermal or sustained frame-rate validation. Species-specific replacement art, increased preview resolution and broad code splitting require separate evidence/scope; none is part of this stabilization pass.
+See [Pass 108 results and remaining issues](PASS_108_INTEGRATION_CLEANUP.md) and the [MacBook Air checklist](PASS_107_MACBOOK_AIR_CHECKLIST.md). Linux Chromium SwiftShader evidence is not Apple GPU, Safari, Retina, thermal or sustained frame-rate validation. Core fish replacement is documented in [Pass 017](low-poly/PASS_017_VALIDATION.md). Other species replacements, increased preview resolution and broad code splitting remain separate work.

@@ -438,7 +438,7 @@ export class WreckLife {
       this.schools.ready,
       this.part(async () => {
         await this.fish(
-          'giantSeaBass',
+          'grouper',
           [this.patrol.pose, this.sternGrouper, ...this.hullGroupers],
           'Queensland groupers',
           WRECK_LIFE.bass.length,

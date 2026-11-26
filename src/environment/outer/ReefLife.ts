@@ -289,7 +289,7 @@ export class ReefLife {
         });
       }, 'bigeye trevally'),
       this.part(async () => {
-        const cleaner = await this.lease('firefish', 1);
+        const cleaner = await this.lease('cleanerWrasse', 1);
         let client: AssetLease[];
         try {
           client = await this.lease('parrotfish', 1);

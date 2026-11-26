@@ -1,3 +1,4 @@
+import { CORE_FISH } from '../fish/lowPoly/designs';
 import * as THREE from 'three';
 import type { AssetLease } from '../assets/AssetLoader';
 import type { FishSystem } from '../fish/FishSystem';
@@ -142,6 +143,7 @@ export class AuthoredSchool {
             material.metalness = 0;
             material.envMapIntensity = 0.35;
             if (
+              !material.userData.coreFish &&
               recolor !== undefined &&
               !/Eye|Gill|Mouth/i.test(material.name)
             ) {
@@ -192,7 +194,9 @@ export class AuthoredSchool {
         .copy(source.root.scale)
         .multiplyScalar(
           sim.species.length /
-            (sim.species.authoredLength ?? sim.species.length),
+            (rig.children[0]?.userData.coreFish
+              ? CORE_FISH[sim.species.id].length
+              : (sim.species.authoredLength ?? sim.species.length)),
         );
       const effort = Math.max(
         -1,
