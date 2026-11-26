@@ -1,0 +1,57 @@
+{
+  "note": "Original source text only, not attributable minified bytes or CPU timing; diagnostic ignored dist source map.",
+  "totals": {
+    "Three.js/addons": 2469156,
+    "application": 2287267
+  },
+  "largest": [
+    {
+      "source": "../../node_modules/three/build/three.core.js",
+      "sourceTextBytes": 1474799
+    },
+    {
+      "source": "../../node_modules/three/build/three.module.js",
+      "sourceTextBytes": 658900
+    },
+    {
+      "source": "../../node_modules/three/examples/jsm/loaders/GLTFLoader.js",
+      "sourceTextBytes": 119861
+    },
+    {
+      "source": "../../src/environment/office/OfficeEnvironment.ts",
+      "sourceTextBytes": 54479
+    },
+    {
+      "source": "../../src/environment/wreck/ShipwreckModel.ts",
+      "sourceTextBytes": 53911
+    },
+    {
+      "source": "../../src/app/Application.ts",
+      "sourceTextBytes": 47144
+    },
+    {
+      "source": "../../src/environment/ice/IceExtras.ts",
+      "sourceTextBytes": 43169
+    },
+    {
+      "source": "../../src/environment/cave/CaveEnvironment.ts",
+      "sourceTextBytes": 40244
+    },
+    {
+      "source": "../../node_modules/three/examples/jsm/libs/zstddec.module.js",
+      "sourceTextBytes": 39754
+    },
+    {
+      "source": "../../src/environment/AuthoredReef.ts",
+      "sourceTextBytes": 39561
+    },
+    {
+      "source": "../../node_modules/three/examples/jsm/utils/BufferGeometryUtils.js",
+      "sourceTextBytes": 39153
+    },
+    {
+      "source": "../../src/environment/cave/CaveVisitors.ts",
+      "sourceTextBytes": 38327
+    }
+  ]
+}

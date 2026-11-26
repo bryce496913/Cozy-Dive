@@ -1,7 +1,6 @@
 import { TankBabies } from '../environment/TankBabies';
 import { keepFocusIn } from '../ui/focus';
 import { TankBabyHabitat } from '../environment/TankBabyHabitat';
-import type { TankCreatureId } from '../config/babies';
 import * as THREE from 'three';
 import type { UnderwaterScene } from '../rendering/UnderwaterScene';
 import type { Sighting } from '../discovery/journal';
@@ -19,7 +18,6 @@ import {
 } from './catalog';
 import { tankContext } from './TankContext';
 import { TankFish } from '../environment/TankFish';
-import type { SpeciesId } from '../fish/FishSpecies';
 import type { FishEntity } from '../fish/FishEntity';
 import { renderCatalog } from './TankCatalogPanel';
 import type { AlbumTank } from '../ui/album/Album';
@@ -218,8 +216,6 @@ export class TankEditor {
       this.artReady,
       {
         choose: (kind) => this.choose(kind),
-        baby: (id) => this.chooseBaby(id),
-        fish: (species, add) => this.chooseFish(species, add),
         album: () => {
           this.panel.hidden = true;
           this.toggle.setAttribute('aria-expanded', 'false');
@@ -242,20 +238,6 @@ export class TankEditor {
     const home = this.world.aquarium.fish.simulation.fish,
       added = this.world.tankFish?.bodies ?? [];
     return added.length ? [...home, ...added] : home;
-  }
-  /** v0.6 Pass 051: add or return one fish, staying in the panel (focus kept on the button). */
-  private chooseFish(species: SpeciesId, add: boolean) {
-    if (!this.current?.eligible || this.current.active || !this.model) return;
-    if (add) {
-      const room = this.model.addFish(species, this.seen());
-      if (!room.ok) {
-        this.notice.textContent = room.reason;
-        return;
-      }
-    } else if (!this.model.removeFish(species)) return;
-    this.notice.textContent = '';
-    if (!this.fishChanged()) this.model.undo();
-    this.open(`fish-${add ? 'add' : 'remove'}-${species}`);
   }
   /**
    * Rebuild the added fish for the model's counts. If the tank cannot seat them, nothing changes
@@ -402,14 +384,7 @@ export class TankEditor {
     this.close();
     this.resume();
   }
-  private chooseBaby(id: TankCreatureId) {
-    if (!this.current?.eligible || this.current.active || !this.model) return;
-    if (this.model.babies.includes(id)) this.model.removeBaby(id);
-    else if (!this.model.addBaby(id, this.seen())) return;
-    this.babiesChanged();
-    this.close();
-    this.resume();
-  }
+
   private babiesChanged(persist = true) {
     if (!this.model) return;
     if (this.model.babies.length && !this.world.babies) {

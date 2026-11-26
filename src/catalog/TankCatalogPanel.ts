@@ -1,6 +1,4 @@
-import type { TankCreatureId } from '../config/babies';
 import type { Sighting } from '../discovery/journal';
-import type { SpeciesId } from '../fish/FishSpecies';
 import {
   TANK_ITEMS,
   unlockedItems,
@@ -9,15 +7,13 @@ import {
 } from './catalog';
 
 /**
- * v0.6 Pass 051: the "For your tank" panel, grouped as the catalog is: schooling fish,
- * aquarium fish, little visitors, plants and corals, rocks and decorations, discoveries from every habitat. Plain buttons in reading order, so it is fully usable
+ * The "For your tank" decoration panel and link to the shared creature album.
+ * Plants/corals and rocks/decorations use plain buttons in reading order, fully usable
  * from the keyboard; each control carries a stable `data-key` so focus can be kept across a
  * refresh.
  */
 export interface CatalogActions {
   choose(kind: TankKind): void;
-  baby(id: TankCreatureId): void;
-  fish(species: SpeciesId, add: boolean): void;
   /** V0.8 Pass 099: open the field album (with the aquarium's add and return actions). */
   album(): void;
   undo(): void;

@@ -454,6 +454,21 @@ export class AuthoredReef {
       if (!group.children.length) throw Error(`Missing reef coral ${name}`);
       this.root.add(group);
       this.hidden.push(formation.mesh);
+      // The original authored colonies differ from the procedural fallback (notably plate
+      // height). Swap their structural parts with the visuals, just as for rocks/sections.
+      const source = this.lease!.model.getObjectByName(`${name}_Root`);
+      if (source) {
+        const authored = reefColliders(
+          source,
+          new THREE.Matrix4().makeTranslation(
+            formation.position.x,
+            formation.position.y,
+            formation.position.z,
+          ),
+        );
+        if (authored.length)
+          this.hulls.push({ original: formation.colliders, authored });
+      }
     }
   }
   private plantMaterial(

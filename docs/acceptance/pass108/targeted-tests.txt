@@ -1,0 +1,13 @@
+
+> cozy-diver@0.6.0-rc.25 test
+> vitest run tests/reef-collision-audit.test.ts tests/reef-lifecycle.test.ts tests/reef-habitat.test.ts tests/collection-acceptance.test.ts tests/collection-integration.test.ts tests/album-previews-lifecycle.test.ts tests/tank-save-safety.test.ts tests/tank-fish.test.ts tests/tank-collection.test.ts tests/collection-registry.test.ts tests/collection-audit.test.ts tests/album-pages.test.ts tests/tank-babies.test.ts tests/tank-babies-lifecycle.test.ts tests/shared-models-scale.test.ts tests/asset-lifecycle.test.ts tests/journal.test.ts tests/save-compatibility.test.ts tests/shark-tail.test.ts tests/rare-minis.test.ts tests/reef-minis.test.ts tests/kelp-minis.test.ts tests/wreck-minis.test.ts tests/cave-minis.test.ts tests/ice-minis.test.ts --maxWorkers=1 --testTimeout=30000 --hookTimeout=30000
+
+
+ RUN  v5.1.0 /workspace/Cozy-Dive
+
+
+ Test Files  25 passed (25)
+      Tests  177 passed (177)
+   Start at  00:02:36
+   Duration  177.40s (tests 95%, import 5%, transform 1%)
+
