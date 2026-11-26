@@ -1,0 +1,5 @@
+
+> cozy-diver@0.6.0-rc.25 typecheck
+> tsc --noEmit
+
+tests/low-poly-pipeline.test.ts(195,16): error TS18048: 'g.morphAttributes.position' is possibly 'undefined'.
