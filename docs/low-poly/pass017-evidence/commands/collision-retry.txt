@@ -1,0 +1,7 @@
+RUN  v5.1.0 /workspace/Cozy-Dive
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  13:51:30
+   Duration  6.47s (tests 84%, import 10%, transform 6%)

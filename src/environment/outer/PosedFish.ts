@@ -110,6 +110,7 @@ export class PosedFish {
             material.metalness = 0;
             material.envMapIntensity = 0.35;
             if (
+              !material.userData.coreFish &&
               recolor !== undefined &&
               !/Eye|Gill|Mouth/i.test(material.name)
             ) {

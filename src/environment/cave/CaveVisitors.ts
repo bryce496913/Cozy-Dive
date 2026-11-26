@@ -845,7 +845,7 @@ export class CaveVisitors {
         });
       }, 'turtle'),
       this.part(async () => {
-        const lease = await this.loader.acquire('chromis');
+        const lease = await this.loader.acquire('soldierfish');
         if (this.disposed) {
           lease.release();
           return;

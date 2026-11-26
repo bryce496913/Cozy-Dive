@@ -1,0 +1,10 @@
+RUN  v5.1.0 /workspace/Cozy-Dive
+
+
+ Test Files  4 passed (4)
+      Tests  95 passed (95)
+   Start at  19:33:52
+   Duration  16.85s (tests 86%, import 7%, transform 6%)
+
+    Isolate  4 workers spawned · ~303ms startup each (spawn + environment, per file)
+             at least ~908ms faster with isolate: false — reuses workers across files instead of one per file

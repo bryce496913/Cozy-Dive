@@ -116,7 +116,22 @@ export class FishSystem {
         (0.3 + 0.7 * ratio) *
         (reducedMotion ? 0.5 : 1);
       visual.tail.rotation.y =
-        Math.sin(phase) * fish.species.tailAngle * (0.25 + 0.75 * ratio);
+        (Math.sin(phase) +
+          THREE.MathUtils.clamp(
+            angleDifference(fish.yaw, fish.previousYaw) * 4,
+            -0.18,
+            0.18,
+          )) *
+        fish.species.tailAngle *
+        (0.25 + 0.75 * ratio);
+      const effort = Math.max(
+        -1,
+        Math.min(1, visual.tail.rotation.y / fish.species.tailAngle),
+      );
+      if (visual.body.morphTargetInfluences) {
+        visual.body.morphTargetInfluences[0] = Math.max(0, effort);
+        visual.body.morphTargetInfluences[1] = Math.max(0, -effort);
+      }
       visual.leftPectoral.rotation.y = 0.45 + Math.sin(phase + 0.6) * 0.14;
       visual.rightPectoral.rotation.y = -0.45 - Math.sin(phase + 0.6) * 0.14;
     }

@@ -1,4 +1,4 @@
-import { FISH_RECOLOR } from './creatureLooks';
+import { CORE_FISH_ASSET, CORE_FISH } from '../fish/lowPoly/designs';
 import type { AssetId } from '../assets/AssetRegistry';
 import type { SpeciesId } from '../fish/FishSpecies';
 
@@ -339,10 +339,12 @@ const TANK_FISH_LIST: readonly TankFishDefinition[] = [
  * shared table (the tank kept its own copies, and some had drifted).
  */
 export const TANK_FISH: readonly TankFishDefinition[] = TANK_FISH_LIST.map(
-  (f) => {
-    const tint = FISH_RECOLOR[f.species];
-    return tint === undefined ? f : { ...f, tint };
-  },
+  (f) => ({
+    ...f,
+    asset: CORE_FISH_ASSET[f.species],
+    modelLength: CORE_FISH[f.species].length,
+    tint: undefined,
+  }),
 );
 /** Room for added fish in all (simulation and rendering budget). */
 export const TANK_FISH_CAP = TANK_FISH.reduce((sum, fish) => sum + fish.max, 0);

@@ -192,7 +192,7 @@ describe('low-poly authored geometry', () => {
     ] as const) {
       valid(g);
       const p = g.getAttribute('position'),
-        pose = g.morphAttributes.position[0];
+        pose = g.morphAttributes.position![0];
       for (let i = 0; i < p.count; i++)
         if ((axis === 'y' ? p.getY(i) : p.getX(i)) === 0)
           expect([pose.getX(i), pose.getY(i), pose.getZ(i)]).toEqual([0, 0, 0]);

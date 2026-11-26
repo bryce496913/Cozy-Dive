@@ -1,3 +1,4 @@
+import { CORE_FISH, CORE_FISH_IDS } from '../fish/lowPoly/designs';
 import * as THREE from 'three';
 import type { GLTF } from 'three/addons/loaders/GLTFLoader.js';
 export type LoadedAsset = Pick<GLTF, 'scene' | 'scenes' | 'animations'>;
@@ -12,6 +13,11 @@ export function validateAsset(id: AssetId, asset: LoadedAsset): void {
   for (const name of spec.requiredNodes)
     if (!asset.scene.getObjectByName(name))
       throw Error(`${id}: missing node ${name}`);
+  const crafted = CORE_FISH_IDS.some(
+    (species) =>
+      CORE_FISH[species].asset === id &&
+      asset.scene.userData.coreFish === species,
+  );
   let meshes = 0,
     morphs = 0,
     collisionMeshes = 0;
@@ -40,7 +46,16 @@ export function validateAsset(id: AssetId, asset: LoadedAsset): void {
     for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
       if (!(m instanceof THREE.MeshStandardMaterial))
         throw Error(`${id}: material is not PBR`);
-      if (o.name === 'Body' || o.name === 'Living_Tissue')
+      if (
+        crafted &&
+        (!g.getAttribute('color') ||
+          !m.vertexColors ||
+          !m.flatShading ||
+          m.map ||
+          m.normalMap)
+      )
+        throw Error(`${id}: invalid crafted palette material`);
+      if (!crafted && (o.name === 'Body' || o.name === 'Living_Tissue'))
         for (const texture of [m.map, m.normalMap, m.roughnessMap])
           if (!texture?.image)
             throw Error(`${id}/${o.name}: required PBR texture did not decode`);

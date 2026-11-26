@@ -1,0 +1,1 @@
+{"loadMs":2981,"timing":{"medianMs":116.59999999999854,"p95Ms":300,"maxMs":416.59999999999854},"triangles":9466,"drawCalls":39,"errors":[]}
