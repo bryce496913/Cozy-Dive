@@ -30508,6 +30508,12 @@
       "identities": 34,
       "scope": "User-approved small marine creature rebuild supersedes the provisional rare-discovery assignment; fish and sessile coral/plant assets retain their existing pass ownership.",
       "verification": "docs/low-poly/PASS_020_VALIDATION.md"
+    },
+    "021": {
+      "inventory": "src/creatures/lowPoly/rareCatalog.ts",
+      "identities": 31,
+      "scope": "Rare, hidden and secret creatures; two rebuilt anchored fish plus 29 verified canonical reuses. Stable encounter and sighting rules are preserved.",
+      "verification": "docs/low-poly/PASS_021_VALIDATION.md"
     }
   }
 }
