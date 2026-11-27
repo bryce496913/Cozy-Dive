@@ -36,7 +36,7 @@ These are starting ranges, not caps. Measure visible instances, draw calls, tran
 
 ## Migration ownership
 
-017: canonical common/schooling/individual fish foundation. 018: special, habitat-linked and showcase fish refinement (the user’s new Pass 018 brief supersedes the provisional invertebrate assignment). 019: large marine creatures. 020: small marine creatures and invertebrates (the user's new Pass 020 brief supersedes the provisional rare-discovery assignment). 021: coral/anemones/sponges. 022: kelp/seagrass/plants. 023: rocks/terrain/ice/background and passages. 024: wreck, natural/artificial underwater props and aquarium decorations. 025: office/exterior and interactive objects. A shared asset has one owner; references in other habitats are integration tasks, not duplicate replacements. Pass 026 integrates all habitats, Pass 027 completes anatomical animation, Pass 028 verifies the full result. Assignments in the generated census are provisional until semantic review resolves mixed libraries/helpers.
+017: canonical common/schooling/individual fish foundation. 018: special, habitat-linked and showcase fish refinement (the user’s new Pass 018 brief supersedes the provisional invertebrate assignment). 019: large marine creatures. 020: small marine creatures and invertebrates. 021: rare, hidden and secret creatures (the user's Pass 021 brief supersedes the provisional coral assignment). 022: coral, anemone and sponge library. 023: rocks/terrain/ice/background and passages. 024: wreck, natural/artificial underwater props and aquarium decorations. 025: office/exterior and interactive objects. A shared asset has one owner; references in other habitats are integration tasks, not duplicate replacements. Pass 026 integrates all habitats, Pass 027 completes anatomical animation, Pass 028 verifies the full result. Assignments in the generated census are provisional until semantic review resolves mixed libraries/helpers.
 
 Every replacement must preserve species/sighting/save IDs, wild/card/tank canonical identity, 2× large miniature scaling, collision clearance, den/perch/surface anchors, passage geometry and interaction contracts. Keep supported fallback geometry until its replacement and rollback are validated. Existing gameplay and assets remain unchanged in this documentation pass.
 
@@ -49,3 +49,6 @@ Pass 019's current roster, canonical ownership decisions and validation are reco
 
 Pass 020's semantic roster, contact contracts and validation are recorded in
 [the small-creature migration report](low-poly/PASS_020_VALIDATION.md).
+
+Pass 021's complete 31-identity roster, canonical reuse decisions and validation are recorded in
+[the rare-creature migration report](low-poly/PASS_021_VALIDATION.md).
