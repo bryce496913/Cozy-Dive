@@ -103,8 +103,9 @@ export async function buildPreview(
     const object = fitted(lease.model);
     return {
       object,
-      update: (_t, stroke) => {
-        for (const s of strokes) creatureStroke(s.mesh, s, stroke);
+      update: (time, stroke) => {
+        for (const s of strokes)
+          creatureStroke(s.mesh, s, stroke, Math.sin(time * 4));
       },
       dispose: () => {
         materials.forEach((x) => x.dispose());

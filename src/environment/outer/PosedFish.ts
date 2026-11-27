@@ -1,3 +1,4 @@
+import { fishFinStroke } from '../../fish/lowPoly/motion';
 import * as THREE from 'three';
 import type { AssetLease } from '../../assets/AssetLoader';
 import { fishLevel, shareTextures } from '../../benchmark/AuthoredSchool';
@@ -174,6 +175,7 @@ export class PosedFish {
             -effort,
           );
         }
+      for (const part of parts) fishFinStroke(part, p.fins);
       if (near) {
         const [left, right] = this.pectorals[i];
         if (left) left.rotation.y = 0.35 * p.fins;

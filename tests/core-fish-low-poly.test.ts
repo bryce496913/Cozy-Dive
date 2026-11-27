@@ -58,7 +58,12 @@ describe('Pass 017 canonical core fish', () => {
       expect(p.count / 3).toBeGreaterThan(150);
       expect(g.getAttribute('color').count).toBe(p.count);
       expect(g.getAttribute('uv').count).toBe(p.count);
-      expect(poses.map((p) => p.name)).toEqual(['Stroke_Left', 'Stroke_Right']);
+      expect(poses.map((p) => p.name)).toEqual([
+        'Stroke_Left',
+        'Stroke_Right',
+        'Fin_Left',
+        'Fin_Right',
+      ]);
       const a = new THREE.Vector3(),
         b = new THREE.Vector3(),
         c = new THREE.Vector3();

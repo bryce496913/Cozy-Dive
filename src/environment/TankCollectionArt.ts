@@ -224,7 +224,7 @@ export async function acquireCollectionArt(
         if (jaw) jaw.rotation.x = jawRest + 0.08 * (1 + Math.sin(time * 1.2));
         for (const s of strokes)
           if (s.left !== undefined && s.right !== undefined)
-            creatureStroke(s.mesh, s, effort);
+            creatureStroke(s.mesh, s, effort, Math.sin(time * 4));
         if (d.asset === 'iceMinis')
           for (const s of strokes) animateIceMini(s.mesh, time);
         if (d.asset === 'caveMinis')
