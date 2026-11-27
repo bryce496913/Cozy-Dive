@@ -12,10 +12,12 @@ const NAMES: Record<LargeCreatureId, string> = {
   whitetipShark: 'Whitetip reef shark',
   greatWhite: 'Great white shark',
   hammerhead: 'Hammerhead shark',
+  scallopedHammerhead: 'Scalloped hammerhead shark',
   leopardShark: 'Leopard shark',
   nurseShark: 'Nurse shark',
   whaleShark: 'Whale shark',
   eagleRay: 'Spotted eagle ray',
+  batRay: 'Bat ray',
   mantaRay: 'Manta ray',
   seaTurtle: 'Green sea turtle',
   sunfish: 'Ocean sunfish',
@@ -25,6 +27,7 @@ const NAMES: Record<LargeCreatureId, string> = {
   seaLion: 'California sea lion',
   harbourSeal: 'Harbour seal',
   weddellSeal: 'Weddell seal',
+  weddellSealPup: 'Weddell seal pup',
   leopardSeal: 'Leopard seal',
   emperorPenguin: 'Emperor penguin',
   adeliePenguin: 'Adélie penguin',
@@ -112,7 +115,7 @@ function setCamera(specimen: Specimen): void {
     .setFromObject(specimen.mesh)
     .getSize(new THREE.Vector3());
   const length = Math.max(size.x, size.y, size.z);
-  let direction = new THREE.Vector3(0.72, 0.3, 1);
+  const direction = new THREE.Vector3(0.72, 0.3, 1);
   if (view.value === 'side') direction.set(0, 0.08, 1);
   if (view.value === 'front') direction.set(1, 0.08, 0.04);
   if (view.value === 'top') direction.set(0.04, 1, 0.12);
@@ -160,7 +163,6 @@ function render(now: number): void {
     const rect = specimen.viewport.getBoundingClientRect();
     if (rect.bottom < 0 || rect.top > innerHeight) continue;
     const left = Math.max(0, rect.left);
-    const bottom = Math.max(0, innerHeight - rect.bottom);
     const width = Math.min(innerWidth, rect.right) - left;
     const height = Math.min(innerHeight, rect.bottom) - Math.max(0, rect.top);
     if (width <= 0 || height <= 0) continue;

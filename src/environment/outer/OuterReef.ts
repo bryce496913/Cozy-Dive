@@ -12,6 +12,7 @@ import { boxCollider } from '../passage/Crevice';
 import { REEF_LAYOUT } from '../ReefLayout';
 import { createRockGeometry } from '../RockGeometry';
 import { rockCollider } from '../rockCollider';
+import { coralGeometry, coralMotion } from '../shared/CoralLibrary';
 import { LevelInstances, type DetailLevel } from './LevelInstances';
 import { seabedHeight } from './OuterTerrain';
 import { ChristmasTreeWorms } from './ChristmasTreeWorms';
@@ -428,11 +429,19 @@ export class OuterReef {
     }[] = [];
     for (const family of ['branching', 'massive', 'plate'] as const)
       for (const [t, matrices] of this.groups(family)) {
+        const coralFamily =
+            family === 'massive' ? (t === 0 ? 'brain' : 'massive') : family,
+          geometry = this.own(
+            coralGeometry({
+              family: coralFamily,
+              seed: 2290 + t * 83,
+              detail: 0,
+            }),
+          );
         if (v && composed) {
           // V0.8 Pass 085: colonies that grow over the rock (encrusting fields with skirts that
           // drape over its edges, thickets and bush clusters, tables on short stalks).
-          const name = `OuterCoral_${family}_${t}`,
-            geometry = this.variant(name).geometry;
+          const name = `OuterCoral_${family}_${t}`;
           if (family === 'massive') colonies.push({ geometry, matrices });
           this.add(
             `Outer coral ${name}`,
@@ -446,29 +455,19 @@ export class OuterReef {
           this.collide(this.hulls(`${name}_Root`, v), matrices);
           continue;
         }
-        const name = `${CORAL_NODES[family]}_${t}`;
-        for (const suffix of ['', '_Tips']) {
-          const near = this.node(name + suffix);
-          if (!near) continue;
-          const far = this.node(`${name}${suffix}_LOD1`),
-            // Playtest: one level at every distance, so nothing changes shape as the swimmer
-            // comes close. The light model where there is one (the brain corals' ridges are drawn
-            // in their shading); the authored model where there is not (plates, branch tips).
-            drawn = far ?? near,
-            material = family === 'massive' && t < 2 ? massive : single(near);
-          // The worms sit on the surface that is drawn.
-          if (family === 'massive' && suffix === '')
-            colonies.push({ geometry: drawn.geometry, matrices });
-          this.add(
-            `Outer coral ${name}${suffix}`,
-            [
-              { geometry: drawn.geometry, until: D.drawn },
-              { geometry: null, until: Infinity },
-            ],
-            material,
-            matrices,
-          );
-        }
+        const name = `${CORAL_NODES[family]}_${t}`,
+          source = this.part(name),
+          material = family === 'massive' && t < 2 ? massive : single(source);
+        if (family === 'massive') colonies.push({ geometry, matrices });
+        this.add(
+          `Outer coral ${name}`,
+          [
+            { geometry, until: D.drawn },
+            { geometry: null, until: Infinity },
+          ],
+          material,
+          matrices,
+        );
         this.collide(this.hulls(`${name}_Root`), matrices);
       }
     this.worms = new ChristmasTreeWorms(colonies);
@@ -484,11 +483,19 @@ export class OuterReef {
           v && (family === 'grass' || family === 'blade')
             ? this.variant(`OuterPlant_${family}`)
             : undefined;
+        const motion = PLANT_MOTION[family]!;
         const geometry = this.own(
-          authoredPlantGeometry(
-            (organic ?? this.part(`${PLANT_NODES[family]}_${t}`)).geometry,
-            PLANT_MOTION[family]!,
-          ),
+          family === 'soft' || family === 'fan'
+            ? coralMotion(
+                coralGeometry({ family, seed: 2320 + t * 47 }),
+                motion.sway,
+                motion.frequency,
+                t * 1.3,
+              )
+            : authoredPlantGeometry(
+                (organic ?? this.part(`${PLANT_NODES[family]}_${t}`)).geometry,
+                motion,
+              ),
         );
         this.add(
           `Outer ${family} ${t}`,

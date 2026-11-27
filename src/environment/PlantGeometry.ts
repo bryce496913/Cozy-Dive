@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { PlantSpecies } from './PlantSpecies';
+import { coralGeometry } from './shared/CoralLibrary';
 
 /** Species-specific marine forms share one merged, current-deformed template per variant. */
 export function createPlantGeometry(
@@ -58,13 +59,23 @@ export function createPlantGeometry(
     const g = new THREE.TubeGeometry(curve, 4, radius, 6, false);
     add(g, phase);
   };
+  if (species.category === 'coral')
+    add(
+      coralGeometry({
+        family: species.id === 'sea-fan' ? 'fan' : 'soft',
+        seed,
+      }),
+      random() * Math.PI * 2,
+    );
   const count =
-    species.id === 'sea-fan'
-      ? 1
-      : Math.round(
-          species.leaves[0] +
-            random() * (species.leaves[1] - species.leaves[0]),
-        );
+    species.category === 'coral'
+      ? 0
+      : species.id === 'sea-fan'
+        ? 1
+        : Math.round(
+            species.leaves[0] +
+              random() * (species.leaves[1] - species.leaves[0]),
+          );
   for (let stem = 0; stem < count; stem++) {
     const angle = stem * 2.39996 + random() * 0.5,
       phase = random() * Math.PI * 2,
