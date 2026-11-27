@@ -4,17 +4,17 @@ Low-poly migration Pass 015 supersedes the previous stylized-realism direction. 
 
 ## Geometry and shading
 
-Build crafted, intentionally faceted forms with recognizable anatomy. Use deliberately positioned vertices, cross-sectional profiles, tapered continuous forms and purposeful topology. Large polygonal planes should explain anatomy and silhouette. Primitives are construction tools, not finished organic models: no disconnected sphere/capsule/cylinder bodies. Neither indiscriminate decimation nor random vertex displacement substitutes for design. Add geometry only when it improves silhouette, articulation or recognizable anatomy.
+Build crafted, intentionally faceted forms with recognizable anatomy. Use deliberately positioned vertices, cross-sectional profiles, tapered continuous forms and purposeful topology. Large polygonal planes should explain anatomy and silhouette. Preserve continuous bodies wherever anatomy calls for them; attach fins, limbs and facial structures at believable roots with enough volume to read from multiple angles. Primitives are construction tools, not finished organic models: no disconnected sphere/capsule/cylinder bodies. Neither indiscriminate decimation nor random vertex displacement substitutes for design. Add geometry only when it improves silhouette, articulation or recognizable anatomy. Do not use a single generic body plan with recolored fins for species whose silhouettes differ.
 
 Use flat shading or controlled flat/smooth normal combinations. Avoid photorealistic skin/scales/fur/rock/coral maps, noisy normal maps, excessive specularity, metallic effects and realistic imperfections. Preserve coherent silhouettes at near and far distances. LODs must preserve species identity and animation attachment points.
 
 ## Color
 
-Use clear base, secondary and restrained accent regions following anatomical or structural boundaries. Preserve species coloration through material groups, vertex colors or simple palette textures. Avoid random triangle colors. Each habitat may retain its atmosphere and palette while using the same modeling language.
+Use clear base, secondary and restrained accent regions following anatomical or structural boundaries. Markings must wrap the body volume and remain stable through movement; add geometry stations at hard marking boundaries when needed. Preserve species coloration through material groups, vertex colors or simple palette textures. Avoid random triangle colors. Each habitat may retain its atmosphere and palette while using the same modeling language. Materials should be matte or lightly satin with visible facet lighting, never wireframe outlines or noisy photographic texture.
 
 ## Motion
 
-Biological movement remains realistic: fish propel through coordinated body/tail motion; rays use coordinated pectoral fins; whales use dorsoventral tail strokes; seals/penguins use species-appropriate flippers; eels use traveling waves; seahorses hover upright with small fins. Plants remain rooted while bending with currents. Preserve existing behavior, pause/reduced-motion support and stable observation positions. Low geometry counts do not justify rigid or robotic motion.
+Biological movement remains realistic: fish propel through coordinated body/tail motion; rays use coordinated pectoral fins; whales and dolphins use dorsoventral tail strokes; sharks and eels use lateral waves; seals and sea lions use species-appropriate fore/hind flippers; penguins use flipper strokes; octopus arms flow independently; seahorses hover upright with small fins. Keep joints and deformations inside the authored mesh envelope, and do not stretch or detach markings. Preserve existing behavior, pause/reduced-motion support and stable observation positions. Low geometry counts do not justify rigid or robotic motion. Every revised model must keep its existing controller, morph targets, pivot names, LOD and contact bounds unless a geometry fit requires a matching controller correction.
 
 ## Provisional per-model triangle targets
 
@@ -40,7 +40,7 @@ These are starting ranges, not caps. Measure visible instances, draw calls, tran
 
 Every replacement must preserve species/sighting/save IDs, wild/card/tank canonical identity, 2× large miniature scaling, collision clearance, den/perch/surface anchors, passage geometry and interaction contracts. Keep supported fallback geometry until its replacement and rollback are validated. Existing gameplay and assets remain unchanged in this documentation pass.
 
-The described swimming penguin, whale, seal and manta references were not attached. Their written characteristics guide this document; exact visual matching remains pending reference review.
+The official visual references establish deliberate facets, clean color blocking and recognizable anatomy. Species-specific anatomy takes precedence over matching one generic template.
 
 See [inventory and baseline status](low-poly/BASELINE.md).
 

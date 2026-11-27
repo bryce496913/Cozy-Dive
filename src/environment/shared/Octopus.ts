@@ -5,6 +5,7 @@ import { OCTOPUS, OctopusMind, type OctopusDen } from '../../creatures/octopus';
 import type { SightCandidate } from '../../discovery/journal';
 import type { PlayerPresence } from '../../fish/FishDiverReaction';
 import { octopusDenGeometry } from './OctopusDen';
+import { profileBody } from '../../geometry/lowPoly/geometry';
 
 /**
  * v0.6 Pass 043: an octopus, built and animated in code. A soft, wrinkled mantle with two raised
@@ -22,27 +23,32 @@ const ARMS = 8,
  * animal (it was a separate, simplified build). The mantle with its raised eyes, in body units.
  */
 export function octopusMantleGeometry(): THREE.BufferGeometry {
-  // The mantle: a soft bag behind the head, with raised eyes in front.
-  const mantle = new THREE.SphereGeometry(1, 16, 12);
-  const mp = mantle.getAttribute('position');
-  for (let i = 0; i < mp.count; i++) {
-    const x = mp.getX(i),
-      y = mp.getY(i),
-      z = mp.getZ(i),
-      wrinkle = 1 + 0.05 * Math.sin(x * 9 + y * 7) * Math.sin(z * 8);
-    // Swollen behind (−z) and above: the mantle sags back over the arms.
-    const back = Math.max(0, -z);
-    mp.setXYZ(
-      i,
-      x * 0.12 * wrinkle,
-      (y * 0.1 + 0.11 + back * 0.05) * wrinkle,
-      (z * 0.15 - back * 0.05) * wrinkle,
-    );
-  }
-  mantle.computeVertexNormals();
+  // A deliberately faceted continuous mantle: narrow at the rear, full over the organs, and
+  // tapering into the head. It replaces the procedurally wrinkled sphere.
+  const mantle = profileBody(
+    [
+      { x: -0.21, width: 0.035, height: 0.045, y: 0.14 },
+      { x: -0.16, width: 0.09, height: 0.105, y: 0.145 },
+      { x: -0.08, width: 0.125, height: 0.125, y: 0.13 },
+      { x: 0.01, width: 0.12, height: 0.112, y: 0.115 },
+      { x: 0.08, width: 0.1, height: 0.085, y: 0.105 },
+      { x: 0.13, width: 0.065, height: 0.055, y: 0.1 },
+    ],
+    10,
+  );
+  mantle.rotateY(-Math.PI / 2);
+  mantle.deleteAttribute('uv');
   const eyes = [-1, 1].map((s) => {
-    const e = new THREE.SphereGeometry(0.03, 8, 6);
-    e.translate(s * 0.07, 0.17, 0.07);
+    const e = profileBody(
+      [
+        { x: -0.024, width: 0.014, height: 0.014 },
+        { x: 0, width: 0.026, height: 0.024 },
+        { x: 0.026, width: 0.012, height: 0.012 },
+      ],
+      6,
+    );
+    e.rotateZ(Math.PI / 2);
+    e.translate(s * 0.07, 0.155, 0.075);
     return e;
   });
   const parts = [mantle, ...eyes].map((g) => g.toNonIndexed());
@@ -53,8 +59,9 @@ export function octopusMantleGeometry(): THREE.BufferGeometry {
     for (let i = 0; i < n; i++) {
       const y = g.getAttribute('position').getY(i),
         x = g.getAttribute('position').getX(i),
-        speck = 0.85 + 0.15 * Math.sin(x * 61 + y * 47) * Math.sin(y * 29);
-      const v = k ? 0.35 : speck * (0.9 + 0.3 * y);
+        z = g.getAttribute('position').getZ(i),
+        region = z < -0.09 ? 0.84 : x > 0.045 ? 1.04 : 0.94;
+      const v = k ? 0.35 : region * (0.9 + 0.3 * y);
       c[i * 3] = v;
       c[i * 3 + 1] = v * 0.95;
       c[i * 3 + 2] = v * 0.9;
@@ -100,10 +107,10 @@ export function octopusArmsGeometry(): {
         const v = a * ringVerts + j * SIDES + s,
           // Paler suckers underneath.
           under = s === SIDES / 2 || s === SIDES / 2 - 1 ? 1.3 : 1,
-          speck = 0.9 + 0.1 * Math.sin(v * 3.7);
-        colours2[v * 3] = speck * under;
-        colours2[v * 3 + 1] = speck * 0.95 * under;
-        colours2[v * 3 + 2] = speck * 0.9 * under;
+          tone = 0.92 + 0.08 * (1 - j / SEGMENTS);
+        colours2[v * 3] = tone * under;
+        colours2[v * 3 + 1] = tone * 0.95 * under;
+        colours2[v * 3 + 2] = tone * 0.9 * under;
         if (j < SEGMENTS) {
           const n = (s + 1) % SIDES,
             a0 = v,
