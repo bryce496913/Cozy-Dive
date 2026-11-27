@@ -144,7 +144,7 @@ export function anchoredFishGeometry(
     web.translate(0, 0.023, 0);
     raw = combine([arm, web]);
   } else if (name === 'FrogJaw') {
-    raw = profileBody(
+    const jaw = profileBody(
       [
         { x: 0.15, width: 0.1, height: 0.04, y: 0.23 },
         { x: 0.32, width: 0.17, height: 0.065, y: 0.225 },
@@ -152,8 +152,19 @@ export function anchoredFishGeometry(
       ],
       10,
     );
-    raw.rotateY(-Math.PI / 2);
-    raw.translate(0, -0.31, -0.16);
+    jaw.rotateY(-Math.PI / 2);
+    jaw.translate(0, -0.31, -0.16);
+    const mouthPlug = profileBody(
+      [
+        { x: 0.16, width: 0.075, height: 0.025, y: 0.255 },
+        { x: 0.34, width: 0.13, height: 0.04, y: 0.26 },
+        { x: 0.405, width: 0.1, height: 0.018, y: 0.255 },
+      ],
+      8,
+    );
+    mouthPlug.rotateY(-Math.PI / 2);
+    mouthPlug.translate(0, -0.285, -0.155);
+    raw = combine([jaw, mouthPlug]);
   } else
     raw = taperedCurve(
       [
