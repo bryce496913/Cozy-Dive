@@ -19,6 +19,7 @@ import { createRockGeometry } from '../RockGeometry';
 import { Octopus } from '../shared/Octopus';
 import { limb, merged, tinted } from './CaveLobsters';
 import { OCTOPUS_DEN, octopusDenGeometry } from '../shared/OctopusDen';
+import { organicTube } from '../shared/organicGeometry';
 import { CAVE_LIFE, caveHabitat, caveObstacles } from './CaveLife';
 import type { CaveNooks } from './CaveNooks';
 import { caveFloor, wallDistance } from './CaveTerrain';
@@ -78,30 +79,27 @@ export function shrimpGeometry(): THREE.BufferGeometry {
   rostrum.rotateX(Math.PI / 2);
   rostrum.translate(0, spine(0.016) + 0.003, 0.034);
   parts.push(tinted(rostrum, red));
-  // Six tail segments, tapering and bending down.
-  for (let k = 0; k < 6; k++) {
-    const z = 0.0 - k * 0.0062,
-      r = 0.005 - k * 0.0005,
-      seg = new THREE.SphereGeometry(1, 10, 8);
-    seg.scale(r * 0.9, r * 1.1, 0.0042);
-    seg.rotateX(-0.25 - k * 0.12);
-    seg.translate(0, spine(z) - k * k * 0.0004, z);
-    parts.push(tinted(seg, red));
-  }
-  // The white stripe along the back, carapace to tail.
-  for (let k = 0; k < 9; k++) {
-    const z = 0.026 - k * 0.0055,
-      dot = new THREE.SphereGeometry(1, 6, 4);
-    dot.scale(0.0016, 0.0012, 0.0036);
-    dot.translate(
-      0,
-      spine(z) +
-        (k < 4 ? 0.0063 : 0.005 - (k - 4) * 0.0005) -
-        Math.max(0, k - 4) ** 2 * 0.0004,
-      z,
-    );
-    parts.push(tinted(dot, white));
-  }
+  // One continuous articulated abdomen replaces the former chain of detached ellipsoids.
+  const abdomenPath = Array.from({ length: 8 }, (_, k) => {
+    const z = 0.004 - k * 0.006;
+    return v(0, spine(z) - k * k * 0.00028, z);
+  });
+  parts.push(
+    tinted(
+      organicTube(abdomenPath, (u) => 0.0054 * (1 - 0.62 * u), 10, 7, 1.12),
+      red,
+    ),
+  );
+  // A continuous pale dorsal stripe follows the same curve instead of floating dot geometry.
+  const stripePath = abdomenPath.map((p, k) =>
+    p.clone().add(new THREE.Vector3(0, 0.0053 - k * 0.00035, 0)),
+  );
+  parts.push(
+    tinted(
+      organicTube(stripePath, (u) => 0.0014 * (1 - 0.45 * u), 10, 5, 0.55),
+      white,
+    ),
+  );
   // Tail fan: a telson and two uropods each side, white with red bases.
   for (const a of [-0.5, -0.2, 0, 0.2, 0.5]) {
     const blade = new THREE.ConeGeometry(0.0024, 0.009, 4);
@@ -744,8 +742,8 @@ export class CaveVisitors {
           vertexColors: true,
           roughness: 0.6,
           side: THREE.DoubleSide,
-          transparent: true,
-          opacity: 0.9,
+          transparent: false,
+          opacity: 1,
         }),
       ),
       this.lionfish.length * LION.rays,

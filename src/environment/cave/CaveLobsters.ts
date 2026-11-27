@@ -56,10 +56,9 @@ function part(
   const n = out.getAttribute('position').count,
     c = new Float32Array(n * 3);
   for (let i = 0; i < n; i++) {
-    const speck = 0.9 + 0.1 * Math.sin(i * 12.9898);
-    c[i * 3] = r * speck;
-    c[i * 3 + 1] = gr * speck;
-    c[i * 3 + 2] = b * speck;
+    c[i * 3] = r;
+    c[i * 3 + 1] = gr;
+    c[i * 3 + 2] = b;
   }
   out.setAttribute('color', new THREE.Float32BufferAttribute(c, 3));
   return out;
@@ -304,6 +303,7 @@ export function lobsterDen(): THREE.BufferGeometry {
   const inside: number[] = [],
     hood: number[] = [],
     back: number[] = [],
+    portal: number[] = [],
     zs = [0.03, -deep * 0.5, -deep];
   for (let i = 0; i < arc; i++) {
     const a0 = (i / arc) * Math.PI,
@@ -334,6 +334,15 @@ export function lobsterDen(): THREE.BufferGeometry {
     ];
     hood.push(...l[0], ...l[1], ...l[2], ...l[0], ...l[2], ...l[3]);
     back.push(0, 0, -deep, ...ring(a0, -deep, 1), ...ring(a1, -deep, 1));
+    // A recessed black half-disc stays visible behind the animal as it retreats. It prevents the
+    // den animation from looking like the lobster simply intersects pale sand.
+    portal.push(
+      0,
+      0,
+      -0.055,
+      ...ring(a1, -0.055, 0.94),
+      ...ring(a0, -0.055, 0.94),
+    );
   }
   // The hole's floor, dark too.
   inside.push(
@@ -358,6 +367,7 @@ export function lobsterDen(): THREE.BufferGeometry {
   );
   parts.push(
     twoSided(inside, HOLE),
+    twoSided(portal, HOLE),
     twoSided(back, HOLE),
     twoSided(hood, STONE),
   );

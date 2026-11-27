@@ -41,8 +41,8 @@ const SHELL = [0.62, 0.24, 0.12] as const,
   EYE = [0.03, 0.03, 0.035] as const;
 
 /**
- * v0.6 Pass 052 (playtest: "the crabs need more detail"): mottle a part's colours by position, a
- * darker blotchy pattern over the shell and limbs, and lighter towards its rims.
+ * Deliberate broad shell regions and a lighter rim. Facet lighting supplies the small variation;
+ * the palette no longer uses procedural noise.
  */
 function mottled(
   g: THREE.BufferGeometry,
@@ -55,11 +55,14 @@ function mottled(
     const x = p.getX(i),
       y = p.getY(i),
       z = p.getZ(i),
-      blotch =
-        Math.sin(x * 180 + z * 90) * Math.sin(z * 150 - x * 60) +
-        0.5 * Math.sin(x * 420 + y * 300),
+      patch =
+        (x > 0.018 && z < -0.008) ||
+        (x < -0.032 && z > 0.012) ||
+        (y > 0.055 && Math.abs(x) < 0.018)
+          ? 1
+          : 0,
       edge = rim * Math.min(1, Math.hypot(x / 0.085, z / 0.068) ** 6),
-      k = (1 - amount * Math.max(0, blotch)) * (1 + edge);
+      k = (1 - amount * patch) * (1 + edge);
     c.setXYZ(i, c.getX(i) * k, c.getY(i) * k, c.getZ(i) * k);
   }
   return g;
@@ -86,7 +89,9 @@ export function crabBody(): THREE.BufferGeometry {
     v = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
   // The carapace: broad and flattened, widest at the front, its edges sharpened into a rim, and
   // its top raised in low regions (a soft cross of grooves between them).
-  const shell = new THREE.SphereGeometry(1, 32, 16),
+  // Pass 020: purposeful broad facets carry the shell silhouette; the old dense latitude grid
+  // cost more triangles than the entire walking-leg outline without adding readable anatomy.
+  const shell = new THREE.SphereGeometry(1, 16, 8),
     sp = shell.getAttribute('position');
   for (let i = 0; i < sp.count; i++) {
     const x = sp.getX(i),
@@ -113,8 +118,8 @@ export function crabBody(): THREE.BufferGeometry {
   // The pale underside plate.
   const under = new THREE.SphereGeometry(
     1,
-    16,
-    6,
+    10,
+    4,
     0,
     Math.PI * 2,
     Math.PI * 0.55,
@@ -135,14 +140,7 @@ export function crabBody(): THREE.BufferGeometry {
       spine.translate(x, 0.046, z);
       parts.push(tinted(spine, DARK));
     }
-  // Raised bumps on the shell's regions, darker.
-  for (let i = 0; i < 9; i++) {
-    const bump = new THREE.SphereGeometry(0.008 + 0.004 * (i % 3), 6, 4),
-      a = i * 2.4,
-      r = 0.02 + 0.012 * (i % 4);
-    bump.translate(Math.sin(a) * r * 1.3, 0.071, Math.cos(a) * r);
-    parts.push(tinted(bump, DARK));
-  }
+  // Broad vertex-colour regions provide shell variation without stuck-on spherical growths.
   // Mouthparts under the front, and two short antennae between the eyes.
   const mouth = new THREE.BoxGeometry(0.03, 0.014, 0.012);
   mouth.translate(0, 0.03, 0.062);
@@ -183,7 +181,7 @@ export function crabBody(): THREE.BufferGeometry {
       spine.translate(at.x, at.y + 0.011, at.z);
       parts.push(tinted(spine, DARK));
     }
-    const palm = new THREE.SphereGeometry(1, 14, 10);
+    const palm = new THREE.SphereGeometry(1, 8, 6);
     palm.scale(0.022, 0.018, 0.034);
     palm.translate(wrist.x - side * 0.004, wrist.y + 0.002, wrist.z + 0.028);
     parts.push(mottled(tinted(palm, CLAW), 0.25));

@@ -38,8 +38,8 @@ export function anchoredFishGeometry(
   name: AnchoredFishPart,
 ): THREE.BufferGeometry {
   let raw: THREE.BufferGeometry;
-  if (name === 'HorseBody')
-    raw = taperedCurve(
+  if (name === 'HorseBody') {
+    const body = taperedCurve(
       [
         [0, 0.3, -0.03],
         [0, 0.48, -0.015],
@@ -51,9 +51,27 @@ export function anchoredFishGeometry(
         [0, 0.984, 0.34],
       ],
       [0.025, 0.095, 0.085, 0.045, 0.055, 0.075, 0.035, 0.022],
-      8,
+      10,
     );
-  else if (name === 'HorseTail')
+    const crown = sheet([
+      [-0.045, 0],
+      [-0.035, 0.075],
+      [0, 0.045],
+      [0.035, 0.085],
+      [0.05, 0],
+    ]);
+    crown.rotateX(Math.PI / 2);
+    crown.translate(0, 1.075, 0.015);
+    const chestKeel = sheet([
+      [-0.13, 0],
+      [-0.04, 0.055],
+      [0.1, 0.03],
+      [0.16, 0],
+    ]);
+    chestKeel.rotateZ(Math.PI / 2);
+    chestKeel.translate(0, 0.68, -0.095);
+    raw = combine([body, crown, chestKeel]);
+  } else if (name === 'HorseTail')
     raw = taperedCurve(
       [
         [0, 0, -0.03],
@@ -93,7 +111,7 @@ export function anchoredFishGeometry(
         { x: 0.2, width: 0.28, height: 0.21, lowerHeight: 0.14, y: 0.3 },
         { x: 0.375, width: 0.17, height: 0.11, lowerHeight: 0.05, y: 0.28 },
       ],
-      8,
+      10,
     );
     body.rotateY(-Math.PI / 2);
     const dorsal = sheet([
@@ -126,16 +144,27 @@ export function anchoredFishGeometry(
     web.translate(0, 0.023, 0);
     raw = combine([arm, web]);
   } else if (name === 'FrogJaw') {
-    raw = profileBody(
+    const jaw = profileBody(
       [
         { x: 0.15, width: 0.1, height: 0.04, y: 0.23 },
         { x: 0.32, width: 0.17, height: 0.065, y: 0.225 },
         { x: 0.41, width: 0.16, height: 0.016, y: 0.25 },
       ],
+      10,
+    );
+    jaw.rotateY(-Math.PI / 2);
+    jaw.translate(0, -0.31, -0.16);
+    const mouthPlug = profileBody(
+      [
+        { x: 0.16, width: 0.075, height: 0.025, y: 0.255 },
+        { x: 0.34, width: 0.13, height: 0.04, y: 0.26 },
+        { x: 0.405, width: 0.1, height: 0.018, y: 0.255 },
+      ],
       8,
     );
-    raw.rotateY(-Math.PI / 2);
-    raw.translate(0, -0.31, -0.16);
+    mouthPlug.rotateY(-Math.PI / 2);
+    mouthPlug.translate(0, -0.285, -0.155);
+    raw = combine([jaw, mouthPlug]);
   } else
     raw = taperedCurve(
       [
@@ -162,13 +191,16 @@ export function anchoredFishGeometry(
   if (name === 'HorseBody' || name === 'FrogBody') {
     const parts = [g];
     for (const sign of [-1, 1]) {
-      const eye = sheet([
-        [-0.018, 0],
-        [0, -0.018],
-        [0.018, 0],
-        [0, 0.018],
-      ]);
-      eye.rotateZ(Math.PI / 2);
+      // Closed faceted eye beads remain readable from the side and cannot disappear through
+      // back-face culling like the old paper-thin diamond patches.
+      const eye = profileBody(
+        [
+          { x: -0.014, width: 0.004, height: 0.004 },
+          { x: 0, width: 0.018, height: 0.018 },
+          { x: 0.014, width: 0.004, height: 0.004 },
+        ],
+        6,
+      );
       eye.translate(
         sign * (horse ? 0.071 : 0.243),
         horse ? 1.033 : 0.415,

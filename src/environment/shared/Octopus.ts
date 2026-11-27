@@ -5,6 +5,7 @@ import { OCTOPUS, OctopusMind, type OctopusDen } from '../../creatures/octopus';
 import type { SightCandidate } from '../../discovery/journal';
 import type { PlayerPresence } from '../../fish/FishDiverReaction';
 import { octopusDenGeometry } from './OctopusDen';
+import { profileBody } from '../../geometry/lowPoly/geometry';
 
 /**
  * v0.6 Pass 043: an octopus, built and animated in code. A soft, wrinkled mantle with two raised
@@ -22,27 +23,32 @@ const ARMS = 8,
  * animal (it was a separate, simplified build). The mantle with its raised eyes, in body units.
  */
 export function octopusMantleGeometry(): THREE.BufferGeometry {
-  // The mantle: a soft bag behind the head, with raised eyes in front.
-  const mantle = new THREE.SphereGeometry(1, 16, 12);
-  const mp = mantle.getAttribute('position');
-  for (let i = 0; i < mp.count; i++) {
-    const x = mp.getX(i),
-      y = mp.getY(i),
-      z = mp.getZ(i),
-      wrinkle = 1 + 0.05 * Math.sin(x * 9 + y * 7) * Math.sin(z * 8);
-    // Swollen behind (−z) and above: the mantle sags back over the arms.
-    const back = Math.max(0, -z);
-    mp.setXYZ(
-      i,
-      x * 0.12 * wrinkle,
-      (y * 0.1 + 0.11 + back * 0.05) * wrinkle,
-      (z * 0.15 - back * 0.05) * wrinkle,
-    );
-  }
-  mantle.computeVertexNormals();
+  // A deliberately faceted continuous mantle: narrow at the rear, full over the organs, and
+  // tapering into the head. It replaces the procedurally wrinkled sphere.
+  const mantle = profileBody(
+    [
+      { x: -0.21, width: 0.035, height: 0.045, y: 0.14 },
+      { x: -0.16, width: 0.09, height: 0.105, y: 0.145 },
+      { x: -0.08, width: 0.125, height: 0.125, y: 0.13 },
+      { x: 0.01, width: 0.12, height: 0.112, y: 0.115 },
+      { x: 0.08, width: 0.1, height: 0.085, y: 0.105 },
+      { x: 0.13, width: 0.065, height: 0.055, y: 0.1 },
+    ],
+    10,
+  );
+  mantle.rotateY(-Math.PI / 2);
+  mantle.deleteAttribute('uv');
   const eyes = [-1, 1].map((s) => {
-    const e = new THREE.SphereGeometry(0.03, 8, 6);
-    e.translate(s * 0.07, 0.17, 0.07);
+    const e = profileBody(
+      [
+        { x: -0.024, width: 0.014, height: 0.014 },
+        { x: 0, width: 0.026, height: 0.024 },
+        { x: 0.026, width: 0.012, height: 0.012 },
+      ],
+      6,
+    );
+    e.rotateZ(Math.PI / 2);
+    e.translate(s * 0.07, 0.155, 0.075);
     return e;
   });
   const parts = [mantle, ...eyes].map((g) => g.toNonIndexed());
@@ -53,8 +59,9 @@ export function octopusMantleGeometry(): THREE.BufferGeometry {
     for (let i = 0; i < n; i++) {
       const y = g.getAttribute('position').getY(i),
         x = g.getAttribute('position').getX(i),
-        speck = 0.85 + 0.15 * Math.sin(x * 61 + y * 47) * Math.sin(y * 29);
-      const v = k ? 0.35 : speck * (0.9 + 0.3 * y);
+        z = g.getAttribute('position').getZ(i),
+        region = z < -0.09 ? 0.84 : x > 0.045 ? 1.04 : 0.94;
+      const v = k ? 0.35 : region * (0.9 + 0.3 * y);
       c[i * 3] = v;
       c[i * 3 + 1] = v * 0.95;
       c[i * 3 + 2] = v * 0.9;
@@ -89,7 +96,8 @@ export function octopusArmsGeometry(): {
 } {
   // The arms: rings of `SIDES` round each arm's centreline, rewritten each frame.
   const ringVerts = (SEGMENTS + 1) * SIDES,
-    verts = ARMS * ringVerts,
+    armVerts = ringVerts + 2,
+    verts = ARMS * armVerts,
     positions = new Float32Array(verts * 3),
     normals = new Float32Array(verts * 3);
   const colours2 = new Float32Array(verts * 3),
@@ -97,22 +105,41 @@ export function octopusArmsGeometry(): {
   for (let a = 0; a < ARMS; a++)
     for (let j = 0; j <= SEGMENTS; j++)
       for (let s = 0; s < SIDES; s++) {
-        const v = a * ringVerts + j * SIDES + s,
+        const v = a * armVerts + j * SIDES + s,
           // Paler suckers underneath.
           under = s === SIDES / 2 || s === SIDES / 2 - 1 ? 1.3 : 1,
-          speck = 0.9 + 0.1 * Math.sin(v * 3.7);
-        colours2[v * 3] = speck * under;
-        colours2[v * 3 + 1] = speck * 0.95 * under;
-        colours2[v * 3 + 2] = speck * 0.9 * under;
+          tone = 0.92 + 0.08 * (1 - j / SEGMENTS);
+        colours2[v * 3] = tone * under;
+        colours2[v * 3 + 1] = tone * 0.95 * under;
+        colours2[v * 3 + 2] = tone * 0.9 * under;
         if (j < SEGMENTS) {
           const n = (s + 1) % SIDES,
             a0 = v,
-            b0 = a * ringVerts + j * SIDES + n,
+            b0 = a * armVerts + j * SIDES + n,
             a1 = v + SIDES,
             b1 = b0 + SIDES;
           index.push(a0, a1, b0, b0, a1, b1);
         }
       }
+  for (let a = 0; a < ARMS; a++) {
+    const base = a * armVerts,
+      root = base + ringVerts,
+      tip = root + 1;
+    for (let s = 0; s < SIDES; s++) {
+      const next = (s + 1) % SIDES;
+      index.push(root, base + next, base + s);
+      index.push(
+        tip,
+        base + SEGMENTS * SIDES + s,
+        base + SEGMENTS * SIDES + next,
+      );
+    }
+    for (const v of [root, tip]) {
+      colours2[v * 3] = 0.94;
+      colours2[v * 3 + 1] = 0.89;
+      colours2[v * 3 + 2] = 0.85;
+    }
+  }
   const armGeometry = new THREE.BufferGeometry();
   armGeometry.setAttribute(
     'position',
@@ -139,6 +166,8 @@ export function poseOctopusArms(
   curl: number,
   inDen: number,
 ): void {
+  const ringVerts = (SEGMENTS + 1) * SIDES,
+    armVerts = ringVerts + 2;
   for (let a = 0; a < ARMS; a++) {
     // Arms fan round the body; moving, the front ones reach ahead and the rest trail behind.
     const base = ((a + 0.5) / ARMS) * Math.PI * 2,
@@ -185,7 +214,7 @@ export function poseOctopusArms(
           nx = sx * c + ux * sn,
           ny = uy * sn,
           nz = sz * c + uz * sn,
-          v = (a * (SEGMENTS + 1) * SIDES + j * SIDES + s) * 3;
+          v = (a * armVerts + j * SIDES + s) * 3;
         positions[v] = centre[j * 3] + nx * thick;
         positions[v + 1] = centre[j * 3 + 1] + ny * thick * 0.8;
         positions[v + 2] = centre[j * 3 + 2] + nz * thick;
@@ -193,6 +222,23 @@ export function poseOctopusArms(
         normals[v + 1] = ny;
         normals[v + 2] = nz;
       }
+    }
+    for (const [vertex, j, direction] of [
+      [a * armVerts + ringVerts, 0, -1],
+      [a * armVerts + ringVerts + 1, SEGMENTS, 1],
+    ] as const) {
+      const v = vertex * 3,
+        k = j ? SEGMENTS - 1 : 0,
+        tx = centre[(k + 1) * 3] - centre[k * 3],
+        ty = centre[(k + 1) * 3 + 1] - centre[k * 3 + 1],
+        tz = centre[(k + 1) * 3 + 2] - centre[k * 3 + 2],
+        length = Math.hypot(tx, ty, tz) || 1;
+      positions[v] = centre[j * 3];
+      positions[v + 1] = centre[j * 3 + 1];
+      positions[v + 2] = centre[j * 3 + 2];
+      normals[v] = (direction * tx) / length;
+      normals[v + 1] = (direction * ty) / length;
+      normals[v + 2] = (direction * tz) / length;
     }
   }
 }

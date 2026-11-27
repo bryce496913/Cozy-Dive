@@ -99,7 +99,7 @@ export const CRUISE_SPECIES: Readonly<Record<BigCreatureId, CruiseSpecies>> = {
   'bat-ray': {
     id: 'bat-ray',
     name: 'Bat ray',
-    asset: 'eagleRay',
+    asset: 'batRay',
     scale: 0.9,
     radius: 1.35,
     speed: 0.55,
@@ -199,7 +199,7 @@ export const CRUISE_SPECIES: Readonly<Record<BigCreatureId, CruiseSpecies>> = {
   'scalloped-hammerhead': {
     id: 'scalloped-hammerhead',
     name: 'Scalloped hammerhead',
-    asset: 'hammerhead',
+    asset: 'scallopedHammerhead',
     scale: 0.9,
     radius: 1.3,
     speed: 0.95,

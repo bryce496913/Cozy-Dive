@@ -129,7 +129,9 @@ export function spanishShawlGeometry(): THREE.BufferGeometry {
     // Clusters of cerata down each side of the back: fat, curved, overlapping, tips paler.
     for (let k = 0; k < 7; k++) {
       const z = 0.018 - k * 0.0072,
-        count = 4 + (k % 2);
+        // This exact silhouette is also exported in the canonical kelp miniature library.
+        // Broad, countable cerata read better than the former forest of hair-like strings.
+        count = 2 + (k % 2);
       for (let j = 0; j < count; j++) {
         const out = 0.004 + j * 0.0022,
           len = (0.011 - j * 0.0012) * (1 - k * 0.06),

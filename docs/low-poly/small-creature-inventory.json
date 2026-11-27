@@ -1,0 +1,47 @@
+{
+  "pass": "020",
+  "identities": 34,
+  "scope": "Existing small marine animals and invertebrates. Fish-shaped miniatures remain owned by Passes 017-018; coral, sponge and plant identities remain owned by Passes 021-022.",
+  "canonicalCatalog": "src/creatures/lowPoly/smallCatalog.ts",
+  "groups": {
+    "nudibranchs": [
+      "spanish-shawl",
+      "tritoniella-belli",
+      "pikachu-nudibranch",
+      "leaf-sheep"
+    ],
+    "crabs": ["kelp-crab", "rock-crab", "candy-crab", "decorator-crab"],
+    "shrimp": [
+      "cleaner-shrimp",
+      "harlequin-shrimp",
+      "banded-coral-shrimp",
+      "skeleton-shrimp",
+      "mysid",
+      "antarctic-krill"
+    ],
+    "lobsters": ["spiny-lobster"],
+    "octopuses": [
+      "octopus",
+      "mimic-octopus",
+      "east-pacific-red-octopus",
+      "wonderpus"
+    ],
+    "echinoderms": [
+      "antarctic-sea-star",
+      "brittle-star",
+      "antarctic-sea-urchin",
+      "sea-cucumber",
+      "feather-star"
+    ],
+    "mollusks": ["sea-butterfly", "antarctic-scallop", "sea-angel"],
+    "otherCrustaceans": ["giant-isopod", "giant-sea-spider"],
+    "worms": ["ribbon-worm", "christmas-tree-worm"],
+    "gelatinous": ["comb-jelly", "antarctic-jellyfish", "salp"]
+  },
+  "migration": {
+    "procedural": "Wild and aquarium contexts call the same named geometry factories. Pass 020 reduces redundant crab, lobster and urchin surface density while preserving bounds, palette regions and one-draw merged topology.",
+    "rareLibraries": "Existing rare GLBs remain the single canonical source for wild, card and aquarium contexts; no duplicate models are introduced.",
+    "contact": "Each identity has an explicit substrate, shelter, perch, hover or pelagic contract. Size-normalized bottom models align their lowest authored point to the navigation half-height.",
+    "animation": "Existing deterministic habitat controllers remain authoritative for gliding, stepping, crawling, pulsing, drifting and swaying. Pause and reduced-motion behavior is unchanged."
+  }
+}

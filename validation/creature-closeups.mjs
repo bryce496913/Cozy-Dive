@@ -53,6 +53,7 @@ const SUBJECTS = [
   ['ice-soft-coral', '/src/environment/ice/IceGarden.ts', 'softCoralGeometry'],
 ];
 const browser = await chromium.launch({
+  executablePath: process.env.COZY_CHROMIUM,
   args: [
     '--no-sandbox',
     '--disable-dev-shm-usage',

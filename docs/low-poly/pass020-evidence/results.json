@@ -1,0 +1,19 @@
+{
+  "renderer": "Chromium / SwiftShader (software); not real GPU or MacBook Air",
+  "subjects": 27,
+  "views": ["three-quarter", "side"],
+  "calls": 46,
+  "triangles": 190918,
+  "closeups": {
+    "spiny-lobster": { "triangles": 19772, "size": [0.39, 0.156, 0.673] },
+    "rock-crab": { "triangles": 4298, "size": [0.373, 0.089, 0.33] },
+    "spanish-shawl": { "triangles": 2524, "size": [0.041, 0.025, 0.086] },
+    "krill": { "triangles": 332, "size": [0.014, 0.014, 0.078] },
+    "sea-butterfly": { "triangles": 1010, "size": [0.029, 0.016, 0.007] },
+    "comb-jelly": { "triangles": 2608, "size": [0.053, 0.114, 0.051] },
+    "purple-urchin": { "triangles": 614, "size": [0.323, 0.146, 0.346] },
+    "sea-star": { "triangles": 1184, "size": [0.206, 0.031, 0.214] }
+  },
+  "pageErrors": [],
+  "note": "Localized validation gallery and close-up geometry measurements; not a full-world traversal or hardware performance test."
+}

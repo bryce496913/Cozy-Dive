@@ -65,7 +65,9 @@ export function spinyLobsterBody(): THREE.BufferGeometry {
   // The carapace. V0.7 Pass 078: a squarish, tapering shell (finer than before) whose surface is
   // covered in small tubercles and crossed by the cervical groove, painted per vertex: red-brown,
   // darker in the groove and between tubercles, with pale cream spots (they were stuck-on balls).
-  const shell = new THREE.SphereGeometry(1, 44, 26),
+  // Pass 020: keep the squarish carapace and painted cervical groove on deliberate facets.
+  // The previous 44×26 sphere grid was invisible at the lobster's authored size.
+  const shell = new THREE.SphereGeometry(1, 24, 14),
     sp = shell.getAttribute('position');
   for (let i = 0; i < sp.count; i++) {
     const x = sp.getX(i),
@@ -173,8 +175,8 @@ export function spinyLobsterBody(): THREE.BufferGeometry {
             Math.exp(-((f / 0.08) ** 2)) + Math.exp(-(((1 - f) / 0.08) ** 2));
         return (0.05 - 0.018 * u) * (0.9 + 0.1 * dome - 0.06 * hinge);
       },
-      120,
-      22,
+      60,
+      12,
       0.62,
     );
   parts.push(

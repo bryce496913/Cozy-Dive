@@ -12,6 +12,9 @@ import { CORE_FISH, type FishDesign } from './designs';
 import type { SpeciesId } from '../FishSpecies';
 
 const STATIONS = [-0.35, -0.24, -0.09, 0.08, 0.25, 0.39, 0.5];
+// Extra authored cross-sections give the shoulder, cheek, peduncle, and muzzle cleaner facets.
+// Width and height still come from each species' seven-station silhouette definition.
+const ANATOMY_STATIONS = [-0.3, -0.17, -0.015, 0.17, 0.32, 0.445];
 function sample(values: readonly number[], x: number): number {
   for (let i = 1; i < STATIONS.length; i++)
     if (x <= STATIONS[i])
@@ -21,6 +24,73 @@ function sample(values: readonly number[], x: number): number {
         (x - STATIONS[i - 1]) / (STATIONS[i] - STATIONS[i - 1]),
       );
   return values[values.length - 1];
+}
+function markingStations(pattern: string): readonly number[] {
+  switch (pattern) {
+    case 'clown':
+      return [
+        -0.342, -0.33, -0.25, -0.238, -0.062, -0.05, 0.03, 0.042, 0.258, 0.27,
+        0.35, 0.362,
+      ];
+    case 'idol':
+    case 'banner':
+      return [-0.2, -0.07, 0.2, 0.34];
+    case 'cardinal':
+      return [-0.04, 0.09];
+    case 'saddles':
+      return [-0.24, -0.14, -0.01, 0.08, 0.23, 0.3];
+    case 'eye-band':
+      return [-0.14, 0.3, 0.43];
+    case 'gramma':
+      return [-0.02];
+    case 'fire':
+      return [-0.08];
+    case 'tang':
+      return [-0.31, -0.23, 0.28];
+    case 'tailspot':
+      return [-0.2];
+    case 'sheephead':
+      return [-0.24, 0.27];
+    case 'beak':
+      return [0.43];
+    case 'wrasse':
+      return [0.28];
+    case 'light-organ':
+      return [0.27];
+    default:
+      return [];
+  }
+}
+function faceShape(
+  id: SpeciesId,
+  pattern: string,
+  x: number,
+): { width: number; upper: number; lower: number; lift: number } {
+  const t = THREE.MathUtils.smoothstep(x, 0.34, 0.5);
+  if (pattern === 'beak')
+    return { width: 1 + t * 0.18, upper: 1 - t * 0.08, lower: 0.92, lift: 0 };
+  if (pattern === 'wrasse' || id === 'california-sheephead')
+    return {
+      width: 1 + t * 0.12,
+      upper: 1 + t * 0.12,
+      lower: 1,
+      lift: t * 0.012,
+    };
+  if (id === 'great-barracuda')
+    return {
+      width: 1 - t * 0.08,
+      upper: 0.92,
+      lower: 1 + t * 0.22,
+      lift: -t * 0.012,
+    };
+  if (id === 'queensland-grouper' || id === 'giant-sea-bass')
+    return {
+      width: 1 + t * 0.1,
+      upper: 1,
+      lower: 1 + t * 0.16,
+      lift: -t * 0.008,
+    };
+  return { width: 1, upper: 1, lower: 1, lift: 0 };
 }
 function color(d: FishDesign, p: THREE.Vector3): number {
   const x = p.x,
@@ -109,32 +179,24 @@ export function coreFishGeometry(id: SpeciesId): THREE.BufferGeometry {
   const d: FishDesign = CORE_FISH[id],
     h = d.depth / 2,
     w = d.width / 2;
-  // Add stations at anatomical color boundaries rather than subdividing the whole fish densely.
-  const marks =
-    d.pattern === 'clown'
-      ? [
-          -0.342, -0.33, -0.25, -0.238, -0.062, -0.05, 0.03, 0.042, 0.258, 0.27,
-          0.35, 0.362,
-        ]
-      : d.pattern === 'idol' || d.pattern === 'banner'
-        ? [-0.2, -0.07, 0.2, 0.34]
-        : d.pattern === 'cardinal'
-          ? [-0.04, 0.09]
-          : d.pattern === 'saddles'
-            ? [-0.24, -0.14, -0.01, 0.08, 0.23, 0.3]
-            : d.pattern === 'eye-band'
-              ? [-0.14, 0.3, 0.43]
-              : [];
-  const xs = [...new Set([...STATIONS, ...marks])].sort((a, b) => a - b);
+  // Put rings at every hard longitudinal color boundary so markings follow the body volume.
+  const marks = markingStations(d.pattern);
+  const xs = [...new Set([...STATIONS, ...ANATOMY_STATIONS, ...marks])].sort(
+    (a, b) => a - b,
+  );
   const body = profileBody(
-    xs.map((x) => ({
-      x,
-      width: w * sample(d.widths, x),
-      height: h * sample(d.heights, x),
-      lowerHeight: h * sample(d.heights, x) * 0.85,
-      y: x > 0.2 ? (d.forehead * (x - 0.2)) / 0.3 : 0,
-    })),
-    8,
+    xs.map((x) => {
+      const face = faceShape(id, d.pattern, x),
+        height = h * sample(d.heights, x);
+      return {
+        x,
+        width: w * sample(d.widths, x) * face.width,
+        height: height * face.upper,
+        lowerHeight: height * 0.85 * face.lower,
+        y: (x > 0.2 ? (d.forehead * (x - 0.2)) / 0.3 : 0) + face.lift,
+      };
+    }),
+    12,
   );
   const parts = [paint(body, d.palette, (p) => color(d, p))];
   const fork =
@@ -168,11 +230,17 @@ export function coreFishGeometry(id: SpeciesId): THREE.BufferGeometry {
             [-0.45, -fork * 0.33],
             [-0.5, -fork],
           ];
-  const tail = outlined([
-    [-0.33, 0.025],
-    ...end.map(([x, y]): [number, number] => [x, (y * d.depth) / 0.4]),
-    [-0.33, -0.025],
-  ]);
+  const tailRoot = Math.max(0.025, h * 0.26);
+  const tail = outlined(
+    [
+      [-0.3, tailRoot * 0.72],
+      [-0.35, tailRoot],
+      ...end.map(([x, y]): [number, number] => [x, (y * d.depth) / 0.4]),
+      [-0.35, -tailRoot],
+      [-0.3, -tailRoot * 0.72],
+    ],
+    Math.max(0.004, w * 0.11),
+  );
   parts.push(
     paint(tail, d.palette, (p) =>
       d.pattern === 'tang' || d.pattern === 'gramma' || d.pattern === 'banner'
@@ -188,11 +256,11 @@ export function coreFishGeometry(id: SpeciesId): THREE.BufferGeometry {
   if (d.dorsal === 'pennant')
     dorsal = [
       [-0.27, h * 0.3],
-      [-0.21, h * 1.3],
-      [0.03, h * 0.95],
-      [0.12, h * 3.3],
-      [0.17, h * 3.5],
-      [0.23, h * 0.65],
+      [-0.22, h * 1.08],
+      [0.075, h * 0.82],
+      [0.135, h * 3.45],
+      [0.16, h * 3.58],
+      [0.19, h * 0.62],
     ];
   else if (d.dorsal === 'banner')
     // A narrow swept streamer, not a tall solid crest. Keep the established height envelope.
@@ -259,7 +327,7 @@ export function coreFishGeometry(id: SpeciesId): THREE.BufferGeometry {
   ];
   for (const points of [dorsal, anal])
     parts.push(
-      paint(outlined(points), d.palette, (p) =>
+      paint(outlined(points, Math.max(0.004, w * 0.12)), d.palette, (p) =>
         d.pattern === 'clown' && Math.abs(p.y) > h * 1.05
           ? 2
           : d.pattern === 'gramma' && p.x < -0.02
@@ -267,6 +335,8 @@ export function coreFishGeometry(id: SpeciesId): THREE.BufferGeometry {
             : 0,
       ),
     );
+  const pectoralRoot = Math.max(0.004, w * 0.11),
+    pectoralTip = Math.max(0.0015, w * 0.035);
   const pectoral = fin(
     d.pattern === 'clown' || d.tail === 'round'
       ? [
@@ -284,8 +354,15 @@ export function coreFishGeometry(id: SpeciesId): THREE.BufferGeometry {
           [-0.06, w * 0.65],
         ],
     d.pattern === 'clown' || d.tail === 'round'
-      ? [0.006, 0.004, 0.003, 0.002, 0.003, 0.005]
-      : [0.006, 0.003, 0.002, 0.005],
+      ? [
+          pectoralRoot,
+          pectoralRoot * 0.7,
+          pectoralTip,
+          pectoralTip,
+          pectoralTip * 1.2,
+          pectoralRoot * 0.85,
+        ]
+      : [pectoralRoot, pectoralTip * 1.4, pectoralTip, pectoralRoot * 0.85],
   );
   pectoral.translate(0, -h * 0.15, 0);
   const opposite = mirrored(pectoral, 'z');
@@ -298,7 +375,7 @@ export function coreFishGeometry(id: SpeciesId): THREE.BufferGeometry {
         [-0.02, -h * 0.94],
         [-0.11, -h * 0.68],
       ],
-      0.003,
+      Math.max(0.002, w * 0.065),
     );
     pelvic.translate(0, 0, side * w * 0.45);
     parts.push(paint(pelvic, d.palette, () => 1));
@@ -356,16 +433,56 @@ export function coreFishGeometry(id: SpeciesId): THREE.BufferGeometry {
     eye.translate(0, 0, side * ez);
     parts.push(paint(eye, ['#172d30'], () => 0));
   }
+  const beaked = d.pattern === 'beak',
+    heavyMouth =
+      d.pattern === 'wrasse' ||
+      id === 'california-sheephead' ||
+      id === 'queensland-grouper' ||
+      id === 'giant-sea-bass',
+    mouthDepth = beaked ? h * 0.17 : heavyMouth ? h * 0.12 : h * 0.07,
+    mouthReach = beaked ? 0.526 : heavyMouth ? 0.512 : 0.5;
   const mouth = outlined(
     [
-      [0.499, -h * 0.07],
-      [0.5, -h * 0.04],
-      [0.5, h * 0.01],
-      [0.499, h * 0.03],
+      [0.493, -mouthDepth],
+      [mouthReach, -mouthDepth * 0.42],
+      [mouthReach, mouthDepth * 0.36],
+      [0.493, mouthDepth * 0.78],
     ],
-    0.025 * d.width,
+    (beaked ? 0.07 : heavyMouth ? 0.045 : 0.025) * d.width,
   );
-  parts.push(paint(mouth, ['#43504b'], () => 0));
+  parts.push(paint(mouth, [beaked ? d.palette[3] : '#43504b'], () => 0));
+  if (beaked) {
+    // The bumphead's fused dental plates and steep forehead are solid volumes, not a generic
+    // pointed fish mouth. Their shared root keeps the beak seated during body and fin morphs.
+    for (const side of [-1, 1]) {
+      const plate = profileBody(
+        [
+          {
+            x: 0.43,
+            width: d.width * 0.46,
+            height: h * 0.07,
+            y: side * h * 0.07,
+          },
+          {
+            x: 0.535,
+            width: d.width * 0.34,
+            height: h * 0.055,
+            y: side * h * 0.055,
+          },
+        ],
+        6,
+      );
+      parts.push(paint(plate, [d.palette[3]], () => 0));
+    }
+    const forehead = profileBody(
+      [
+        { x: 0.3, width: d.width * 0.82, height: h * 0.28, y: h * 0.08 },
+        { x: 0.43, width: d.width * 0.68, height: h * 0.22, y: h * 0.09 },
+      ],
+      8,
+    );
+    parts.push(paint(forehead, [d.palette[0]], () => 0));
+  }
   const g = join(parts);
   g.scale(d.length, d.length, d.length);
   for (const sign of [1, -1])

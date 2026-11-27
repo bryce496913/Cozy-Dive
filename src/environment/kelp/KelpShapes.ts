@@ -159,7 +159,9 @@ export function urchinShape(): THREE.BufferGeometry {
     ),
   );
   // Spines: a dense, even coat (a Fibonacci sphere), longer round the equator, none underneath.
-  const n = 150,
+  // Pass 020: a readable radial arrangement, merged into the existing single draw. Seventy-two
+  // varied spines preserve the silhouette without spending tiny-screen triangles on a brush.
+  const n = 72,
     up = new THREE.Vector3(0, 1, 0),
     d = new THREE.Vector3(),
     q = new THREE.Quaternion();
