@@ -52,3 +52,9 @@ crustacean gait and octopus arm motion continue to drive the rebuilt geometry.
 
 Automated tests and in-game screenshots were not run at the user's request. Final visual acceptance
 is reserved for the user's full playthrough.
+
+## Large-creature review page
+
+Open `/validation/large-creature-review/` from the development server to review all 22 current
+large-creature designs together. The page provides consistent side, three-quarter, front and top
+views, animated stroke poses, labels and a copyable redesign selection list.
