@@ -188,6 +188,22 @@ export const ASSET_REGISTRY = {
     // A library of named animals (each carries its own Stroke morphs, checked by its tests).
     requireMorphs: false,
   },
+  /** Pass 109: Blender-authored replacements for the former procedural small residents. */
+  smallResidentRedesigns: {
+    path: 'assets/models/creatures/small-resident-redesigns.glb',
+    requiredNodes: [
+      'Day_Octopus',
+      'Kelp_Crab',
+      'Rock_Crab',
+      'Spiny_Lobster',
+      'Lionfish',
+      'Antarctic_Krill',
+      'Sea_Butterfly',
+    ],
+    minDimension: 0.15,
+    maxDimension: 2,
+    requireMorphs: false,
+  },
   iceMinis: {
     path: 'assets/models/creatures/ice-minis.glb',
     requiredNodes: [
