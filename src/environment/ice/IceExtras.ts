@@ -527,7 +527,7 @@ export function isopodGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [],
     half = (u: number) =>
       0.042 * Math.pow(Math.sin(Math.PI * (0.04 + 0.92 * u)), 0.42),
-    shell = new THREE.SphereGeometry(1, 40, 14, 0, Math.PI * 2, 0, Math.PI / 2),
+    shell = new THREE.SphereGeometry(1, 20, 10),
     p = shell.getAttribute('position');
   for (let i = 0; i < p.count; i++) {
     const x = p.getX(i),
@@ -537,7 +537,12 @@ export function isopodGeometry(): THREE.BufferGeometry {
       // Ridges where each plate overlaps the next, and edges that flare out and down.
       plate = 1 + 0.08 * Math.pow(Math.abs(Math.sin(u * Math.PI * 8)), 6),
       w = half(u) / 0.042;
-    p.setXYZ(i, x * 0.09, y * 0.026 * plate * w + 0.004, z * 0.045 * w * plate);
+    p.setXYZ(
+      i,
+      x * 0.09,
+      (y >= 0 ? y * 0.026 * plate * w : y * 0.008 * w) + 0.004,
+      z * 0.045 * w * plate,
+    );
   }
   parts.push(coloured(shell, [0.66, 0.6, 0.55], 0.14));
   // The tail fan: a rounded plate and two paddles either side.

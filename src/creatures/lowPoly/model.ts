@@ -5,6 +5,7 @@ import {
   colorRegions,
   fin,
   profileBody,
+  taperedCurve,
   type BodySection,
 } from '../../geometry/lowPoly/geometry';
 import { lowPolyMaterial } from '../../rendering/lowPoly/resources';
@@ -258,15 +259,28 @@ export function largeCreatureGeometry(
     for (const side of [-1, 1]) {
       const f = sheet(
         [
-          [-0.15, 0],
-          [-0.04, side * d.appendage],
-          [0.16, side * d.appendage * 0.82],
-          [0.2, 0],
+          [-0.18, 0.015],
+          [-0.06, side * d.appendage],
+          [0.14, side * d.appendage * 0.8],
+          [0.2, side * 0.015],
         ],
-        0.014,
+        0.028,
       );
+      f.rotateX(Math.PI / 2);
       parts.push(f);
     }
+    const clavus = sheet(
+      [
+        [-0.43, -d.depth * 0.42],
+        [-0.52, -d.depth * 0.3],
+        [-0.55, 0],
+        [-0.52, d.depth * 0.3],
+        [-0.43, d.depth * 0.42],
+      ],
+      d.width * 0.9,
+    );
+    clavus.rotateX(Math.PI / 2);
+    parts.push(clavus);
   } else if (d.family === 'penguin') {
     for (const side of [-1, 1]) {
       const f = sheet(
@@ -386,10 +400,11 @@ export function largeCreatureGeometry(
   } else {
     const shark = d.family === 'shark';
     const tallHammer = id === 'hammerhead';
+    const orca = id === 'killerWhale';
     const dorsal = sheet(
       [
         [-0.2, 0.02],
-        [-0.08, d.appendage * (tallHammer ? 1.28 : 1)],
+        [-0.08, d.appendage * (tallHammer ? 1.28 : orca ? 1.45 : 1)],
         [0.14, 0.02],
       ],
       shark ? 0.024 : 0.015,
@@ -472,6 +487,36 @@ export function largeCreatureGeometry(
       );
       parts.push(head);
     }
+    if (id === 'nurseShark')
+      for (const side of [-1, 1])
+        parts.push(
+          taperedCurve(
+            [
+              [0.47, -d.depth * 0.18, side * d.width * 0.4],
+              [0.54, -d.depth * 0.28, side * d.width * 0.46],
+              [0.57, -d.depth * 0.36, side * d.width * 0.5],
+            ],
+            [0.008, 0.005, 0.002],
+            5,
+          ),
+        );
+    if (id === 'humpbackWhale')
+      for (const side of [-1, 1])
+        for (let k = 0; k < 4; k++) {
+          const tubercle = profileBody(
+            [
+              { x: 0.38 + k * 0.03, width: 0.006, height: 0.006 },
+              { x: 0.395 + k * 0.03, width: 0.012, height: 0.012 },
+            ],
+            5,
+          );
+          tubercle.translate(
+            0,
+            d.depth * 0.38,
+            side * d.width * (0.2 + k * 0.12),
+          );
+          parts.push(tubercle);
+        }
   }
   // Faceted eye plates provide a readable face without sphere primitives or texture detail.
   if (d.family !== 'ray')

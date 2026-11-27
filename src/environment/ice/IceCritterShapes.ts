@@ -55,18 +55,24 @@ export function krillShape(): THREE.BufferGeometry {
   const pink: RGB = [0.95, 0.45, 0.4],
     clear: RGB = [0.98, 0.7, 0.62],
     parts: THREE.BufferGeometry[] = [];
-  const shell = new THREE.SphereGeometry(1, 6, 4);
-  shell.scale(0.0045, 0.0045, 0.009);
-  shell.translate(0, 0.001, 0.011);
-  parts.push(paint(shell, pink));
-  // Five abdominal segments, tapering and bending gently down.
-  for (let i = 0; i < 5; i++) {
-    const seg = new THREE.SphereGeometry(1, 5, 4),
-      r = 0.0042 - i * 0.0005;
-    seg.scale(r, r, 0.0042);
-    seg.translate(0, -i * i * 0.0004, -0.002 - i * 0.0055);
-    parts.push(paint(seg, i % 2 ? clear : pink));
-  }
+  // A continuous capped abdomen replaces the loose translucent-looking bead chain.
+  parts.push(
+    paint(
+      organicTube(
+        [
+          v(0, 0.001, 0.02),
+          v(0, 0.001, 0.01),
+          v(0, 0, -0.004),
+          v(0, -0.002, -0.017),
+          v(0, -0.006, -0.028),
+        ],
+        (u) => 0.0048 * (1 - 0.56 * u),
+        20,
+        6,
+      ),
+      pink,
+    ),
+  );
   // A fanned tail.
   for (const a of [-0.45, 0, 0.45]) {
     const fin = new THREE.ConeGeometry(0.0022, 0.007, 3);
@@ -108,6 +114,10 @@ export function krillShape(): THREE.BufferGeometry {
 /** A sea butterfly, about 1 cm, wings out to the sides (x). */
 export function seaButterflyShape(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
+  const body = new THREE.SphereGeometry(1, 8, 6);
+  body.scale(0.0038, 0.006, 0.003);
+  body.translate(0, 0.001, 0);
+  parts.push(paint(body, [0.82, 0.48, 0.24]));
   // V0.7 Pass 068: a small coiled shell as one tapering spiral, not a string of beads.
   const coil: THREE.Vector3[] = [];
   for (let k = 0; k <= 8; k++) {

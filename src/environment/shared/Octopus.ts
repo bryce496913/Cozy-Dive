@@ -96,7 +96,8 @@ export function octopusArmsGeometry(): {
 } {
   // The arms: rings of `SIDES` round each arm's centreline, rewritten each frame.
   const ringVerts = (SEGMENTS + 1) * SIDES,
-    verts = ARMS * ringVerts,
+    armVerts = ringVerts + 2,
+    verts = ARMS * armVerts,
     positions = new Float32Array(verts * 3),
     normals = new Float32Array(verts * 3);
   const colours2 = new Float32Array(verts * 3),
@@ -104,7 +105,7 @@ export function octopusArmsGeometry(): {
   for (let a = 0; a < ARMS; a++)
     for (let j = 0; j <= SEGMENTS; j++)
       for (let s = 0; s < SIDES; s++) {
-        const v = a * ringVerts + j * SIDES + s,
+        const v = a * armVerts + j * SIDES + s,
           // Paler suckers underneath.
           under = s === SIDES / 2 || s === SIDES / 2 - 1 ? 1.3 : 1,
           tone = 0.92 + 0.08 * (1 - j / SEGMENTS);
@@ -114,12 +115,31 @@ export function octopusArmsGeometry(): {
         if (j < SEGMENTS) {
           const n = (s + 1) % SIDES,
             a0 = v,
-            b0 = a * ringVerts + j * SIDES + n,
+            b0 = a * armVerts + j * SIDES + n,
             a1 = v + SIDES,
             b1 = b0 + SIDES;
           index.push(a0, a1, b0, b0, a1, b1);
         }
       }
+  for (let a = 0; a < ARMS; a++) {
+    const base = a * armVerts,
+      root = base + ringVerts,
+      tip = root + 1;
+    for (let s = 0; s < SIDES; s++) {
+      const next = (s + 1) % SIDES;
+      index.push(root, base + next, base + s);
+      index.push(
+        tip,
+        base + SEGMENTS * SIDES + s,
+        base + SEGMENTS * SIDES + next,
+      );
+    }
+    for (const v of [root, tip]) {
+      colours2[v * 3] = 0.94;
+      colours2[v * 3 + 1] = 0.89;
+      colours2[v * 3 + 2] = 0.85;
+    }
+  }
   const armGeometry = new THREE.BufferGeometry();
   armGeometry.setAttribute(
     'position',
@@ -146,6 +166,8 @@ export function poseOctopusArms(
   curl: number,
   inDen: number,
 ): void {
+  const ringVerts = (SEGMENTS + 1) * SIDES,
+    armVerts = ringVerts + 2;
   for (let a = 0; a < ARMS; a++) {
     // Arms fan round the body; moving, the front ones reach ahead and the rest trail behind.
     const base = ((a + 0.5) / ARMS) * Math.PI * 2,
@@ -192,7 +214,7 @@ export function poseOctopusArms(
           nx = sx * c + ux * sn,
           ny = uy * sn,
           nz = sz * c + uz * sn,
-          v = (a * (SEGMENTS + 1) * SIDES + j * SIDES + s) * 3;
+          v = (a * armVerts + j * SIDES + s) * 3;
         positions[v] = centre[j * 3] + nx * thick;
         positions[v + 1] = centre[j * 3 + 1] + ny * thick * 0.8;
         positions[v + 2] = centre[j * 3 + 2] + nz * thick;
@@ -200,6 +222,23 @@ export function poseOctopusArms(
         normals[v + 1] = ny;
         normals[v + 2] = nz;
       }
+    }
+    for (const [vertex, j, direction] of [
+      [a * armVerts + ringVerts, 0, -1],
+      [a * armVerts + ringVerts + 1, SEGMENTS, 1],
+    ] as const) {
+      const v = vertex * 3,
+        k = j ? SEGMENTS - 1 : 0,
+        tx = centre[(k + 1) * 3] - centre[k * 3],
+        ty = centre[(k + 1) * 3 + 1] - centre[k * 3 + 1],
+        tz = centre[(k + 1) * 3 + 2] - centre[k * 3 + 2],
+        length = Math.hypot(tx, ty, tz) || 1;
+      positions[v] = centre[j * 3];
+      positions[v + 1] = centre[j * 3 + 1];
+      positions[v + 2] = centre[j * 3 + 2];
+      normals[v] = (direction * tx) / length;
+      normals[v + 1] = (direction * ty) / length;
+      normals[v + 2] = (direction * tz) / length;
     }
   }
 }

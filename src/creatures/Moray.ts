@@ -216,6 +216,21 @@ export class Moray {
           b = a + columns + 1;
         ix.push(a, a + 1, b, a + 1, b + 1, b);
       }
+    // Close both ends of the animated tube. The old open rings were visible through the mouth and
+    // at full extension, making an otherwise opaque eel appear hollow.
+    const firstCap = p.length / 3;
+    p.push(0, 0, 0);
+    n.push(0, 0, -1);
+    t.push(0);
+    const lastCap = p.length / 3;
+    p.push(0, 0, 1);
+    n.push(0, 0, 1);
+    t.push(1);
+    for (let j = 0; j < columns; j++) {
+      ix.push(firstCap, j + 1, j);
+      const a = rows * (columns + 1) + j;
+      ix.push(lastCap, a, a + 1);
+    }
     const body = new THREE.BufferGeometry();
     body.setAttribute('position', new THREE.Float32BufferAttribute(p, 3));
     body.setAttribute('normal', new THREE.Float32BufferAttribute(n, 3));

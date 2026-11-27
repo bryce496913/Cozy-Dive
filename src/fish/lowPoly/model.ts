@@ -451,6 +451,38 @@ export function coreFishGeometry(id: SpeciesId): THREE.BufferGeometry {
     (beaked ? 0.07 : heavyMouth ? 0.045 : 0.025) * d.width,
   );
   parts.push(paint(mouth, [beaked ? d.palette[3] : '#43504b'], () => 0));
+  if (beaked) {
+    // The bumphead's fused dental plates and steep forehead are solid volumes, not a generic
+    // pointed fish mouth. Their shared root keeps the beak seated during body and fin morphs.
+    for (const side of [-1, 1]) {
+      const plate = profileBody(
+        [
+          {
+            x: 0.43,
+            width: d.width * 0.46,
+            height: h * 0.07,
+            y: side * h * 0.07,
+          },
+          {
+            x: 0.535,
+            width: d.width * 0.34,
+            height: h * 0.055,
+            y: side * h * 0.055,
+          },
+        ],
+        6,
+      );
+      parts.push(paint(plate, [d.palette[3]], () => 0));
+    }
+    const forehead = profileBody(
+      [
+        { x: 0.3, width: d.width * 0.82, height: h * 0.28, y: h * 0.08 },
+        { x: 0.43, width: d.width * 0.68, height: h * 0.22, y: h * 0.09 },
+      ],
+      8,
+    );
+    parts.push(paint(forehead, [d.palette[0]], () => 0));
+  }
   const g = join(parts);
   g.scale(d.length, d.length, d.length);
   for (const sign of [1, -1])
