@@ -140,14 +140,7 @@ export function crabBody(): THREE.BufferGeometry {
       spine.translate(x, 0.046, z);
       parts.push(tinted(spine, DARK));
     }
-  // Raised bumps on the shell's regions, darker.
-  for (let i = 0; i < 9; i++) {
-    const bump = new THREE.SphereGeometry(0.008 + 0.004 * (i % 3), 6, 4),
-      a = i * 2.4,
-      r = 0.02 + 0.012 * (i % 4);
-    bump.translate(Math.sin(a) * r * 1.3, 0.071, Math.cos(a) * r);
-    parts.push(tinted(bump, DARK));
-  }
+  // Broad vertex-colour regions provide shell variation without stuck-on spherical growths.
   // Mouthparts under the front, and two short antennae between the eyes.
   const mouth = new THREE.BoxGeometry(0.03, 0.014, 0.012);
   mouth.translate(0, 0.03, 0.062);
