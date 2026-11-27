@@ -44,10 +44,10 @@ means the model, markings, and existing animation contract have all been address
 
 ## Small benthic and plankton animals
 
-- [ ] Spanish shawl nudibranch — opaque body and fewer, stronger cerata.
-- [ ] Kelp crab — opaque carapace and no decorative ball growths.
-- [ ] Rock crab — opaque carapace and no decorative ball growths.
-- [ ] Spiny lobster — opaque segmented body and a visibly dark den entrance.
+- [x] Spanish shawl nudibranch — opaque body and fewer, stronger cerata.
+- [x] Kelp crab — opaque carapace and no decorative ball growths.
+- [x] Rock crab — opaque carapace and no decorative ball growths.
+- [x] Spiny lobster — opaque segmented body and a visibly dark den entrance.
 - [ ] Sea butterfly — opaque soft body with readable wing lobes.
 - [ ] Antarctic krill — opaque segmented body.
 - [ ] Giant isopod — opaque joined armored body and articulated leg silhouette.
