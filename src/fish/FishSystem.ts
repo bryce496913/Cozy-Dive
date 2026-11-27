@@ -1,3 +1,4 @@
+import { fishFinStroke } from './lowPoly/motion';
 import { FishRenderBatch } from './FishRenderBatch';
 import type { PlayerPresence } from './FishDiverReaction';
 import * as THREE from 'three';
@@ -123,7 +124,8 @@ export class FishSystem {
             0.18,
           )) *
         fish.species.tailAngle *
-        (0.25 + 0.75 * ratio);
+        (0.25 + 0.75 * ratio) *
+        (reducedMotion ? 0.5 : 1);
       const effort = Math.max(
         -1,
         Math.min(1, visual.tail.rotation.y / fish.species.tailAngle),
@@ -132,8 +134,10 @@ export class FishSystem {
         visual.body.morphTargetInfluences[0] = Math.max(0, effort);
         visual.body.morphTargetInfluences[1] = Math.max(0, -effort);
       }
-      visual.leftPectoral.rotation.y = 0.45 + Math.sin(phase + 0.6) * 0.14;
-      visual.rightPectoral.rotation.y = -0.45 - Math.sin(phase + 0.6) * 0.14;
+      const finEffort = Math.sin(phase + 0.6) * (reducedMotion ? 0.5 : 1);
+      fishFinStroke(visual.body, finEffort);
+      visual.leftPectoral.rotation.y = 0.45 + finEffort * 0.14;
+      visual.rightPectoral.rotation.y = -0.45 - finEffort * 0.14;
     }
     for (const batch of this.batches) batch.update();
   }

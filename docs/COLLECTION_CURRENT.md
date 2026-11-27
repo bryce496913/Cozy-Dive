@@ -1,6 +1,6 @@
 # Current collection and aquarium integration
 
-Collection contracts after Pass 108, with fish sources updated by low-poly migration Pass 017; historical `V08_*` pass reports remain snapshots of their respective passes. The [Pass 107 acceptance report](PASS_107_ACCEPTANCE_REPORT.md) and [22-species inventory](PASS_107_COLLECTION_MATRIX.md) document the collection candidate. Final acceptance and real MacBook Air testing are still pending; no release or version bump is implied.
+Collection contracts after Pass 108, with fish sources updated by low-poly migration Passes 017–018; historical `V08_*` pass reports remain snapshots of their respective passes. The [Pass 107 acceptance report](PASS_107_ACCEPTANCE_REPORT.md) and [22-species inventory](PASS_107_COLLECTION_MATRIX.md) document the collection candidate. Final acceptance and real MacBook Air testing are still pending; no release or version bump is implied.
 
 ## Registry and discovery
 
@@ -20,9 +20,9 @@ Slots include the registered coral identities and the existing Weddell pup slot;
 
 ## Canonical sources and intentional sharing
 
-The registry describes model identity; wild owners continue to acquire their own assets/factories. Fish assets resolve through the existing AssetLoader: the 29 core swimming identities now have independent generated models, shared by wild, card, tank and fallback contexts. The original seahorse and frogfish use shared rebuilt parts within the mixed anchored-life library. Fish cards use their canonical palette; visitor and rare cards use `acquireCollectionArt`, as does the tank; procedural art uses shared geometry factories. Corals resolve existing reef-library nodes. `AssetLoader` leases cloned hierarchy/skeleton state over reference-counted source resources; the six rare libraries stay lazy and use the same source nodes in wild/card/tank contexts.
+The registry describes model identity; wild owners continue to acquire their own assets/factories. Fish assets resolve through the existing AssetLoader: the 29 core swimming identities now have independent generated models, shared by wild, card, tank and fallback contexts. The original seahorse and frogfish use shared rebuilt parts within the mixed anchored-life library. Pass 018 adds curved, black-edged clownfish bands, distinct trailing fin outlines and independent pectoral poses through these same owners. Fish cards use their canonical palette; visitor and rare cards use `acquireCollectionArt`, as does the tank; procedural art uses shared geometry factories. Corals resolve existing reef-library nodes. `AssetLoader` leases cloned hierarchy/skeleton state over reference-counted source resources; the six rare libraries stay lazy and use the same source nodes in wild/card/tank contexts.
 
-**Cross-context consistency does not imply species-specific anatomy.** All 22 authored rare discoveries have their registered species-specific source nodes. The following non-core-fish species still share base forms and remain outside Pass 017:
+**Cross-context consistency does not imply species-specific anatomy.** All 22 authored rare discoveries have their registered species-specific source nodes. The following non-core-fish species still share base forms and remain outside Passes 017–018:
 
 | Shared source                     | Species/identities represented                                     |
 | --------------------------------- | ------------------------------------------------------------------ |

@@ -1,3 +1,4 @@
+import { fishFinStroke } from '../fish/lowPoly/motion';
 import { CORE_FISH } from '../fish/lowPoly/designs';
 import * as THREE from 'three';
 import type { AssetLease } from '../assets/AssetLoader';
@@ -221,6 +222,8 @@ export class AuthoredSchool {
           part.morphTargetInfluences[part.morphTargetDictionary.Stroke_Right] =
             Math.max(0, -effort);
         }
+      for (const part of parts)
+        fishFinStroke(part, (source.leftPectoral.rotation.y - 0.45) / 0.14);
       if (near) {
         const left = rig.getObjectByName('Pectoral_Left'),
           right = rig.getObjectByName('Pectoral_Right');

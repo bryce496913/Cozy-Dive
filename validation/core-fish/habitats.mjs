@@ -4,7 +4,8 @@ const { chromium } = await import(
   process.env.COZY_PLAYWRIGHT ||
     '/tmp/cozy-browser/node_modules/playwright/index.mjs'
 );
-const output = 'docs/low-poly/pass017-evidence';
+const output = process.env.COZY_OUTPUT || 'docs/low-poly/pass017-evidence';
+const showcase = process.env.COZY_SHOWCASE === '1';
 fs.mkdirSync(output, { recursive: true });
 const browser = await chromium.launch({
   executablePath: '/usr/bin/chromium',
@@ -59,17 +60,30 @@ try {
     .getByRole('button', { name: /^(Dive In|Return to the Water)$/ })
     .click();
   await page.waitForFunction(() => !!document.pointerLockElement);
-  await page.keyboard.press('w');
+  await page.keyboard.down('w');
   await page.waitForTimeout(250);
+  await page.keyboard.up('w');
   await page.keyboard.press('Escape');
   await page.waitForFunction(() => !document.pointerLockElement);
-  const aquarium = await page.evaluate(() => {
+  const aquarium = await page.evaluate((showcase) => {
     // The real input/pause checks have completed; avoid rendering the paused
     // aquarium behind the localized kelp warm-up on software GPUs.
     cancelAnimationFrame(window.__cozy.frame);
     const w = window.__cozy.world;
-    w.camera.position.set(0, 7, 1.5);
-    w.camera.lookAt(0, 7, -3);
+    if (showcase) {
+      const f = w.aquarium.fish.simulation.fish.find(
+        (f) => f.species.id === 'ocellaris-clownfish',
+      );
+      w.camera.position.set(
+        f.position.x + 1,
+        f.position.y + 0.35,
+        f.position.z + 1.25,
+      );
+      w.camera.lookAt(f.position.x, f.position.y, f.position.z);
+    } else {
+      w.camera.position.set(0, 7, 1.5);
+      w.camera.lookAt(0, 7, -3);
+    }
     w.render(0, false, 0, false, {
       position: w.camera.position,
       velocity: { x: 0, y: 0, z: 0 },
@@ -82,7 +96,7 @@ try {
       state: w.authored.state,
       leases: w.authored.loader.leased,
     };
-  });
+  }, showcase);
   fs.writeFileSync(
     `${output}/aquarium.png`,
     Buffer.from(aquarium.image.split(',')[1], 'base64'),
@@ -139,6 +153,66 @@ try {
     return window.__cozy.world.authored.loader.leased;
   });
   assert.equal(report.afterKelpRelease, report.aquarium.leases);
+  if (showcase) {
+    const outerStart = Date.now();
+    await page.evaluate(async () => {
+      const { OuterWatersScene } =
+        await import('/src/rendering/OuterWatersScene.ts');
+      const w = window.__cozy.world;
+      window.__outerInspection = new OuterWatersScene(w.renderer, {
+        fish: w.authored.loader,
+        reef: w.reefLoader,
+        plants: w.aquarium.plants.material,
+        soundSpots: 0,
+      });
+      await window.__outerInspection.prepared;
+      window.__outerInspection.begin();
+      await window.__outerInspection.reefPrepared;
+    });
+    report.outerLoadMs = Date.now() - outerStart;
+    console.log('Outer reef ready');
+    report.outer = await page.evaluate(() => {
+      const o = window.__outerInspection,
+        w = window.__cozy.world;
+      const f = o.schools.fish.simulation.fish.find(
+        (f) => f.species.id === 'moorish-idol',
+      );
+      o.camera.position.set(
+        f.position.x + 0.8,
+        f.position.y + 0.3,
+        f.position.z + 1.5,
+      );
+      o.camera.lookAt(f.position.x, f.position.y, f.position.z);
+      const player = {
+        position: o.camera.position,
+        velocity: { x: 0, y: 0, z: 0 },
+        active: false,
+      };
+      // Advance only the existing reveal while paused, then inspect the unchanged reef lighting.
+      o.render(0, false, 1.8, false, player);
+      o.render(1 / 30, false, 1 / 30, true, player);
+      return {
+        image: w.renderer.domElement.toDataURL(),
+        ready: o.isReefReady,
+        render: { ...w.renderer.info.render },
+        fish: o.schools.fish.simulation.fish.length,
+        ids: [
+          ...new Set(o.schools.fish.simulation.fish.map((f) => f.species.id)),
+        ],
+      };
+    });
+    fs.writeFileSync(
+      `${output}/outer.png`,
+      Buffer.from(report.outer.image.split(',')[1], 'base64'),
+    );
+    delete report.outer.image;
+    assert.equal(report.outer.ready, true);
+    report.afterOuterRelease = await page.evaluate(() => {
+      window.__outerInspection.dispose();
+      return window.__cozy.world.authored.loader.leased;
+    });
+    assert.equal(report.afterOuterRelease, report.aquarium.leases);
+  }
   report.release = await page.evaluate(() => {
     const a = window.__cozy,
       w = a.world;
