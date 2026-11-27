@@ -199,14 +199,7 @@ export const MINIATURES_BEFORE_096: readonly BabyDefinition[] = [
           'green-sea-turtle',
         ].includes(s.id),
     )
-    .map((s) =>
-      littleAsset(
-        s.id,
-        `Little ${s.name.toLowerCase()}`,
-        s.asset,
-        s.id === 'bat-ray' ? CREATURE_LOOKS.batRayTint : undefined,
-      ),
-    ),
+    .map((s) => littleAsset(s.id, `Little ${s.name.toLowerCase()}`, s.asset)),
   littleAsset('great-white-shark', 'Great white pup', 'greatWhite'),
   littleAsset('ocean-sunfish', 'Little ocean sunfish', 'sunfish'),
   littleAsset('sea-otter', 'Sea otter pup', 'seaOtter'),
@@ -224,12 +217,7 @@ export const MINIATURES_BEFORE_096: readonly BabyDefinition[] = [
   littleAsset('adelie-penguin', 'Little Adélie penguin', 'adeliePenguin'),
   littleAsset('weddell-seal', 'Little Weddell seal', 'weddellSeal'),
   {
-    ...littleAsset(
-      'weddell-seal-pup',
-      'Weddell seal pup',
-      'harbourSeal',
-      CREATURE_LOOKS.weddellPup.tint,
-    ),
+    ...littleAsset('weddell-seal-pup', 'Weddell seal pup', 'weddellSealPup'),
     size: 0.35,
   },
   littleAsset('leopard-seal', 'Leopard seal pup', 'leopardSeal'),

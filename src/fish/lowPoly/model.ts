@@ -256,11 +256,11 @@ export function coreFishGeometry(id: SpeciesId): THREE.BufferGeometry {
   if (d.dorsal === 'pennant')
     dorsal = [
       [-0.27, h * 0.3],
-      [-0.21, h * 1.3],
-      [0.03, h * 0.95],
-      [0.12, h * 3.3],
-      [0.17, h * 3.5],
-      [0.23, h * 0.65],
+      [-0.22, h * 1.08],
+      [0.075, h * 0.82],
+      [0.135, h * 3.45],
+      [0.16, h * 3.58],
+      [0.19, h * 0.62],
     ];
   else if (d.dorsal === 'banner')
     // A narrow swept streamer, not a tall solid crest. Keep the established height envelope.

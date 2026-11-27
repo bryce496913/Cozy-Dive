@@ -467,6 +467,13 @@ export const ASSET_REGISTRY = {
     maxDimension: 4.8,
     requireMorphs: true,
   },
+  batRay: {
+    path: 'generated/large-creatures/bat-ray',
+    requiredNodes: ['BatRay_Root', 'Body', 'Body_LOD1'],
+    minDimension: 3.3,
+    maxDimension: 4.2,
+    requireMorphs: true,
+  },
   seaTurtle: {
     path: 'assets/models/creatures/sea-turtle.glb',
     requiredNodes: ['Turtle_Root', 'Body', 'Body_LOD1'],
@@ -479,6 +486,13 @@ export const ASSET_REGISTRY = {
   hammerhead: {
     path: 'assets/models/creatures/hammerhead.glb',
     requiredNodes: ['Hammerhead_Root', 'Body', 'Body_LOD1'],
+    minDimension: 2.7,
+    maxDimension: 3.4,
+    requireMorphs: true,
+  },
+  scallopedHammerhead: {
+    path: 'generated/large-creatures/scalloped-hammerhead',
+    requiredNodes: ['ScallopedHammerhead_Root', 'Body', 'Body_LOD1'],
     minDimension: 2.7,
     maxDimension: 3.4,
     requireMorphs: true,
@@ -759,6 +773,13 @@ export const ASSET_REGISTRY = {
     requiredNodes: ['WeddellSeal_Root', 'Body', 'Body_LOD1'],
     minDimension: 2.4,
     maxDimension: 3.4,
+    requireMorphs: true,
+  },
+  weddellSealPup: {
+    path: 'generated/large-creatures/weddell-seal-pup',
+    requiredNodes: ['WeddellSealPup_Root', 'Body', 'Body_LOD1'],
+    minDimension: 1.2,
+    maxDimension: 1.7,
     requireMorphs: true,
   },
   leopardSeal: {
