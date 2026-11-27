@@ -1,3 +1,8 @@
+import { rebuildAnchoredFish } from '../fish/lowPoly/anchored';
+import { CORE_FISH, CORE_FISH_IDS } from '../fish/lowPoly/designs';
+import { coreFishAsset } from '../fish/lowPoly/model';
+import { LARGE_CREATURE_IDS } from '../creatures/lowPoly/designs';
+import { largeCreatureAsset } from '../creatures/lowPoly/model';
 import * as THREE from 'three';
 import { versioned } from '../config/release';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -80,9 +85,25 @@ export class AssetLoader {
     this.read = read ?? ((url) => this.readLocal(url));
   }
   private readLocal(url: string): Promise<LoadedAsset> {
-    // Blender-authored GLBs are canonical. Runtime geometry factories remain as development
-    // references, but may not replace an authored animal at load time: the wild world, album and
-    // aquarium must all receive the same exported mesh and animation clips.
+    // Generated fish use the same validation, cloning, refcounts and retirement as GLBs.
+    const species = CORE_FISH_IDS.find((id) =>
+      url.endsWith(ASSET_REGISTRY[CORE_FISH[id].asset].path),
+    );
+    if (species) {
+      const spec = ASSET_REGISTRY[CORE_FISH[species].asset];
+      return Promise.resolve(
+        coreFishAsset(species, spec.requiredNodes[0], spec.requiredNodes),
+      );
+    }
+    const creature = LARGE_CREATURE_IDS.find((id) =>
+      url.endsWith(ASSET_REGISTRY[id].path),
+    );
+    if (creature) {
+      const spec = ASSET_REGISTRY[creature];
+      return Promise.resolve(
+        largeCreatureAsset(creature, spec.requiredNodes[0], spec.requiredNodes),
+      );
+    }
     const manager = new THREE.LoadingManager();
     manager.setURLModifier((request) => {
       if (request.startsWith('blob:') || request.startsWith('data:'))
@@ -105,7 +126,16 @@ export class AssetLoader {
       gltf.setKTX2Loader(this.ktx2.loader);
     }
     // v0.8 Pass 060: the version on the request, so an update is never served a stale model.
-    return gltf.loadAsync(versioned(url));
+    return gltf.loadAsync(versioned(url)).then((asset) => {
+      try {
+        return url.endsWith(ASSET_REGISTRY.anchored.path)
+          ? rebuildAnchoredFish(asset)
+          : asset;
+      } catch (error) {
+        disposeAsset(asset);
+        throw error;
+      }
+    });
   }
   async acquire(id: AssetId): Promise<AssetLease> {
     if (this.disposed) throw Error('Asset cache is disposed');

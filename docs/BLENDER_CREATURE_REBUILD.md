@@ -1,8 +1,7 @@
 # Blender creature rebuild
 
-The runtime now treats exported Blender GLBs as the canonical creature source. It no longer
-substitutes code-generated meshes for core fish, large creatures, or anchored creatures when a
-scene loads.
+This pass preserves editable Blender sources without changing the approved runtime models. Blender
+exports must pass visual review before they replace the existing low-poly creature builders.
 
 ## Source convention
 
@@ -18,13 +17,13 @@ replacements continue to work with existing encounter, collection, aquarium, and
 | Pinnipeds, penguins, killer whale and polar bear | individual files in `assets/models/creatures/` |
 | Spanish shawl, giant isopod and other rare miniatures | `kelp-minis.glb`, `ice-minis.glb` |
 
-## Blender-native small resident library
+## Draft small resident library
 
 `tools/art/pass109/author_small_residents.py` builds and exports
 `tools/art/pass109/exports/small-resident-redesigns.glb`, retaining its editable source at
 `tools/art/pass109/sources/small-resident-redesigns.blend`.
 
-It contains closed, opaque low-poly meshes and morph targets for:
+The draft contains closed, opaque low-poly meshes for:
 
 - Day octopus
 - Kelp crab and rock crab
@@ -33,6 +32,6 @@ It contains closed, opaque low-poly meshes and morph targets for:
 - Antarctic krill
 - Sea butterfly
 
-The next integration checkpoint replaces the corresponding scene-local procedural instances with
-this library while preserving their habitat-specific movement and discovery controllers.
+This draft is not registered or shipped at runtime. Its first visual review found proportion and
+assembly problems, so the existing residents remain active until redesigned exports are approved.
 
