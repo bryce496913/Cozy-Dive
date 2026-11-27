@@ -41,8 +41,8 @@ const SHELL = [0.62, 0.24, 0.12] as const,
   EYE = [0.03, 0.03, 0.035] as const;
 
 /**
- * v0.6 Pass 052 (playtest: "the crabs need more detail"): mottle a part's colours by position, a
- * darker blotchy pattern over the shell and limbs, and lighter towards its rims.
+ * Deliberate broad shell regions and a lighter rim. Facet lighting supplies the small variation;
+ * the palette no longer uses procedural noise.
  */
 function mottled(
   g: THREE.BufferGeometry,
@@ -55,11 +55,14 @@ function mottled(
     const x = p.getX(i),
       y = p.getY(i),
       z = p.getZ(i),
-      blotch =
-        Math.sin(x * 180 + z * 90) * Math.sin(z * 150 - x * 60) +
-        0.5 * Math.sin(x * 420 + y * 300),
+      patch =
+        (x > 0.018 && z < -0.008) ||
+        (x < -0.032 && z > 0.012) ||
+        (y > 0.055 && Math.abs(x) < 0.018)
+          ? 1
+          : 0,
       edge = rim * Math.min(1, Math.hypot(x / 0.085, z / 0.068) ** 6),
-      k = (1 - amount * Math.max(0, blotch)) * (1 + edge);
+      k = (1 - amount * patch) * (1 + edge);
     c.setXYZ(i, c.getX(i) * k, c.getY(i) * k, c.getZ(i) * k);
   }
   return g;
