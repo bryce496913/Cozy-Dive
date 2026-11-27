@@ -55,6 +55,6 @@ is reserved for the user's full playthrough.
 
 ## Large-creature review page
 
-Open `/validation/large-creature-review/` from the development server to review all 22 current
+Open `/validation/large-creature-review.html` from the development server to review all 22 current
 large-creature designs together. The page provides consistent side, three-quarter, front and top
 views, animated stroke poses, labels and a copyable redesign selection list.
