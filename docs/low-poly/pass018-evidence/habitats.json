@@ -1,0 +1,61 @@
+{
+  "renderer": "Chromium SwiftShader; localized scenes, not a passage traversal or hardware benchmark",
+  "errors": [],
+  "fishDownloads": [],
+  "aquariumLoadMs": 87556,
+  "aquarium": {
+    "render": {
+      "frame": 63,
+      "calls": 92,
+      "triangles": 1160890,
+      "points": 210,
+      "lines": 12
+    },
+    "fish": 41,
+    "state": "ready",
+    "leases": 45
+  },
+  "kelpLoadMs": 6133,
+  "kelp": {
+    "render": {
+      "frame": 76,
+      "calls": 39,
+      "triangles": 3006243,
+      "points": 700,
+      "lines": 0
+    },
+    "ready": true,
+    "fish": 145,
+    "ids": ["garibaldi", "kelp-bass", "blacksmith", "senorita"],
+    "leases": 206
+  },
+  "afterKelpRelease": 45,
+  "outerLoadMs": 3375,
+  "outer": {
+    "ready": true,
+    "render": {
+      "frame": 92,
+      "calls": 79,
+      "triangles": 2675513,
+      "points": 1600,
+      "lines": 0
+    },
+    "fish": 307,
+    "ids": [
+      "blue-green-chromis",
+      "pajama-cardinalfish",
+      "firefish-goby",
+      "yellow-assessor",
+      "royal-gramma",
+      "blue-tang",
+      "threadfin-butterflyfish",
+      "moorish-idol"
+    ]
+  },
+  "afterOuterRelease": 45,
+  "release": {
+    "leases": 0,
+    "geometries": 0,
+    "textures": 0
+  }
+}

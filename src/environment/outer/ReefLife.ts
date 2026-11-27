@@ -73,7 +73,7 @@ const LENGTH = {
   cleaner: 0.13,
   client: 0.6,
 } as const;
-/** The cleaner wrasse: the firefish's slender body, in its electric blue. */
+/** Legacy tint for noncanonical fixture rigs; the canonical cleaner wrasse owns its markings. */
 const CLEANER_BLUE = FISH_RECOLOR['cleaner-wrasse'];
 /** The sunfish's scale on its authored 1.2 m body (about 2.2 m long, 3 m fin to fin). */
 const SUNFISH_SCALE = 1.8;

@@ -135,6 +135,15 @@ function snapshot() {
     triangles: renderer.info.render.triangles,
     geometries: renderer.info.memory.geometries,
     textures: renderer.info.memory.textures,
+    morphAttributeBytes: meshes.reduce(
+      (sum, m) =>
+        sum +
+        (m.geometry.morphAttributes.position ?? []).reduce(
+          (n, a) => n + a.array.byteLength,
+          0,
+        ),
+      0,
+    ),
     time,
     paused,
     view: view.value,
@@ -160,6 +169,7 @@ function render(now: number) {
       Math.sin(time * 4 * rate + i) *
         Math.min(0.95, 0.25 + rate * 0.35) *
         (media.matches ? 0.5 : 1),
+      Math.sin(time * 4 * rate + i + 0.6) * (media.matches ? 0.5 : 1),
     );
   for (const model of models)
     for (const part of model.children) {

@@ -1,0 +1,587 @@
+{
+  "renderer": "Chromium SwiftShader software; not real GPU",
+  "loadMs": 2129,
+  "speeds": [
+    {
+      "models": 31,
+      "drawCalls": 39,
+      "triangles": 9856,
+      "geometries": 38,
+      "textures": 30,
+      "morphAttributeBytes": 1331136,
+      "time": 0.2666999999999998,
+      "paused": false,
+      "view": "three-quarter",
+      "reduced": false,
+      "counts": [
+        {
+          "id": "blue-green-chromis",
+          "triangles": 272
+        },
+        {
+          "id": "pajama-cardinalfish",
+          "triangles": 548
+        },
+        {
+          "id": "royal-gramma",
+          "triangles": 296
+        },
+        {
+          "id": "yellow-assessor",
+          "triangles": 296
+        },
+        {
+          "id": "firefish-goby",
+          "triangles": 276
+        },
+        {
+          "id": "ocellaris-clownfish",
+          "triangles": 496
+        },
+        {
+          "id": "garibaldi",
+          "triangles": 284
+        },
+        {
+          "id": "kelp-bass",
+          "triangles": 328
+        },
+        {
+          "id": "blacksmith",
+          "triangles": 272
+        },
+        {
+          "id": "senorita",
+          "triangles": 296
+        },
+        {
+          "id": "glassy-sweeper",
+          "triangles": 276
+        },
+        {
+          "id": "soldierfish",
+          "triangles": 284
+        },
+        {
+          "id": "blue-tang",
+          "triangles": 260
+        },
+        {
+          "id": "threadfin-butterflyfish",
+          "triangles": 348
+        },
+        {
+          "id": "moorish-idol",
+          "triangles": 328
+        },
+        {
+          "id": "longfin-bannerfish",
+          "triangles": 340
+        },
+        {
+          "id": "parrotfish",
+          "triangles": 272
+        },
+        {
+          "id": "bigeye-trevally",
+          "triangles": 276
+        },
+        {
+          "id": "humphead-wrasse",
+          "triangles": 296
+        },
+        {
+          "id": "flashlight-fish",
+          "triangles": 276
+        },
+        {
+          "id": "antarctic-silverfish",
+          "triangles": 276
+        },
+        {
+          "id": "great-barracuda",
+          "triangles": 340
+        },
+        {
+          "id": "blackfin-icefish",
+          "triangles": 336
+        },
+        {
+          "id": "bald-notothen",
+          "triangles": 360
+        },
+        {
+          "id": "antarctic-toothfish",
+          "triangles": 324
+        },
+        {
+          "id": "giant-sea-bass",
+          "triangles": 372
+        },
+        {
+          "id": "queensland-grouper",
+          "triangles": 360
+        },
+        {
+          "id": "california-sheephead",
+          "triangles": 260
+        },
+        {
+          "id": "cleaner-wrasse",
+          "triangles": 296
+        }
+      ]
+    },
+    {
+      "models": 31,
+      "drawCalls": 39,
+      "triangles": 9856,
+      "geometries": 38,
+      "textures": 30,
+      "morphAttributeBytes": 1331136,
+      "time": 0.4166999999999998,
+      "paused": false,
+      "view": "three-quarter",
+      "reduced": false,
+      "counts": [
+        {
+          "id": "blue-green-chromis",
+          "triangles": 272
+        },
+        {
+          "id": "pajama-cardinalfish",
+          "triangles": 548
+        },
+        {
+          "id": "royal-gramma",
+          "triangles": 296
+        },
+        {
+          "id": "yellow-assessor",
+          "triangles": 296
+        },
+        {
+          "id": "firefish-goby",
+          "triangles": 276
+        },
+        {
+          "id": "ocellaris-clownfish",
+          "triangles": 496
+        },
+        {
+          "id": "garibaldi",
+          "triangles": 284
+        },
+        {
+          "id": "kelp-bass",
+          "triangles": 328
+        },
+        {
+          "id": "blacksmith",
+          "triangles": 272
+        },
+        {
+          "id": "senorita",
+          "triangles": 296
+        },
+        {
+          "id": "glassy-sweeper",
+          "triangles": 276
+        },
+        {
+          "id": "soldierfish",
+          "triangles": 284
+        },
+        {
+          "id": "blue-tang",
+          "triangles": 260
+        },
+        {
+          "id": "threadfin-butterflyfish",
+          "triangles": 348
+        },
+        {
+          "id": "moorish-idol",
+          "triangles": 328
+        },
+        {
+          "id": "longfin-bannerfish",
+          "triangles": 340
+        },
+        {
+          "id": "parrotfish",
+          "triangles": 272
+        },
+        {
+          "id": "bigeye-trevally",
+          "triangles": 276
+        },
+        {
+          "id": "humphead-wrasse",
+          "triangles": 296
+        },
+        {
+          "id": "flashlight-fish",
+          "triangles": 276
+        },
+        {
+          "id": "antarctic-silverfish",
+          "triangles": 276
+        },
+        {
+          "id": "great-barracuda",
+          "triangles": 340
+        },
+        {
+          "id": "blackfin-icefish",
+          "triangles": 336
+        },
+        {
+          "id": "bald-notothen",
+          "triangles": 360
+        },
+        {
+          "id": "antarctic-toothfish",
+          "triangles": 324
+        },
+        {
+          "id": "giant-sea-bass",
+          "triangles": 372
+        },
+        {
+          "id": "queensland-grouper",
+          "triangles": 360
+        },
+        {
+          "id": "california-sheephead",
+          "triangles": 260
+        },
+        {
+          "id": "cleaner-wrasse",
+          "triangles": 296
+        }
+      ]
+    },
+    {
+      "models": 31,
+      "drawCalls": 39,
+      "triangles": 9856,
+      "geometries": 38,
+      "textures": 30,
+      "morphAttributeBytes": 1331136,
+      "time": 0.5666999999999999,
+      "paused": false,
+      "view": "three-quarter",
+      "reduced": false,
+      "counts": [
+        {
+          "id": "blue-green-chromis",
+          "triangles": 272
+        },
+        {
+          "id": "pajama-cardinalfish",
+          "triangles": 548
+        },
+        {
+          "id": "royal-gramma",
+          "triangles": 296
+        },
+        {
+          "id": "yellow-assessor",
+          "triangles": 296
+        },
+        {
+          "id": "firefish-goby",
+          "triangles": 276
+        },
+        {
+          "id": "ocellaris-clownfish",
+          "triangles": 496
+        },
+        {
+          "id": "garibaldi",
+          "triangles": 284
+        },
+        {
+          "id": "kelp-bass",
+          "triangles": 328
+        },
+        {
+          "id": "blacksmith",
+          "triangles": 272
+        },
+        {
+          "id": "senorita",
+          "triangles": 296
+        },
+        {
+          "id": "glassy-sweeper",
+          "triangles": 276
+        },
+        {
+          "id": "soldierfish",
+          "triangles": 284
+        },
+        {
+          "id": "blue-tang",
+          "triangles": 260
+        },
+        {
+          "id": "threadfin-butterflyfish",
+          "triangles": 348
+        },
+        {
+          "id": "moorish-idol",
+          "triangles": 328
+        },
+        {
+          "id": "longfin-bannerfish",
+          "triangles": 340
+        },
+        {
+          "id": "parrotfish",
+          "triangles": 272
+        },
+        {
+          "id": "bigeye-trevally",
+          "triangles": 276
+        },
+        {
+          "id": "humphead-wrasse",
+          "triangles": 296
+        },
+        {
+          "id": "flashlight-fish",
+          "triangles": 276
+        },
+        {
+          "id": "antarctic-silverfish",
+          "triangles": 276
+        },
+        {
+          "id": "great-barracuda",
+          "triangles": 340
+        },
+        {
+          "id": "blackfin-icefish",
+          "triangles": 336
+        },
+        {
+          "id": "bald-notothen",
+          "triangles": 360
+        },
+        {
+          "id": "antarctic-toothfish",
+          "triangles": 324
+        },
+        {
+          "id": "giant-sea-bass",
+          "triangles": 372
+        },
+        {
+          "id": "queensland-grouper",
+          "triangles": 360
+        },
+        {
+          "id": "california-sheephead",
+          "triangles": 260
+        },
+        {
+          "id": "cleaner-wrasse",
+          "triangles": 296
+        }
+      ]
+    }
+  ],
+  "cycles": [
+    {
+      "models": 0,
+      "drawCalls": 39,
+      "triangles": 9856,
+      "geometries": 0,
+      "textures": 1,
+      "morphAttributeBytes": 0,
+      "time": 0.6667,
+      "paused": false,
+      "view": "three-quarter",
+      "reduced": false,
+      "counts": []
+    },
+    {
+      "models": 0,
+      "drawCalls": 39,
+      "triangles": 9856,
+      "geometries": 0,
+      "textures": 1,
+      "morphAttributeBytes": 0,
+      "time": 0.9833999999999992,
+      "paused": false,
+      "view": "three-quarter",
+      "reduced": false,
+      "counts": []
+    },
+    {
+      "models": 0,
+      "drawCalls": 39,
+      "triangles": 9856,
+      "geometries": 0,
+      "textures": 1,
+      "morphAttributeBytes": 0,
+      "time": 1.2666999999999986,
+      "paused": false,
+      "view": "three-quarter",
+      "reduced": false,
+      "counts": []
+    }
+  ],
+  "timing": {
+    "medianMs": 100,
+    "p95Ms": 183.3000000000011,
+    "maxMs": 200
+  },
+  "final": {
+    "models": 31,
+    "drawCalls": 39,
+    "triangles": 9856,
+    "geometries": 38,
+    "textures": 30,
+    "morphAttributeBytes": 1331136,
+    "time": 3.3831999999999924,
+    "paused": false,
+    "view": "three-quarter",
+    "reduced": false,
+    "counts": [
+      {
+        "id": "blue-green-chromis",
+        "triangles": 272
+      },
+      {
+        "id": "pajama-cardinalfish",
+        "triangles": 548
+      },
+      {
+        "id": "royal-gramma",
+        "triangles": 296
+      },
+      {
+        "id": "yellow-assessor",
+        "triangles": 296
+      },
+      {
+        "id": "firefish-goby",
+        "triangles": 276
+      },
+      {
+        "id": "ocellaris-clownfish",
+        "triangles": 496
+      },
+      {
+        "id": "garibaldi",
+        "triangles": 284
+      },
+      {
+        "id": "kelp-bass",
+        "triangles": 328
+      },
+      {
+        "id": "blacksmith",
+        "triangles": 272
+      },
+      {
+        "id": "senorita",
+        "triangles": 296
+      },
+      {
+        "id": "glassy-sweeper",
+        "triangles": 276
+      },
+      {
+        "id": "soldierfish",
+        "triangles": 284
+      },
+      {
+        "id": "blue-tang",
+        "triangles": 260
+      },
+      {
+        "id": "threadfin-butterflyfish",
+        "triangles": 348
+      },
+      {
+        "id": "moorish-idol",
+        "triangles": 328
+      },
+      {
+        "id": "longfin-bannerfish",
+        "triangles": 340
+      },
+      {
+        "id": "parrotfish",
+        "triangles": 272
+      },
+      {
+        "id": "bigeye-trevally",
+        "triangles": 276
+      },
+      {
+        "id": "humphead-wrasse",
+        "triangles": 296
+      },
+      {
+        "id": "flashlight-fish",
+        "triangles": 276
+      },
+      {
+        "id": "antarctic-silverfish",
+        "triangles": 276
+      },
+      {
+        "id": "great-barracuda",
+        "triangles": 340
+      },
+      {
+        "id": "blackfin-icefish",
+        "triangles": 336
+      },
+      {
+        "id": "bald-notothen",
+        "triangles": 360
+      },
+      {
+        "id": "antarctic-toothfish",
+        "triangles": 324
+      },
+      {
+        "id": "giant-sea-bass",
+        "triangles": 372
+      },
+      {
+        "id": "queensland-grouper",
+        "triangles": 360
+      },
+      {
+        "id": "california-sheephead",
+        "triangles": 260
+      },
+      {
+        "id": "cleaner-wrasse",
+        "triangles": 296
+      }
+    ]
+  },
+  "disposed": {
+    "models": 0,
+    "drawCalls": 39,
+    "triangles": 9856,
+    "geometries": 0,
+    "textures": 0,
+    "morphAttributeBytes": 0,
+    "time": 3.3831999999999924,
+    "paused": false,
+    "view": "three-quarter",
+    "reduced": false,
+    "counts": []
+  },
+  "errors": [],
+  "requests": []
+}

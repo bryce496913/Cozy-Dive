@@ -25,11 +25,12 @@ function sample(values: readonly number[], x: number): number {
 function color(d: FishDesign, p: THREE.Vector3): number {
   const x = p.x,
     y = p.y / d.depth;
-  if (
-    d.pattern === 'clown' &&
-    [-0.29, -0.01, 0.31].some((c) => Math.abs(x - c) < 0.04)
-  )
-    return 3;
+  if (d.pattern === 'clown') {
+    const band = Math.min(...[-0.29, -0.01, 0.31].map((c) => Math.abs(x - c)));
+    if (band < 0.04) return 3;
+    if (band < 0.052) return 2;
+    return y < -0.2 ? 1 : 0;
+  }
   if (d.pattern === 'gramma') return x < -0.02 ? 3 : 0;
   if (d.pattern === 'fire') return x < -0.08 ? 3 : y < -0.12 ? 1 : 0;
   if (d.pattern === 'cardinal') {
@@ -111,7 +112,10 @@ export function coreFishGeometry(id: SpeciesId): THREE.BufferGeometry {
   // Add stations at anatomical color boundaries rather than subdividing the whole fish densely.
   const marks =
     d.pattern === 'clown'
-      ? [-0.33, -0.25, -0.05, 0.03, 0.27, 0.35]
+      ? [
+          -0.342, -0.33, -0.25, -0.238, -0.062, -0.05, 0.03, 0.042, 0.258, 0.27,
+          0.35, 0.362,
+        ]
       : d.pattern === 'idol' || d.pattern === 'banner'
         ? [-0.2, -0.07, 0.2, 0.34]
         : d.pattern === 'cardinal'
@@ -144,10 +148,13 @@ export function coreFishGeometry(id: SpeciesId): THREE.BufferGeometry {
   const end =
     d.tail === 'round'
       ? [
-          [-0.47, fork],
-          [-0.5, fork * 0.55],
-          [-0.5, -fork * 0.55],
-          [-0.47, -fork],
+          [-0.43, fork * 0.9],
+          [-0.475, fork],
+          [-0.495, fork * 0.65],
+          [-0.5, 0],
+          [-0.495, -fork * 0.65],
+          [-0.475, -fork],
+          [-0.43, -fork * 0.9],
         ]
       : d.tail === 'truncate'
         ? [
@@ -170,9 +177,11 @@ export function coreFishGeometry(id: SpeciesId): THREE.BufferGeometry {
     paint(tail, d.palette, (p) =>
       d.pattern === 'tang' || d.pattern === 'gramma' || d.pattern === 'banner'
         ? 3
-        : Math.abs(p.y) > fork * 0.7
+        : d.pattern === 'clown' && p.x < -0.475
           ? 2
-          : 0,
+          : Math.abs(p.y) > fork * 0.7
+            ? 2
+            : 0,
     ),
   );
   let dorsal: [number, number][];
@@ -185,14 +194,34 @@ export function coreFishGeometry(id: SpeciesId): THREE.BufferGeometry {
       [0.17, h * 3.5],
       [0.23, h * 0.65],
     ];
-  else if (d.dorsal === 'banner' || d.dorsal === 'thread')
+  else if (d.dorsal === 'banner')
+    // A narrow swept streamer, not a tall solid crest. Keep the established height envelope.
     dorsal = [
       [-0.28, h * 0.3],
-      [-0.23, h * 1.25],
-      [-0.05, h * 1.5],
-      [-0.1, h * (d.dorsal === 'banner' ? 1.5 : 1.45)],
-      [0.2, h * 1.4],
-      [0.32, h * 0.6],
+      [-0.24, h * 1.08],
+      [-0.36, h * 1.3],
+      [-0.3, h * 1.22],
+      [0.1, h * 1.5],
+      [0.3, h * 0.5],
+    ];
+  else if (d.dorsal === 'thread')
+    dorsal = [
+      [-0.28, h * 0.3],
+      [-0.26, h * 1.1],
+      [-0.36, h * 1.3],
+      [-0.3, h * 1.22],
+      [-0.12, h * 1.22],
+      [0.3, h * 0.5],
+    ];
+  else if (d.pattern === 'clown')
+    dorsal = [
+      [-0.28, h * 0.3],
+      [-0.26, h * 0.95],
+      [-0.17, h * 1.18],
+      [-0.04, h * 1.2],
+      [0.1, h * 1.15],
+      [0.22, h * 0.95],
+      [0.29, h * 0.5],
     ];
   else if (d.dorsal === 'split')
     dorsal = [
@@ -239,13 +268,24 @@ export function coreFishGeometry(id: SpeciesId): THREE.BufferGeometry {
       ),
     );
   const pectoral = fin(
-    [
-      [0.18, w * 0.55],
-      [0.04, w * 1.9],
-      [-0.11, w * 2.1],
-      [-0.06, w * 0.65],
-    ],
-    [0.006, 0.003, 0.002, 0.005],
+    d.pattern === 'clown' || d.tail === 'round'
+      ? [
+          [0.18, w * 0.55],
+          [0.11, w * 1.65],
+          [0.04, w * 2],
+          [-0.04, w * 2.1],
+          [-0.1, w * 1.7],
+          [-0.06, w * 0.65],
+        ]
+      : [
+          [0.18, w * 0.55],
+          [0.04, w * 1.9],
+          [-0.11, w * 2.1],
+          [-0.06, w * 0.65],
+        ],
+    d.pattern === 'clown' || d.tail === 'round'
+      ? [0.006, 0.004, 0.003, 0.002, 0.003, 0.005]
+      : [0.006, 0.003, 0.002, 0.005],
   );
   pectoral.translate(0, -h * 0.15, 0);
   const opposite = mirrored(pectoral, 'z');
@@ -332,9 +372,18 @@ export function coreFishGeometry(id: SpeciesId): THREE.BufferGeometry {
     addPose(g, sign > 0 ? 'Stroke_Left' : 'Stroke_Right', (p, out) => {
       const progress = Math.max(0, (0.23 - p.x / d.length) / 0.73);
       out.z += sign * d.length * 0.11 * progress * progress;
-      if (p.x / d.length < 0.2 && p.x / d.length > -0.12)
-        out.y += sign * 0.12 * Math.max(0, Math.abs(p.z) - w * d.length * 0.7);
+      // The free dorsal streamer trails the torso with a small extra bend; roots stay seated.
+      if (d.dorsal === 'banner' || d.dorsal === 'thread')
+        out.z += sign * 0.035 * Math.max(0, p.y - h * d.length * 1.05);
     });
+  for (const sign of [1, -1])
+    addPose(g, sign > 0 ? 'Fin_Left' : 'Fin_Right', (p, out) => {
+      // Only the outboard pectoral web moves. Coincident root/body vertices remain identical.
+      if (p.x > -0.12 * d.length && p.x < 0.2 * d.length)
+        out.y += sign * 0.22 * Math.max(0, Math.abs(p.z) - w * d.length);
+    });
+  // Fin and tail weights may be active together; enclose their combined axis bounds.
+  g.boundingBox!.getBoundingSphere(g.boundingSphere!);
   return g;
 }
 /** The cache owns the returned resources, exactly as it owns decoded GLBs. Named compatibility

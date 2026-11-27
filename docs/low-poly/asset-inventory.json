@@ -30495,6 +30495,13 @@
       "inventory": "docs/low-poly/core-fish-inventory.json",
       "identities": 31,
       "scope": "29 swimming fish plus original seahorse and frogfish. Rare discoveries, sharks/rays, moray and invertebrates remain with their assigned passes."
+    },
+    "018": {
+      "inventory": "docs/low-poly/showcase-fish-inventory.json",
+      "identities": 29,
+      "scope": "User-approved special/showcase fish refinement supersedes the provisional small-animal assignment.",
+      "deferred": "Original census records labelled pass 018 are small animals/invertebrates awaiting a separately agreed pass; their historical labels do not claim completion.",
+      "verification": "docs/low-poly/PASS_018_VALIDATION.md"
     }
   }
 }

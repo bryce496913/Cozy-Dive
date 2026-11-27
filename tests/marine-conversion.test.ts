@@ -47,7 +47,9 @@ describe('tropical marine identity', () => {
         );
         expect(template.geometries.size).toBe(1);
         expect(template.materials.size).toBe(1);
-        expect(visual.body.geometry.morphAttributes.position).toHaveLength(2);
+        expect(
+          visual.body.geometry.morphAttributes.position!.map((p) => p.name),
+        ).toEqual(['Stroke_Left', 'Stroke_Right', 'Fin_Left', 'Fin_Right']);
         if (species.id === 'firefish-goby') {
           const fins = visual.body.geometry;
           fins.computeBoundingBox();
