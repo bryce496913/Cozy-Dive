@@ -86,7 +86,9 @@ export function crabBody(): THREE.BufferGeometry {
     v = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
   // The carapace: broad and flattened, widest at the front, its edges sharpened into a rim, and
   // its top raised in low regions (a soft cross of grooves between them).
-  const shell = new THREE.SphereGeometry(1, 32, 16),
+  // Pass 020: purposeful broad facets carry the shell silhouette; the old dense latitude grid
+  // cost more triangles than the entire walking-leg outline without adding readable anatomy.
+  const shell = new THREE.SphereGeometry(1, 16, 8),
     sp = shell.getAttribute('position');
   for (let i = 0; i < sp.count; i++) {
     const x = sp.getX(i),
@@ -113,8 +115,8 @@ export function crabBody(): THREE.BufferGeometry {
   // The pale underside plate.
   const under = new THREE.SphereGeometry(
     1,
-    16,
-    6,
+    10,
+    4,
     0,
     Math.PI * 2,
     Math.PI * 0.55,
@@ -183,7 +185,7 @@ export function crabBody(): THREE.BufferGeometry {
       spine.translate(at.x, at.y + 0.011, at.z);
       parts.push(tinted(spine, DARK));
     }
-    const palm = new THREE.SphereGeometry(1, 14, 10);
+    const palm = new THREE.SphereGeometry(1, 8, 6);
     palm.scale(0.022, 0.018, 0.034);
     palm.translate(wrist.x - side * 0.004, wrist.y + 0.002, wrist.z + 0.028);
     parts.push(mottled(tinted(palm, CLAW), 0.25));

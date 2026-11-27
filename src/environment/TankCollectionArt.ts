@@ -12,6 +12,7 @@ import { animateWreckMini } from './wreck/WreckMiniAnimation';
 import { animateKelpMini } from './kelp/KelpMiniAnimation';
 import { creatureStroke } from './creatureStroke';
 import { collectionShape } from './TankCollectionShapes';
+import { smallAnimalSeatY } from '../creatures/babies/SmallAnimalHabitat';
 import { RIBBON_WORM_COLOUR } from './ice/IceCritters';
 
 /** V0.7 Pass 078: collection animals drawn with the shared gelatinous material. */
@@ -203,11 +204,17 @@ export async function acquireCollectionArt(
       model.updateMatrixWorld(true);
       const box = new THREE.Box3().setFromObject(model),
         size = box.getSize(new THREE.Vector3()),
-        centre = box.getCenter(new THREE.Vector3());
+        centre = box.getCenter(new THREE.Vector3()),
+        scale = d.size / Math.max(size.x, size.y, size.z);
       const normalized = new THREE.Group();
       normalized.add(model);
       model.position.sub(centre);
-      normalized.scale.setScalar(d.size / Math.max(size.x, size.y, size.z));
+      // Pass 020: substrate animals are positioned by their navigation half-height. Centreing
+      // asymmetrical shells, legs and arms made some hover while others cut into sand. Seat the
+      // authored lowest point exactly at that envelope; keep pelagic/hovering animals centred.
+      const seat = smallAnimalSeatY(d, box.min.y, scale);
+      if (seat !== undefined) model.position.y = seat;
+      normalized.scale.setScalar(scale);
       model = normalized;
     }
     const levels = [near, far];
