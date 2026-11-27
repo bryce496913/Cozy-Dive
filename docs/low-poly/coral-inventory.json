@@ -1,0 +1,36 @@
+{
+  "pass": 22,
+  "canonicalLibrary": "src/environment/shared/CoralLibrary.ts",
+  "families": {
+    "branching": [
+      "aquarium hardscape",
+      "tank reef",
+      "outer reef",
+      "wreck black coral"
+    ],
+    "massive": ["aquarium boulder coral", "tank reef", "outer reef"],
+    "brain": ["aquarium brain coral", "tank reef", "outer reef"],
+    "plate": [
+      "aquarium plate coral",
+      "tank reef",
+      "outer reef",
+      "wreck shelves"
+    ],
+    "fan": ["aquarium sea fan", "outer reef", "wreck sea fan"],
+    "soft": [
+      "aquarium finger leather",
+      "outer reef",
+      "Antarctic garden",
+      "collection preview"
+    ]
+  },
+  "preservedContracts": [
+    "stable discovery and catalog ids",
+    "hard-coral placement and collision anchors",
+    "fish habitat interests and shelter positions",
+    "soft-coral plantMotion shader attributes",
+    "outer-reef deterministic placement and distance tiers",
+    "wreck and Antarctic instancing"
+  ],
+  "preservedException": "Wreck soft coral retains its established continuous-tube envelope because rare-miniature seats and reachable observation paths are coupled to it."
+}

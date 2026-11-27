@@ -1,10 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import {
-  encrustingSponge,
-  foliosePlate,
-  vaseSponge,
-} from '../shared/GrowthForms';
+import { encrustingSponge, vaseSponge } from '../shared/GrowthForms';
+import { coralGeometry } from '../shared/CoralLibrary';
 
 /**
  * Playtest (higher-quality coral on the wreck): the growth that covers it, as on the SS Yongala,
@@ -164,6 +161,8 @@ function curve(
  * see-through and lacy, not a solid sheet.
  */
 export function seaFan(seed = 3): THREE.BufferGeometry {
+  return coralGeometry({ family: 'fan', seed });
+  /* Historical implementation retained temporarily for migration comparison. */
   const rand = random(seed),
     parts: THREE.BufferGeometry[] = [],
     levels: { p: THREE.Vector3; a: number }[][] = [];
@@ -280,6 +279,10 @@ export function softCoral(seed = 5): THREE.BufferGeometry {
 
 /** A black coral tree: a slender curving stem with feathery side branchlets all the way up. */
 export function blackCoral(seed = 7): THREE.BufferGeometry {
+  const geometry = coralGeometry({ family: 'branching', seed, detail: 0 });
+  geometry.scale(0.55, 1.15, 0.55);
+  return geometry;
+  /* Historical implementation retained temporarily for migration comparison. */
   const rand = random(seed),
     parts: THREE.BufferGeometry[] = [];
   const stem = curve(
@@ -408,15 +411,7 @@ export function encrustingMat(): THREE.BufferGeometry {
  * discs, a mirrored underside and a cylinder foot).
  */
 export function plateCoral(): THREE.BufferGeometry {
-  return foliosePlate({
-    seed: 9203,
-    laminae: 7,
-    reach: 0.5,
-    rise: 0.08,
-    thickness: 0.055,
-    cup: 0.08,
-    base: 0.16,
-  });
+  return coralGeometry({ family: 'plate', seed: 9203 });
 }
 
 /** A feather star: ten curling, feathery arms from a small central disc. */

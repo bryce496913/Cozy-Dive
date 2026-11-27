@@ -7,6 +7,7 @@ import type { Vec3 } from '../../config/world';
 import { anemoneColumn, anemoneCrown } from '../kelp/KelpDressing';
 import { seaStarShape } from '../kelp/KelpShapes';
 import { iceFloor } from './IceTerrain';
+import { coralGeometry } from '../shared/CoralLibrary';
 
 /**
  * v0.6 Pass 046: the pale garden on the seabed under the ice, built in code: vase- and barrel-
@@ -74,6 +75,8 @@ export function spongeGeometry(): THREE.BufferGeometry {
 }
 /** A soft coral: a short trunk branching into lobes tipped with polyps (unit height). */
 export function softCoralGeometry(): THREE.BufferGeometry {
+  return coralGeometry({ family: 'soft', seed: 46211 });
+  /* Historical implementation retained temporarily for migration comparison. */
   const rand = random(46211),
     parts: THREE.BufferGeometry[] = [];
   // V0.7 Pass 069: a continuous fleshy colony: a flaring trunk dividing into curving branches that

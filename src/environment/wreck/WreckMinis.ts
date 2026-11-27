@@ -206,8 +206,17 @@ export function wreckMiniHomes(
             );
             if (!hit || hit.object.name !== 'Wreck decks') continue;
             at = hit.point.clone().addScaledVector(up, 0.012);
-            if (Math.abs(at.clone().applyMatrix4(inverse).x) > SHIP.half - 0.65)
-              continue;
+            const shipAt = at.clone().applyMatrix4(inverse);
+            if (Math.abs(shipAt.x) > SHIP.half - 0.65) continue;
+            if (
+              kind === 'crab' &&
+              Math.abs(shipAt.x) < SHIP.hatch.half + 0.45
+            ) {
+              shipAt.x =
+                Math.sign(shipAt.x || c.local.x || 1) *
+                (SHIP.hatch.half + 0.46);
+              at.copy(shipAt.applyMatrix4(SHIP_POSE));
+            }
             q = shipRotation.clone();
             const envelope = new THREE.Box3().setFromCenterAndSize(
               at
@@ -221,7 +230,11 @@ export function wreckMiniHomes(
                 ),
               new THREE.Vector3(kind === 'greenling' ? 0.46 : 0.28, 0.22, 0.34),
             );
-            if (boxes.some((b) => b.box.intersectsBox(envelope))) continue;
+            if (
+              kind !== 'crab' &&
+              boxes.some((b) => b.box.intersectsBox(envelope))
+            )
+              continue;
           }
           if (
             reserved.some(

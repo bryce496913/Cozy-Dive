@@ -33,6 +33,7 @@ import {
   type HabitatPlant,
   type ReefPresentation,
 } from './ReefHabitat';
+import { coralGeometry, coralMotion } from './shared/CoralLibrary';
 
 /** Library node prefixes for each procedural plant species template family. */
 export const PLANT_TEMPLATE_NODES: Readonly<
@@ -427,30 +428,28 @@ export class AuthoredReef {
       const group = new THREE.Group();
       group.name = `Authored coral ${name}`;
       group.position.copy(formation.position);
-      for (const suffix of ['', '_Tips']) {
-        const node = this.lease!.model.getObjectByName(name + suffix);
-        if (!(node instanceof THREE.Mesh)) continue;
-        const material =
+      const node = this.part(name),
+        family =
+          formation.kind === 'rounded'
+            ? variant === 0
+              ? 'brain'
+              : 'massive'
+            : formation.kind,
+        material =
           formation.kind === 'rounded'
             ? variant < 2
               ? massive
               : boulder
-            : node.material;
-        const mesh = new THREE.Mesh(node.geometry, material);
-        mesh.name = node.name;
-        // Pass 015 hero colonies carry a cheaper distance level where authored.
-        const far = this.lease!.model.getObjectByName(`${name + suffix}_LOD1`);
-        if (far instanceof THREE.Mesh) {
-          const lod = new THREE.LOD();
-          lod.name = `${node.name} levels`;
-          lod.addLevel(mesh, 0);
-          lod.addLevel(
-            new THREE.Mesh(far.geometry, material),
-            REEF_LAYOUT.coralLodDistance,
-          );
-          group.add(lod);
-        } else group.add(mesh);
-      }
+            : node.material,
+        near = this.own(coralGeometry({ family, seed: 2200 + variant * 71 })),
+        far = this.own(
+          coralGeometry({ family, seed: 2200 + variant * 71, detail: 0 }),
+        ),
+        lod = new THREE.LOD();
+      lod.name = `${name} Pass 022 levels`;
+      lod.addLevel(new THREE.Mesh(near, material), 0);
+      lod.addLevel(new THREE.Mesh(far, material), REEF_LAYOUT.coralLodDistance);
+      group.add(lod);
       if (!group.children.length) throw Error(`Missing reef coral ${name}`);
       this.root.add(group);
       this.hidden.push(formation.mesh);
@@ -502,15 +501,29 @@ export class AuthoredReef {
         : `${PLANT_TEMPLATE_NODES[batch.species.id]}_${batch.template}`;
       let geometry = templates.get(node);
       if (!geometry) {
-        const source = organic
-          ? this.habitatNode(node).geometry
-          : this.part(node).geometry;
-        geometry = this.own(
-          authoredPlantGeometry(
-            source,
-            organic ? REEF_HABITAT.plantMotion[organic] : batch.species,
-          ),
-        );
+        if (batch.species.category === 'coral') {
+          geometry = this.own(
+            coralMotion(
+              coralGeometry({
+                family: batch.species.id === 'sea-fan' ? 'fan' : 'soft',
+                seed: 2260 + batch.template * 43,
+              }),
+              batch.species.sway,
+              batch.species.frequency,
+              batch.template * 1.7,
+            ),
+          );
+        } else {
+          const source = organic
+            ? this.habitatNode(node).geometry
+            : this.part(node).geometry;
+          geometry = this.own(
+            authoredPlantGeometry(
+              source,
+              organic ? REEF_HABITAT.plantMotion[organic] : batch.species,
+            ),
+          );
+        }
         templates.set(node, geometry);
       }
       this.swap(
