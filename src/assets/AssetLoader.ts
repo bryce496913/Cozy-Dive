@@ -1,6 +1,8 @@
 import { rebuildAnchoredFish } from '../fish/lowPoly/anchored';
 import { CORE_FISH, CORE_FISH_IDS } from '../fish/lowPoly/designs';
 import { coreFishAsset } from '../fish/lowPoly/model';
+import { LARGE_CREATURE_IDS } from '../creatures/lowPoly/designs';
+import { largeCreatureAsset } from '../creatures/lowPoly/model';
 import * as THREE from 'three';
 import { versioned } from '../config/release';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -91,6 +93,15 @@ export class AssetLoader {
       const spec = ASSET_REGISTRY[CORE_FISH[species].asset];
       return Promise.resolve(
         coreFishAsset(species, spec.requiredNodes[0], spec.requiredNodes),
+      );
+    }
+    const creature = LARGE_CREATURE_IDS.find((id) =>
+      url.endsWith(ASSET_REGISTRY[id].path),
+    );
+    if (creature) {
+      const spec = ASSET_REGISTRY[creature];
+      return Promise.resolve(
+        largeCreatureAsset(creature, spec.requiredNodes[0], spec.requiredNodes),
       );
     }
     const manager = new THREE.LoadingManager();
