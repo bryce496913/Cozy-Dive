@@ -43,3 +43,6 @@ Every replacement must preserve species/sighting/save IDs, wild/card/tank canoni
 The described swimming penguin, whale, seal and manta references were not attached. Their written characteristics guide this document; exact visual matching remains pending reference review.
 
 See [inventory and baseline status](low-poly/BASELINE.md).
+
+Pass 019's current roster, canonical ownership decisions and validation are recorded in
+[the large-creature migration report](low-poly/PASS_019_VALIDATION.md).

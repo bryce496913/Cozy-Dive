@@ -21,6 +21,7 @@ const VIEWS = process.env.COZY_VIEWS
 const water = process.env.COZY_WATER || 'tank';
 fs.mkdirSync(output, { recursive: true });
 const browser = await chromium.launch({
+  executablePath: process.env.COZY_CHROMIUM,
   args: [
     '--no-sandbox',
     '--enable-unsafe-swiftshader',
