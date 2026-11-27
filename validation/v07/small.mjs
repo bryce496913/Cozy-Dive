@@ -16,6 +16,7 @@ if (process.env.COZY_SET) params.set('set', process.env.COZY_SET);
 const only = params.size ? `?${params}` : '';
 fs.mkdirSync(output, { recursive: true });
 const browser = await chromium.launch({
+  executablePath: process.env.COZY_CHROMIUM,
   args: [
     '--no-sandbox',
     '--enable-unsafe-swiftshader',
