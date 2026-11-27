@@ -179,11 +179,11 @@ export class IceLife {
       }, 'Weddell seal'),
       this.part(async () => {
         await this.solo(
-          'harbourSeal',
+          'weddellSealPup',
           this.pup.pose,
           'Weddell seal pup',
           PUP_LOOK.scale,
-          PUP_LOOK.tint,
+          undefined,
         );
         this.sightings.push({
           ...ICE_SIGHTS.weddellPup,

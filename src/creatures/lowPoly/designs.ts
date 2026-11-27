@@ -22,7 +22,14 @@ export interface LargeCreatureDesign {
   readonly appendage: number;
   readonly palette: readonly [string, string, string, string];
   readonly markings:
-    'counter' | 'tips' | 'spots' | 'saddles' | 'orca' | 'penguin' | 'mottled';
+    | 'counter'
+    | 'blacktips'
+    | 'tips'
+    | 'spots'
+    | 'saddles'
+    | 'orca'
+    | 'penguin'
+    | 'mottled';
 }
 
 /** Pass 019's semantic inventory. Each entry is an independent body plan even where animals
@@ -37,7 +44,7 @@ export const LARGE_CREATURES = {
     tail: 0.26,
     appendage: 0.22,
     palette: ['#647d82', '#b9c6bd', '#30484e', '#d7d8c8'],
-    markings: 'counter',
+    markings: 'blacktips',
   },
   whitetipShark: {
     family: 'shark',
@@ -70,6 +77,17 @@ export const LARGE_CREATURES = {
     tail: 0.28,
     appendage: 0.25,
     palette: ['#6e8582', '#c6c8b8', '#314b4a', '#d9d7c4'],
+    markings: 'counter',
+  },
+  scallopedHammerhead: {
+    family: 'shark',
+    target: 3.05,
+    depth: 0.14,
+    width: 0.13,
+    snout: 0.23,
+    tail: 0.27,
+    appendage: 0.2,
+    palette: ['#718783', '#c5c8b9', '#344c4a', '#d9d7c4'],
     markings: 'counter',
   },
   leopardShark: {
@@ -115,6 +133,17 @@ export const LARGE_CREATURES = {
     appendage: 0.46,
     palette: ['#536b70', '#d3c9ad', '#243d47', '#e5dbbd'],
     markings: 'spots',
+  },
+  batRay: {
+    family: 'ray',
+    target: 3.7,
+    depth: 0.09,
+    width: 0.42,
+    snout: 0.06,
+    tail: 0.46,
+    appendage: 0.43,
+    palette: ['#413f3b', '#b8ab91', '#252a29', '#d2c3a1'],
+    markings: 'mottled',
   },
   mantaRay: {
     family: 'ray',
@@ -213,6 +242,17 @@ export const LARGE_CREATURES = {
     tail: 0.12,
     appendage: 0.17,
     palette: ['#77766f', '#b9b4a5', '#3e4748', '#d5cdb8'],
+    markings: 'mottled',
+  },
+  weddellSealPup: {
+    family: 'pinniped',
+    target: 1.45,
+    depth: 0.3,
+    width: 0.27,
+    snout: 0.06,
+    tail: 0.1,
+    appendage: 0.15,
+    palette: ['#9ba3a6', '#d4d0c3', '#596567', '#eee6d1'],
     markings: 'mottled',
   },
   leopardSeal: {

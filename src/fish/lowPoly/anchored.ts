@@ -180,13 +180,16 @@ export function anchoredFishGeometry(
   if (name === 'HorseBody' || name === 'FrogBody') {
     const parts = [g];
     for (const sign of [-1, 1]) {
-      const eye = sheet([
-        [-0.018, 0],
-        [0, -0.018],
-        [0.018, 0],
-        [0, 0.018],
-      ]);
-      eye.rotateZ(Math.PI / 2);
+      // Closed faceted eye beads remain readable from the side and cannot disappear through
+      // back-face culling like the old paper-thin diamond patches.
+      const eye = profileBody(
+        [
+          { x: -0.014, width: 0.004, height: 0.004 },
+          { x: 0, width: 0.018, height: 0.018 },
+          { x: 0.014, width: 0.004, height: 0.004 },
+        ],
+        6,
+      );
       eye.translate(
         sign * (horse ? 0.071 : 0.243),
         horse ? 1.033 : 0.415,
