@@ -56,10 +56,9 @@ function part(
   const n = out.getAttribute('position').count,
     c = new Float32Array(n * 3);
   for (let i = 0; i < n; i++) {
-    const speck = 0.9 + 0.1 * Math.sin(i * 12.9898);
-    c[i * 3] = r * speck;
-    c[i * 3 + 1] = gr * speck;
-    c[i * 3 + 2] = b * speck;
+    c[i * 3] = r;
+    c[i * 3 + 1] = gr;
+    c[i * 3 + 2] = b;
   }
   out.setAttribute('color', new THREE.Float32BufferAttribute(c, 3));
   return out;
